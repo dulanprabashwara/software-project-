@@ -27,7 +27,7 @@ export default function Header({ onToggleSidebar }) {
 
           {/* Logo */}
           <h1
-            className="text-2xl font-bold italic"
+            className="text-2xl font-bold"
             style={{ fontFamily: "Georgia, serif" }}
           >
             <span className="text-[#1ABC9C]">Easy </span>

@@ -7,7 +7,6 @@ A Medium-like blogging platform with an extra AI-assisted writing feature for pr
 - Framework: Next.js (App Router)
 - Language: TypeScript
 - Styling: Tailwind CSS (to be added later)
-- UI: Will be built from provided Figma screenshots
 - Note: This repository currently contains structure and placeholders only. No UI, logic, or styling has been implemented.
 
 ## Folder Structure
