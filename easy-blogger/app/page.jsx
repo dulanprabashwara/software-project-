@@ -54,7 +54,7 @@ export default function LandingPage() {
           {/* Left Content */}
           <div className="flex-1 py-12 md:py-0 flex flex-col justify-center pr-12">
             <h2
-              className="text-6xl md:text-7xl lg:text-8xl font-serif leading-tight tracking-tight text-[#111827]"
+              className="text-6xl md:text-7xl lg:text-8xl font-serif leading-tight tracking-tight text-[#111827] animate-fade-in-up"
               style={{ fontFamily: "Georgia, serif" }}
             >
               Human
@@ -62,12 +62,12 @@ export default function LandingPage() {
               stories &<br />
               ideas
             </h2>
-            <p className="mt-8 text-lg md:text-xl text-[#374151] max-w-md">
+            <p className="mt-8 text-lg md:text-xl text-[#374151] max-w-md animate-fade-in-up animation-delay-200">
               A place to read, write, and deepen your understanding
             </p>
             <a
-              href="/home"
-              className="inline-block mt-8 mb-16 px-6 py-3 bg-[#111827] text-white text-base rounded-full hover:bg-[#1f2937] transition-colors w-fit"
+              href="/login"
+              className="inline-block mt-8 mb-16 px-6 py-3 bg-[#111827] text-white text-base rounded-full hover:bg-[#1f2937] hover:scale-105 transition-all duration-300 w-fit animate-fade-in-up animation-delay-400"
             >
               Start reading
             </a>
@@ -81,7 +81,7 @@ export default function LandingPage() {
             <div className="relative w-full h-[500px]">
               {/* Circle outline with diagonal line - centered left area */}
               <svg
-                className="absolute top-24 left-8 w-48 h-48"
+                className="absolute top-24 left-8 w-48 h-48 animate-spin-slow"
                 viewBox="0 0 192 192"
               >
                 <circle
@@ -104,20 +104,20 @@ export default function LandingPage() {
 
               {/* Light blue parallelogram/triangle shape */}
               <svg
-                className="absolute top-32 left-20 w-80 h-72 z-0"
+                className="absolute top-32 left-20 w-80 h-72 z-0 animate-float"
                 viewBox="0 0 320 288"
               >
                 <polygon points="60,0 320,120 260,288 0,168" fill="#DBEAFE" />
               </svg>
 
-              {/* Large teal circle - top right */}
-              <div className="absolute top-0 right-0 w-52 h-52 rounded-full bg-[#1ABC9C] z-20"></div>
+              {/* Large teal circle - top right with bounce animation */}
+              <div className="absolute top-8 right-0 w-52 h-52 rounded-full bg-[#1ABC9C] z-20 animate-bounce"></div>
 
               {/* Blue rectangle - right side */}
-              <div className="absolute top-40 -right-12 w-64 h-52 bg-[#3B82F6] z-30"></div>
+              <div className="absolute top-48 -right-12 w-64 h-44 bg-[#3B82F6] z-30 hover:scale-105 transition-transform duration-300"></div>
 
               {/* Teal rectangle at bottom right - extends to edge */}
-              <div className="absolute bottom-0 -right-12 w-72 h-64 bg-[#1ABC9C] z-30"></div>
+              <div className="absolute bottom-0 -right-12 w-72 h-64 bg-[#1ABC9C] z-30 animate-pulse-slow"></div>
 
               {/* Wave/curve shape inside blue rectangle */}
               <svg
@@ -131,7 +131,7 @@ export default function LandingPage() {
               </svg>
 
               {/* Small light blue rectangle inside teal at bottom */}
-              <div className="absolute bottom-16 right-8 w-28 h-24 bg-[#60A5FA] z-50"></div>
+              <div className="absolute bottom-16 right-8 w-28 h-24 bg-[#60A5FA] z-50 animate-float-delayed"></div>
             </div>
           </div>
         </div>

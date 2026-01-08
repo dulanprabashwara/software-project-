@@ -204,22 +204,31 @@ export default function HomePage() {
       <Header onToggleSidebar={toggleSidebar} />
       <Sidebar isOpen={sidebarOpen} />
 
-      {/* Main content area - offset for fixed header and sidebar */}
-      <main
-        className={`pt-16 bg-white h-screen overflow-hidden transition-all duration-300 ease-in-out ${
-          sidebarOpen ? "ml-60" : "ml-0"
-        }`}
-      >
-        <div className="flex h-full max-w-[1140px]">
+      {/* Main content area - offset for fixed header */}
+      <main className="pt-16 bg-white h-screen overflow-hidden">
+        <div className="flex h-full w-full">
+          {/* Spacer for left sidebar when open */}
+          <div
+            className={`flex-shrink-0 transition-all duration-300 ease-in-out ${
+              sidebarOpen ? "w-60" : "w-0"
+            }`}
+          ></div>
+
           {/* Center: Article Feed - scrolls independently */}
-          <div className="flex-1 px-8 py-8 border-r border-[#E5E7EB] overflow-y-auto h-[calc(100vh-64px)] scrollbar-hide">
-            {articles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
+          <div className="flex-1 px-8 py-8 border-r border-[#E5E7EB] overflow-y-auto h-[calc(100vh-64px)] scrollbar-hide flex justify-center">
+            <div
+              className={`w-full transition-all duration-300 ease-in-out ${
+                sidebarOpen ? "max-w-[700px]" : "max-w-[850px]"
+              }`}
+            >
+              {articles.map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </div>
           </div>
 
-          {/* Right Sidebar - 300px, scrolls independently */}
-          <aside className="w-[300px] flex-shrink-0 bg-white px-6 py-8 overflow-y-auto h-[calc(100vh-64px)] scrollbar-hide">
+          {/* Right Sidebar - 300px, fixed to right, scrolls independently */}
+          <aside className="w-[300px] flex-shrink-0 bg-white px-6 py-8 overflow-y-auto h-[calc(100vh-64px)] scrollbar-hide hidden lg:block">
             <div className="space-y-8">
               {/* Trending Articles */}
               <section>
