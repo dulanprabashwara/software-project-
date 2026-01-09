@@ -10,11 +10,6 @@
  * - Article cards with thumbnail, title, excerpt
  * - Author info and date
  * - Manage your own articles
-<<<<<<< HEAD
- *
- * This page displays all three sections with tab switching
-=======
->>>>>>> main
  */
 
 "use client";
@@ -29,12 +24,7 @@ const unpublishedArticles = [
     date: "Dec 12, 2025",
     title: "Why Green is the best colour",
     excerpt:
-<<<<<<< HEAD
-      "We all have a favourite colour that we love. While there are certainly a plethora of colours and a plethora of reasons to choose one, I'm going to to prove to you definitively why green is the right answer. May it be right or wrong. You'll certainly",
-    thumbnail: "/placeholder-green.jpg",
-=======
       "We all have a favourite colour that we love. While there are certainly a plethora of colours and a plethora of reasons to choose one, I'm going to to prove to you definitively why green is the right answer.",
->>>>>>> main
   },
   {
     id: 2,
@@ -43,22 +33,13 @@ const unpublishedArticles = [
     title: "<<Title for a fashion article>>",
     excerpt:
       "The best season of all is fashion week. [10 looks]. [Inspired by spring]. (High cature meets functionality?)",
-<<<<<<< HEAD
-    thumbnail: "/placeholder-fashion.jpg",
-=======
->>>>>>> main
   },
   {
     id: 3,
     author: "Emma Richardson",
     date: "Aug 3, 2025",
     title: "Test Draft......",
-<<<<<<< HEAD
-    excerpt: "nsjsnsjsisls\ngnialnisk\nankicsmkcsmknakskmsksck",
-    thumbnail: "/placeholder-draft.jpg",
-=======
     excerpt: "nsjsnsjsisls gnialnisk ankicsmkcsmknakskmsksck",
->>>>>>> main
   },
 ];
 
@@ -68,22 +49,7 @@ const publishedArticles = [
     author: "Emma Richardson",
     date: "Nov 15, 2025",
     title: "The Art of Minimalist Design",
-<<<<<<< HEAD
-    excerpt:
-      "Discover how less can truly be more in modern design principles. From architecture to digital interfaces, minimalism continues to shape our visual world.",
-    thumbnail: "/placeholder-design.jpg",
-  },
-  {
-    id: 2,
-    author: "Emma Richardson",
-    date: "Oct 28, 2025",
-    title: "Understanding Modern Typography",
-    excerpt:
-      "A deep dive into the world of fonts, typefaces, and how typography influences user experience and brand perception.",
-    thumbnail: "/placeholder-typo.jpg",
-=======
     excerpt: "Discover how less can truly be more in modern design principles.",
->>>>>>> main
   },
 ];
 
@@ -93,13 +59,7 @@ const scheduledArticles = [
     author: "Emma Richardson",
     date: "Jan 15, 2026",
     title: "New Year, New Design Trends",
-<<<<<<< HEAD
-    excerpt:
-      "Explore the upcoming design trends that will dominate 2026. From AI-generated art to sustainable design practices.",
-    thumbnail: "/placeholder-trends.jpg",
-=======
     excerpt: "Explore the upcoming design trends that will dominate 2026.",
->>>>>>> main
     scheduledFor: "Jan 15, 2026 at 9:00 AM",
   },
 ];
@@ -120,10 +80,6 @@ export default function StoriesPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-<<<<<<< HEAD
-      {/* Main Content Area */}
-=======
->>>>>>> main
       <div className="max-w-3xl mx-auto px-6 py-8">
         {/* Tab Navigation */}
         <div className="flex gap-12 mb-8 border-b border-gray-200">
@@ -197,11 +153,7 @@ export default function StoriesPage() {
                   {article.excerpt}
                 </p>
 
-<<<<<<< HEAD
-                {/* Scheduled Info (if applicable) */}
-=======
                 {/* Scheduled Info */}
->>>>>>> main
                 {article.scheduledFor && (
                   <div className="flex items-center gap-2 text-sm text-[#1ABC9C]">
                     <svg
@@ -224,13 +176,7 @@ export default function StoriesPage() {
 
               {/* Thumbnail */}
               <div className="flex-shrink-0">
-<<<<<<< HEAD
-                <div className="w-32 h-24 bg-gray-200 rounded-lg overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-[#D1FAE5] to-[#A7F3D0]"></div>
-                </div>
-=======
                 <div className="w-32 h-24 bg-gradient-to-br from-[#D1FAE5] to-[#A7F3D0] rounded-lg"></div>
->>>>>>> main
               </div>
             </article>
           ))}
@@ -242,22 +188,6 @@ export default function StoriesPage() {
             <p className="text-gray-400">No articles found in this section.</p>
           </div>
         )}
-<<<<<<< HEAD
-
-        {/* Tab Content Description */}
-        <div className="mt-8 text-center text-gray-400 text-sm">
-          {activeTab === "unpublished" && (
-            <p>Your draft articles that haven't been published yet</p>
-          )}
-          {activeTab === "published" && (
-            <p>Articles that are live and visible to readers</p>
-          )}
-          {activeTab === "scheduled" && (
-            <p>Articles scheduled to be published at a future date</p>
-          )}
-        </div>
-=======
->>>>>>> main
       </div>
     </div>
   );

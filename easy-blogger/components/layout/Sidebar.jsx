@@ -1,15 +1,29 @@
 // Left sidebar component for navigation and recommendations
-export default function Sidebar({ isOpen }) {
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+export default function Sidebar({ isOpen = true }) {
+  const pathname = usePathname();
+
   const navItems = [
-    { icon: "home", label: "Home", active: true },
-    { icon: "library", label: "Library" },
-    { icon: "profile", label: "Profile" },
-    { icon: "stories", label: "Stories" },
-    { icon: "stats", label: "Stats" },
-    { icon: "ai", label: "AI Generate" },
-    { icon: "following", label: "Following" },
-    { icon: "membership", label: "Membership" },
+    { icon: "home", label: "Home", href: "/home" },
+    { icon: "library", label: "Library", href: "/library" },
+    { icon: "profile", label: "Profile", href: "/profile" },
+    { icon: "stories", label: "Stories", href: "/stories" },
+    { icon: "stats", label: "Stats", href: "/stats" },
+    { icon: "ai", label: "AI Generate", href: "/ai-generate" },
+    { icon: "following", label: "Following", href: "/following" },
+    { icon: "membership", label: "Membership", href: "/subscription/upgrade" },
   ];
+
+  const isActive = (href) => {
+    if (href === "/home") {
+      return pathname === "/home";
+    }
+    return pathname.startsWith(href);
+  };
 
   const getIcon = (type) => {
     switch (type) {
@@ -149,24 +163,25 @@ export default function Sidebar({ isOpen }) {
 
   return (
     <aside
-      className={`fixed left-0 top-16 bottom-0 w-60 bg-white border-r border-[#E5E7EB] overflow-y-auto flex flex-col transition-transform duration-300 ease-in-out ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
+      className={`fixed left-0 top-16 bottom-0 w-60 bg-white border-r border-[#E5E7EB] overflow-y-auto flex flex-col z-40 transition-transform duration-300 ease-in-out ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
       <nav className="py-6 px-4 flex-1">
         <ul className="space-y-1">
           {navItems.map((item) => (
             <li key={item.label}>
-              <button
+              <Link
+                href={item.href}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
-                  item.active
+                  isActive(item.href)
                     ? "bg-[#E8F8F5] text-[#1ABC9C]"
                     : "text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]"
                 }`}
               >
                 {getIcon(item.icon)}
                 <span>{item.label}</span>
-              </button>
+              </Link>
             </li>
           ))}
         </ul>
@@ -174,7 +189,7 @@ export default function Sidebar({ isOpen }) {
 
       {/* Write Section */}
       <div className="px-4 pb-6">
-        <button className="w-full flex items-center gap-3 px-4 py-3 text-[#6B7280] hover:text-[#111827] transition-colors">
+        <Link href="/write/start" className="w-full flex items-center gap-3 px-4 py-3 text-[#6B7280] hover:text-[#111827] transition-colors">
           <div className="w-8 h-8 rounded-full bg-[#1ABC9C] flex items-center justify-center">
             <svg
               className="w-4 h-4 text-white"
@@ -188,7 +203,7 @@ export default function Sidebar({ isOpen }) {
             </svg>
           </div>
           <span className="text-sm font-medium">Write</span>
-        </button>
+        </Link>
       </div>
     </aside>
   );
