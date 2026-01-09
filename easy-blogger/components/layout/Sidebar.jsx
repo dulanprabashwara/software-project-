@@ -175,9 +175,9 @@ export default function Sidebar({ isOpen }) {
       {/* Write Section */}
       <div className="px-4 pb-6">
         <button className="w-full flex items-center gap-3 px-4 py-3 text-[#6B7280] hover:text-[#111827] transition-colors">
-          <div className="w-8 h-8 rounded-full bg-[#1ABC9C] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-[#1ABC9C] flex items-center justify-center">
             <svg
-              className="w-4 h-4 text-white"
+              className="w-5 h-5 text-white"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
