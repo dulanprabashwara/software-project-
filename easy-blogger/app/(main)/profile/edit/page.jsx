@@ -1,6 +1,6 @@
 /**
  * Edit Profile Page
- * 
+ *
  * Purpose: Allows user to update their profile information
  * Features:
  * - Update profile picture

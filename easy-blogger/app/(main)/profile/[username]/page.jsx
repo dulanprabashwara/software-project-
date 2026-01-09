@@ -1,6 +1,6 @@
 /**
  * Public User Profile Page (Dynamic Route)
- * 
+ *
  * Purpose: Public view of any user's profile by username
  * Route: /profile/[username]
  * Features:

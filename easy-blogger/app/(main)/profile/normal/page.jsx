@@ -1,6 +1,6 @@
 /**
  * Normal User Profile Page
- * 
+ *
  * Purpose: Profile view for non-premium (free) users
  * Features:
  * - Display user avatar and name

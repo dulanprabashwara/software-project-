@@ -1,6 +1,6 @@
 /**
  * Premium Member Profile Page
- * 
+ *
  * Purpose: Profile view for premium/verified users
  * Features:
  * - Display user avatar and name with verified badge
@@ -17,7 +17,9 @@ export default function PremiumProfilePage() {
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
         <h1 className="text-2xl font-bold mb-4">Premium Member Profile</h1>
-        <p className="text-gray-500">Profile view with verified badge and premium features.</p>
+        <p className="text-gray-500">
+          Profile view with verified badge and premium features.
+        </p>
       </div>
     </div>
   );

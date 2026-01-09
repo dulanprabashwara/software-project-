@@ -1,9 +1,9 @@
 /**
  * Write Start Page
- * 
+ *
  * Purpose: Entry point before writing an article
  * Flow: This is the first page shown when user clicks "Write"
- * 
+ *
  * Options available:
  * 1. Create New Article → navigates to /write/choose-method
  * 2. Select from Unpublished Articles → shows list of drafts
