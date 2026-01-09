@@ -3,6 +3,7 @@
  *
  * Route: /stories/scheduled
  *
+<<<<<<< HEAD
  * Purpose: Shows all articles scheduled to be published at a future date
  *
  * Features:
@@ -13,6 +14,9 @@
  * - Edit article option
  * - Publish now option
  * - Article preview with title, excerpt, scheduled date
+=======
+ * Purpose: Shows all articles scheduled for future publication
+>>>>>>> main
  */
 
 export default function ScheduledStoriesPage() {
