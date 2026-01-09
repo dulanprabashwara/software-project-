@@ -3,7 +3,19 @@
  *
  * Route: /stories/published
  *
+<<<<<<< HEAD
+ * Purpose: Shows all articles that are currently live and visible to readers
+ *
+ * Features:
+ * - List of published articles
+ * - View stats (reads, likes, comments)
+ * - Edit article option
+ * - Unpublish option
+ * - Share article option
+ * - Article preview with title, excerpt, publish date
+=======
  * Purpose: Shows all articles that are currently live
+>>>>>>> main
  */
 
 export default function PublishedStoriesPage() {

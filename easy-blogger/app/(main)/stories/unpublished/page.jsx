@@ -4,6 +4,16 @@
  * Route: /stories/unpublished
  *
  * Purpose: Shows all draft articles that haven't been published yet
+<<<<<<< HEAD
+ *
+ * Features:
+ * - List of draft articles
+ * - Edit draft option
+ * - Delete draft option
+ * - Publish draft option
+ * - Article preview with title, excerpt, last edited date
+=======
+>>>>>>> main
  */
 
 export default function UnpublishedStoriesPage() {
