@@ -29,6 +29,13 @@ import {
   X,
 } from "lucide-react";
 
+/**
+ * Create New Article Page
+ *
+ * Purpose: Full-featured article editor for creating new articles
+ * Features: Rich text editing, cover image upload, auto-save, formatting toolbar
+ */
+
 export default function CreateArticlePage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -53,9 +60,11 @@ export default function CreateArticlePage() {
     const saveTimer = setTimeout(() => {
       if (title || content) {
         setIsSaving(true);
+        // Simulate saving to backend
         setTimeout(() => {
           setIsSaving(false);
           setLastSaved(new Date());
+          // Save to localStorage as draft
           localStorage.setItem(
             "draft_article",
             JSON.stringify({
@@ -131,10 +140,7 @@ export default function CreateArticlePage() {
     const end = textarea.selectionEnd;
     const selectedText = content.substring(start, end);
 
-    if (!selectedText) {
-      alert("Please select some text first");
-      return;
-    }
+    if (!selectedText) return;
 
     let formattedText = selectedText;
 
@@ -146,117 +152,12 @@ export default function CreateArticlePage() {
         formattedText = `*${selectedText}*`;
         break;
       case "underline":
-        formattedText = `<u>${selectedText}</u>`;
+        formattedText = `__${selectedText}__`;
         break;
       case "link":
         const url = prompt("Enter URL:");
-        if (!url) return;
-        formattedText = `[${selectedText}](${url})`;
+        if (url) formattedText = `[${selectedText}](${url})`;
         break;
-      case "color":
-        const color = prompt("Enter color (e.g., red, #FF0000):");
-        if (!color) return;
-        formattedText = `<span style="color: ${color}">${selectedText}</span>`;
-        break;
-    }
-
-    const newContent =
-      content.substring(0, start) + formattedText + content.substring(end);
-    setContent(newContent);
-
-    // Update history
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push({ title, content: newContent });
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-
-    // Restore cursor position
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(
-        start + formattedText.length,
-        start + formattedText.length
-      );
-    }, 0);
-  };
-
-  const applyListFormatting = (listType) => {
-    if (!contentRef.current) return;
-
-    const textarea = contentRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-
-    if (!selectedText) {
-      alert("Please select some text first");
-      return;
-    }
-
-    const lines = selectedText.split("\n");
-    let formattedLines;
-
-    switch (listType) {
-      case "bullet":
-        formattedLines = lines.map((line) =>
-          line.trim() ? `- ${line.trim()}` : line
-        );
-        break;
-      case "numbered":
-        formattedLines = lines.map((line, index) =>
-          line.trim() ? `${index + 1}. ${line.trim()}` : line
-        );
-        break;
-      case "checklist":
-        formattedLines = lines.map((line) =>
-          line.trim() ? `- [ ] ${line.trim()}` : line
-        );
-        break;
-      default:
-        return;
-    }
-
-    const formattedText = formattedLines.join("\n");
-    const newContent =
-      content.substring(0, start) + formattedText + content.substring(end);
-    setContent(newContent);
-
-    // Update history
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push({ title, content: newContent });
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-  };
-
-  const applyAlignment = (alignment) => {
-    if (!contentRef.current) return;
-
-    const textarea = contentRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-
-    if (!selectedText) {
-      alert("Please select some text first");
-      return;
-    }
-
-    let formattedText;
-    switch (alignment) {
-      case "left":
-        formattedText = `<div style="text-align: left">${selectedText}</div>`;
-        break;
-      case "center":
-        formattedText = `<div style="text-align: center">${selectedText}</div>`;
-        break;
-      case "right":
-        formattedText = `<div style="text-align: right">${selectedText}</div>`;
-        break;
-      case "justify":
-        formattedText = `<div style="text-align: justify">${selectedText}</div>`;
-        break;
-      default:
-        return;
     }
 
     const newContent =
@@ -270,55 +171,13 @@ export default function CreateArticlePage() {
     setHistoryIndex(newHistory.length - 1);
   };
 
-  const applyIndentation = (direction) => {
-    if (!contentRef.current) return;
-
-    const textarea = contentRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-
-    if (!selectedText) {
-      alert("Please select some text first");
-      return;
-    }
-
-    const lines = selectedText.split("\n");
-    let formattedLines;
-
-    if (direction === "increase") {
-      formattedLines = lines.map((line) => `  ${line}`);
-    } else {
-      formattedLines = lines.map((line) => line.replace(/^  /, ""));
-    }
-
-    const formattedText = formattedLines.join("\n");
-    const newContent =
-      content.substring(0, start) + formattedText + content.substring(end);
-    setContent(newContent);
-
-    // Update history
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push({ title, content: newContent });
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-  };
-
-  const handleCopy = async () => {
+  const handleCopy = () => {
     if (contentRef.current) {
       const start = contentRef.current.selectionStart;
       const end = contentRef.current.selectionEnd;
       const selectedText = content.substring(start, end);
       if (selectedText) {
-        try {
-          await navigator.clipboard.writeText(selectedText);
-          alert("Text copied to clipboard!");
-        } catch (err) {
-          console.error("Failed to copy:", err);
-          alert("Failed to copy text");
-        }
-      } else {
-        alert("Please select some text first");
+        navigator.clipboard.writeText(selectedText);
       }
     }
   };
@@ -332,16 +191,9 @@ export default function CreateArticlePage() {
         const newContent =
           content.substring(0, start) + text + content.substring(end);
         setContent(newContent);
-
-        // Update history
-        const newHistory = history.slice(0, historyIndex + 1);
-        newHistory.push({ title, content: newContent });
-        setHistory(newHistory);
-        setHistoryIndex(newHistory.length - 1);
       }
     } catch (err) {
       console.error("Failed to paste:", err);
-      alert("Failed to paste. Please use Ctrl+V instead.");
     }
   };
 
@@ -360,20 +212,12 @@ export default function CreateArticlePage() {
       )
     ) {
       localStorage.removeItem("draft_article");
-      setTitle("");
-      setContent("");
-      setCoverImage(null);
-      setHistory([{ title: "", content: "" }]);
-      setHistoryIndex(0);
       router.push("/home");
     }
   };
 
   const handlePreview = () => {
-    if (!title || !content) {
-      alert("Please enter both title and content before previewing");
-      return;
-    }
+    // Save current state before preview
     sessionStorage.setItem(
       "preview_article",
       JSON.stringify({
@@ -391,15 +235,19 @@ export default function CreateArticlePage() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Header */}
       <Header onToggleSidebar={toggleSidebar} />
+
+      {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} />
 
+      {/* Main Content */}
       <main
         className={`pt-16 transition-all duration-300 ease-in-out ${
           sidebarOpen ? "ml-60" : "ml-0"
         }`}
       >
-        {/* Top Bar */}
+        {/* Top Bar with Title and Post Status */}
         <div className="bg-white border-b border-[#E5E7EB] px-8 py-6">
           <div className="max-w-5xl mx-auto flex items-center justify-between">
             <div>
@@ -519,7 +367,7 @@ export default function CreateArticlePage() {
               >
                 <Minus className="w-4 h-4 text-[#6B7280]" />
               </button>
-              <span className="text-sm text-[#6B7280] min-w-[2.5rem] text-center">
+              <span className="text-sm text-[#6B7280] min-w-[2rem] text-center">
                 {fontSize}px
               </span>
               <button
@@ -555,7 +403,6 @@ export default function CreateArticlePage() {
                 <Underline className="w-5 h-5 text-[#6B7280]" />
               </button>
               <button
-                onClick={() => applyFormatting("color")}
                 className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
                 title="Text color"
               >
@@ -580,21 +427,18 @@ export default function CreateArticlePage() {
             {/* Second Row */}
             <div className="flex items-center gap-2 flex-wrap">
               <button
-                onClick={() => applyListFormatting("bullet")}
                 className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
                 title="Bullet list"
               >
                 <List className="w-5 h-5 text-[#6B7280]" />
               </button>
               <button
-                onClick={() => applyListFormatting("numbered")}
                 className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
                 title="Numbered list"
               >
                 <ListOrdered className="w-5 h-5 text-[#6B7280]" />
               </button>
               <button
-                onClick={() => applyListFormatting("checklist")}
                 className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
                 title="Checklist"
               >
@@ -604,28 +448,24 @@ export default function CreateArticlePage() {
               <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
 
               <button
-                onClick={() => applyAlignment("left")}
                 className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
                 title="Align left"
               >
                 <AlignLeft className="w-5 h-5 text-[#6B7280]" />
               </button>
               <button
-                onClick={() => applyAlignment("center")}
                 className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
                 title="Align center"
               >
                 <AlignCenter className="w-5 h-5 text-[#6B7280]" />
               </button>
               <button
-                onClick={() => applyAlignment("right")}
                 className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
                 title="Align right"
               >
                 <AlignRight className="w-5 h-5 text-[#6B7280]" />
               </button>
               <button
-                onClick={() => applyAlignment("justify")}
                 className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
                 title="Justify"
               >
@@ -635,14 +475,12 @@ export default function CreateArticlePage() {
               <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
 
               <button
-                onClick={() => applyIndentation("decrease")}
                 className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
                 title="Decrease indent"
               >
                 <IndentDecrease className="w-5 h-5 text-[#6B7280]" />
               </button>
               <button
-                onClick={() => applyIndentation("increase")}
                 className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
                 title="Increase indent"
               >
