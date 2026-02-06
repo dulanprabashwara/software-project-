@@ -14,7 +14,7 @@ export default function Sidebar({ isOpen = true }) {
     { icon: "stories", label: "Stories", href: "/stories" },
     { icon: "stats", label: "Stats", href: "/stats" },
     { icon: "ai", label: "AI Generate", href: "/ai-generate" },
-    { icon: "following", label: "Following", href: "/following" },
+    { icon: "following", label: "Following", href: "/engagement" },
     { icon: "membership", label: "Membership", href: "/subscription/upgrade" },
   ];
 
