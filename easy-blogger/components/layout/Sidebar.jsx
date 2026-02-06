@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function Sidebar({ isOpen = true }) {
+export default function Sidebar({ isOpen = true, onOpenEngagement }) {
   const pathname = usePathname();
 
   const navItems = [
@@ -171,17 +171,27 @@ export default function Sidebar({ isOpen = true }) {
         <ul className="space-y-1">
           {navItems.map((item) => (
             <li key={item.label}>
-              <Link
-                href={item.href}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
-                  isActive(item.href)
-                    ? "bg-[#E8F8F5] text-[#1ABC9C]"
-                    : "text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]"
-                }`}
-              >
-                {getIcon(item.icon)}
-                <span>{item.label}</span>
-              </Link>
+              {item.label === "Following" ? (
+                <button
+                  onClick={onOpenEngagement}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]`}
+                >
+                  {getIcon(item.icon)}
+                  <span>{item.label}</span>
+                </button>
+              ) : (
+                <Link
+                  href={item.href}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
+                    isActive(item.href)
+                      ? "bg-[#E8F8F5] text-[#1ABC9C]"
+                      : "text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]"
+                  }`}
+                >
+                  {getIcon(item.icon)}
+                  <span>{item.label}</span>
+                </Link>
+              )}
             </li>
           ))}
         </ul>

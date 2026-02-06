@@ -4,10 +4,13 @@ import { useState } from "react";
 import Header from "../../components/layout/Header";
 import Sidebar from "../../components/layout/Sidebar";
 import ArticleCard from "../../components/article/ArticleCard";
+import EngagementModal from "../../components/EngagementModal";
 
 // This page will render the home feed UI based on Figma design
 export default function Page() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [engagementModalOpen, setEngagementModalOpen] = useState(false);
+  const [engagementActiveTab, setEngagementActiveTab] = useState("followers");
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -202,7 +205,10 @@ export default function Page() {
   return (
     <div className="min-h-screen bg-white">
       <Header onToggleSidebar={toggleSidebar} />
-      <Sidebar isOpen={sidebarOpen} />
+      <Sidebar
+        isOpen={sidebarOpen}
+        onOpenEngagement={() => setEngagementModalOpen(true)}
+      />
 
       {/* Main content area - offset for fixed header and sidebar */}
       <main
@@ -297,6 +303,14 @@ export default function Page() {
           </aside>
         </div>
       </main>
+
+      {/* Engagement Modal */}
+      <EngagementModal
+        isOpen={engagementModalOpen}
+        onClose={() => setEngagementModalOpen(false)}
+        activeTab={engagementActiveTab}
+        setActiveTab={setEngagementActiveTab}
+      />
     </div>
   );
 }
