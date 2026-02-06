@@ -17,14 +17,18 @@ export default function EditProfilePage() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [displayName, setDisplayName] = useState("Emma Richardson");
+  const [username, setUsername] = useState("Emma Richardson");
   const [email, setEmail] = useState("emma.richardson@example.com");
   const [about, setAbout] = useState(
     "Product Designer & Writer. Passionate about UX design, systems, and the future of design creativity. Sharing insights on building better products.",
   );
   const [profilePhoto, setProfilePhoto] = useState("/api/placeholder/120/120");
-  const [newsletterEnabled, setNewsletterEnabled] = useState(true);
   const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const fileInputRef = useRef(null);
 
@@ -53,8 +57,35 @@ export default function EditProfilePage() {
   };
 
   const handleChangePassword = () => {
-    // Navigate to password change page or show modal
-    alert("Password change functionality - to be implemented");
+    setShowPasswordChange(!showPasswordChange);
+  };
+
+  const handleUpdatePassword = () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      alert("Please fill in all password fields");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      alert("New passwords do not match");
+      return;
+    }
+    if (newPassword.length < 8) {
+      alert("Password must be at least 8 characters");
+      return;
+    }
+    // Simulate API call
+    alert("Password updated successfully!");
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setShowPasswordChange(false);
+  };
+
+  const handleCancelPasswordChange = () => {
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setShowPasswordChange(false);
   };
 
   const handleDeleteAccount = () => {
@@ -80,16 +111,24 @@ export default function EditProfilePage() {
         className={`pt-16 transition-all duration-300 ease-in-out ${sidebarOpen ? "ml-60" : "ml-0"}`}
       >
         <div className="max-w-4xl mx-auto px-8 py-8">
-          {/* Header with Save Button */}
+          {/* Header with Save and Cancel Buttons */}
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold text-[#111827]">Edit Profile</h1>
-            <button
-              onClick={handleSaveChanges}
-              disabled={isSaving}
-              className="px-6 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
-            >
-              {isSaving ? "Saving..." : "Save Changes"}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.push("/profile")}
+                className="px-6 py-2.5 bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] text-[#374151] rounded-full text-sm font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+                className="px-6 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                {isSaving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
           </div>
 
           {/* Profile Information Card */}
@@ -134,6 +173,19 @@ export default function EditProfilePage() {
                     onChange={(e) => setDisplayName(e.target.value)}
                     className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     placeholder="Enter your name"
+                  />
+                </div>
+
+                {/* Username (Read-only) */}
+                <div>
+                  <label className="block text-sm font-semibold text-[#374151] mb-2">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={username}
+                    readOnly
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB] cursor-not-allowed"
                   />
                 </div>
 
@@ -205,7 +257,7 @@ export default function EditProfilePage() {
 
             {/* Change Password */}
             <div className="pb-6 mb-6 border-b border-[#E5E7EB]">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-[#F3F4F6] rounded-lg flex items-center justify-center">
                     <Lock className="w-5 h-5 text-[#6B7280]" />
@@ -223,9 +275,63 @@ export default function EditProfilePage() {
                   onClick={handleChangePassword}
                   className="px-5 py-2 border border-[#E5E7EB] hover:bg-[#F9FAFB] text-[#374151] rounded-lg text-sm font-medium transition-colors"
                 >
-                  Change Password
+                  {showPasswordChange ? "Hide" : "Change Password"}
                 </button>
               </div>
+
+              {/* Expandable Password Change Form */}
+              {showPasswordChange && (
+                <div className="mt-6 bg-[#F9FAFB] rounded-xl p-6 space-y-4 animate-in slide-in-from-top duration-200">
+                  {/* Current Password */}
+                  <div>
+                    <input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="Current password"
+                      className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* New Password */}
+                  <div>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="New password"
+                      className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Confirm New Password */}
+                  <div>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-3 pt-2">
+                    <button
+                      onClick={handleUpdatePassword}
+                      className="px-6 py-2.5 bg-[#111827] hover:bg-[#1F2937] text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Update Password
+                    </button>
+                    <button
+                      onClick={handleCancelPasswordChange}
+                      className="px-6 py-2.5 text-[#6B7280] hover:text-[#111827] text-sm font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Email Settings */}
@@ -254,28 +360,6 @@ export default function EditProfilePage() {
                       placeholder="emma.richardson@example.com"
                       readOnly
                     />
-                  </div>
-
-                  {/* Newsletter Toggle */}
-                  <div className="flex items-center justify-between py-3">
-                    <div>
-                      <p className="font-medium text-[#111827]">Newsletter</p>
-                      <p className="text-sm text-[#6B7280]">
-                        Receive our weekly newsletter
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setNewsletterEnabled(!newsletterEnabled)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        newsletterEnabled ? "bg-[#1ABC9C]" : "bg-[#E5E7EB]"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          newsletterEnabled ? "translate-x-6" : "translate-x-1"
-                        }`}
-                      />
-                    </button>
                   </div>
 
                   {/* Weekly Digest Toggle */}
