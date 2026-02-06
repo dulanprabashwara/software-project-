@@ -135,13 +135,13 @@ export default function EngagementModal({
     <>
       {/* Backdrop with blur */}
       <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-100"
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[100]"
         onClick={onClose}
       ></div>
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-101 p-4 pointer-events-none">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-150 flex flex-col pointer-events-auto">
+      <div className="fixed inset-0 flex items-center justify-center z-[101] p-4 pointer-events-none">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col pointer-events-auto">
           {/* Modal Header */}
           <div className="p-6 border-b border-[#E5E7EB]">
             <div className="flex items-center justify-between mb-4">
@@ -220,7 +220,7 @@ export default function EngagementModal({
           </div>
 
           {/* Modal Content */}
-          <div className="overflow-y-auto p-6 h-112.5">
+          <div className="overflow-y-auto p-6 h-[450px]">
             {/* Followers Tab */}
             {activeTab === "followers" && (
               <div className="space-y-4">
