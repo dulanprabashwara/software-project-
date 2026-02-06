@@ -216,7 +216,7 @@ export default function Page() {
           sidebarOpen ? "ml-60" : "ml-0"
         }`}
       >
-        <div className="flex h-full max-w-[1140px]">
+        <div className="flex h-full max-w-285">
           {/* Center: Article Feed - scrolls independently */}
           <div className="flex-1 px-8 py-8 border-r border-[#E5E7EB] overflow-y-auto h-[calc(100vh-64px)] scrollbar-hide">
             {articles.map((article) => (
@@ -225,7 +225,7 @@ export default function Page() {
           </div>
 
           {/* Right Sidebar - 300px, scrolls independently */}
-          <aside className="w-[300px] flex-shrink-0 bg-white px-6 py-8 overflow-y-auto h-[calc(100vh-64px)] scrollbar-hide">
+          <aside className="w-75 shrink-0 bg-white px-6 py-8 overflow-y-auto h-[calc(100vh-64px)] scrollbar-hide">
             <div className="space-y-8">
               {/* Trending Articles */}
               <section>

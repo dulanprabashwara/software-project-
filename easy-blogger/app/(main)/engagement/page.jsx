@@ -136,7 +136,7 @@ export default function EngagementPage() {
 
         {/* Modal */}
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-150 flex flex-col">
             {/* Modal Header */}
             <div className="p-6 border-b border-[#E5E7EB]">
               <div className="flex items-center justify-between mb-4">
@@ -215,7 +215,7 @@ export default function EngagementPage() {
             </div>
 
             {/* Modal Content */}
-            <div className="overflow-y-auto p-6 h-[450px]">
+            <div className="overflow-y-auto p-6 h-112.5">
               {/* Followers Tab */}
               {activeTab === "followers" && (
                 <div className="space-y-4">

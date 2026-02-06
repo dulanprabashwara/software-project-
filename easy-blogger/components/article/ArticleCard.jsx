@@ -41,7 +41,7 @@ export default function ArticleCard({ article }) {
 
         {/* Thumbnail */}
         {article.thumbnail && (
-          <div className="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden">
+          <div className="w-28 h-28 shrink-0 rounded-lg overflow-hidden">
             <img
               src={article.thumbnail}
               alt={article.title}
