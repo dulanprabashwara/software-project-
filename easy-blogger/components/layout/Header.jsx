@@ -163,20 +163,20 @@ export default function Header({ onToggleSidebar }) {
 
             {/* Profile Dropdown Menu */}
             {mounted && showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-[#E5E7EB] overflow-hidden z-50">
+              <div className="absolute right-0 mt-3 w-80 bg-white rounded-md shadow-lg border border-[#E5E7EB] overflow-hidden z-50">
                 {/* User Profile Section */}
-                <div className="p-4 border-b border-[#E5E7EB]">
+                <div className="p-5 border-b border-[#F2F2F2]">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-[#6B7280] flex items-center justify-center text-white text-lg font-semibold">
+                    <div className="w-14 h-14 rounded-full bg-[#6B7280] flex items-center justify-center text-white text-xl font-semibold">
                       {user.initials}
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-[#111827] text-sm">
+                      <p className="font-normal text-[#242424] text-base mb-0.5">
                         {user.name}
                       </p>
                       <Link
                         href="/profile"
-                        className="text-xs text-[#6B7280] hover:text-[#111827] transition-colors"
+                        className="text-sm text-[#6B6B6B] hover:text-[#242424] transition-colors"
                         onClick={() => setShowProfileMenu(false)}
                       >
                         View profile
@@ -186,80 +186,80 @@ export default function Header({ onToggleSidebar }) {
                 </div>
 
                 {/* Help Option */}
-                <div className="py-2">
-                  <button className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[#F9FAFB] transition-colors text-left">
-                    <HelpCircle className="w-5 h-5 text-[#6B7280]" />
-                    <span className="text-sm text-[#6B7280]">Help</span>
+                <div className="py-1">
+                  <button className="w-full px-5 py-3 flex items-center gap-3 hover:bg-[#F9F9F9] transition-colors text-left">
+                    <HelpCircle className="w-6 h-6 text-[#6B6B6B]" />
+                    <span className="text-base text-[#242424]">Help</span>
                   </button>
                 </div>
 
                 {/* Become a Premium Member */}
-                <div className="border-t border-[#E5E7EB] py-3 px-4">
+                <div className="border-t border-[#F2F2F2] py-4 px-5">
                   <Link
                     href="/subscription/upgrade"
                     onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2 text-sm text-[#6B7280] hover:text-[#111827] transition-colors"
+                    className="flex items-center gap-2 text-base text-[#242424] hover:text-[#000000] transition-colors"
                   >
                     <span>Become a Premium member</span>
-                    <Sparkles className="w-4 h-4 text-[#FBBF24]" />
+                    <Sparkles className="w-4 h-4 text-[#FFC017]" />
                   </Link>
                 </div>
 
                 {/* Sign Out Section */}
-                <div className="border-t border-[#E5E7EB] py-3 px-4">
+                <div className="border-t border-[#F2F2F2] py-4 px-5">
                   <button
                     onClick={handleSignOut}
-                    className="text-sm text-[#6B7280] hover:text-[#111827] transition-colors mb-2"
+                    className="text-base text-[#242424] hover:text-[#000000] transition-colors mb-2 block"
                   >
                     Sign out
                   </button>
-                  <p className="text-xs text-[#9CA3AF]">{user.email}</p>
+                  <p className="text-sm text-[#6B6B6B]">{user.email}</p>
                 </div>
 
                 {/* Footer Links */}
-                <div className="border-t border-[#E5E7EB] py-3 px-4">
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#9CA3AF]">
+                <div className="border-t border-[#F2F2F2] py-4 px-5">
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-[#6B6B6B]">
                     <a
                       href="#"
-                      className="hover:text-[#6B7280] transition-colors"
+                      className="hover:text-[#242424] transition-colors"
                     >
                       About
                     </a>
                     <a
                       href="#"
-                      className="hover:text-[#6B7280] transition-colors"
+                      className="hover:text-[#242424] transition-colors"
                     >
                       Blog
                     </a>
                     <a
                       href="#"
-                      className="hover:text-[#6B7280] transition-colors"
+                      className="hover:text-[#242424] transition-colors"
                     >
                       Careers
                     </a>
                     <a
                       href="#"
-                      className="hover:text-[#6B7280] transition-colors"
+                      className="hover:text-[#242424] transition-colors"
                     >
                       Privacy
                     </a>
                     <a
                       href="#"
-                      className="hover:text-[#6B7280] transition-colors"
+                      className="hover:text-[#242424] transition-colors"
                     >
                       Terms
                     </a>
                   </div>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#9CA3AF] mt-1">
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-[#6B6B6B] mt-2">
                     <a
                       href="#"
-                      className="hover:text-[#6B7280] transition-colors"
+                      className="hover:text-[#242424] transition-colors"
                     >
                       Text to speech
                     </a>
                     <a
                       href="#"
-                      className="hover:text-[#6B7280] transition-colors"
+                      className="hover:text-[#242424] transition-colors"
                     >
                       More
                     </a>
