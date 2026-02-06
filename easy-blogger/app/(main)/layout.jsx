@@ -20,7 +20,10 @@ export default function MainLayout({ children }) {
       <Header onToggleSidebar={toggleSidebar} />
       <Sidebar
         isOpen={sidebarOpen}
-        onOpenEngagement={() => setEngagementModalOpen(true)}
+        onOpenEngagement={() => {
+          console.log("Layout: Opening engagement modal");
+          setEngagementModalOpen(true);
+        }}
       />
 
       {/* Main content with sidebar offset */}
