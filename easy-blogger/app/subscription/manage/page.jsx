@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Header from "@/components/layout/Header";
-import Sidebar from "@/components/layout/Sidebar";
+import Header from "../../../components/layout/Header";
+import Sidebar from "../../../components/layout/Sidebar";
 import { Info, Calendar, CreditCard } from "lucide-react";
 
 export default function ManageSubscriptionPage() {
