@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { HelpCircle, Sparkles } from "lucide-react";
+import { HelpCircle, Sparkles, MessageCircle } from "lucide-react";
 
 // Top navigation header component for the app layout
 export default function Header({ onToggleSidebar }) {
@@ -190,6 +190,10 @@ export default function Header({ onToggleSidebar }) {
                   <button className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[#F9FAFB] transition-colors text-left">
                     <HelpCircle className="w-5 h-5 text-[#6B7280]" />
                     <span className="text-sm text-[#6B7280]">Help</span>
+                  </button>
+                  <button className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[#F9FAFB] transition-colors text-left">
+                    <MessageCircle className="w-5 h-5 text-[#6B7280]" />
+                    <span className="text-sm text-[#6B7280]">Messages</span>
                   </button>
                 </div>
 
