@@ -32,14 +32,262 @@ export default function UpgradeToPremiumPage() {
     router.push("/subscription/upgrade");
   };
 
+  // Format card number with spaces (XXXX XXXX XXXX XXXX)
+  const handleCardNumberChange = (e) => {
+    const value = e.target.value.replace(/\s/g, "");
+    const numericValue = value.replace(/\D/g, "");
+    if (numericValue.length <= 16) {
+      const formatted =
+        numericValue.match(/.{1,4}/g)?.join(" ") || numericValue;
+      setCardNumber(formatted);
+    }
+  };
+
+  // Format expiry date (MM/YY)
+  const handleExpiryChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "");
+    if (value.length <= 4) {
+      if (value.length >= 2) {
+        setExpiryDate(value.slice(0, 2) + " / " + value.slice(2));
+      } else {
+        setExpiryDate(value);
+      }
+    }
+  };
+
+  // Format CVC (3 digits only)
+  const handleCvcChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "");
+    if (value.length <= 3) {
+      setCvc(value);
+    }
+  };
+
+  // Cardholder name (letters and spaces only)
+  const handleNameChange = (e) => {
+    const value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+    setCardholderName(value);
+  };
+
   const handleConfirmPayment = () => {
     if (!agreeToTerms) {
       alert("Please agree to the Terms of Service and Privacy Policy");
       return;
     }
+    if (!cardholderName || !cardNumber || !expiryDate || !cvc) {
+      alert("Please fill in all payment details");
+      return;
+    }
+    if (cardNumber.replace(/\s/g, "").length !== 16) {
+      alert("Please enter a valid 16-digit card number");
+      return;
+    }
+    if (cvc.length !== 3) {
+      alert("Please enter a valid 3-digit CVC");
+      return;
+    }
     // Process payment
     alert("Payment processing... (Demo)");
   };
+
+  // Comprehensive country list
+  const countries = [
+    "Afghanistan",
+    "Albania",
+    "Algeria",
+    "Andorra",
+    "Angola",
+    "Antigua and Barbuda",
+    "Argentina",
+    "Armenia",
+    "Australia",
+    "Austria",
+    "Azerbaijan",
+    "Bahamas",
+    "Bahrain",
+    "Bangladesh",
+    "Barbados",
+    "Belarus",
+    "Belgium",
+    "Belize",
+    "Benin",
+    "Bhutan",
+    "Bolivia",
+    "Bosnia and Herzegovina",
+    "Botswana",
+    "Brazil",
+    "Brunei",
+    "Bulgaria",
+    "Burkina Faso",
+    "Burundi",
+    "Cabo Verde",
+    "Cambodia",
+    "Cameroon",
+    "Canada",
+    "Central African Republic",
+    "Chad",
+    "Chile",
+    "China",
+    "Colombia",
+    "Comoros",
+    "Congo",
+    "Costa Rica",
+    "Croatia",
+    "Cuba",
+    "Cyprus",
+    "Czech Republic",
+    "Denmark",
+    "Djibouti",
+    "Dominica",
+    "Dominican Republic",
+    "Ecuador",
+    "Egypt",
+    "El Salvador",
+    "Equatorial Guinea",
+    "Eritrea",
+    "Estonia",
+    "Eswatini",
+    "Ethiopia",
+    "Fiji",
+    "Finland",
+    "France",
+    "Gabon",
+    "Gambia",
+    "Georgia",
+    "Germany",
+    "Ghana",
+    "Greece",
+    "Grenada",
+    "Guatemala",
+    "Guinea",
+    "Guinea-Bissau",
+    "Guyana",
+    "Haiti",
+    "Honduras",
+    "Hungary",
+    "Iceland",
+    "India",
+    "Indonesia",
+    "Iran",
+    "Iraq",
+    "Ireland",
+    "Israel",
+    "Italy",
+    "Jamaica",
+    "Japan",
+    "Jordan",
+    "Kazakhstan",
+    "Kenya",
+    "Kiribati",
+    "Kosovo",
+    "Kuwait",
+    "Kyrgyzstan",
+    "Laos",
+    "Latvia",
+    "Lebanon",
+    "Lesotho",
+    "Liberia",
+    "Libya",
+    "Liechtenstein",
+    "Lithuania",
+    "Luxembourg",
+    "Madagascar",
+    "Malawi",
+    "Malaysia",
+    "Maldives",
+    "Mali",
+    "Malta",
+    "Marshall Islands",
+    "Mauritania",
+    "Mauritius",
+    "Mexico",
+    "Micronesia",
+    "Moldova",
+    "Monaco",
+    "Mongolia",
+    "Montenegro",
+    "Morocco",
+    "Mozambique",
+    "Myanmar",
+    "Namibia",
+    "Nauru",
+    "Nepal",
+    "Netherlands",
+    "New Zealand",
+    "Nicaragua",
+    "Niger",
+    "Nigeria",
+    "North Korea",
+    "North Macedonia",
+    "Norway",
+    "Oman",
+    "Pakistan",
+    "Palau",
+    "Palestine",
+    "Panama",
+    "Papua New Guinea",
+    "Paraguay",
+    "Peru",
+    "Philippines",
+    "Poland",
+    "Portugal",
+    "Qatar",
+    "Romania",
+    "Russia",
+    "Rwanda",
+    "Saint Kitts and Nevis",
+    "Saint Lucia",
+    "Saint Vincent and the Grenadines",
+    "Samoa",
+    "San Marino",
+    "Sao Tome and Principe",
+    "Saudi Arabia",
+    "Senegal",
+    "Serbia",
+    "Seychelles",
+    "Sierra Leone",
+    "Singapore",
+    "Slovakia",
+    "Slovenia",
+    "Solomon Islands",
+    "Somalia",
+    "South Africa",
+    "South Korea",
+    "South Sudan",
+    "Spain",
+    "Sri Lanka",
+    "Sudan",
+    "Suriname",
+    "Sweden",
+    "Switzerland",
+    "Syria",
+    "Taiwan",
+    "Tajikistan",
+    "Tanzania",
+    "Thailand",
+    "Timor-Leste",
+    "Togo",
+    "Tonga",
+    "Trinidad and Tobago",
+    "Tunisia",
+    "Turkey",
+    "Turkmenistan",
+    "Tuvalu",
+    "Uganda",
+    "Ukraine",
+    "United Arab Emirates",
+    "United Kingdom",
+    "United States",
+    "Uruguay",
+    "Uzbekistan",
+    "Vanuatu",
+    "Vatican City",
+    "Venezuela",
+    "Vietnam",
+    "Yemen",
+    "Zambia",
+    "Zimbabwe",
+  ];
 
   // Mock user data
   const user = {
@@ -127,7 +375,7 @@ export default function UpgradeToPremiumPage() {
                     <input
                       type="text"
                       value={cardholderName}
-                      onChange={(e) => setCardholderName(e.target.value)}
+                      onChange={handleNameChange}
                       placeholder="e.g. Emma Richardson"
                       className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     />
@@ -143,7 +391,7 @@ export default function UpgradeToPremiumPage() {
                       <input
                         type="text"
                         value={cardNumber}
-                        onChange={(e) => setCardNumber(e.target.value)}
+                        onChange={handleCardNumberChange}
                         placeholder="0000 0000 0000 0000"
                         maxLength="19"
                         className="w-full pl-11 pr-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
@@ -160,7 +408,7 @@ export default function UpgradeToPremiumPage() {
                       <input
                         type="text"
                         value={expiryDate}
-                        onChange={(e) => setExpiryDate(e.target.value)}
+                        onChange={handleExpiryChange}
                         placeholder="MM / YY"
                         maxLength="7"
                         className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
@@ -173,7 +421,7 @@ export default function UpgradeToPremiumPage() {
                       <input
                         type="text"
                         value={cvc}
-                        onChange={(e) => setCvc(e.target.value)}
+                        onChange={handleCvcChange}
                         placeholder="123"
                         maxLength="3"
                         className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
@@ -191,12 +439,11 @@ export default function UpgradeToPremiumPage() {
                       onChange={(e) => setBillingCountry(e.target.value)}
                       className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     >
-                      <option>United States</option>
-                      <option>United Kingdom</option>
-                      <option>Canada</option>
-                      <option>Australia</option>
-                      <option>Germany</option>
-                      <option>France</option>
+                      {countries.map((country) => (
+                        <option key={country} value={country}>
+                          {country}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
