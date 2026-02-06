@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Header from "../../../components/layout/Header";
-import Sidebar from "../../../components/layout/Sidebar";
 import { X } from "lucide-react";
 
 export default function EngagementPage() {

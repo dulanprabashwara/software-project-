@@ -173,15 +173,7 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
             <li key={item.label}>
               {item.label === "Following" ? (
                 <button
-                  onClick={() => {
-                    console.log("Following button clicked!");
-                    console.log("onOpenEngagement:", onOpenEngagement);
-                    if (onOpenEngagement) {
-                      onOpenEngagement();
-                    } else {
-                      console.error("onOpenEngagement is not defined!");
-                    }
-                  }}
+                  onClick={onOpenEngagement}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]`}
                 >
                   {getIcon(item.icon)}
