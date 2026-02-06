@@ -9,6 +9,7 @@ import { HelpCircle, Sparkles } from "lucide-react";
 export default function Header({ onToggleSidebar }) {
   const router = useRouter();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const menuRef = useRef(null);
 
   // Mock user data
@@ -18,6 +19,11 @@ export default function Header({ onToggleSidebar }) {
     avatar: "https://i.pravatar.cc/150?img=47",
     initials: "D",
   };
+
+  // Set mounted state on client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -156,7 +162,7 @@ export default function Header({ onToggleSidebar }) {
             </button>
 
             {/* Profile Dropdown Menu */}
-            {showProfileMenu && (
+            {mounted && showProfileMenu && (
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-[#E5E7EB] overflow-hidden z-50">
                 {/* User Profile Section */}
                 <div className="p-4 border-b border-[#E5E7EB]">
