@@ -148,7 +148,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Right Sidebar */}
-          <aside className="w-[280px] shrink-0 bg-white px-6 py-8 overflow-y-auto h-[calc(100vh-64px)] scrollbar-hide">
+          <aside className="w-70 shrink-0 bg-white px-6 py-8 overflow-y-auto h-[calc(100vh-64px)] scrollbar-hide">
             <div className="flex flex-col justify-between h-full">
               {/* Profile Card */}
               <div>

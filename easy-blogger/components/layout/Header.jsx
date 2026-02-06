@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function Header({ onToggleSidebar }) {
   return (
     <header className="fixed top-0 left-0 right-0 bg-white border-b border-[#E5E7EB] z-50 h-16">
-      <div className="h-full max-w-[1440px] mx-auto px-6 flex items-center justify-between">
+      <div className="h-full max-w-360 mx-auto px-6 flex items-center justify-between">
         {/* Left: Hamburger + Logo */}
         <div className="flex items-center gap-4">
           {/* Hamburger menu */}

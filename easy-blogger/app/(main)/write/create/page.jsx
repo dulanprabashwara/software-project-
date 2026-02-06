@@ -63,7 +63,7 @@ export default function CreateArticlePage() {
               content,
               coverImage,
               lastSaved: new Date().toISOString(),
-            })
+            }),
           );
         }, 500);
       }
@@ -175,7 +175,7 @@ export default function CreateArticlePage() {
       textarea.focus();
       textarea.setSelectionRange(
         start + formattedText.length,
-        start + formattedText.length
+        start + formattedText.length,
       );
     }, 0);
   };
@@ -199,17 +199,17 @@ export default function CreateArticlePage() {
     switch (listType) {
       case "bullet":
         formattedLines = lines.map((line) =>
-          line.trim() ? `- ${line.trim()}` : line
+          line.trim() ? `- ${line.trim()}` : line,
         );
         break;
       case "numbered":
         formattedLines = lines.map((line, index) =>
-          line.trim() ? `${index + 1}. ${line.trim()}` : line
+          line.trim() ? `${index + 1}. ${line.trim()}` : line,
         );
         break;
       case "checklist":
         formattedLines = lines.map((line) =>
-          line.trim() ? `- [ ] ${line.trim()}` : line
+          line.trim() ? `- [ ] ${line.trim()}` : line,
         );
         break;
       default:
@@ -340,8 +340,16 @@ export default function CreateArticlePage() {
         setHistoryIndex(newHistory.length - 1);
       }
     } catch (err) {
-      console.error("Failed to paste:", err);
-      alert("Failed to paste. Please use Ctrl+V instead.");
+      // Clipboard permission denied - this is expected behavior
+      // Users should use Ctrl+V (Windows/Linux) or Cmd+V (Mac) for pasting
+      if (err.name === "NotAllowedError") {
+        alert(
+          "Clipboard access denied. Please use Ctrl+V (or Cmd+V on Mac) to paste.",
+        );
+      } else {
+        console.error("Failed to paste:", err);
+        alert("Failed to paste. Please use Ctrl+V instead.");
+      }
     }
   };
 
@@ -356,7 +364,7 @@ export default function CreateArticlePage() {
   const handleDiscard = () => {
     if (
       confirm(
-        "Are you sure you want to discard this article? All unsaved changes will be lost."
+        "Are you sure you want to discard this article? All unsaved changes will be lost.",
       )
     ) {
       localStorage.removeItem("draft_article");
@@ -380,7 +388,7 @@ export default function CreateArticlePage() {
         title,
         content,
         coverImage,
-      })
+      }),
     );
     router.push("/write/preview");
   };
@@ -413,8 +421,8 @@ export default function CreateArticlePage() {
                 {isSaving
                   ? "Saving..."
                   : lastSaved
-                  ? `Saved at ${lastSaved.toLocaleTimeString()}`
-                  : "Saved / Saving..."}
+                    ? `Saved at ${lastSaved.toLocaleTimeString()}`
+                    : "Saved / Saving..."}
               </span>
               <button
                 onClick={() => router.push("/write/publish")}
@@ -472,7 +480,7 @@ export default function CreateArticlePage() {
                 >
                   <Minus className="w-3 h-3" />
                 </button>
-                <span className="text-sm text-[#6B7280] min-w-[3rem] text-center">
+                <span className="text-sm text-[#6B7280] min-w-12 text-center">
                   {zoom}%
                 </span>
                 <button
@@ -519,7 +527,7 @@ export default function CreateArticlePage() {
               >
                 <Minus className="w-4 h-4 text-[#6B7280]" />
               </button>
-              <span className="text-sm text-[#6B7280] min-w-[2.5rem] text-center">
+              <span className="text-sm text-[#6B7280] min-w-10 text-center">
                 {fontSize}px
               </span>
               <button
