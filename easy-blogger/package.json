@@ -17,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.18",
+    "@tinymce/tinymce-react": "^6.3.0",
     "lucide-react": "^0.562.0",
     "next": "^16.1.1",
     "react": "^19.2.3",
