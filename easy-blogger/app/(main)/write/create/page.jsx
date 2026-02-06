@@ -1,5 +1,7 @@
 "use client";
 
+import { Editor } from "@tinymce/tinymce-react";
+
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../../../components/layout/Header";
