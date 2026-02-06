@@ -164,7 +164,7 @@ export default function Sidebar({ isOpen = true }) {
   return (
     <aside
       className={`fixed left-0 top-16 bottom-0 w-60 bg-white border-r border-[#E5E7EB] overflow-y-auto flex flex-col z-40 transition-transform duration-300 ease-in-out ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
+        isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
       <nav className="py-6 px-4 flex-1">
@@ -189,13 +189,11 @@ export default function Sidebar({ isOpen = true }) {
 
       {/* Write Section */}
       <div className="px-4 pb-6">
-<<<<<<< HEAD
-        <button className="w-full flex items-center gap-3 px-4 py-3 text-[#6B7280] hover:text-[#111827] transition-colors">
-          <div className="w-10 h-10 rounded-full bg-[#1ABC9C] flex items-center justify-center">
-=======
-        <Link href="/write/start" className="w-full flex items-center gap-3 px-4 py-3 text-[#6B7280] hover:text-[#111827] transition-colors">
+        <Link
+          href="/write/choose-method"
+          className="w-full flex items-center gap-3 px-4 py-3 text-[#6B7280] hover:text-[#111827] transition-colors"
+        >
           <div className="w-8 h-8 rounded-full bg-[#1ABC9C] flex items-center justify-center">
->>>>>>> dulan
             <svg
               className="w-5 h-5 text-white"
               viewBox="0 0 24 24"

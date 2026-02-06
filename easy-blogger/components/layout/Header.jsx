@@ -1,8 +1,10 @@
+import Link from "next/link";
+
 // Top navigation header component for the app layout
 export default function Header({ onToggleSidebar }) {
   return (
     <header className="fixed top-0 left-0 right-0 bg-white border-b border-[#E5E7EB] z-50 h-16">
-      <div className="h-full max-w-[1440px] mx-auto px-6 flex items-center justify-between">
+      <div className="h-full max-w-360 mx-auto px-6 flex items-center justify-between">
         {/* Left: Hamburger + Logo */}
         <div className="flex items-center gap-4">
           {/* Hamburger menu */}
@@ -62,22 +64,24 @@ export default function Header({ onToggleSidebar }) {
         {/* Right: Write button + Notifications + Avatar */}
         <div className="flex items-center gap-4">
           {/* Write button */}
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors duration-150">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-              />
-            </svg>
-            Write
-          </button>
+          <Link href="/write/choose-method">
+            <button className="flex items-center gap-2 px-5 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors duration-150">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
+              Write
+            </button>
+          </Link>
 
           {/* Notifications */}
           <button className="relative p-2 hover:bg-[#F8FAFC] rounded-full transition-colors duration-150">
