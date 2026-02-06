@@ -63,25 +63,25 @@ export default function UpgradePage() {
               {/* Features List */}
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-[#6B7280] mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-[#6B7280] mt-0.5 shrink-0" />
                   <span className="text-[#6B7280] text-sm">
                     Basic writing tools
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-[#6B7280] mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-[#6B7280] mt-0.5 shrink-0" />
                   <span className="text-[#6B7280] text-sm">
                     Limited analytics (7 days)
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-[#6B7280] mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-[#6B7280] mt-0.5 shrink-0" />
                   <span className="text-[#6B7280] text-sm">
                     3 public posts per month
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-[#6B7280] mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-[#6B7280] mt-0.5 shrink-0" />
                   <span className="text-[#6B7280] text-sm">
                     Community access
                   </span>
@@ -116,25 +116,25 @@ export default function UpgradePage() {
               {/* Features List */}
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-[#1ABC9C] mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-[#1ABC9C] mt-0.5 shrink-0" />
                   <span className="text-[#111827] text-sm font-medium">
                     Access to AI Writer
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-[#1ABC9C] mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-[#1ABC9C] mt-0.5 shrink-0" />
                   <span className="text-[#111827] text-sm font-medium">
                     Detailed Analytics & Insights
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-[#1ABC9C] mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-[#1ABC9C] mt-0.5 shrink-0" />
                   <span className="text-[#111827] text-sm font-medium">
                     Unlimited Posts
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-[#1ABC9C] mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-[#1ABC9C] mt-0.5 shrink-0" />
                   <div className="flex items-center gap-2">
                     <span className="text-[#111827] text-sm font-medium">
                       Verified badge on profile
@@ -143,7 +143,7 @@ export default function UpgradePage() {
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-[#1ABC9C] mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-[#1ABC9C] mt-0.5 shrink-0" />
                   <span className="text-[#111827] text-sm font-medium">
                     Priority support
                   </span>

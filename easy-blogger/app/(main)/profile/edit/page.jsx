@@ -135,7 +135,7 @@ export default function EditProfilePage() {
           <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 mb-6">
             <div className="flex gap-8">
               {/* Profile Photo */}
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <div className="relative">
                   <div className="w-32 h-32 rounded-full overflow-hidden bg-[#F3F4F6] border-4 border-white shadow-lg">
                     <img
@@ -224,10 +224,10 @@ export default function EditProfilePage() {
           </div>
 
           {/* Premium Upgrade Card */}
-          <div className="bg-gradient-to-r from-[#EFF6FF] to-[#DBEAFE] rounded-xl border border-[#BFDBFE] p-6 mb-6">
+          <div className="bg-linear-to-r from-[#EFF6FF] to-[#DBEAFE] rounded-xl border border-[#BFDBFE] p-6 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#FBBF24] to-[#F59E0B] rounded-full flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-linear-to-br from-[#FBBF24] to-[#F59E0B] rounded-full flex items-center justify-center shadow-lg">
                   <Crown className="w-6 h-6 text-white" />
                 </div>
                 <div>
