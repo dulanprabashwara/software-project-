@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Header from "../../components/layout/Header";
-import Sidebar from "../../components/layout/Sidebar";
-import EngagementModal from "../../components/EngagementModal";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
+import EngagementModal from "../EngagementModal";
 
-// Layout for the main app section
 export default function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [engagementModalOpen, setEngagementModalOpen] = useState(false);
@@ -16,7 +15,7 @@ export default function MainLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
+    <>
       <Header onToggleSidebar={toggleSidebar} />
       <Sidebar
         isOpen={sidebarOpen}
@@ -24,13 +23,11 @@ export default function MainLayout({ children }) {
       />
 
       {/* Main content with sidebar offset */}
-      <main
-        className={`pt-16 transition-all duration-300 ease-in-out ${
-          sidebarOpen ? "ml-60" : "ml-0"
-        }`}
+      <div
+        className={`transition-all duration-300 ease-in-out ${sidebarOpen ? "ml-60" : "ml-0"}`}
       >
         {children}
-      </main>
+      </div>
 
       {/* Engagement Modal */}
       <EngagementModal
@@ -39,6 +36,6 @@ export default function MainLayout({ children }) {
         activeTab={engagementActiveTab}
         setActiveTab={setEngagementActiveTab}
       />
-    </div>
+    </>
   );
 }
