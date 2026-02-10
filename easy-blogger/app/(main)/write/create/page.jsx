@@ -45,6 +45,8 @@ export default function CreateArticlePage() {
   const [fontSize, setFontSize] = useState(16);
   const [history, setHistory] = useState([{ title: "", content: "" }]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
 
   const fileInputRef = useRef(null);
   //const contentRef = useRef(null);
@@ -84,6 +86,12 @@ export default function CreateArticlePage() {
       setCoverImage(parsed.coverImage || null);
     }
   }, []);
+
+  //Add “mounted” state (fix refresh hydration)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -558,24 +566,25 @@ export default function CreateArticlePage() {
               </label>
               <div className="relative">
                 <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
+{!mounted ? (
+  <div className="h-[260px] bg-white" />
+) : (
   <Editor
     apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
     value={content}
     onEditorChange={(newContent) => {
       setContent(newContent);
-
       const newHistory = history.slice(0, historyIndex + 1);
       newHistory.push({ title, content: newContent });
       setHistory(newHistory);
       setHistoryIndex(newHistory.length - 1);
     }}
     init={{
-      height: 260, // similar to your textarea height (h-64)
+      height: 260,
       menubar: false,
       branding: false,
       placeholder: "Write your blog content here...",
       fixed_toolbar_container: "#tinymce-toolbar",
-
       plugins: [
         "lists",
         "link",
@@ -592,6 +601,8 @@ export default function CreateArticlePage() {
       content_style: `body { font-family: ${fontFamily}; font-size: ${fontSize}px; }`,
     }}
   />
+)}
+
 </div>
 
                 <div className="absolute right-4 bottom-4 flex items-center gap-2">
