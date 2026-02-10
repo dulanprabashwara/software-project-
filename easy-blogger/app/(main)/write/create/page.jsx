@@ -47,7 +47,7 @@ export default function CreateArticlePage() {
   const [historyIndex, setHistoryIndex] = useState(0);
 
   const fileInputRef = useRef(null);
-  const contentRef = useRef(null);
+  //const contentRef = useRef(null);
   const titleRef = useRef(null);
 
   // Auto-save functionality
@@ -435,232 +435,17 @@ export default function CreateArticlePage() {
             </div>
           </div>
         </div>
+                  
+        {/* Toolbar (TinyMCE toolbar will render here) */}
+<div className="bg-white border-b border-[#E5E7EB] px-8 py-4 sticky top-16 z-30">
+  <div className="max-w-5xl mx-auto">
+    <div
+      id="tinymce-toolbar"
+      className="min-h-[72px] flex items-center"
+    />
+  </div>
+</div>
 
-        {/* Toolbar */}
-        <div className="bg-white border-b border-[#E5E7EB] px-8 py-4 sticky top-16 z-30">
-          <div className="max-w-5xl mx-auto">
-            {/* First Row */}
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <button
-                onClick={handleUndo}
-                disabled={historyIndex === 0}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors disabled:opacity-50"
-                title="Undo"
-              >
-                <Undo className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={handleRedo}
-                disabled={historyIndex === history.length - 1}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors disabled:opacity-50"
-                title="Redo"
-              >
-                <Redo className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={handleCopy}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Copy"
-              >
-                <Copy className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={handlePaste}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Paste"
-              >
-                <Clipboard className="w-5 h-5 text-[#6B7280]" />
-              </button>
-
-              <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
-
-              {/* Zoom Control */}
-              <div className="flex items-center gap-2 px-3 py-1 border border-[#E5E7EB] rounded">
-                <button
-                  onClick={() => handleZoomChange(-10)}
-                  className="hover:text-[#1ABC9C]"
-                >
-                  <Minus className="w-3 h-3" />
-                </button>
-                <span className="text-sm text-[#6B7280] min-w-12 text-center">
-                  {zoom}%
-                </span>
-                <button
-                  onClick={() => handleZoomChange(10)}
-                  className="hover:text-[#1ABC9C]"
-                >
-                  <Plus className="w-3 h-3" />
-                </button>
-              </div>
-
-              <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
-
-              {/* Text Style */}
-              <select
-                value={textStyle}
-                onChange={(e) => setTextStyle(e.target.value)}
-                className="px-3 py-1.5 border border-[#E5E7EB] rounded text-sm text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C]"
-              >
-                <option>Paragraph Text</option>
-                <option>Heading 1</option>
-                <option>Heading 2</option>
-                <option>Heading 3</option>
-              </select>
-
-              {/* Font Family */}
-              <select
-                value={fontFamily}
-                onChange={(e) => setFontFamily(e.target.value)}
-                className="px-3 py-1.5 border border-[#E5E7EB] rounded text-sm text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C]"
-              >
-                <option>Arial</option>
-                <option>Georgia</option>
-                <option>Times New Roman</option>
-                <option>Courier New</option>
-              </select>
-
-              <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
-
-              {/* Font Size */}
-              <button
-                onClick={() => handleFontSizeChange(-2)}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Decrease font size"
-              >
-                <Minus className="w-4 h-4 text-[#6B7280]" />
-              </button>
-              <span className="text-sm text-[#6B7280] min-w-10 text-center">
-                {fontSize}px
-              </span>
-              <button
-                onClick={() => handleFontSizeChange(2)}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Increase font size"
-              >
-                <Plus className="w-4 h-4 text-[#6B7280]" />
-              </button>
-
-              <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
-
-              {/* Formatting */}
-              <button
-                onClick={() => applyFormatting("bold")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Bold"
-              >
-                <Bold className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyFormatting("italic")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Italic"
-              >
-                <Italic className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyFormatting("underline")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Underline"
-              >
-                <Underline className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyFormatting("color")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Text color"
-              >
-                <Type className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyFormatting("link")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Insert link"
-              >
-                <Link2 className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Insert image"
-              >
-                <ImageIcon className="w-5 h-5 text-[#6B7280]" />
-              </button>
-            </div>
-
-            {/* Second Row */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={() => applyListFormatting("bullet")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Bullet list"
-              >
-                <List className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyListFormatting("numbered")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Numbered list"
-              >
-                <ListOrdered className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyListFormatting("checklist")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Checklist"
-              >
-                <ListChecks className="w-5 h-5 text-[#6B7280]" />
-              </button>
-
-              <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
-
-              <button
-                onClick={() => applyAlignment("left")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Align left"
-              >
-                <AlignLeft className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyAlignment("center")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Align center"
-              >
-                <AlignCenter className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyAlignment("right")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Align right"
-              >
-                <AlignRight className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyAlignment("justify")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Justify"
-              >
-                <AlignJustify className="w-5 h-5 text-[#6B7280]" />
-              </button>
-
-              <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
-
-              <button
-                onClick={() => applyIndentation("decrease")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Decrease indent"
-              >
-                <IndentDecrease className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyIndentation("increase")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Increase indent"
-              >
-                <IndentIncrease className="w-5 h-5 text-[#6B7280]" />
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Editor Content */}
         <div
@@ -772,21 +557,43 @@ export default function CreateArticlePage() {
                 Write
               </label>
               <div className="relative">
-                <textarea
-                  ref={contentRef}
-                  value={content}
-                  onChange={(e) => {
-                    setContent(e.target.value);
-                    const newHistory = history.slice(0, historyIndex + 1);
-                    newHistory.push({ title, content: e.target.value });
-                    setHistory(newHistory);
-                    setHistoryIndex(newHistory.length - 1);
-                  }}
-                  placeholder="Write your blog content here..."
-                  className="w-full h-64 px-4 py-3 bg-white border border-[#E5E7EB] rounded-lg text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent resize-none"
-                  style={{ fontFamily, fontSize: `${fontSize}px` }}
-                  maxLength={20000}
-                />
+                <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
+  <Editor
+    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
+    value={content}
+    onEditorChange={(newContent) => {
+      setContent(newContent);
+
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push({ title, content: newContent });
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    }}
+    init={{
+      height: 260, // similar to your textarea height (h-64)
+      menubar: false,
+      branding: false,
+      placeholder: "Write your blog content here...",
+      fixed_toolbar_container: "#tinymce-toolbar",
+
+      plugins: [
+        "lists",
+        "link",
+        "image",
+        "table",
+        "code",
+        "wordcount",
+        "autolink",
+      ],
+      toolbar:
+        "undo redo | blocks | bold italic underline | " +
+        "alignleft aligncenter alignright alignjustify | " +
+        "bullist numlist | link image table | code",
+      content_style: `body { font-family: ${fontFamily}; font-size: ${fontSize}px; }`,
+    }}
+  />
+</div>
+
                 <div className="absolute right-4 bottom-4 flex items-center gap-2">
                   <span className="text-xs text-[#6B7280]">
                     {content.length}/20,000
