@@ -445,20 +445,13 @@ export default function CreateArticlePage() {
         </div>
                   
         {/* Toolbar (TinyMCE toolbar will render here) */}
-<div className="bg-white border-b border-[#E5E7EB] px-8 py-4 sticky top-16 z-30">
-  <div className="max-w-5xl mx-auto">
-    <div
-      id="tinymce-toolbar"
-      className="min-h-[72px] flex items-center"
-    />
-  </div>
-</div>
+
 
 
         {/* Editor Content */}
         <div
           className="px-8 py-8 overflow-y-auto"
-          style={{ height: "calc(100vh - 340px)" }}
+          style={{ height: "calc(100vh - 260px)" }}
         >
           <div
             className="max-w-5xl mx-auto space-y-6"
@@ -584,7 +577,7 @@ export default function CreateArticlePage() {
       menubar: false,
       branding: false,
       placeholder: "Write your blog content here...",
-      fixed_toolbar_container: "#tinymce-toolbar",
+      //fixed_toolbar_container: "#tinymce-toolbar",
       plugins: [
         "lists",
         "link",
