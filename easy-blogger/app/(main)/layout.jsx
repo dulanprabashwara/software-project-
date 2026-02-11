@@ -3,13 +3,10 @@
 import { useState } from "react";
 import Header from "../../components/layout/Header";
 import Sidebar from "../../components/layout/Sidebar";
-import EngagementModal from "../../components/EngagementModal";
 
 // Layout for the main app section
 export default function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [engagementModalOpen, setEngagementModalOpen] = useState(false);
-  const [engagementActiveTab, setEngagementActiveTab] = useState("followers");
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -18,10 +15,7 @@ export default function MainLayout({ children }) {
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
       <Header onToggleSidebar={toggleSidebar} />
-      <Sidebar
-        isOpen={sidebarOpen}
-        onOpenEngagement={() => setEngagementModalOpen(true)}
-      />
+      <Sidebar isOpen={sidebarOpen} />
 
       {/* Main content with sidebar offset */}
       <main
@@ -31,14 +25,6 @@ export default function MainLayout({ children }) {
       >
         {children}
       </main>
-
-      {/* Engagement Modal */}
-      <EngagementModal
-        isOpen={engagementModalOpen}
-        onClose={() => setEngagementModalOpen(false)}
-        activeTab={engagementActiveTab}
-        setActiveTab={setEngagementActiveTab}
-      />
     </div>
   );
 }

@@ -3,12 +3,9 @@
 import { useState } from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import EngagementModal from "../EngagementModal";
 
 export default function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [engagementModalOpen, setEngagementModalOpen] = useState(false);
-  const [engagementActiveTab, setEngagementActiveTab] = useState("followers");
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -17,10 +14,7 @@ export default function MainLayout({ children }) {
   return (
     <>
       <Header onToggleSidebar={toggleSidebar} />
-      <Sidebar
-        isOpen={sidebarOpen}
-        onOpenEngagement={() => setEngagementModalOpen(true)}
-      />
+      <Sidebar isOpen={sidebarOpen} />
 
       {/* Main content with sidebar offset */}
       <div
@@ -28,14 +22,6 @@ export default function MainLayout({ children }) {
       >
         {children}
       </div>
-
-      {/* Engagement Modal */}
-      <EngagementModal
-        isOpen={engagementModalOpen}
-        onClose={() => setEngagementModalOpen(false)}
-        activeTab={engagementActiveTab}
-        setActiveTab={setEngagementActiveTab}
-      />
     </>
   );
 }

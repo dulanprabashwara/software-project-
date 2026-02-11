@@ -151,14 +151,38 @@ export default function ProfilePage() {
 
             {/* Stats Row 1 */}
             <p className="text-sm text-[#6B7280] mb-1">
-              <span className="text-[#1ABC9C]">{user.followers}</span> Followers
-              · <span>{user.following}</span> Following
+              <a
+                href="/profile/user_stats?tab=followers"
+                className="hover:underline cursor-pointer"
+              >
+                {user.followers} Followers
+              </a>
+              {" · "}
+              <a
+                href="/profile/user_stats?tab=following"
+                className="hover:underline cursor-pointer"
+              >
+                {user.following} Following
+              </a>
             </p>
 
             {/* Stats Row 2 */}
             <p className="text-sm text-[#6B7280] mb-4">
-              {user.reads} Reads · {user.shares} Shares · {user.messages}{" "}
-              Messages
+              <a
+                href="/profile/user_stats?tab=reads"
+                className="hover:underline cursor-pointer"
+              >
+                {user.reads} Reads
+              </a>
+              {" · "}
+              <a
+                href="/profile/user_stats?tab=shares"
+                className="hover:underline cursor-pointer"
+              >
+                {user.shares} Shares
+              </a>
+              {" · "}
+              {user.messages} Messages
             </p>
 
             {/* Edit Profile Link */}

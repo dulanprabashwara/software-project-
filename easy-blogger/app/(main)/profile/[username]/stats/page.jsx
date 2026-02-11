@@ -1,266 +1,368 @@
 /**
- * User Stats Page - Unified Statistics View
+ * Other User Stats Page - Modal-Style Statistics View
  *
  * Route: /profile/[username]/stats
  *
- * Purpose: Displays Followers, Following, Reads, and Writes
- * in one single UI using tabs/selectable sections.
+ * Purpose: Displays another user's Followers, Following, Reads, and Shares
+ * in a centered modal-style card with horizontal tabs.
+ * The outside of the modal appears blurred.
  *
- * Used for:
- * - Logged-in user's own profile (viewing your own stats)
- * - Viewing another user's profile stats
- *
- * Behavior changes based on whether [username] is the current user:
- *
- * ============================================
- * SECTION BEHAVIOR DIFFERENCES:
- * ============================================
- *
- * FOLLOWERS SECTION:
- * - If viewing OWN profile:
- *   → Show "Message" button next to each follower
- * - If viewing OTHER user's profile:
- *   → Show "Follow" and "Message" buttons next to each follower
- *
- * FOLLOWING SECTION:
- * - If viewing OWN profile:
- *   → Show "Unfollow" and "Message" buttons
- * - If viewing OTHER user's profile:
- *   → Show "Follow" and "Message" buttons
- *
- * READS SECTION:
- * - Read-only view for both own and other profiles
- * - List of articles read by the user
- * - Click to navigate to article
- *
- * WRITES SECTION:
- * - Read-only view for both own and other profiles
- * - List of articles written by the user
- * - Click to navigate to article
- *
- * ============================================
+ * Used for: Viewing another user's profile stats
+ * isOwnProfile is always false here
  */
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { X } from "lucide-react";
 
-export default function UserStatsPage({ params }) {
+export default function OtherUserStatsPage({ params }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Get tab from URL parameter, default to "followers"
+  const urlTab = searchParams.get("tab") || "followers";
+
   // Track which tab/section is currently active
-  const [activeTab, setActiveTab] = useState("followers");
+  const [activeTab, setActiveTab] = useState(urlTab);
 
-  // In real implementation, compare params.username with logged-in user
-  // to determine if viewing own profile or another user's profile
-  const isOwnProfile = false; // Placeholder - would be determined by auth
+  // Update active tab when URL changes
+  useEffect(() => {
+    if (urlTab) {
+      setActiveTab(urlTab);
+    }
+  }, [urlTab]);
+
+  // This page is for OTHER users, not the current user
+  const isOwnProfile = false;
+
+  // Mock user data - would come from API based on params.username
+  const stats = {
+    name: params.username || "User",
+    followers: "1,245",
+    following: 89,
+    reads: "23.4K",
+    shares: 156,
+  };
+
+  // Mock data for lists
+  const followers = [
+    {
+      id: 1,
+      name: "Sarah Chen",
+      title: "AI Researcher & Tech Writer",
+      avatar: "https://i.pravatar.cc/150?img=1",
+      isFollowing: false,
+    },
+    {
+      id: 2,
+      name: "David Miller",
+      title: "Frontend Developer",
+      avatar: "https://i.pravatar.cc/150?img=2",
+      isFollowing: true,
+    },
+    {
+      id: 3,
+      name: "James Wilson",
+      title: "Product Manager",
+      avatar: "https://i.pravatar.cc/150?img=3",
+      isFollowing: false,
+    },
+    {
+      id: 4,
+      name: "Emily Davis",
+      title: "UX Designer",
+      avatar: "https://i.pravatar.cc/150?img=4",
+      isFollowing: true,
+    },
+    {
+      id: 5,
+      name: "Michael Brown",
+      title: "Data Scientist",
+      avatar: "https://i.pravatar.cc/150?img=5",
+      isFollowing: false,
+    },
+  ];
+
+  const following = [
+    {
+      id: 1,
+      name: "Alex Thompson",
+      title: "Software Engineer",
+      avatar: "https://i.pravatar.cc/150?img=7",
+    },
+    {
+      id: 2,
+      name: "Lisa Anderson",
+      title: "Content Strategist",
+      avatar: "https://i.pravatar.cc/150?img=8",
+    },
+    {
+      id: 3,
+      name: "Mark Johnson",
+      title: "Digital Marketing Expert",
+      avatar: "https://i.pravatar.cc/150?img=9",
+    },
+  ];
+
+  const reads = [
+    {
+      id: 1,
+      title: "The Future of AI in 2026",
+      author: "Sarah Chen",
+      date: "Jan 2, 2026",
+      readTime: "5 min read",
+    },
+    {
+      id: 2,
+      title: "Mastering React Patterns",
+      author: "David Miller",
+      date: "Jan 1, 2026",
+      readTime: "8 min read",
+    },
+    {
+      id: 3,
+      title: "Design Systems 101",
+      author: "Emily Davis",
+      date: "Dec 28, 2025",
+      readTime: "6 min read",
+    },
+  ];
+
+  const shares = [
+    {
+      id: 1,
+      title: "The Future of AI in 2026",
+      platform: "Twitter",
+      date: "Jan 2, 2026",
+      likes: 12,
+    },
+    {
+      id: 2,
+      title: "Mastering React Patterns",
+      platform: "LinkedIn",
+      date: "Jan 1, 2026",
+      comments: 5,
+    },
+  ];
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* ==================== */}
-        {/* HEADER SECTION */}
-        {/* ==================== */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-2">@username's Stats</h1>
-          <p className="text-gray-500">
-            {isOwnProfile
-              ? "Viewing your own statistics"
-              : "Viewing another user's statistics"}
-          </p>
-        </div>
+    <>
+      {/* Backdrop with blur */}
+      <div
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-100"
+        onClick={() => router.back()}
+      ></div>
 
-        {/* ==================== */}
-        {/* SECTION SWITCHER (TABS) */}
-        {/* ==================== */}
-        {/* 
-          Only one section is visible at a time.
-          User clicks a tab to switch between sections.
-        */}
-        <div className="flex justify-center gap-2 mb-8 border-b pb-4">
-          <button
-            onClick={() => setActiveTab("followers")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeTab === "followers"
-                ? "bg-[#1ABC9C] text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            Followers
-          </button>
-          <button
-            onClick={() => setActiveTab("following")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeTab === "following"
-                ? "bg-[#1ABC9C] text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            Following
-          </button>
-          <button
-            onClick={() => setActiveTab("reads")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeTab === "reads"
-                ? "bg-[#1ABC9C] text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            Reads
-          </button>
-          <button
-            onClick={() => setActiveTab("writes")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeTab === "writes"
-                ? "bg-[#1ABC9C] text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            Writes
-          </button>
-        </div>
-
-        {/* ==================== */}
-        {/* CONTENT SECTIONS */}
-        {/* ==================== */}
-
-        {/* FOLLOWERS SECTION */}
-        {/* 
-          Own Profile: Show "Message" button
-          Other Profile: Show "Follow" + "Message" buttons
-        */}
-        {activeTab === "followers" && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold mb-4">Followers (124)</h2>
-
-            {/* Placeholder follower items */}
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between p-4 border rounded-lg"
+      {/* Modal */}
+      <div className="fixed inset-0 flex items-center justify-center z-101 p-4 pointer-events-none">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-150 flex flex-col pointer-events-auto">
+          {/* Modal Header */}
+          <div className="p-6 border-b border-[#E5E7EB]">
+            <div className="flex items-center justify-between mb-4">
+              <h2
+                className="text-2xl font-bold text-[#111827]"
+                style={{ fontFamily: "Georgia, serif" }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                  <div>
-                    <p className="font-medium">User Name {i}</p>
-                    <p className="text-sm text-gray-500">@username{i}</p>
+                {stats.name}
+              </h2>
+              <button
+                onClick={() => router.back()}
+                className="p-1 hover:bg-[#F9FAFB] rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-[#6B7280]" />
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-6">
+              <button
+                onClick={() => setActiveTab("followers")}
+                className={`pb-3 text-sm font-medium transition-colors relative ${
+                  activeTab === "followers"
+                    ? "text-[#111827]"
+                    : "text-[#6B7280]"
+                }`}
+              >
+                <span className="mr-1">Followers</span>
+                <span className="text-[#6B7280]">{stats.followers}</span>
+                {activeTab === "followers" && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab("following")}
+                className={`pb-3 text-sm font-medium transition-colors relative ${
+                  activeTab === "following"
+                    ? "text-[#111827]"
+                    : "text-[#6B7280]"
+                }`}
+              >
+                <span className="mr-1">Following</span>
+                <span className="text-[#6B7280]">{stats.following}</span>
+                {activeTab === "following" && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab("reads")}
+                className={`pb-3 text-sm font-medium transition-colors relative ${
+                  activeTab === "reads" ? "text-[#111827]" : "text-[#6B7280]"
+                }`}
+              >
+                <span className="mr-1">Reads</span>
+                <span className="text-[#6B7280]">{stats.reads}</span>
+                {activeTab === "reads" && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab("shares")}
+                className={`pb-3 text-sm font-medium transition-colors relative ${
+                  activeTab === "shares" ? "text-[#111827]" : "text-[#6B7280]"
+                }`}
+              >
+                <span className="mr-1">Shares</span>
+                <span className="text-[#6B7280]">{stats.shares}</span>
+                {activeTab === "shares" && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Modal Content */}
+          <div className="overflow-y-auto p-6 h-112.5">
+            {/* Followers Tab */}
+            {activeTab === "followers" && (
+              <div className="space-y-4">
+                {followers.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="w-12 h-12 rounded-full"
+                      />
+                      <div>
+                        <p className="font-semibold text-[#111827] text-sm">
+                          {user.name}
+                        </p>
+                        <p className="text-xs text-[#6B7280]">{user.title}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
+                        Message
+                      </button>
+                      {user.isFollowing ? (
+                        <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
+                          Following
+                        </button>
+                      ) : (
+                        <button className="px-4 py-1.5 text-sm text-white bg-[#1ABC9C] rounded-full hover:bg-[#17a589] transition-colors">
+                          Follow
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  {/* Show different buttons based on profile ownership */}
-                  {!isOwnProfile && (
-                    <button className="px-3 py-1 text-sm border rounded-full hover:border-[#1ABC9C]">
-                      Follow
-                    </button>
-                  )}
-                  <button className="px-3 py-1 text-sm border rounded-full hover:border-[#1ABC9C]">
-                    Message
-                  </button>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            )}
 
-        {/* FOLLOWING SECTION */}
-        {/* 
-          Own Profile: Show "Unfollow" + "Message" buttons
-          Other Profile: Show "Follow" + "Message" buttons
-        */}
-        {activeTab === "following" && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold mb-4">Following (89)</h2>
-
-            {/* Placeholder following items */}
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between p-4 border rounded-lg"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                  <div>
-                    <p className="font-medium">Following User {i}</p>
-                    <p className="text-sm text-gray-500">@following{i}</p>
+            {/* Following Tab */}
+            {activeTab === "following" && (
+              <div className="space-y-4">
+                {following.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="w-12 h-12 rounded-full"
+                      />
+                      <div>
+                        <p className="font-semibold text-[#111827] text-sm">
+                          {user.name}
+                        </p>
+                        <p className="text-xs text-[#6B7280]">{user.title}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
+                        Message
+                      </button>
+                      <button className="px-4 py-1.5 text-sm text-white bg-[#1ABC9C] rounded-full hover:bg-[#17a589] transition-colors">
+                        Follow
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  {/* Show different buttons based on profile ownership */}
-                  {isOwnProfile ? (
-                    <button className="px-3 py-1 text-sm border rounded-full hover:border-red-400 hover:text-red-400">
-                      Unfollow
-                    </button>
-                  ) : (
-                    <button className="px-3 py-1 text-sm border rounded-full hover:border-[#1ABC9C]">
-                      Follow
-                    </button>
-                  )}
-                  <button className="px-3 py-1 text-sm border rounded-full hover:border-[#1ABC9C]">
-                    Message
-                  </button>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            )}
 
-        {/* READS SECTION */}
-        {/* 
-          Read-only view for both own and other profiles
-          Shows list of articles read by the user
-        */}
-        {activeTab === "reads" && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold mb-4">Articles Read (256)</h2>
-
-            {/* Placeholder read articles */}
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="p-4 border rounded-lg hover:border-[#1ABC9C] cursor-pointer transition-colors"
-              >
-                <h3 className="font-medium mb-1">Article Title {i}</h3>
-                <p className="text-sm text-gray-500 mb-2">
-                  A short preview of the article content goes here...
-                </p>
-                <div className="flex gap-4 text-xs text-gray-400">
-                  <span>By @author{i}</span>
-                  <span>Read on Jan {i}, 2026</span>
-                </div>
+            {/* Reads Tab */}
+            {activeTab === "reads" && (
+              <div className="space-y-5">
+                {reads.map((article) => (
+                  <div
+                    key={article.id}
+                    className="border-b border-[#E5E7EB] pb-4 last:border-0"
+                  >
+                    <h3 className="font-semibold text-[#111827] mb-2">
+                      {article.title}
+                    </h3>
+                    <p className="text-sm text-[#6B7280]">
+                      {article.author} · {article.date} · {article.readTime}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            )}
 
-        {/* WRITES SECTION */}
-        {/* 
-          Read-only view for both own and other profiles
-          Shows list of articles written by the user
-        */}
-        {activeTab === "writes" && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold mb-4">
-              Articles Written (42)
-            </h2>
-
-            {/* Placeholder written articles */}
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="p-4 border rounded-lg hover:border-[#1ABC9C] cursor-pointer transition-colors"
-              >
-                <h3 className="font-medium mb-1">My Article Title {i}</h3>
-                <p className="text-sm text-gray-500 mb-2">
-                  A short preview of the written article content...
-                </p>
-                <div className="flex gap-4 text-xs text-gray-400">
-                  <span>Published Jan {i}, 2026</span>
-                  <span>1.2k reads</span>
-                  <span>45 likes</span>
-                </div>
+            {/* Shares Tab */}
+            {activeTab === "shares" && (
+              <div className="space-y-5">
+                {shares.map((share) => (
+                  <div
+                    key={share.id}
+                    className="border-b border-[#E5E7EB] pb-4 last:border-0"
+                  >
+                    <h3 className="font-semibold text-[#111827] mb-2">
+                      {share.title}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-[#6B7280]">
+                        Shared to {share.platform} · {share.date}
+                      </p>
+                      {share.likes && (
+                        <span className="px-2 py-1 bg-[#D1FAE5] text-[#059669] text-xs font-medium rounded">
+                          {share.likes} likes
+                        </span>
+                      )}
+                      {share.comments && (
+                        <span className="px-2 py-1 bg-[#DBEAFE] text-[#2563EB] text-xs font-medium rounded">
+                          {share.comments} comments
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

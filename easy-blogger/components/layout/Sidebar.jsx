@@ -14,7 +14,11 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
     { icon: "stories", label: "Stories", href: "/stories" },
     { icon: "stats", label: "Stats", href: "/stats" },
     { icon: "ai", label: "AI Generate", href: "/ai-generate" },
-    { icon: "following", label: "Following", href: "/engagement" },
+    {
+      icon: "following",
+      label: "Following",
+      href: "/profile/user_stats?tab=following",
+    },
     { icon: "membership", label: "Membership", href: "/subscription/upgrade" },
   ];
 
@@ -171,27 +175,17 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
         <ul className="space-y-1">
           {navItems.map((item) => (
             <li key={item.label}>
-              {item.label === "Following" ? (
-                <button
-                  onClick={onOpenEngagement}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]`}
-                >
-                  {getIcon(item.icon)}
-                  <span>{item.label}</span>
-                </button>
-              ) : (
-                <Link
-                  href={item.href}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
-                    isActive(item.href)
-                      ? "bg-[#E8F8F5] text-[#1ABC9C]"
-                      : "text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]"
-                  }`}
-                >
-                  {getIcon(item.icon)}
-                  <span>{item.label}</span>
-                </Link>
-              )}
+              <Link
+                href={item.href}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
+                  isActive(item.href)
+                    ? "bg-[#E8F8F5] text-[#1ABC9C]"
+                    : "text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]"
+                }`}
+              >
+                {getIcon(item.icon)}
+                <span>{item.label}</span>
+              </Link>
             </li>
           ))}
         </ul>

@@ -2,7 +2,14 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Lock, Mail, Crown, AlertTriangle } from "lucide-react";
+import {
+  Camera,
+  Lock,
+  Mail,
+  Crown,
+  AlertTriangle,
+  Linkedin,
+} from "lucide-react";
 
 /**
  * Edit Profile Page
@@ -26,6 +33,7 @@ export default function EditProfilePage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [linkedInConnected, setLinkedInConnected] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -99,7 +107,12 @@ export default function EditProfilePage() {
     <div className="max-w-4xl mx-auto px-8 py-8">
       {/* Header with Save and Cancel Buttons */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-[#111827]">Edit Profile</h1>
+        <h1
+          className="text-3xl font-bold text-[#111827]"
+          style={{ fontFamily: "Georgia, serif" }}
+        >
+          Edit Profile
+        </h1>
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/profile")}
@@ -370,6 +383,55 @@ export default function EditProfilePage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* LinkedIn Connection */}
+      <div>
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 bg-[#F3F4F6] rounded-lg flex items-center justify-center">
+            <Linkedin className="w-5 h-5 text-[#6B7280]" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-[#111827] mb-1">
+              LinkedIn Integration
+            </h3>
+            <p className="text-sm text-[#6B7280] mb-4">
+              Connect your LinkedIn account to easily share your blog articles
+            </p>
+
+            {linkedInConnected ? (
+              <div className="flex items-center justify-between p-4 border border-[#E5E7EB] rounded-lg bg-[#F9FAFB]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#0A66C2] rounded-lg flex items-center justify-center">
+                    <Linkedin className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-[#111827]">
+                      LinkedIn Connected
+                    </p>
+                    <p className="text-sm text-[#6B7280]">
+                      Share articles directly to your LinkedIn profile
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setLinkedInConnected(false)}
+                  className="px-4 py-2 text-[#DC2626] hover:bg-[#FEF2F2] rounded-lg text-sm font-medium transition-colors"
+                >
+                  Disconnect
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setLinkedInConnected(true)}
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                <Linkedin className="w-4 h-4" />
+                Connect LinkedIn
+              </button>
+            )}
           </div>
         </div>
       </div>

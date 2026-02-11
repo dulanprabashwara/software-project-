@@ -1,29 +1,52 @@
+/**
+ * Current User Stats Page - Modal-Style Statistics View
+ *
+ * Route: /profile/user_stats
+ *
+ * Purpose: Displays YOUR OWN Followers, Following, Reads, and Shares
+ * in a centered modal-style card with horizontal tabs.
+ * The outside of the modal appears blurred.
+ *
+ * Used for: Logged-in user viewing their own stats only
+ * isOwnProfile is always true here
+ */
+
 "use client";
 
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { X } from "lucide-react";
-import { useEffect } from "react";
 
-export default function EngagementModal({
-  isOpen,
-  onClose,
-  activeTab,
-  setActiveTab,
-}) {
-  // Prevent body scroll when modal is open
+export default function UserStatsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Get tab from URL parameter, default to "followers"
+  const urlTab = searchParams.get("tab") || "followers";
+
+  // Track which tab/section is currently active
+  const [activeTab, setActiveTab] = useState(urlTab);
+
+  // Update active tab when URL changes
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
+    if (urlTab) {
+      setActiveTab(urlTab);
     }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
+  }, [urlTab]);
 
-  if (!isOpen) return null;
+  // This page is ALWAYS for the current user's own profile
+  const isOwnProfile = true;
 
-  // Mock data
+  // Mock user data - would come from auth/session
+  const stats = {
+    name: "Emma Richardson",
+    followers: "2,400",
+    following: 142,
+    reads: "45.2K",
+    shares: 892,
+  };
+
+  // Mock data for lists
   const followers = [
     {
       id: 1,
@@ -135,13 +158,13 @@ export default function EngagementModal({
     <>
       {/* Backdrop with blur */}
       <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[100]"
-        onClick={onClose}
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-100"
+        onClick={() => router.back()}
       ></div>
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-[101] p-4 pointer-events-none">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col pointer-events-auto">
+      <div className="fixed inset-0 flex items-center justify-center z-101 p-4 pointer-events-none">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-150 flex flex-col pointer-events-auto">
           {/* Modal Header */}
           <div className="p-6 border-b border-[#E5E7EB]">
             <div className="flex items-center justify-between mb-4">
@@ -149,10 +172,10 @@ export default function EngagementModal({
                 className="text-2xl font-bold text-[#111827]"
                 style={{ fontFamily: "Georgia, serif" }}
               >
-                Emma Richardson
+                {stats.name}
               </h2>
               <button
-                onClick={onClose}
+                onClick={() => router.back()}
                 className="p-1 hover:bg-[#F9FAFB] rounded-full transition-colors"
               >
                 <X className="w-5 h-5 text-[#6B7280]" />
@@ -170,7 +193,7 @@ export default function EngagementModal({
                 }`}
               >
                 <span className="mr-1">Followers</span>
-                <span className="text-[#6B7280]">2,400</span>
+                <span className="text-[#6B7280]">{stats.followers}</span>
                 {activeTab === "followers" && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
                 )}
@@ -185,7 +208,7 @@ export default function EngagementModal({
                 }`}
               >
                 <span className="mr-1">Following</span>
-                <span className="text-[#6B7280]">142</span>
+                <span className="text-[#6B7280]">{stats.following}</span>
                 {activeTab === "following" && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
                 )}
@@ -198,7 +221,7 @@ export default function EngagementModal({
                 }`}
               >
                 <span className="mr-1">Reads</span>
-                <span className="text-[#6B7280]">45.2K</span>
+                <span className="text-[#6B7280]">{stats.reads}</span>
                 {activeTab === "reads" && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
                 )}
@@ -211,7 +234,7 @@ export default function EngagementModal({
                 }`}
               >
                 <span className="mr-1">Shares</span>
-                <span className="text-[#6B7280]">892</span>
+                <span className="text-[#6B7280]">{stats.shares}</span>
                 {activeTab === "shares" && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
                 )}
@@ -220,7 +243,7 @@ export default function EngagementModal({
           </div>
 
           {/* Modal Content */}
-          <div className="overflow-y-auto p-6 h-[450px]">
+          <div className="overflow-y-auto p-6 h-112.5">
             {/* Followers Tab */}
             {activeTab === "followers" && (
               <div className="space-y-4">
