@@ -37,6 +37,7 @@ export default function CreateArticlePage() {
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [articleMode, setArticleMode] = useState("new"); 
   const [lastSaved, setLastSaved] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [zoom, setZoom] = useState(100);
@@ -427,31 +428,40 @@ export default function CreateArticlePage() {
         }`}
       >
         {/* Top Bar */}
-        <div className="bg-white border-b border-[#E5E7EB] px-8 py-6">
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-serif font-bold text-[#111827] mb-2">
-                Create your Article
-              </h1>
-              <p className="text-[#6B7280]">Create your own Article here</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-[#6B7280]">
-                {isSaving
-                  ? "Saving..."
-                  : lastSaved
-                    ? `Saved at ${lastSaved.toLocaleTimeString()}`
-                    : "Saved / Saving..."}
-              </span>
-              <button
-                onClick={() => router.push("/write/publish")}
-                className="px-6 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors"
-              >
-                Post Status
-              </button>
-            </div>
-          </div>
-        </div>
+        {/* Top Bar */}
+<div className="bg-white border-b border-[#E5E7EB] px-8 py-6">
+  <div className="max-w-6xl mx-auto">
+    <div className="grid grid-cols-3 items-center">
+      {/* Left: Saved status */}
+      <div className="text-sm text-[#6B7280] justify-self-start">
+        {isSaving
+          ? "Saving..."
+          : lastSaved
+            ? `Saved at ${lastSaved.toLocaleTimeString()}`
+            : "Saved / Saving..."}
+      </div>
+
+      {/* Center: Title + subtitle */}
+      <div className="text-center">
+        <h1 className="text-4xl font-serif font-bold text-[#111827]">
+          Create your Article
+        </h1>
+        <p className="text-[#6B7280] mt-1">Create your own Article here</p>
+      </div>
+
+      {/* Right: Button */}
+      <div className="justify-self-end">
+        <button
+          onClick={() => router.push("/write/publish")}
+          className="px-6 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors"
+        >
+          {articleMode === "draft" ? "Draft Article" : "New Article"}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
                   
         {/* Toolbar (TinyMCE toolbar will render here) */}
 
