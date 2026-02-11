@@ -74,13 +74,19 @@ export default function Header({ onToggleSidebar }) {
           </button>
 
           {/* Logo */}
-          <h1
-            className="text-2xl font-bold"
-            style={{ fontFamily: "Georgia, serif" }}
-          >
-            <span className="text-[#1ABC9C]">Easy </span>
-            <span className="text-[#1ABC9C]">Blogger</span>
-          </h1>
+          <Link href="/home" className="flex items-center gap-1">
+            <img
+              src="/images/easy-blogger-logo.png"
+              alt="Easy Blogger Logo"
+              className="h-12 w-auto"
+            />
+            <h1
+              className="text-2xl font-bold text-[#1ABC9C]"
+              style={{ fontFamily: "Georgia, serif" }}
+            >
+              Easy Blogger
+            </h1>
+          </Link>
         </div>
 
         {/* Center: Search */}
