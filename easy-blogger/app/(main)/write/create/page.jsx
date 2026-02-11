@@ -51,6 +51,8 @@ export default function CreateArticlePage() {
   const fileInputRef = useRef(null);
   //const contentRef = useRef(null);
   const titleRef = useRef(null);
+  const editorRef = useRef(null);
+
 
   // Auto-save functionality
   useEffect(() => {
@@ -407,6 +409,13 @@ export default function CreateArticlePage() {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const plainText = editorRef.current
+   ? editorRef.current.getContent({ format: "text" })
+   : "";
+
+  const charCount = plainText.length;
+
+
   return (
     <div className="min-h-screen bg-white">
       <Header onToggleSidebar={toggleSidebar} />
@@ -563,6 +572,7 @@ export default function CreateArticlePage() {
   <div className="h-[260px] bg-white" />
 ) : (
   <Editor
+    onInit={(evt, editor) => (editorRef.current = editor)}
     apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
     value={content}
     onEditorChange={(newContent) => {
@@ -600,7 +610,7 @@ export default function CreateArticlePage() {
 
                 <div className="absolute right-4 bottom-4 flex items-center gap-2">
                   <span className="text-xs text-[#6B7280]">
-                    {content.length}/20,000
+                    {charCount}/20,000
                   </span>
                   {content.length === 0 && (
                     <span className="text-xs text-[#DC2626]">*Required</span>
