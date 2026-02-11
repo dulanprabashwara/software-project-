@@ -45,6 +45,8 @@ export default function CreateArticlePage() {
   const [fontSize, setFontSize] = useState(16);
   const [history, setHistory] = useState([{ title: "", content: "" }]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
 
   const fileInputRef = useRef(null);
   //const contentRef = useRef(null);
@@ -84,6 +86,12 @@ export default function CreateArticlePage() {
       setCoverImage(parsed.coverImage || null);
     }
   }, []);
+
+  //Add “mounted” state (fix refresh hydration)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -437,20 +445,13 @@ export default function CreateArticlePage() {
         </div>
                   
         {/* Toolbar (TinyMCE toolbar will render here) */}
-<div className="bg-white border-b border-[#E5E7EB] px-8 py-4 sticky top-16 z-30">
-  <div className="max-w-5xl mx-auto">
-    <div
-      id="tinymce-toolbar"
-      className="min-h-[72px] flex items-center"
-    />
-  </div>
-</div>
+
 
 
         {/* Editor Content */}
         <div
           className="px-8 py-8 overflow-y-auto"
-          style={{ height: "calc(100vh - 340px)" }}
+          style={{ height: "calc(100vh - 260px)" }}
         >
           <div
             className="max-w-5xl mx-auto space-y-6"
@@ -558,24 +559,25 @@ export default function CreateArticlePage() {
               </label>
               <div className="relative">
                 <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
+{!mounted ? (
+  <div className="h-[260px] bg-white" />
+) : (
   <Editor
     apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
     value={content}
     onEditorChange={(newContent) => {
       setContent(newContent);
-
       const newHistory = history.slice(0, historyIndex + 1);
       newHistory.push({ title, content: newContent });
       setHistory(newHistory);
       setHistoryIndex(newHistory.length - 1);
     }}
     init={{
-      height: 260, // similar to your textarea height (h-64)
+      height: 260,
       menubar: false,
       branding: false,
       placeholder: "Write your blog content here...",
-      fixed_toolbar_container: "#tinymce-toolbar",
-
+      //fixed_toolbar_container: "#tinymce-toolbar",
       plugins: [
         "lists",
         "link",
@@ -592,6 +594,8 @@ export default function CreateArticlePage() {
       content_style: `body { font-family: ${fontFamily}; font-size: ${fontSize}px; }`,
     }}
   />
+)}
+
 </div>
 
                 <div className="absolute right-4 bottom-4 flex items-center gap-2">
