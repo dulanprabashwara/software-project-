@@ -624,9 +624,7 @@ export default function CreateArticlePage() {
         {/* Bottom Action Buttons */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] px-8 py-6 z-30">
           <div
-            className={`max-w-5xl mx-auto flex items-center justify-center gap-4 transition-all duration-300 ${
-              sidebarOpen ? "ml-60" : "ml-0"
-            }`}
+            className="max-w-5xl mx-auto flex items-center justify-center gap-20"
           >
             <button
               onClick={() => router.push("/home")}
