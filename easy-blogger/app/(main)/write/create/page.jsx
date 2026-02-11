@@ -1,5 +1,7 @@
 "use client";
 
+import { Editor } from "@tinymce/tinymce-react";
+
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -33,6 +35,7 @@ export default function CreateArticlePage() {
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [articleMode, setArticleMode] = useState("new"); 
   const [lastSaved, setLastSaved] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [zoom, setZoom] = useState(100);
@@ -41,10 +44,14 @@ export default function CreateArticlePage() {
   const [fontSize, setFontSize] = useState(16);
   const [history, setHistory] = useState([{ title: "", content: "" }]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
 
   const fileInputRef = useRef(null);
-  const contentRef = useRef(null);
+  //const contentRef = useRef(null);
   const titleRef = useRef(null);
+  const editorRef = useRef(null);
+
 
   // Auto-save functionality
   useEffect(() => {
@@ -80,6 +87,12 @@ export default function CreateArticlePage() {
       setCoverImage(parsed.coverImage || null);
     }
   }, []);
+
+  //Add “mounted” state (fix refresh hydration)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -395,6 +408,13 @@ export default function CreateArticlePage() {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const plainText = editorRef.current
+   ? editorRef.current.getContent({ format: "text" })
+   : "";
+
+  const charCount = plainText.length;
+
+
   return (
     <div className="min-h-screen bg-white">
       <Header onToggleSidebar={toggleSidebar} />
@@ -406,262 +426,49 @@ export default function CreateArticlePage() {
         }`}
       >
         {/* Top Bar */}
-        <div className="bg-white border-b border-[#E5E7EB] px-8 py-6">
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-serif font-bold text-[#111827] mb-2">
-                Create your Article
-              </h1>
-              <p className="text-[#6B7280]">Create your own Article here</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-[#6B7280]">
-                {isSaving
-                  ? "Saving..."
-                  : lastSaved
-                    ? `Saved at ${lastSaved.toLocaleTimeString()}`
-                    : "Saved / Saving..."}
-              </span>
-              <button
-                onClick={() => router.push("/write/publish")}
-                className="px-6 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors"
-              >
-                Post Status
-              </button>
-            </div>
-          </div>
-        </div>
+        {/* Top Bar */}
+<div className="bg-white border-b border-[#E5E7EB] px-8 py-6">
+  <div className="max-w-6xl mx-auto">
+    <div className="grid grid-cols-3 items-center">
+      {/* Left: Saved status */}
+      <div className="text-sm text-[#6B7280] justify-self-start">
+        {isSaving
+          ? "Saving..."
+          : lastSaved
+            ? `Saved at ${lastSaved.toLocaleTimeString()}`
+            : "Saved / Saving..."}
+      </div>
 
-        {/* Toolbar */}
-        <div className="bg-white border-b border-[#E5E7EB] px-8 py-4 sticky top-16 z-30">
-          <div className="max-w-5xl mx-auto">
-            {/* First Row */}
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <button
-                onClick={handleUndo}
-                disabled={historyIndex === 0}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors disabled:opacity-50"
-                title="Undo"
-              >
-                <Undo className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={handleRedo}
-                disabled={historyIndex === history.length - 1}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors disabled:opacity-50"
-                title="Redo"
-              >
-                <Redo className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={handleCopy}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Copy"
-              >
-                <Copy className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={handlePaste}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Paste"
-              >
-                <Clipboard className="w-5 h-5 text-[#6B7280]" />
-              </button>
+      {/* Center: Title + subtitle */}
+      <div className="text-center">
+        <h1 className="text-4xl font-serif font-bold text-[#111827]">
+          Create your Article
+        </h1>
+        <p className="text-[#6B7280] mt-1">Create your own Article here</p>
+      </div>
 
-              <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
+      {/* Right: Button */}
+      <div className="justify-self-end">
+        <button
+          onClick={() => router.push("/write/publish")}
+          className="px-6 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors"
+        >
+          {articleMode === "draft" ? "Draft Article" : "New Article"}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
-              {/* Zoom Control */}
-              <div className="flex items-center gap-2 px-3 py-1 border border-[#E5E7EB] rounded">
-                <button
-                  onClick={() => handleZoomChange(-10)}
-                  className="hover:text-[#1ABC9C]"
-                >
-                  <Minus className="w-3 h-3" />
-                </button>
-                <span className="text-sm text-[#6B7280] min-w-12 text-center">
-                  {zoom}%
-                </span>
-                <button
-                  onClick={() => handleZoomChange(10)}
-                  className="hover:text-[#1ABC9C]"
-                >
-                  <Plus className="w-3 h-3" />
-                </button>
-              </div>
+                  
+        {/* Toolbar (TinyMCE toolbar will render here) */}
 
-              <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
 
-              {/* Text Style */}
-              <select
-                value={textStyle}
-                onChange={(e) => setTextStyle(e.target.value)}
-                className="px-3 py-1.5 border border-[#E5E7EB] rounded text-sm text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C]"
-              >
-                <option>Paragraph Text</option>
-                <option>Heading 1</option>
-                <option>Heading 2</option>
-                <option>Heading 3</option>
-              </select>
-
-              {/* Font Family */}
-              <select
-                value={fontFamily}
-                onChange={(e) => setFontFamily(e.target.value)}
-                className="px-3 py-1.5 border border-[#E5E7EB] rounded text-sm text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C]"
-              >
-                <option>Arial</option>
-                <option>Georgia</option>
-                <option>Times New Roman</option>
-                <option>Courier New</option>
-              </select>
-
-              <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
-
-              {/* Font Size */}
-              <button
-                onClick={() => handleFontSizeChange(-2)}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Decrease font size"
-              >
-                <Minus className="w-4 h-4 text-[#6B7280]" />
-              </button>
-              <span className="text-sm text-[#6B7280] min-w-10 text-center">
-                {fontSize}px
-              </span>
-              <button
-                onClick={() => handleFontSizeChange(2)}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Increase font size"
-              >
-                <Plus className="w-4 h-4 text-[#6B7280]" />
-              </button>
-
-              <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
-
-              {/* Formatting */}
-              <button
-                onClick={() => applyFormatting("bold")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Bold"
-              >
-                <Bold className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyFormatting("italic")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Italic"
-              >
-                <Italic className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyFormatting("underline")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Underline"
-              >
-                <Underline className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyFormatting("color")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Text color"
-              >
-                <Type className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyFormatting("link")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Insert link"
-              >
-                <Link2 className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Insert image"
-              >
-                <ImageIcon className="w-5 h-5 text-[#6B7280]" />
-              </button>
-            </div>
-
-            {/* Second Row */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={() => applyListFormatting("bullet")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Bullet list"
-              >
-                <List className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyListFormatting("numbered")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Numbered list"
-              >
-                <ListOrdered className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyListFormatting("checklist")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Checklist"
-              >
-                <ListChecks className="w-5 h-5 text-[#6B7280]" />
-              </button>
-
-              <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
-
-              <button
-                onClick={() => applyAlignment("left")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Align left"
-              >
-                <AlignLeft className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyAlignment("center")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Align center"
-              >
-                <AlignCenter className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyAlignment("right")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Align right"
-              >
-                <AlignRight className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyAlignment("justify")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Justify"
-              >
-                <AlignJustify className="w-5 h-5 text-[#6B7280]" />
-              </button>
-
-              <div className="w-px h-6 bg-[#E5E7EB] mx-2"></div>
-
-              <button
-                onClick={() => applyIndentation("decrease")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Decrease indent"
-              >
-                <IndentDecrease className="w-5 h-5 text-[#6B7280]" />
-              </button>
-              <button
-                onClick={() => applyIndentation("increase")}
-                className="p-2 hover:bg-[#F8FAFC] rounded transition-colors"
-                title="Increase indent"
-              >
-                <IndentIncrease className="w-5 h-5 text-[#6B7280]" />
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Editor Content */}
         <div
           className="px-8 py-8 overflow-y-auto"
-          style={{ height: "calc(100vh - 340px)" }}
+          style={{ height: "calc(100vh - 260px)" }}
         >
           <div
             className="max-w-5xl mx-auto space-y-6"
@@ -768,24 +575,50 @@ export default function CreateArticlePage() {
                 Write
               </label>
               <div className="relative">
-                <textarea
-                  ref={contentRef}
-                  value={content}
-                  onChange={(e) => {
-                    setContent(e.target.value);
-                    const newHistory = history.slice(0, historyIndex + 1);
-                    newHistory.push({ title, content: e.target.value });
-                    setHistory(newHistory);
-                    setHistoryIndex(newHistory.length - 1);
-                  }}
-                  placeholder="Write your blog content here..."
-                  className="w-full h-64 px-4 py-3 bg-white border border-[#E5E7EB] rounded-lg text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent resize-none"
-                  style={{ fontFamily, fontSize: `${fontSize}px` }}
-                  maxLength={20000}
-                />
+                <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
+{!mounted ? (
+  <div className="h-[260px] bg-white" />
+) : (
+  <Editor
+    onInit={(evt, editor) => (editorRef.current = editor)}
+    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
+    value={content}
+    onEditorChange={(newContent) => {
+      setContent(newContent);
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push({ title, content: newContent });
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    }}
+    init={{
+      height: 260,
+      menubar: false,
+      branding: false,
+      placeholder: "Write your blog content here...",
+      //fixed_toolbar_container: "#tinymce-toolbar",
+      plugins: [
+        "lists",
+        "link",
+        "image",
+        "table",
+        "code",
+        "wordcount",
+        "autolink",
+      ],
+      toolbar:
+        "undo redo | blocks | bold italic underline | " +
+        "alignleft aligncenter alignright alignjustify | " +
+        "bullist numlist | link image table | code",
+      content_style: `body { font-family: ${fontFamily}; font-size: ${fontSize}px; }`,
+    }}
+  />
+)}
+
+</div>
+
                 <div className="absolute right-4 bottom-4 flex items-center gap-2">
                   <span className="text-xs text-[#6B7280]">
-                    {content.length}/20,000
+                    {charCount}/20,000
                   </span>
                   {content.length === 0 && (
                     <span className="text-xs text-[#DC2626]">*Required</span>
@@ -799,9 +632,7 @@ export default function CreateArticlePage() {
         {/* Bottom Action Buttons */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] px-8 py-6 z-30">
           <div
-            className={`max-w-5xl mx-auto flex items-center justify-center gap-4 transition-all duration-300 ${
-              sidebarOpen ? "ml-60" : "ml-0"
-            }`}
+            className="max-w-5xl mx-auto flex items-center justify-center gap-20"
           >
             <button
               onClick={() => router.push("/home")}

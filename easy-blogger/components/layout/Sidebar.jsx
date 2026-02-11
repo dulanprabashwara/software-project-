@@ -205,7 +205,7 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
         >
           <div className="w-8 h-8 rounded-full bg-[#1ABC9C] flex items-center justify-center">
             <svg
-              className="w-4 h-4 text-white"
+              className="w-5 h-5 text-white"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
