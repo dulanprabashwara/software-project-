@@ -4,7 +4,6 @@ import { useState } from "react";
 import ConversationList from "./ConversationList";
 import MessageList from "./MessageList";
 import ChatInput from "./ChatInput";
-import { MoreVertical } from "lucide-react";
 
 // Mock Data
 const MOCK_CURRENT_USER = {
@@ -224,11 +223,6 @@ export default function ChatInterface() {
                       : "Offline"}
                   </span>
                 </div>
-              </div>
-              <div className="flex items-center gap-4 text-gray-400">
-                <button className="hover:text-gray-600">
-                  <MoreVertical className="w-5 h-5" />
-                </button>
               </div>
             </div>
 
