@@ -118,6 +118,7 @@ export default function AIArticleGeneratorPage() {
   };
 
   const handleKeywordToggle = (keyword) => {
+    // Toggle keyword selection with state management
     setSelectedKeywords(prev => 
       prev.includes(keyword) 
         ? prev.filter(k => k !== keyword)
