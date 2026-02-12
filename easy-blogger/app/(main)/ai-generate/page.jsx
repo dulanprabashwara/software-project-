@@ -105,6 +105,7 @@ export default function AIArticleGeneratorPage() {
   const handleUserInputChange = (e) => {
     const text = e.target.value;
     const words = text.trim().split(/\s+/);
+    // Enforce 50-word limit for user input
     if (words.length <= 50) {
       setUserInput(text);
     }
