@@ -48,7 +48,6 @@ export default function CreateArticlePage() {
 
 
   const fileInputRef = useRef(null);
-  //const contentRef = useRef(null);
   const titleRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -402,6 +401,7 @@ export default function CreateArticlePage() {
       }),
     );
     router.push("/write/preview");
+
   };
 
   const toggleSidebar = () => {
