@@ -404,6 +404,7 @@ export default function CreateArticlePage() {
       }),
     );
     router.push("/write/preview");
+
   };
 
   const toggleSidebar = () => {
