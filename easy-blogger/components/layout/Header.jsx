@@ -197,10 +197,14 @@ export default function Header({ onToggleSidebar }) {
                     <HelpCircle className="w-5 h-5 text-[#6B7280]" />
                     <span className="text-sm text-[#6B7280]">Help</span>
                   </button>
-                  <button className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[#F9FAFB] transition-colors text-left">
+                  <Link
+                    href="/chat"
+                    className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[#F9FAFB] transition-colors text-left"
+                    onClick={() => setShowProfileMenu(false)}
+                  >
                     <MessageCircle className="w-5 h-5 text-[#6B7280]" />
                     <span className="text-sm text-[#6B7280]">Messages</span>
-                  </button>
+                  </Link>
                 </div>
 
                 {/* Become a Premium Member */}
