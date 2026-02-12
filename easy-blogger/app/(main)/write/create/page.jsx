@@ -451,12 +451,11 @@ export default function CreateArticlePage() {
 
       {/* Right: Button */}
       <div className="justify-self-end">
-        <button
-          onClick={() => router.push("/write/publish")}
-          className="px-6 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors"
+        <span
+          className="inline-flex items-center px-6 py-2.5 bg-[#1ABC9C] text-white rounded-full text-sm font-medium"
         >
           {articleMode === "draft" ? "Draft Article" : "New Article"}
-        </button>
+        </span>
       </div>
     </div>
   </div>
