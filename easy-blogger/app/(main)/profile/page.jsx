@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import ArticleCard from "../../../components/article/ArticleCard";
 
 export default function ProfilePage() {
@@ -182,7 +183,9 @@ export default function ProfilePage() {
                 {user.shares} Shares
               </a>
               {" · "}
-              {user.messages} Messages
+              <Link href="/chat" className="hover:underline cursor-pointer">
+                {user.messages} Messages
+              </Link>
             </p>
 
             {/* Edit Profile Link */}
