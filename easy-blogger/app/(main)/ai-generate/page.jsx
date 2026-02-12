@@ -57,7 +57,7 @@ export default function AIArticleGeneratorPage() {
     "Big data", "Cloud computing", "Cybersecurity", "Blockchain", "IoT"
   ];
 
-  // Top AI assisted articles data
+  // Insights sidebar data - Top AI assisted articles
   const topAIArticles = [
     { title: "Understanding Neural Networks", views: "12.5K" },
     { title: "Python for Data Science", views: "10.2K" },
