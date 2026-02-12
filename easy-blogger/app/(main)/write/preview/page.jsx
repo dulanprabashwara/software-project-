@@ -71,7 +71,7 @@ export default function Page() {
               {/* Content (TinyMCE HTML) */}
               <div className="bg-white px-10 py-10">
                 <div
-                  className="prose max-w-none"
+                  className="prose max-w-none leading-loose"
                   dangerouslySetInnerHTML={{ __html: article.content }}
                 />
               </div>
