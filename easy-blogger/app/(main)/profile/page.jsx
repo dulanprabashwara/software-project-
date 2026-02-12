@@ -1,7 +1,7 @@
 // Profile page - Shows user's profile with their articles
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import ArticleCard from "../../../components/article/ArticleCard";
 
@@ -18,6 +18,70 @@ export default function ProfilePage() {
     reads: "45.2K",
     shares: 892,
     messages: 10,
+  };
+
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleCopyLink = () => {
+    const url = window.location.href;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          alert("Profile link copied to clipboard!");
+          setShowMenu(false);
+        })
+        .catch((err) => {
+          console.error("Failed to copy: ", err);
+          fallbackCopyTextToClipboard(url);
+        });
+    } else {
+      fallbackCopyTextToClipboard(url);
+    }
+  };
+
+  const fallbackCopyTextToClipboard = (text) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+
+    // Avoid scrolling to bottom
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      const successful = document.execCommand("copy");
+      if (successful) {
+        alert("Profile link copied to clipboard!");
+        setShowMenu(false);
+      } else {
+        alert("Failed to copy link.");
+      }
+    } catch (err) {
+      console.error("Fallback: Oops, unable to copy", err);
+      alert("Failed to copy link.");
+    }
+
+    document.body.removeChild(textArea);
   };
 
   // Mock articles data
@@ -67,15 +131,44 @@ export default function ProfilePage() {
             >
               {user.name}
             </h1>
-            <button className="p-2 hover:bg-[#F8FAFC] rounded-full transition-colors duration-150">
-              <svg
-                className="w-6 h-6 text-[#6B7280]"
-                fill="currentColor"
-                viewBox="0 0 20 20"
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="p-2 hover:bg-[#F8FAFC] rounded-full transition-colors duration-150"
               >
-                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-              </svg>
-            </button>
+                <svg
+                  className="w-6 h-6 text-[#6B7280]"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                </svg>
+              </button>
+
+              {showMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
+                  <button
+                    onClick={handleCopyLink}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                      />
+                    </svg>
+                    Copy link to profile
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Tabs */}
