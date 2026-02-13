@@ -3,7 +3,7 @@ import { SubscriptionProvider } from "./subscription/SubscriptionContext";
 
 export const metadata = {
   title: "Easy Blogger",
-  description: "A Medium-like blogging platform with AI writing",
+  description: "A simple blogging platform",
 };
 
 export default function RootLayout({ children }) {

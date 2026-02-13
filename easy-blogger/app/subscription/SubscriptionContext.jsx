@@ -2,17 +2,13 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 
-const SubscriptionContext = createContext({
-  isPremium: false,
-  togglePremium: () => {},
-});
+const SubscriptionContext = createContext();
 
 export function SubscriptionProvider({ children }) {
-  // Initialize with false, but verify with localStorage if available
   const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
-    // Check localStorage on mount
+    // Load persisted state from localStorage
     const savedPremium = localStorage.getItem("isPremium");
     if (savedPremium) {
       setIsPremium(savedPremium === "true");
@@ -35,11 +31,5 @@ export function SubscriptionProvider({ children }) {
 }
 
 export function useSubscription() {
-  const context = useContext(SubscriptionContext);
-  if (context === undefined) {
-    throw new Error(
-      "useSubscription must be used within a SubscriptionProvider",
-    );
-  }
-  return context;
+  return useContext(SubscriptionContext);
 }

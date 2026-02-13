@@ -10,6 +10,8 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("home");
   const { isPremium } = useSubscription();
 
+  const { isPremium } = useSubscription();
+
   // Mock user data
   const user = {
     name: "Emma Richardson",
