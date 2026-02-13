@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useSubscription } from "../../subscription/SubscriptionContext";
+import { useSubscription } from "../../(settings)/subscription/SubscriptionContext";
 import ArticleCard from "../../../components/article/ArticleCard";
 
 export default function ProfilePage() {

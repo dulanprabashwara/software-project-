@@ -18,7 +18,7 @@ import {
  * Features: Profile photo upload, bio editing, email settings, password change, account deletion
  */
 
-import { useSubscription } from "../../../subscription/SubscriptionContext";
+import { useSubscription } from "../../(settings)/subscription/SubscriptionContext";
 
 export default function EditProfilePage() {
   const router = useRouter();
