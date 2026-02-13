@@ -4,22 +4,31 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useSubscription } from "../../app/subscription/SubscriptionContext";
+
 export default function Sidebar({ isOpen = true, onOpenEngagement }) {
   const pathname = usePathname();
+  const { isPremium } = useSubscription();
 
   const navItems = [
     { icon: "home", label: "Home", href: "/home" },
-    { icon: "library", label: "Library", href: "/library" },
-    { icon: "profile", label: "Profile", href: "/profile" },
-    { icon: "stories", label: "Stories", href: "/stories" },
-    { icon: "stats", label: "Stats", href: "/stats" },
-    { icon: "ai", label: "AI Generate", href: "/ai-generate" },
+    { icon: "topic", label: "Topics", href: "/topics" },
+    { icon: "bookmarks", label: "Bookmarks", href: "/bookmarks" },
+    { icon: "lists", label: "Lists", href: "/lists" },
+    { icon: "stats", label: "Stats", href: "/profile/user_stats" },
+  ];
+
+  const bottomNavItems = [
     {
       icon: "following",
       label: "Following",
       href: "/profile/user_stats?tab=following",
     },
-    { icon: "membership", label: "Membership", href: "/subscription/upgrade" },
+    {
+      icon: "membership",
+      label: "Membership",
+      href: isPremium ? "/subscription/manage" : "/subscription/upgrade",
+    },
   ];
 
   const isActive = (href) => {
