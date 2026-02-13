@@ -13,11 +13,12 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { X } from "lucide-react";
 
 export default function OtherUserStatsPage({ params }) {
+  const unwrappedParams = use(params);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -39,7 +40,7 @@ export default function OtherUserStatsPage({ params }) {
 
   // Mock user data - would come from API based on params.username
   const stats = {
-    name: params.username || "User",
+    name: "Phil Jackson",
     followers: "1,245",
     following: 89,
     reads: "23.4K",

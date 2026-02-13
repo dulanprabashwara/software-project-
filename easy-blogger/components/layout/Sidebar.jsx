@@ -26,6 +26,24 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
     if (href === "/home") {
       return pathname === "/home";
     }
+
+    // Special handling for Profile to verify it's the user's own profile
+    if (href === "/profile") {
+      // Exact match
+      if (pathname === "/profile") return true;
+
+      // Known own-profile sub-routes
+      const ownProfileRoutes = [
+        "/profile/edit",
+        "/profile/user_stats",
+        "/profile/normal",
+        "/profile/premium",
+      ];
+
+      // If it starts with any of these, it's the user's own profile section
+      return ownProfileRoutes.some((route) => pathname.startsWith(route));
+    }
+
     return pathname.startsWith(href);
   };
 
