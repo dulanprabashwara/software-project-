@@ -1,7 +1,56 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { HelpCircle, Sparkles, MessageCircle } from "lucide-react";
+
+import { useSubscription } from "../../app/subscription/SubscriptionContext";
 
 // Top navigation header component for the app layout
 export default function Header({ onToggleSidebar }) {
+  const router = useRouter();
+  const { isPremium } = useSubscription();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const menuRef = useRef(null);
+
+  // Mock user data
+  const user = {
+    name: "Dulan prabashwara",
+    email: "rji**************@gmail.com",
+    avatar: "https://i.pravatar.cc/150?img=47",
+    initials: "D",
+  };
+
+  // Set mounted state on client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    if (showProfileMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showProfileMenu]);
+
+  const handleSignOut = () => {
+    // Handle sign out logic
+    alert("Signing out...");
+    router.push("/");
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 bg-white border-b border-[#E5E7EB] z-50 h-16">
       <div className="h-full max-w-360 mx-auto px-6 flex items-center justify-between">
@@ -28,13 +77,19 @@ export default function Header({ onToggleSidebar }) {
           </button>
 
           {/* Logo */}
-          <h1
-            className="text-2xl font-bold"
-            style={{ fontFamily: "Georgia, serif" }}
-          >
-            <span className="text-[#1ABC9C]">Easy </span>
-            <span className="text-[#1ABC9C]">Blogger</span>
-          </h1>
+          <Link href="/home" className="flex items-center gap-1">
+            <img
+              src="/images/easy-blogger-logo.png"
+              alt="Easy Blogger Logo"
+              className="h-12 w-auto"
+            />
+            <h1
+              className="text-2xl font-bold text-[#1ABC9C]"
+              style={{ fontFamily: "Georgia, serif" }}
+            >
+              Easy Blogger
+            </h1>
+          </Link>
         </div>
 
         {/* Center: Search */}
@@ -102,14 +157,204 @@ export default function Header({ onToggleSidebar }) {
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#DC2626] rounded-full"></span>
           </button>
 
-          {/* User avatar */}
-          <button className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#E5E7EB] hover:border-[#1ABC9C] transition-colors duration-150">
-            <img
-              src="https://i.pravatar.cc/150?img=47"
-              alt="User avatar"
-              className="w-full h-full object-cover"
-            />
-          </button>
+          {/* User avatar with dropdown */}
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-colors duration-150 relative ${
+                isPremium
+                  ? "border-[#F59E0B]"
+                  : "border-[#E5E7EB] hover:border-[#1ABC9C]"
+              }`}
+            >
+              <img
+                src={user.avatar}
+                alt="User avatar"
+                className="w-full h-full object-cover"
+              />
+            </button>
+
+            {/* Badge overlay on avatar */}
+            {isPremium && (
+              <div className="absolute -bottom-1 -right-1 drop-shadow-md z-10">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M22.5 12.5L20.1 15.3L20.4 19L16.8 19.8L14.9 23L11.5 21.6L8.1 23L6.2 19.8L2.6 19L2.9 15.3L0.5 12.5L2.9 9.7L2.6 6L6.2 5.2L8.1 2L11.5 3.4L14.9 2L16.8 5.2L20.4 6L20.1 9.7L22.5 12.5Z"
+                    fill="#1ABC9C"
+                    stroke="white"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M7 12L10 15L16 9"
+                    stroke="white"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            )}
+
+            {/* Profile Dropdown Menu */}
+            {mounted && showProfileMenu && (
+              <div className="absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-lg border border-[#E5E7EB] overflow-hidden z-50">
+                {/* User Profile Section */}
+                <div className="p-4 border-b border-[#E5E7EB]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-[#6B7280] flex items-center justify-center text-white text-lg font-semibold relative">
+                      {isPremium ? (
+                        <div className="absolute inset-0 rounded-full border-2 border-[#F59E0B]"></div>
+                      ) : null}
+                      {user.initials}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-1">
+                        <p className="font-medium text-[#111827] text-sm">
+                          {user.name}
+                        </p>
+                        {isPremium && (
+                          <span className="text-[#1ABC9C]">
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M22.5 12.5L20.1 15.3L20.4 19L16.8 19.8L14.9 23L11.5 21.6L8.1 23L6.2 19.8L2.6 19L2.9 15.3L0.5 12.5L2.9 9.7L2.6 6L6.2 5.2L8.1 2L11.5 3.4L14.9 2L16.8 5.2L20.4 6L20.1 9.7L22.5 12.5Z"
+                                fill="#1ABC9C"
+                              />
+                              <path
+                                d="M7 12L10 15L16 9"
+                                stroke="white"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </span>
+                        )}
+                      </div>
+                      <Link
+                        href="/profile"
+                        className="text-xs text-[#6B7280] hover:text-[#111827] transition-colors"
+                        onClick={() => setShowProfileMenu(false)}
+                      >
+                        View profile
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Help Option */}
+                <div className="py-2">
+                  <button className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[#F9FAFB] transition-colors text-left">
+                    <HelpCircle className="w-5 h-5 text-[#6B7280]" />
+                    <span className="text-sm text-[#6B7280]">Help</span>
+                  </button>
+                  <Link
+                    href="/chat"
+                    className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[#F9FAFB] transition-colors text-left"
+                    onClick={() => setShowProfileMenu(false)}
+                  >
+                    <MessageCircle className="w-5 h-5 text-[#6B7280]" />
+                    <span className="text-sm text-[#6B7280]">Messages</span>
+                  </Link>
+                </div>
+
+                {/* Become a Premium Member / Manage Subscription */}
+                <div className="border-t border-[#E5E7EB] py-3 px-4">
+                  {isPremium ? (
+                    <Link
+                      href="/subscription/manage"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center gap-2 text-sm text-[#6B7280] hover:text-[#111827] transition-colors"
+                    >
+                      <span>Manage Subscription</span>
+                      <Sparkles className="w-4 h-4 text-[#FBBF24]" />
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/subscription/upgrade"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center gap-2 text-sm text-[#6B7280] hover:text-[#111827] transition-colors"
+                    >
+                      <span>Become a Premium member</span>
+                      <Sparkles className="w-4 h-4 text-[#FBBF24]" />
+                    </Link>
+                  )}
+                </div>
+
+                {/* Sign Out Section */}
+                <div className="border-t border-[#E5E7EB] py-3 px-4">
+                  <button
+                    onClick={handleSignOut}
+                    className="text-sm text-[#6B7280] hover:text-[#111827] transition-colors mb-2"
+                  >
+                    Sign out
+                  </button>
+                  <p className="text-xs text-[#9CA3AF]">{user.email}</p>
+                </div>
+
+                {/* Footer Links */}
+                <div className="border-t border-[#E5E7EB] py-3 px-4">
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#9CA3AF]">
+                    <a
+                      href="#"
+                      className="hover:text-[#6B7280] transition-colors"
+                    >
+                      About
+                    </a>
+                    <a
+                      href="#"
+                      className="hover:text-[#6B7280] transition-colors"
+                    >
+                      Blog
+                    </a>
+                    <a
+                      href="#"
+                      className="hover:text-[#6B7280] transition-colors"
+                    >
+                      Careers
+                    </a>
+                    <a
+                      href="#"
+                      className="hover:text-[#6B7280] transition-colors"
+                    >
+                      Privacy
+                    </a>
+                    <a
+                      href="#"
+                      className="hover:text-[#6B7280] transition-colors"
+                    >
+                      Terms
+                    </a>
+                  </div>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#9CA3AF] mt-1">
+                    <a
+                      href="#"
+                      className="hover:text-[#6B7280] transition-colors"
+                    >
+                      Text to speech
+                    </a>
+                    <a
+                      href="#"
+                      className="hover:text-[#6B7280] transition-colors"
+                    >
+                      More
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
