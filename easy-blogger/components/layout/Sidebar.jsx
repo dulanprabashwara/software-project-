@@ -12,10 +12,11 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
 
   const navItems = [
     { icon: "home", label: "Home", href: "/home" },
-    { icon: "topic", label: "Topics", href: "/topics" },
-    { icon: "bookmarks", label: "Bookmarks", href: "/bookmarks" },
-    { icon: "lists", label: "Lists", href: "/lists" },
+    { icon: "library", label: "Library", href: "/library" },
+    { icon: "profile", label: "Profile", href: "/profile" },
+    { icon: "stories", label: "Stories", href: "/stories" },
     { icon: "stats", label: "Stats", href: "/profile/user_stats" },
+    { icon: "ai", label: "AI Generate", href: "/ai-generate" },
   ];
 
   const bottomNavItems = [
@@ -201,6 +202,24 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
       <nav className="py-6 px-4 flex-1">
         <ul className="space-y-1">
           {navItems.map((item) => (
+            <li key={item.label}>
+              <Link
+                href={item.href}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
+                  isActive(item.href)
+                    ? "bg-[#E8F8F5] text-[#1ABC9C]"
+                    : "text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]"
+                }`}
+              >
+                {getIcon(item.icon)}
+                <span>{item.label}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        <ul className="space-y-1 mt-1">
+          {bottomNavItems.map((item) => (
             <li key={item.label}>
               <Link
                 href={item.href}
