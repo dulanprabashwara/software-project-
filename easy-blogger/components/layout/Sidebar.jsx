@@ -4,8 +4,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useSubscription } from "../../app/subscription/SubscriptionContext";
+
 export default function Sidebar({ isOpen = true, onOpenEngagement }) {
   const pathname = usePathname();
+  const { isPremium } = useSubscription();
 
   const navItems = [
     { icon: "home", label: "Home", href: "/home" },
@@ -19,7 +22,11 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
       label: "Following",
       href: "/profile/user_stats?tab=following",
     },
-    { icon: "membership", label: "Membership", href: "/subscription/upgrade" },
+    {
+      icon: "membership",
+      label: "Membership",
+      href: isPremium ? "/subscription/manage" : "/subscription/upgrade",
+    },
   ];
 
   const isActive = (href) => {

@@ -3,10 +3,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useSubscription } from "../../subscription/SubscriptionContext";
 import ArticleCard from "../../../components/article/ArticleCard";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("home");
+  const { isPremium } = useSubscription();
 
   // Mock user data
   const user = {
@@ -230,16 +232,44 @@ export default function ProfilePage() {
           {/* Profile Card */}
           <div>
             {/* Avatar */}
-            <div className="mb-4">
+            <div className="mb-4 relative inline-block">
               <img
                 src={user.avatar}
                 alt={user.name}
-                className="w-20 h-20 rounded-full object-cover"
+                className={`w-20 h-20 rounded-full object-cover border-2 ${
+                  isPremium ? "border-[#F59E0B]" : "border-transparent"
+                }`}
               />
+              {/* Verified Badge for Premium */}
+              {isPremium && (
+                <div className="absolute -bottom-1 -right-1 transform translate-x-1/4 translate-y-1/4 drop-shadow-md">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M22.5 12.5L20.1 15.3L20.4 19L16.8 19.8L14.9 23L11.5 21.6L8.1 23L6.2 19.8L2.6 19L2.9 15.3L0.5 12.5L2.9 9.7L2.6 6L6.2 5.2L8.1 2L11.5 3.4L14.9 2L16.8 5.2L20.4 6L20.1 9.7L22.5 12.5Z"
+                      fill="#1ABC9C"
+                      stroke="white"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M7 12L10 15L16 9"
+                      stroke="white"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              )}
             </div>
 
             {/* Name */}
-            <h2 className="text-base font-bold text-[#111827] mb-2">
+            <h2 className="text-base font-bold text-[#111827] mb-2 flex items-center gap-2">
               {user.name}
             </h2>
 
