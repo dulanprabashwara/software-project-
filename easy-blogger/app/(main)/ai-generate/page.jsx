@@ -17,6 +17,7 @@
 import { useState, useEffect, useRef } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
+import "@/styles/ai article generator/ai-article-generator.css";
 
 export default function AIArticleGeneratorPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -34,19 +35,45 @@ export default function AIArticleGeneratorPage() {
       title: "The Future of Artificial Intelligence in Healthcare",
       author: "Dr. Sarah Chen",
       readTime: "8 min read",
-      excerpt: "Exploring how AI is revolutionizing medical diagnosis and treatment..."
+      excerpt: "Exploring how AI is revolutionizing medical diagnosis and treatment...",
+      publishDate: "31 Dec, 2024",
+      comments: 42,
+      likes: 128,
+      authorImage: "/images/Ai article generator/author image 1.png",
+      coverImage: "/images/Ai article generator/cover image 1.png"
     },
     {
       title: "Sustainable Living: Small Changes, Big Impact",
       author: "Michael Green",
       readTime: "5 min read", 
-      excerpt: "Simple daily habits that can significantly reduce your carbon footprint..."
+      excerpt: "Simple daily habits that can significantly reduce your carbon footprint...",
+      publishDate: "28 Dec, 2024",
+      comments: 35,
+      likes: 96,
+      authorImage: "/images/Ai article generator/author image 2.png",
+      coverImage: "/images/Ai article generator/cover image 2.png"
     },
     {
       title: "The Rise of Remote Work Culture",
       author: "Emma Johnson",
       readTime: "6 min read",
-      excerpt: "How companies are adapting to the new normal of distributed teams..."
+      excerpt: "How companies are adapting to the new normal of distributed teams...",
+      publishDate: "25 Dec, 2024",
+      comments: 58,
+      likes: 167,
+      authorImage: "/images/Ai article generator/author image 3.png",
+      coverImage: "/images/Ai article generator/cover image 3.png"
+    },
+    {
+      title: "Machine Learning Fundamentals for Beginners",
+      author: "Alex Kumar",
+      readTime: "7 min read",
+      excerpt: "A comprehensive guide to understanding the basics of machine learning...",
+      publishDate: "22 Dec, 2024",
+      comments: 73,
+      likes: 234,
+      authorImage: "/images/Ai article generator/author image 4.png",
+      coverImage: "/images/Ai article generator/cover image 4.png"
     }
   ];
 
@@ -104,7 +131,7 @@ export default function AIArticleGeneratorPage() {
 
   const handleUserInputChange = (e) => {
     const text = e.target.value;
-    const words = text.trim().split(/\s+/);
+    const words = text.trim().split(' ');
     // Enforce 50-word limit for user input
     if (words.length <= 50) {
       setUserInput(text);
@@ -141,136 +168,165 @@ export default function AIArticleGeneratorPage() {
   const isGenerateButtonDisabled = selectedKeywords.length === 0;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="h-screen bg-white overflow-hidden flex">
       {/* Header */}
       <Header onToggleSidebar={handleToggleSidebar} />
       
-      <div className="flex pt-16">
+      <div className="flex pt-16 h-[calc(100vh-4rem)]">
         {/* Sidebar */}
         <Sidebar isOpen={isSidebarOpen} />
         
         {/* Main Content */}
         <div className={`flex-1 transition-all duration-300 ${isSidebarOpen ? "ml-60" : "ml-0"}`}>
-          <div className="flex">
+          <div className="flex h-full">
             {/* AI Article Generator Main Section */}
-            <div className="flex-1 bg-[#FAFAFA] min-h-screen p-8">
+            <div className="ai-generator-main flex-1 overflow-y-auto">
               {/* Title Section */}
-              <div className="flex items-center justify-between mb-8">
+              <div className="ai-generator-title justify-between">
                 <div className="flex items-center gap-3">
+                  {/* Menu Icon */}
+                  <img 
+                    src="/icons/menu icon.png" 
+                    alt="Menu" 
+                    className="ai-generator-menu-icon"
+                  />
+                  
                   {/* AI Article Generator Symbol */}
-                  <div className="w-10 h-10 bg-[#1ABC9C] rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                      <circle cx="18" cy="18" r="2" fill="white"/>
-                      <path d="M16 8h2v2h-2z" fill="white"/>
-                    </svg>
-                  </div>
-                  <h1 className="text-2xl font-bold text-[#1ABC9C]">AI Article Generator</h1>
-                </div>
-                
-                {/* Menu Bar */}
-                <div className="flex items-center gap-2">
-                  <button className="p-2 hover:bg-[#E8F8F5] rounded-lg transition-colors">
-                    <svg className="w-5 h-5 text-[#1ABC9C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
-                    </svg>
-                  </button>
+                  <img 
+                    src="/icons/Ai article generator icon teel color.png" 
+                    alt="AI Article Generator" 
+                    className="ai-generator-ai-icon"
+                  />
+                  
+                  <h1 className="ai-generator-title-text">AI Article Generator</h1>
                 </div>
               </div>
 
-              {/* Trending Articles Slider */}
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 bg-[#1ABC9C] rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                    </svg>
-                  </div>
-                  <h2 className="text-xl font-bold text-[#1ABC9C]">Trending Articles</h2>
-                </div>
-                
-                <div className="relative bg-[#DEEAE8] rounded-xl p-6 overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    {/* Previous Button */}
-                    <button 
-                      onClick={() => handleManualSlide("prev")}
-                      className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                    >
-                      <svg className="w-5 h-5 text-[#1ABC9C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
-                      </svg>
-                    </button>
-                    
-                    {/* Article Content */}
-                    <div className="flex-1 mx-8 text-center" style={{ fontFamily: "Georgia, serif" }}>
-                      <h3 className="text-lg font-bold text-gray-800 mb-2">
-                        {trendingArticles[currentArticleIndex].title}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        By {trendingArticles[currentArticleIndex].author} • {trendingArticles[currentArticleIndex].readTime}
-                      </p>
-                      <p className="text-gray-700">
-                        {trendingArticles[currentArticleIndex].excerpt}
-                      </p>
+              {currentView === "input" && (
+                <>
+                  {/* Trending Articles Slider */}
+                  <div className="trending-section">
+                    <div className="trending-header">
+                      <img 
+                        src="/icons/Trending icon.png" 
+                        alt="Trending" 
+                        className="trending-icon"
+                      />
+                      <h2 className="trending-title">Trending Articles</h2>
                     </div>
                     
-                    {/* Next Button */}
-                    <button 
-                      onClick={() => handleManualSlide("next")}
-                      className="p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                    >
-                      <svg className="w-5 h-5 text-[#1ABC9C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/>
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  {/* Slider Indicators */}
-                  <div className="flex justify-center gap-2 mt-4">
-                    {trendingArticles.map((_, index) => (
-                      <div
-                        key={index}
-                        className={`w-2 h-2 rounded-full transition-colors ${
-                          index === currentArticleIndex ? "bg-[#1ABC9C]" : "bg-gray-400"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* User Input Section */}
-              <div className="mb-6">
-                <p className="text-lg text-gray-700 mb-4">Hello, what do you hope to write today</p>
-                
-                {currentView === "input" ? (
-                  <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <textarea
-                      value={userInput}
-                      onChange={handleUserInputChange}
-                      placeholder="Enter your article idea (up to 50 words)..."
-                      className="w-full h-32 p-4 border border-gray-200 rounded-lg resize-none focus:outline-none focus:border-[#1ABC9C]"
-                    />
-                    <div className="flex justify-between items-center mt-4">
-                      <span className="text-sm text-gray-500">
-                        {userInput.trim().split(/\s+/).filter(word => word.length > 0).length}/50 words
-                      </span>
-                      <button
-                        onClick={handleContinueToKeywords}
-                        disabled={!userInput.trim()}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-colors ${
-                          userInput.trim()
-                            ? "bg-[#1ABC9C] text-white hover:bg-[#16a085]"
-                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        }`}
+                    <div className="trending-slider">
+                      {/* Previous Button */}
+                      <button 
+                        onClick={() => handleManualSlide("prev")}
+                        className="slider-chevron"
                       >
-                        Continue to Keywords
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/>
-                        </svg>
+                        <img 
+                          src="/icons/doble chevron icon  (2).png" 
+                          alt="Previous" 
+                          className="slider-chevron"
+                        />
+                      </button>
+                      
+                      {/* Article Content */}
+                      <div className="slider-content">
+                        <div className="slider-left-content">
+                          <div className="author-info">
+                            <img 
+                              src={trendingArticles[currentArticleIndex].authorImage}
+                              alt={trendingArticles[currentArticleIndex].author}
+                              className="author-image"
+                            />
+                            <div className="author-details">
+                              <div className="author-name">{trendingArticles[currentArticleIndex].author}</div>
+                              <div className="publish-date">{trendingArticles[currentArticleIndex].publishDate}</div>
+                            </div>
+                          </div>
+                          
+                          <h3 className="article-title">
+                            {trendingArticles[currentArticleIndex].title}
+                          </h3>
+                          
+                          <p className="article-description">
+                            {trendingArticles[currentArticleIndex].excerpt}
+                          </p>
+                          
+                          <div className="article-stats">
+                            <div className="stat-item">
+                              <svg className="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                              </svg>
+                              <span className="stat-number">{trendingArticles[currentArticleIndex].comments}</span>
+                            </div>
+                            
+                            <div className="stat-item">
+                              <svg className="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                              </svg>
+                              <span className="stat-number">{trendingArticles[currentArticleIndex].likes}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="slider-right-content">
+                          <img 
+                            src={trendingArticles[currentArticleIndex].coverImage}
+                            alt="Article cover" 
+                            className="cover-image"
+                          />
+                          
+                          <div className="bookmark-wrapper">
+                            <svg className="bookmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Next Button */}
+                      <button 
+                        onClick={() => handleManualSlide("next")}
+                        className="slider-chevron"
+                      >
+                        <img 
+                          src="/icons/doble chevron icon  (1).png" 
+                          alt="Next" 
+                          className="slider-chevron"
+                        />
                       </button>
                     </div>
                   </div>
+                </>
+              )}
+
+              {/* User Input Section */}
+              <div>
+                <p className="user-prompt-text">Hello, what do you hope to write today</p>
+                
+                {currentView === "input" ? (
+                  <>
+                    <div className="user-textbox">
+                      <textarea
+                        value={userInput}
+                        onChange={handleUserInputChange}
+                        placeholder="Enter your article idea (up to 50 words)..."
+                      />
+                      <span className="word-count">
+                        {userInput.trim().split(' ').filter(word => word.length > 0).length}/50 words
+                      </span>
+                    </div>
+                    
+                    <button
+                      onClick={handleContinueToKeywords}
+                      disabled={!userInput.trim()}
+                      className="continue-button"
+                    >
+                      <span className="continue-button-text">Continue to Keywords</span>
+                      <svg className="continue-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/>
+                      </svg>
+                    </button>
+                  </>
                 ) : (
                   /* Keyword Selection Section */
                   <div className="space-y-6">
@@ -284,9 +340,9 @@ export default function AIArticleGeneratorPage() {
                           <button
                             key={keyword}
                             onClick={() => handleKeywordToggle(keyword)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all transform hover:scale-105 ${
                               selectedKeywords.includes(keyword)
-                                ? "bg-[#1ABC9C] text-white"
+                                ? "bg-[#1ABC9C] text-white shadow-md"
                                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                             }`}
                           >
@@ -294,7 +350,7 @@ export default function AIArticleGeneratorPage() {
                           </button>
                         ))}
                       </div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 font-medium">
                         Selected: {selectedKeywords.length} keywords
                       </p>
                     </div>
@@ -307,7 +363,7 @@ export default function AIArticleGeneratorPage() {
                       <select
                         value={articleLength}
                         onChange={(e) => setArticleLength(e.target.value)}
-                        className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#1ABC9C]"
+                        className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#1ABC9C] focus:ring-2 focus:ring-[#1ABC9C]/20"
                       >
                         <option value="short">Short 300-1000</option>
                         <option value="mid-length">Mid-length 1000-2000</option>
@@ -322,7 +378,7 @@ export default function AIArticleGeneratorPage() {
                       </label>
                       <div className="space-y-3">
                         {["humorous", "professional", "casual"].map((toneOption) => (
-                          <label key={toneOption} className="flex items-center gap-3 cursor-pointer">
+                          <label key={toneOption} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
                             <input
                               type="radio"
                               name="tone"
@@ -331,7 +387,7 @@ export default function AIArticleGeneratorPage() {
                               onChange={(e) => setTone(e.target.value)}
                               className="w-5 h-5 text-[#1ABC9C] focus:ring-[#1ABC9C]"
                             />
-                            <span className="capitalize text-gray-700">{toneOption}</span>
+                            <span className="capitalize text-gray-700 font-medium">{toneOption}</span>
                           </label>
                         ))}
                       </div>
@@ -348,9 +404,11 @@ export default function AIArticleGeneratorPage() {
                       }`}
                     >
                       <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center">
-                        <svg className="w-4 h-4 text-[#1ABC9C]" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                        </svg>
+                        <img 
+                          src="/icons/Ai article generator icon white.png" 
+                          alt="Generate AI Article" 
+                          className="w-4 h-4"
+                        />
                       </div>
                       Generate AI Article
                     </button>
@@ -360,24 +418,24 @@ export default function AIArticleGeneratorPage() {
             </div>
 
             {/* Insights Sidebar */}
-            <div className="w-80 bg-[#F6F6F6] min-h-screen p-6 border-l border-gray-200">
+            <div className="insights-sidebar">
               {/* Insights Title */}
-              <div className="flex items-center gap-2 mb-6">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-[#1ABC9C] rounded-full"></div>
-                  <div className="w-2 h-2 bg-[#1ABC9C] rounded-full"></div>
+              <div className="insights-header">
+                <div className="insights-dots">
+                  <div className="insights-dot-1"></div>
+                  <div className="insights-dot-2"></div>
                 </div>
-                <h2 className="text-lg font-bold text-gray-800">Insights</h2>
+                <h2 className="insights-title">Insights</h2>
               </div>
 
               {/* Top AI Assisted Articles */}
               <div className="mb-8">
-                <h3 className="text-sm font-semibold text-gray-700 mb-4">Top AI assisted articles</h3>
+                <h3 className="insights-section-title">TOP AI Assisted Articles</h3>
                 <div className="space-y-3">
                   {topAIArticles.map((article, index) => (
-                    <div key={index} className="bg-white rounded-lg p-3">
-                      <h4 className="text-sm font-medium text-gray-800 mb-1">{article.title}</h4>
-                      <p className="text-xs text-gray-500">{article.views} views</p>
+                    <div key={index} className="insights-article-section">
+                      <h4 className="insights-article-name">{article.title}</h4>
+                      <p className="insights-author-name">{article.views} views</p>
                     </div>
                   ))}
                 </div>
@@ -385,12 +443,12 @@ export default function AIArticleGeneratorPage() {
 
               {/* Trending Topics */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-4">Trending Topics</h3>
-                <div className="flex flex-wrap gap-2">
+                <h3 className="insights-section-title">Trending topics</h3>
+                <div className="trending-topics-buttons">
                   {trendingTopics.map((topic, index) => (
                     <button
                       key={index}
-                      className="px-3 py-1 bg-white text-gray-700 rounded-full text-sm hover:bg-[#1ABC9C] hover:text-white transition-colors"
+                      className="topic-button"
                     >
                       {topic}
                     </button>
