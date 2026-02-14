@@ -175,7 +175,7 @@ export default function EditProfilePage() {
 
               {/* Verified Badge for Premium */}
               {isPremium && (
-                <div className="absolute bottom-0 right-0 transform translate-x-1/4 translate-y-1/4 drop-shadow-md">
+                <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4 drop-shadow-md">
                   <svg
                     width="32"
                     height="32"
