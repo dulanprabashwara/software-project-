@@ -5,9 +5,10 @@ A Medium-like blogging platform with an extra AI-assisted writing feature for pr
 ## Overview
 
 - Framework: Next.js (App Router)
-- Language: TypeScript
-- Styling: Tailwind CSS (to be added later)
-- Note: This repository currently contains structure and placeholders only. No UI, logic, or styling has been implemented.
+- Language: JavaScript/JSX
+- Styling: Tailwind CSS
+- Premium Features: AI article generation
+- Note: This repository contains the project structure with core components and routing logic.
 
 ## Folder Structure
 
@@ -15,39 +16,81 @@ A Medium-like blogging platform with an extra AI-assisted writing feature for pr
 easy-blogger/
 ├── app/
 │   ├── (auth)/
-│   │   ├── login/            -> Login page
-│   │   ├── signup/           -> Signup page
-│   │   ├── forgot-password/  -> Forgot password page
-│   │   └── verify-email/     -> Email verification page
+│   │   ├── login/
+│   │   ├── signup/
+│   │   ├── forgot-password/
+│   │   └── verify-email/
 │   ├── (main)/
-│   │   ├── page.tsx          -> Home feed
+│   │   ├── page.jsx          -> Home feed
+│   │   ├── layout.jsx        -> Main layout wrapper
+│   │   ├── admin/            -> Admin dashboard and management
 │   │   ├── article/[slug]/   -> Read article
-│   │   ├── write/            -> Blog editor (AI writing)
-│   │   └── profile/[username]/ -> Public profile
-│   └── (settings)/
-│       ├── edit-profile/     -> Edit profile
-│       ├── account/          -> Account settings
-│       └── subscription/
-│           ├── pricing/      -> Pricing / upgrade
-│           ├── checkout/     -> Payment details
-│           └── billing/      -> Subscription management
+│   │   ├── ai-generate/      -> AI article generator (basic)
+│   │   ├── ai-generate-pro/  -> AI article generator (premium)
+│   │   ├── write/            -> Blog editor with sub-routes
+│   │   │   ├── [articleId]/
+│   │   │   ├── ai-restricted/
+│   │   │   ├── choose-method/
+│   │   │   ├── create/
+│   │   │   ├── edit-as-new/
+│   │   │   ├── preview/
+│   │   │   ├── publish/
+│   │   │   ├── start/
+│   │   │   ├── unpublish/
+│   │   │   └── unpublished/
+│   │   ├── profile/[username]/ -> Public profile
+│   │   ├── engagement/       -> User engagement/interactions
+│   │   ├── following/        -> Following list
+│   │   ├── library/          -> User's article library
+│   │   ├── stats/            -> User statistics
+│   │   └── stories/          -> Articles/stories management
+│   ├── (settings)/
+│   │   ├── account/          -> Account settings
+│   │   ├── edit-profile/     -> Edit profile
+│   │   └── subscription/
+│   │       ├── pricing/      -> Pricing / upgrade
+│   │       ├── checkout/     -> Payment details
+│   │       └── billing/      -> Subscription management
+│   ├── (auth)/               -> Auth routes
+│   ├── layout.jsx            -> Root layout
+│   └── page.jsx              -> Root page
 ├── components/
-│   ├── layout/               -> App layout components
-│   ├── article/              -> Article UI components
-│   ├── profile/              -> Profile UI components
+│   ├── layout/               -> App layout components (Header, Footer, Navbar, Sidebar)
+│   ├── article/              -> Article UI components (ArticleCard, ArticleList)
+│   ├── profile/              -> Profile UI components (ProfileHeader, FollowButton, StatsModal)
 │   ├── auth/                 -> Auth form component
-│   ├── subscription/         -> Subscription UI components
-│   ├── ai/                   -> AI writing UI panel
-│   └── ui/                   -> Base UI primitives
-├── lib/                      -> Helper modules (auth, permissions, ai)
-├── hooks/                    -> Reusable React hooks
-├── types/                    -> TypeScript types
-├── styles/                   -> Global styles
+│   ├── editor/               -> Editor components (EditorBody, Header, Toolbar, etc.)
+│   ├── admin/                -> Admin sidebar and components
+│   ├── ai/                   -> AI writing UI panel (AIWriterPanel)
+│   ├── subscription/         -> Subscription UI components (PricingCard)
+│   └── ui/                   -> Base UI primitives (Button, Input, Modal)
+├── hooks/
+│   └── useModal.ts           -> Modal hook utilities
+├── lib/
+│   ├── auth.ts               -> Authentication utilities
+│   ├── permissions.ts        -> Permission checking
+│   ├── ai.ts                 -> AI integration
+│   └── editor/
+│       └── editorModes.js    -> Editor mode configurations
+├── types/
+│   ├── article.ts            -> Article type definitions
+│   ├── subscription.ts       -> Subscription types
+│   ├── user.ts               -> User types
+│   └── article.js            -> Legacy article types
+├── styles/
+│   ├── globals.css           -> Global styles
+│   └── ai article generator/ -> AI generator specific styles
+├── public/
+│   ├── icons/                -> Icon assets
+│   └── images/
+│       └── Ai article generator/ -> AI generator images
 └── README.md
 ```
 
 ## Notes
 
-- All `.tsx` files export a placeholder component and return `null`.
-- Files include short comments explaining their intended purpose.
-- Actual UI, logic, and styling will be implemented later using Figma as the source of truth.
+- File structure includes production-ready component organization
+- Both basic (`ai-generate/`) and premium (`ai-generate-pro/`) AI features are separated into different routes
+- AI-related UI components are in `components/ai/` (AIWriterPanel)
+- Admin functionality is organized in `app/(main)/admin/` and `components/admin/`
+- Editor-related components are centralized in `components/editor/`
