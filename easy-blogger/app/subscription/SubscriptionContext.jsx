@@ -6,6 +6,7 @@ const SubscriptionContext = createContext();
 
 export function SubscriptionProvider({ children }) {
   const [isPremium, setIsPremium] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Load persisted state from localStorage
@@ -13,6 +14,7 @@ export function SubscriptionProvider({ children }) {
     if (savedPremium) {
       setIsPremium(savedPremium === "true");
     }
+    setIsLoading(false);
   }, []);
 
   const togglePremium = () => {
@@ -24,7 +26,9 @@ export function SubscriptionProvider({ children }) {
   };
 
   return (
-    <SubscriptionContext.Provider value={{ isPremium, togglePremium }}>
+    <SubscriptionContext.Provider
+      value={{ isPremium, togglePremium, isLoading }}
+    >
       {children}
     </SubscriptionContext.Provider>
   );

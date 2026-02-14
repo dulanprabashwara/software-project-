@@ -15,11 +15,22 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useSubscription } from "../../subscription/SubscriptionContext";
 import "../../../styles/ai article generator/ai-article-generator.css";
 
 export default function AIArticleGeneratorPage() {
   // NOTE: Header and Sidebar are provided by app/(main)/layout.jsx
   // We only need to manage local state for the AI generator features.
+
+  const router = useRouter();
+  const { isPremium, isLoading } = useSubscription();
+
+  useEffect(() => {
+    if (!isLoading && !isPremium) {
+      router.push("/subscription/upgrade");
+    }
+  }, [isPremium, isLoading, router]);
 
   const [currentView, setCurrentView] = useState("input"); // "input" or "keywords"
   const [userInput, setUserInput] = useState("");
@@ -28,6 +39,18 @@ export default function AIArticleGeneratorPage() {
   const [tone, setTone] = useState("professional");
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
   const intervalRef = useRef(null);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1ABC9C]"></div>
+      </div>
+    );
+  }
+
+  if (!isPremium) {
+    return null; // Return null while redirecting
+  }
 
   // Trending articles data
   const trendingArticles = [

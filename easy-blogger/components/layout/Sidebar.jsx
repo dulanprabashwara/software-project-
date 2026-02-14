@@ -16,7 +16,11 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
     { icon: "profile", label: "Profile", href: "/profile" },
     { icon: "stories", label: "Stories", href: "/stories" },
     { icon: "stats", label: "Stats", href: "/stats" },
-    { icon: "ai", label: "AI Generate", href: "/ai-generate" },
+    {
+      icon: "ai",
+      label: "AI Generate",
+      href: isPremium ? "/ai-generate" : "/subscription/upgrade",
+    },
   ];
 
   const bottomNavItems = [
