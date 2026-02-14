@@ -5,6 +5,8 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSubscription } from "../../subscription/SubscriptionContext";
 import ArticleCard from "../../../components/article/ArticleCard";
+import Header from "../../../components/layout/Header";
+import Sidebar from "../../../components/layout/Sidebar";
 
 export default function ProfilePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
