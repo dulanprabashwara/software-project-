@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useSubscription } from "../../(settings)/subscription/SubscriptionContext";
+import { useSubscription } from "../../subscription/SubscriptionContext";
 import ArticleCard from "../../../components/article/ArticleCard";
 
 export default function ProfilePage() {
@@ -154,29 +154,83 @@ export default function ProfilePage() {
               {/* Profile Card */}
               <div>
                 {/* Avatar */}
-                <div className="mb-4">
+                <div className="mb-4 relative inline-block">
                   <img
                     src={user.avatar}
                     alt={user.name}
-                    className="w-20 h-20 rounded-full object-cover"
+                    className={`w-20 h-20 rounded-full object-cover border-2 ${
+                      isPremium ? "border-[#F59E0B]" : "border-transparent"
+                    }`}
                   />
+                  {/* Verified Badge for Premium */}
+                  {isPremium && (
+                    <div className="absolute -bottom-1 -right-1 transform translate-x-1/4 translate-y-1/4 drop-shadow-md">
+                      <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M22.5 12.5L20.1 15.3L20.4 19L16.8 19.8L14.9 23L11.5 21.6L8.1 23L6.2 19.8L2.6 19L2.9 15.3L0.5 12.5L2.9 9.7L2.6 6L6.2 5.2L8.1 2L11.5 3.4L14.9 2L16.8 5.2L20.4 6L20.1 9.7L22.5 12.5Z"
+                          fill="#1ABC9C"
+                          stroke="white"
+                          strokeWidth="1.5"
+                        />
+                        <path
+                          d="M7 12L10 15L16 9"
+                          stroke="white"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                  )}
                 </div>
 
                 {/* Name */}
-                <h2 className="text-base font-bold text-[#111827] mb-2">
+                <h2 className="text-base font-bold text-[#111827] mb-2 flex items-center gap-2">
                   {user.name}
                 </h2>
 
                 {/* Stats Row 1 */}
                 <p className="text-sm text-[#6B7280] mb-1">
-                  <span className="text-[#1ABC9C]">{user.followers}</span>{" "}
-                  Followers · <span>{user.following}</span> Following
+                  <a
+                    href="/profile/user_stats?tab=followers"
+                    className="hover:underline cursor-pointer"
+                  >
+                    {user.followers} Followers
+                  </a>
+                  {" · "}
+                  <a
+                    href="/profile/user_stats?tab=following"
+                    className="hover:underline cursor-pointer"
+                  >
+                    {user.following} Following
+                  </a>
                 </p>
 
                 {/* Stats Row 2 */}
                 <p className="text-sm text-[#6B7280] mb-4">
-                  {user.reads} Reads · {user.shares} Shares · {user.messages}{" "}
-                  Messages
+                  <a
+                    href="/profile/user_stats?tab=reads"
+                    className="hover:underline cursor-pointer"
+                  >
+                    {user.reads} Reads
+                  </a>
+                  {" · "}
+                  <a
+                    href="/profile/user_stats?tab=shares"
+                    className="hover:underline cursor-pointer"
+                  >
+                    {user.shares} Shares
+                  </a>
+                  {" · "}
+                  <Link href="/chat" className="hover:underline cursor-pointer">
+                    {user.messages} Messages
+                  </Link>
                 </p>
 
                 {/* Edit Profile Link */}
@@ -258,141 +312,7 @@ export default function ProfilePage() {
             </div>
           </aside>
         </div>
-      </div>
-
-      {/* Right Sidebar */}
-      <aside className="w-70 shrink-0 bg-white px-6 py-8 overflow-y-auto h-[calc(100vh-64px)] scrollbar-hide">
-        <div className="flex flex-col justify-between h-full">
-          {/* Profile Card */}
-          <div>
-            {/* Avatar */}
-            <div className="mb-4 relative inline-block">
-              <img
-                src={user.avatar}
-                alt={user.name}
-                className={`w-20 h-20 rounded-full object-cover border-2 ${
-                  isPremium ? "border-[#F59E0B]" : "border-transparent"
-                }`}
-              />
-              {/* Verified Badge for Premium */}
-              {isPremium && (
-                <div className="absolute -bottom-1 -right-1 transform translate-x-1/4 translate-y-1/4 drop-shadow-md">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M22.5 12.5L20.1 15.3L20.4 19L16.8 19.8L14.9 23L11.5 21.6L8.1 23L6.2 19.8L2.6 19L2.9 15.3L0.5 12.5L2.9 9.7L2.6 6L6.2 5.2L8.1 2L11.5 3.4L14.9 2L16.8 5.2L20.4 6L20.1 9.7L22.5 12.5Z"
-                      fill="#1ABC9C"
-                      stroke="white"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M7 12L10 15L16 9"
-                      stroke="white"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              )}
-            </div>
-
-            {/* Name */}
-            <h2 className="text-base font-bold text-[#111827] mb-2 flex items-center gap-2">
-              {user.name}
-            </h2>
-
-            {/* Stats Row 1 */}
-            <p className="text-sm text-[#6B7280] mb-1">
-              <a
-                href="/profile/user_stats?tab=followers"
-                className="hover:underline cursor-pointer"
-              >
-                {user.followers} Followers
-              </a>
-              {" · "}
-              <a
-                href="/profile/user_stats?tab=following"
-                className="hover:underline cursor-pointer"
-              >
-                {user.following} Following
-              </a>
-            </p>
-
-            {/* Stats Row 2 */}
-            <p className="text-sm text-[#6B7280] mb-4">
-              <a
-                href="/profile/user_stats?tab=reads"
-                className="hover:underline cursor-pointer"
-              >
-                {user.reads} Reads
-              </a>
-              {" · "}
-              <a
-                href="/profile/user_stats?tab=shares"
-                className="hover:underline cursor-pointer"
-              >
-                {user.shares} Shares
-              </a>
-              {" · "}
-              <Link href="/chat" className="hover:underline cursor-pointer">
-                {user.messages} Messages
-              </Link>
-            </p>
-
-            {/* Edit Profile Link */}
-            <a
-              href="/profile/edit"
-              className="text-sm text-[#1ABC9C] hover:text-[#17a589] transition-colors"
-            >
-              Edit profile
-            </a>
-          </div>
-
-          {/* Footer Links */}
-          <div className="pt-4">
-            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-[#6B7280]">
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Help
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Status
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                About
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Careers
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Press
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Blog
-              </a>
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-[#6B7280] mt-2">
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Privacy
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Terms
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Text to speech
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Teams
-              </a>
-            </div>
-          </div>
-        </div>
-      </aside>
+      </main>
     </div>
   );
 }

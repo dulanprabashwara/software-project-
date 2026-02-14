@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { useSubscription } from "../../app/(settings)/subscription/SubscriptionContext";
+import { useSubscription } from "../../app/subscription/SubscriptionContext";
 
 export default function Sidebar({ isOpen = true, onOpenEngagement }) {
   const pathname = usePathname();
