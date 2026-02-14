@@ -173,7 +173,7 @@ export default function EditProfilePage() {
                 className="hidden"
               />
 
-              {/* Verified Badge for Premium */}
+              {/* Verified Badge for Premium - Fixed overlap */}
               {isPremium && (
                 <div className="absolute top-0 right-0 drop-shadow-md">
                   <svg
