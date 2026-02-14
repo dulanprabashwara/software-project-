@@ -15,7 +15,7 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
     { icon: "library", label: "Library", href: "/library" },
     { icon: "profile", label: "Profile", href: "/profile" },
     { icon: "stories", label: "Stories", href: "/stories" },
-    { icon: "stats", label: "Stats", href: "/profile/user_stats" },
+    { icon: "stats", label: "Stats", href: "/stats" },
     { icon: "ai", label: "AI Generate", href: "/ai-generate" },
   ];
 
