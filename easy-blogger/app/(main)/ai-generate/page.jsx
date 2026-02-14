@@ -15,7 +15,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import "../../styles/ai article generator/ai-article-generator.css";
+import "../../../styles/ai article generator/ai-article-generator.css";
 
 export default function AIArticleGeneratorPage() {
   // NOTE: Header and Sidebar are provided by app/(main)/layout.jsx
