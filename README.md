@@ -12,6 +12,9 @@ A modern blogging platform built with Next.js, featuring AI-powered content gene
 ### Installation
 
 ```bash
+# Navigate to project directory
+cd easy-blogger
+
 # Install dependencies
 npm install
 
