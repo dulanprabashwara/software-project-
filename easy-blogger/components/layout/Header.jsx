@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HelpCircle, Sparkles, MessageCircle } from "lucide-react";
 
-import { useSubscription } from "../../app/subscription/SubscriptionContext";
+import { useSubscription } from "../../app/(settings)/subscription/SubscriptionContext";
 
 // Top navigation header component for the app layout
 export default function Header({ onToggleSidebar }) {
