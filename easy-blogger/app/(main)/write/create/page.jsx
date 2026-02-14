@@ -4,8 +4,6 @@ import { Editor } from "@tinymce/tinymce-react";
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Header from "../../../../components/layout/Header";
-import Sidebar from "../../../../components/layout/Sidebar";
 import {
   Undo,
   Redo,
@@ -37,6 +35,7 @@ export default function CreateArticlePage() {
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [articleMode, setArticleMode] = useState("new"); 
   const [lastSaved, setLastSaved] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [zoom, setZoom] = useState(100);
@@ -45,10 +44,13 @@ export default function CreateArticlePage() {
   const [fontSize, setFontSize] = useState(16);
   const [history, setHistory] = useState([{ title: "", content: "" }]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
 
   const fileInputRef = useRef(null);
-  //const contentRef = useRef(null);
   const titleRef = useRef(null);
+  const editorRef = useRef(null);
+
 
   // Auto-save functionality
   useEffect(() => {
@@ -84,6 +86,12 @@ export default function CreateArticlePage() {
       setCoverImage(parsed.coverImage || null);
     }
   }, []);
+
+  //Add “mounted” state (fix refresh hydration)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -393,11 +401,19 @@ export default function CreateArticlePage() {
       }),
     );
     router.push("/write/preview");
+
   };
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+  const plainText = editorRef.current
+   ? editorRef.current.getContent({ format: "text" })
+   : "";
+
+  const charCount = plainText.length;
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -410,47 +426,48 @@ export default function CreateArticlePage() {
         }`}
       >
         {/* Top Bar */}
-        <div className="bg-white border-b border-[#E5E7EB] px-8 py-6">
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-serif font-bold text-[#111827] mb-2">
-                Create your Article
-              </h1>
-              <p className="text-[#6B7280]">Create your own Article here</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-[#6B7280]">
-                {isSaving
-                  ? "Saving..."
-                  : lastSaved
-                    ? `Saved at ${lastSaved.toLocaleTimeString()}`
-                    : "Saved / Saving..."}
-              </span>
-              <button
-                onClick={() => router.push("/write/publish")}
-                className="px-6 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors"
-              >
-                Post Status
-              </button>
-            </div>
-          </div>
-        </div>
-                  
-        {/* Toolbar (TinyMCE toolbar will render here) */}
-<div className="bg-white border-b border-[#E5E7EB] px-8 py-4 sticky top-16 z-30">
-  <div className="max-w-5xl mx-auto">
-    <div
-      id="tinymce-toolbar"
-      className="min-h-[72px] flex items-center"
-    />
+        {/* Top Bar */}
+<div className="bg-white border-b border-[#E5E7EB] px-8 py-6">
+  <div className="max-w-6xl mx-auto">
+    <div className="grid grid-cols-3 items-center">
+      {/* Left: Saved status */}
+      <div className="text-sm text-[#6B7280] justify-self-start">
+        {isSaving
+          ? "Saving..."
+          : lastSaved
+            ? `Saved at ${lastSaved.toLocaleTimeString()}`
+            : "Saved / Saving..."}
+      </div>
+
+      {/* Center: Title + subtitle */}
+      <div className="text-center">
+        <h1 className="text-4xl font-serif font-bold text-[#111827]">
+          Create your Article
+        </h1>
+        <p className="text-[#6B7280] mt-1">Create your own Article here</p>
+      </div>
+
+      {/* Right: Button */}
+      <div className="justify-self-end">
+        <span
+          className="inline-flex items-center px-6 py-2.5 bg-[#1ABC9C] text-white rounded-full text-sm font-medium"
+        >
+          {articleMode === "draft" ? "Draft Article" : "New Article"}
+        </span>
+      </div>
+    </div>
   </div>
 </div>
+
+                  
+        {/* Toolbar (TinyMCE toolbar will render here) */}
+
 
 
         {/* Editor Content */}
         <div
           className="px-8 py-8 overflow-y-auto"
-          style={{ height: "calc(100vh - 340px)" }}
+          style={{ height: "calc(100vh - 260px)" }}
         >
           <div
             className="max-w-5xl mx-auto space-y-6"
@@ -558,24 +575,26 @@ export default function CreateArticlePage() {
               </label>
               <div className="relative">
                 <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
+{!mounted ? (
+  <div className="h-[260px] bg-white" />
+) : (
   <Editor
+    onInit={(evt, editor) => (editorRef.current = editor)}
     apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
     value={content}
     onEditorChange={(newContent) => {
       setContent(newContent);
-
       const newHistory = history.slice(0, historyIndex + 1);
       newHistory.push({ title, content: newContent });
       setHistory(newHistory);
       setHistoryIndex(newHistory.length - 1);
     }}
     init={{
-      height: 260, // similar to your textarea height (h-64)
+      height: 260,
       menubar: false,
       branding: false,
       placeholder: "Write your blog content here...",
-      fixed_toolbar_container: "#tinymce-toolbar",
-
+      //fixed_toolbar_container: "#tinymce-toolbar",
       plugins: [
         "lists",
         "link",
@@ -592,11 +611,13 @@ export default function CreateArticlePage() {
       content_style: `body { font-family: ${fontFamily}; font-size: ${fontSize}px; }`,
     }}
   />
+)}
+
 </div>
 
                 <div className="absolute right-4 bottom-4 flex items-center gap-2">
                   <span className="text-xs text-[#6B7280]">
-                    {content.length}/20,000
+                    {charCount}/20,000
                   </span>
                   {content.length === 0 && (
                     <span className="text-xs text-[#DC2626]">*Required</span>
@@ -610,9 +631,7 @@ export default function CreateArticlePage() {
         {/* Bottom Action Buttons */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] px-8 py-6 z-30">
           <div
-            className={`max-w-5xl mx-auto flex items-center justify-center gap-4 transition-all duration-300 ${
-              sidebarOpen ? "ml-60" : "ml-0"
-            }`}
+            className="max-w-5xl mx-auto flex items-center justify-center gap-20"
           >
             <button
               onClick={() => router.push("/home")}

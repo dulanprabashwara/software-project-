@@ -1,96 +1,199 @@
 # Easy Blogger
 
-A Medium-like blogging platform with an extra AI-assisted writing feature for premium users.
+A modern blogging platform built with Next.js, featuring AI-powered content generation, rich text editing, and a beautiful user interface.
 
-## Overview
+## 🚀 Getting Started
 
-- Framework: Next.js (App Router)
-- Language: JavaScript/JSX
-- Styling: Tailwind CSS
-- Premium Features: AI article generation
-- Note: This repository contains the project structure with core components and routing logic.
+### Prerequisites
 
-## Folder Structure
+- Node.js 18+ installed
+- npm or yarn package manager
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## 📁 Project Structure
 
 ```
 easy-blogger/
-├── app/
-│   ├── (auth)/
-│   │   ├── login/
-│   │   ├── signup/
-│   │   ├── forgot-password/
-│   │   └── verify-email/
-│   ├── (main)/
-│   │   ├── page.jsx          -> Home feed
-│   │   ├── layout.jsx        -> Main layout wrapper
-│   │   ├── admin/            -> Admin dashboard and management
-│   │   ├── article/[slug]/   -> Read article
-│   │   ├── ai-generate/      -> AI article generator (basic)
-│   │   ├── ai-generate-pro/  -> AI article generator (premium)
-│   │   ├── write/            -> Blog editor with sub-routes
-│   │   │   ├── [articleId]/
-│   │   │   ├── ai-restricted/
-│   │   │   ├── choose-method/
-│   │   │   ├── create/
-│   │   │   ├── edit-as-new/
-│   │   │   ├── preview/
-│   │   │   ├── publish/
-│   │   │   ├── start/
-│   │   │   ├── unpublish/
-│   │   │   └── unpublished/
-│   │   ├── profile/[username]/ -> Public profile
-│   │   ├── engagement/       -> User engagement/interactions
-│   │   ├── following/        -> Following list
-│   │   ├── library/          -> User's article library
-│   │   ├── stats/            -> User statistics
-│   │   └── stories/          -> Articles/stories management
-│   ├── (settings)/
-│   │   ├── account/          -> Account settings
-│   │   ├── edit-profile/     -> Edit profile
-│   │   └── subscription/
-│   │       ├── pricing/      -> Pricing / upgrade
-│   │       ├── checkout/     -> Payment details
-│   │       └── billing/      -> Subscription management
-│   ├── (auth)/               -> Auth routes
-│   ├── layout.jsx            -> Root layout
-│   └── page.jsx              -> Root page
-├── components/
-│   ├── layout/               -> App layout components (Header, Footer, Navbar, Sidebar)
-│   ├── article/              -> Article UI components (ArticleCard, ArticleList)
-│   ├── profile/              -> Profile UI components (ProfileHeader, FollowButton, StatsModal)
-│   ├── auth/                 -> Auth form component
-│   ├── editor/               -> Editor components (EditorBody, Header, Toolbar, etc.)
-│   ├── admin/                -> Admin sidebar and components
-│   ├── ai/                   -> AI writing UI panel (AIWriterPanel)
-│   ├── subscription/         -> Subscription UI components (PricingCard)
-│   └── ui/                   -> Base UI primitives (Button, Input, Modal)
-├── hooks/
-│   └── useModal.ts           -> Modal hook utilities
-├── lib/
-│   ├── auth.ts               -> Authentication utilities
-│   ├── permissions.ts        -> Permission checking
-│   ├── ai.ts                 -> AI integration
-│   └── editor/
-│       └── editorModes.js    -> Editor mode configurations
-├── types/
-│   ├── article.ts            -> Article type definitions
-│   ├── subscription.ts       -> Subscription types
-│   ├── user.ts               -> User types
-│   └── article.js            -> Legacy article types
-├── styles/
-│   ├── globals.css           -> Global styles
-│   └── ai article generator/ -> AI generator specific styles
-├── public/
-│   ├── icons/                -> Icon assets
-│   └── images/
-│       └── Ai article generator/ -> AI generator images
-└── README.md
+├── app/                          # Next.js App Router pages
+│   ├── (auth)/                   # Authentication pages (login, signup)
+│   │   ├── login/                # Login page
+│   │   └── signup/               # Signup page
+│   │
+│   ├── (main)/                   # Main application pages (requires auth)
+│   │   ├── create/               # Create new article page
+│   │   ├── engagement/           # User engagement stats page
+│   │   ├── profile/              # User profile pages
+│   │   │   ├── edit/             # Edit profile page
+│   │   │   ├── user_stats/       # Current user's stats modal page
+│   │   │   └── [username]/       # Other user's profile pages
+│   │   │       └── stats/        # Other user's stats modal page
+│   │   ├── stats/                # Global stats page
+│   │   ├── stories/              # Stories feed page
+│   │   └── layout.jsx            # Main layout with sidebar & header
+│   │
+│   ├── home/                     # Home feed page
+│   ├── subscription/             # Subscription & upgrade pages
+│   ├── layout.jsx                # Root layout
+│   └── page.jsx                  # Landing page
+│
+├── components/                   # Reusable React components
+│   ├── admin/                    # Admin-specific components
+│   ├── ai/                       # AI writer panel components
+│   ├── article/                  # Article card & related components
+│   ├── auth/                     # Authentication form components
+│   ├── editor/                   # Rich text editor components
+│   │   ├── EditorToolbar.jsx     # Editor formatting toolbar
+│   │   ├── FormatButton.jsx      # Individual format buttons
+│   │   ├── ImageUpload.jsx       # Image upload handler
+│   │   └── LinkDialog.jsx        # Link insertion dialog
+│   ├── layout/                   # Layout components
+│   │   ├── Header.jsx            # Top navigation header
+│   │   ├── Sidebar.jsx           # Left sidebar navigation
+│   │   └── MainLayout.jsx        # Main layout wrapper
+│   ├── profile/                  # Profile-related components
+│   ├── subscription/             # Subscription UI components
+│   └── ui/                       # Generic UI components (buttons, modals)
+│
+├── hooks/                        # Custom React hooks
+│   └── useEditor.js              # Editor state management hook
+│
+├── lib/                          # Utility libraries
+│   ├── editor/                   # Editor utilities
+│   ├── subscription/             # Subscription logic
+│   └── utils.js                  # General utility functions
+│
+├── public/                       # Static assets
+│   └── images/                   # Image files
+│       └── easy-blogger-logo.png # Application logo
+│
+├── styles/                       # Global styles
+│   └── globals.css               # Global CSS & Tailwind imports
+│
+├── types/                        # TypeScript type definitions
+│
+├── .gitignore                    # Git ignore rules
+├── next.config.mjs               # Next.js configuration
+├── package.json                  # Project dependencies
+├── tailwind.config.js            # Tailwind CSS configuration
+└── README.md                     # This file
 ```
 
-## Notes
+## 🎯 Key Features
 
-- File structure includes production-ready component organization
-- Both basic (`ai-generate/`) and premium (`ai-generate-pro/`) AI features are separated into different routes
-- AI-related UI components are in `components/ai/` (AIWriterPanel)
-- Admin functionality is organized in `app/(main)/admin/` and `components/admin/`
-- Editor-related components are centralized in `components/editor/`
+### 📝 Article Creation
+
+- **Rich Text Editor**: Full-featured editor with formatting options
+- **AI Writer**: AI-powered content generation assistance
+- **Image Upload**: Support for article images
+- **Draft System**: Save and resume article drafts
+
+### 👤 User Profiles
+
+- **Personal Profile**: View and edit your profile
+- **Stats Modal**: View followers, following, reads, and shares
+- **Other Users**: Browse other user profiles
+
+### 🎨 User Interface
+
+- **Modern Design**: Clean, professional interface with teal accent color
+- **Responsive Layout**: Works on desktop and mobile devices
+- **Dark Mode Ready**: Prepared for dark mode implementation
+- **Smooth Animations**: Polished transitions and interactions
+
+### 🔐 Authentication
+
+- **Login/Signup**: User authentication system
+- **Protected Routes**: Secure pages requiring authentication
+
+### 💎 Subscription
+
+- **Free Tier**: Basic blogging features
+- **Premium Tier**: Advanced features and AI assistance
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Language**: JavaScript/JSX
+- **Package Manager**: npm
+
+## 📄 Page Routes
+
+| Route                       | Description                  |
+| --------------------------- | ---------------------------- |
+| `/`                         | Landing page                 |
+| `/home`                     | Home feed with articles      |
+| `/login`                    | User login                   |
+| `/signup`                   | User registration            |
+| `/create`                   | Create new article           |
+| `/profile`                  | Current user's profile       |
+| `/profile/edit`             | Edit profile                 |
+| `/profile/user_stats`       | Current user's stats (modal) |
+| `/profile/[username]`       | View other user's profile    |
+| `/profile/[username]/stats` | Other user's stats (modal)   |
+| `/stories`                  | Stories feed                 |
+| `/stats`                    | Global statistics            |
+| `/engagement`               | User engagement page         |
+| `/subscription/upgrade`     | Upgrade to premium           |
+
+## 🎨 Design System
+
+### Colors
+
+- **Primary**: `#1ABC9C` (Teal) - Main brand color
+- **Text**: `#111827` (Dark gray) - Primary text
+- **Secondary Text**: `#6B7280` (Medium gray)
+- **Background**: `#F9FAFB` (Light gray)
+- **Borders**: `#E5E7EB` (Light gray)
+
+### Typography
+
+- **Headings**: Georgia (serif)
+- **Body**: System fonts
+
+## 📝 Development Notes
+
+### Component Organization
+
+- **Layout components** (`Header`, `Sidebar`) are in `components/layout/`
+- **Feature components** (article, editor, profile) are organized by feature
+- **Shared UI components** (buttons, modals) are in `components/ui/`
+
+### Routing
+
+- Uses Next.js App Router with route groups `(auth)` and `(main)`
+- Protected routes are wrapped in `(main)` layout
+- Public routes are in `(auth)` or root level
+
+### State Management
+
+- Local component state with React hooks
+- Custom hooks for complex logic (e.g., `useEditor`)
+
+## 🤝 Contributing
+
+1. Create a new branch for your feature
+2. Make your changes
+3. Test thoroughly
+4. Commit with clear messages
+5. Push and create a pull request
+
+## 📧 Contact
+
+For questions or support, please contact the development team.
+
+---
+
+**Easy Blogger** - Write, Share, Inspire ✨
