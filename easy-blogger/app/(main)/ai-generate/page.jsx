@@ -191,11 +191,11 @@ export default function AIArticleGeneratorPage() {
   const isGenerateButtonDisabled = selectedKeywords.length === 0;
 
   return (
-    <div className="h-screen bg-white overflow-hidden flex">
+    <div className="h-screen bg-white overflow-hidden">
       {/* Header */}
       <Header onToggleSidebar={handleToggleSidebar} />
 
-      <div className="flex pt-16 h-[calc(100vh-4rem)]">
+      <div className="flex pt-16 h-[calc(100vh-4rem)] w-full">
         {/* Sidebar */}
         <Sidebar isOpen={isSidebarOpen} />
 
