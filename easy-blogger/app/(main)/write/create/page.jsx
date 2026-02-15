@@ -330,6 +330,8 @@ export default function CreateArticlePage() {
                         setHistory(newHistory);
                         setHistoryIndex(newHistory.length - 1);
                       }}
+                      
+                      apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
                       init={{
                         readonly: false,
                         promotion: false,
