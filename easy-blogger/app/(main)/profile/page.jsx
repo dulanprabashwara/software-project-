@@ -3,6 +3,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { Edit, Trash2 } from "lucide-react";
 import { useSubscription } from "../../subscription/SubscriptionContext";
 import ArticleCard from "../../../components/article/ArticleCard";
 
@@ -24,6 +25,11 @@ export default function ProfilePage() {
 
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
+
+  // About Section State
+  const [aboutText, setAboutText] = useState("");
+  const [isEditingAbout, setIsEditingAbout] = useState(false);
+  const [hasAbout, setHasAbout] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -86,6 +92,36 @@ export default function ProfilePage() {
     document.body.removeChild(textArea);
   };
 
+  // About Section Handlers
+  const handleGetStartedAbout = () => {
+    setIsEditingAbout(true);
+  };
+
+  const handleSaveAbout = () => {
+    if (aboutText.trim()) {
+      setHasAbout(true);
+      setIsEditingAbout(false);
+    }
+  };
+
+  const handleCancelAbout = () => {
+    setIsEditingAbout(false);
+    if (!hasAbout) {
+      setAboutText("");
+    }
+  };
+
+  const handleEditAbout = () => {
+    setIsEditingAbout(true);
+  };
+
+  const handleDeleteAbout = () => {
+    if (confirm("Are you sure you want to delete your bio?")) {
+      setHasAbout(false);
+      setAboutText("");
+    }
+  };
+
   // Mock articles data
   const articles = [
     {
@@ -123,8 +159,14 @@ export default function ProfilePage() {
   return (
     <div className="flex h-full w-full">
       {/* Main Content Area */}
-      <div className="flex-1 border-r border-[#E5E7EB] overflow-y-auto h-[calc(100vh-64px)] scrollbar-hide">
-        <div className="max-w-3xl mx-auto px-8 py-8">
+      <div
+        className="flex-1 overflow-y-auto h-[calc(100vh-64px)] relative"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {/* Masking Strip for Green Line Artifact */}
+        <div className="absolute top-0 right-0 w-3 h-full bg-white z-50 pointer-events-none" />
+
+        <div className="max-w-3xl mx-auto px-8 py-8 pr-12">
           {/* Profile Header */}
           <div className="flex items-center justify-between mb-6">
             <h1
@@ -208,19 +250,80 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="py-8">
-              {/* About Section - Empty State */}
-              <div className="border border-[#E5E7EB] rounded-lg p-8 text-center max-w-xl mx-auto">
-                <h3 className="text-lg font-semibold text-[#111827] mb-3">
-                  Tell the world about yourself
-                </h3>
-                <p className="text-[#6B7280] text-sm mb-6 leading-relaxed">
-                  Here's where you can share more about yourself: your history,
-                  work experience, accomplishments, interests, dreams, and more.
-                </p>
-                <button className="px-6 py-2.5 border border-[#111827] text-[#111827] rounded-full text-sm font-medium hover:bg-[#111827] hover:text-white transition-colors duration-150">
-                  Get started
-                </button>
-              </div>
+              {/* About Section Logic */}
+              {!hasAbout && !isEditingAbout ? (
+                /* Empty State */
+                <div className="border border-[#E5E7EB] rounded-lg p-8 text-center max-w-xl mx-auto bg-[#F9FAFB] relative z-10 overflow-hidden">
+                  <h3 className="text-lg font-semibold text-[#111827] mb-3">
+                    Tell the world about yourself
+                  </h3>
+                  <p className="text-[#6B7280] text-sm mb-6 leading-relaxed">
+                    Here's where you can share more about yourself: your
+                    history, work experience, accomplishments, interests,
+                    dreams, and more.
+                  </p>
+                  <button
+                    onClick={handleGetStartedAbout}
+                    className="px-6 py-2.5 border border-[#111827] text-[#111827] rounded-full text-sm font-medium hover:bg-[#111827] hover:text-white transition-colors duration-150"
+                  >
+                    Get started
+                  </button>
+                </div>
+              ) : isEditingAbout ? (
+                /* Edit Mode */
+                <div className="max-w-xl mx-auto relative z-10 overflow-hidden p-1">
+                  <label className="block text-sm font-semibold text-[#374151] mb-2">
+                    About You
+                  </label>
+                  <textarea
+                    value={aboutText}
+                    onChange={(e) => setAboutText(e.target.value)}
+                    rows={6}
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent resize-none mb-4 bg-white"
+                    placeholder="Tell your story..."
+                  />
+                  <div className="flex gap-3 justify-end">
+                    <button
+                      onClick={handleCancelAbout}
+                      className="px-6 py-2 border border-black text-black rounded-full text-sm font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveAbout}
+                      disabled={!aboutText.trim()}
+                      className="px-6 py-2 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* View Mode */
+                <div className="max-w-xl mx-auto group relative z-10 overflow-hidden">
+                  <div className="border border-[#E5E7EB] rounded-lg p-8 bg-white mb-3">
+                    <div className="prose prose-slate max-w-none text-[#374151] leading-relaxed whitespace-pre-wrap">
+                      {aboutText}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons - Below the box */}
+                  <div className="flex justify-end gap-3 px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={handleDeleteAbout}
+                      className="px-6 py-2 border border-black text-black rounded-full text-sm font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={handleEditAbout}
+                      className="px-6 py-2 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
