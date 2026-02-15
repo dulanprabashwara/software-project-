@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { useSubscription } from "../../app/(settings)/subscription/SubscriptionContext";
+import { useSubscription } from "../../app/subscription/SubscriptionContext";
 
 export default function Sidebar({ isOpen = true, onOpenEngagement }) {
   const pathname = usePathname();
@@ -15,8 +15,13 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
     { icon: "library", label: "Library", href: "/library" },
     { icon: "profile", label: "Profile", href: "/profile" },
     { icon: "stories", label: "Stories", href: "/stories" },
-    { icon: "stats", label: "Stats", href: "/profile/user_stats" },
-    { icon: "ai", label: "AI Generate", href: "/ai-generate" },
+    { icon: "stats", label: "Stats", href: "/stats" },
+    {
+      icon: "ai",
+      label: "AI Generate",
+      href: isPremium ? "/ai-generate" : "/subscription/upgrade",
+      activePath: "/ai-generate",
+    },
   ];
 
   const bottomNavItems = [
@@ -32,7 +37,12 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
     },
   ];
 
-  const isActive = (href) => {
+  const isActive = (href, activePath) => {
+    // If activePath is explicitly provided, strictly check against that path
+    if (activePath) {
+      return pathname.startsWith(activePath);
+    }
+
     if (href === "/home") {
       return pathname === "/home";
     }
@@ -206,7 +216,7 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
               <Link
                 href={item.href}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
-                  isActive(item.href)
+                  isActive(item.href, item.activePath)
                     ? "bg-[#E8F8F5] text-[#1ABC9C]"
                     : "text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]"
                 }`}
@@ -224,7 +234,7 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
               <Link
                 href={item.href}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
-                  isActive(item.href)
+                  isActive(item.href, item.activePath)
                     ? "bg-[#E8F8F5] text-[#1ABC9C]"
                     : "text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]"
                 }`}

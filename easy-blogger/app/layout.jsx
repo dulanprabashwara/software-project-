@@ -1,5 +1,5 @@
 import "../styles/globals.css";
-import { SubscriptionProvider } from "./(settings)/subscription/SubscriptionContext";
+import { SubscriptionProvider } from "./subscription/SubscriptionContext";
 
 export const metadata = {
   title: "Easy Blogger",

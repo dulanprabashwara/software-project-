@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Camera,
   Lock,
@@ -18,7 +19,7 @@ import {
  * Features: Profile photo upload, bio editing, email settings, password change, account deletion
  */
 
-import { useSubscription } from "../../(settings)/subscription/SubscriptionContext";
+import { useSubscription } from "../../../subscription/SubscriptionContext";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -280,12 +281,12 @@ export default function EditProfilePage() {
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => router.push("/subscription/manage")}
+            <Link
+              href="/subscription/manage"
               className="px-6 py-2.5 bg-[#111827] hover:bg-[#374151] text-white rounded-full text-sm font-medium transition-colors whitespace-nowrap ml-4"
             >
               Manage Subscription
-            </button>
+            </Link>
           </div>
         </div>
       ) : (
@@ -451,6 +452,53 @@ export default function EditProfilePage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* LinkedIn Integration */}
+        <div className="pt-6 mt-6 border-t border-[#E5E7EB]">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 bg-[#EFF6FF] rounded-lg flex items-center justify-center">
+              <Linkedin className="w-5 h-5 text-[#0077B5]" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-[#111827] mb-1">
+                LinkedIn Integration
+              </h3>
+              <p className="text-sm text-[#6B7280]">
+                Connect your LinkedIn account to easily share your blog articles
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#0077B5] rounded-lg flex items-center justify-center">
+                <Linkedin className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="font-medium text-[#111827]">
+                  {linkedInConnected
+                    ? "LinkedIn Connected"
+                    : "LinkedIn Disconnected"}
+                </p>
+                <p className="text-sm text-[#6B7280]">
+                  {linkedInConnected
+                    ? "Share articles directly to your LinkedIn profile"
+                    : "Connect to share articles"}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setLinkedInConnected(!linkedInConnected)}
+              className={`text-sm font-medium transition-colors ${
+                linkedInConnected
+                  ? "text-red-500 hover:text-red-600"
+                  : "text-[#0077B5] hover:text-[#006097]"
+              }`}
+            >
+              {linkedInConnected ? "Disconnect" : "Connect"}
+            </button>
           </div>
         </div>
       </div>
