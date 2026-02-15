@@ -1,0 +1,503 @@
+/* AI Article Generator Specific Styles */
+
+/* Custom font families */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* Main container styles */
+.ai-generator-main {
+  width: 100%;
+  max-width: 100%;
+  height: 930px;
+  min-height: 100vh;
+  background-color: #fafafa;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Content Wrapper for alignment */
+.ai-content-wrapper {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Title section styles */
+.ai-generator-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0; /* Remove horizontal padding as wrapper handles it */
+  width: 100%;
+}
+
+.ai-generator-menu-icon {
+  width: 32px;
+  height: 36px;
+  color: #96bbb4;
+}
+
+.ai-generator-ai-icon {
+  color: #1abc9c;
+  width: 36px;
+  height: 36px;
+  margin-left: 12px;
+  background-color: transparent;
+}
+
+.ai-generator-title-text {
+  font-family: Georgia, serif;
+  font-weight: bold;
+  font-size: 36px;
+  color: #000000;
+}
+
+/* Trending articles section */
+.trending-section {
+  margin-top: 24px;
+  width: 100%;
+}
+
+.trending-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.trending-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.trending-title {
+  font-family: Georgia, serif;
+  font-weight: bold;
+  font-size: 28px;
+  color: #000000;
+}
+
+/* Slider styles */
+.trending-slider {
+  width: 100%;
+  height: 225px;
+  background-color: #deeae8;
+  border-radius: 25px;
+  position: relative;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.slider-chevron {
+  background-color: transparent;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+.slider-chevron:first-child {
+  left: -10px;
+}
+
+.slider-chevron:last-child {
+  right: -25px;
+}
+
+.slider-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-left: 8px;
+  margin-right: 10px;
+}
+
+.slider-left-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1;
+}
+
+.slider-right-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex: 1;
+  margin-left: 16px;
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.author-image {
+  width: 32px;
+  height: 32px;
+  border-radius: 33554400;
+  object-fit: cover;
+}
+
+.author-details {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.author-name {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #000000;
+}
+
+.publish-date {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #666666;
+}
+
+.article-title {
+  font-family: Georgia, serif;
+  font-weight: bold;
+  font-size: 21.84px;
+  color: #000000;
+  text-align: left;
+  line-height: 1.3;
+}
+
+.article-description {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 15.01px;
+  color: #333333;
+  width: 100%;
+  max-width: 560px;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.article-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-start;
+  margin-top: 40px;
+}
+
+.cover-image {
+  width: 125px;
+  height: 128px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-right: 2px;
+}
+
+.bookmark-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-icon {
+  width: 16px;
+  height: 16px;
+  fill: #ffffff;
+  stroke: #1abc9c;
+  stroke-width: 2;
+}
+
+.stat-number {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #000000;
+}
+
+.bookmark-icon {
+  width: 16px;
+  height: 16px;
+  fill: #ffffff;
+  stroke: #1abc9c;
+  stroke-width: 2;
+  margin-top: 15px;
+  margin-right: 11px;
+}
+
+/* User input section */
+.user-input-section {
+  width: 100%;
+}
+
+.user-prompt-text {
+  font-family: Georgia, serif;
+  font-weight: bold;
+  font-size: 28px;
+  color: #000000;
+  margin-top: 32px;
+  margin-bottom: 16px;
+  text-align: left;
+  width: 100%;
+}
+
+.user-textbox {
+  width: 100%;
+  height: 134px;
+  border: 1px solid #b3b3b3;
+  border-radius: 15px;
+  padding: 12px;
+  position: relative;
+  margin: 0 auto;
+}
+
+.user-textbox textarea {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  color: #000000;
+  background-color: transparent;
+}
+
+.user-textbox textarea::placeholder {
+  color: #a9a9a9;
+}
+
+.word-count {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #a9a9a9;
+}
+
+.continue-button {
+  width: 100%;
+  height: 48px;
+  background-color: #1abc9c;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px auto 0;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.continue-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.continue-button-text {
+  font-family: "Inter", sans-serif;
+  font-weight: bold;
+  font-size: 20px;
+  color: #ffffff;
+}
+
+.continue-arrow {
+  width: 20px;
+  height: 20px;
+  color: #ffffff;
+}
+
+/* Responsive styles */
+@media (max-width: 1400px) {
+  .insights-sidebar {
+    width: 280px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .insights-sidebar {
+    width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ai-generator-main {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .ai-content-wrapper {
+    padding: 0 12px;
+  }
+
+  .insights-sidebar {
+    display: none;
+  }
+
+  .user-prompt-text {
+    font-size: 24px;
+  }
+
+  .trending-slider {
+    height: auto;
+    min-height: 200px;
+    width: 100%;
+  }
+
+  .article-description {
+    width: 100%;
+  }
+
+  .slider-content {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .slider-right-content {
+    align-items: center;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .ai-content-wrapper {
+    padding: 0 8px;
+  }
+
+  .user-prompt-text {
+    font-size: 20px;
+  }
+
+  .trending-slider {
+    padding: 12px;
+  }
+
+  .article-title {
+    font-size: 18px;
+  }
+
+  .article-description {
+    font-size: 14px;
+  }
+}
+
+/* Insights sidebar */
+.insights-sidebar {
+  width: 321px;
+  height: 930px;
+  background-color: #f6f6f6;
+  border-right: 1px solid #e8e8e8;
+  padding: 24px;
+}
+
+.insights-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.insights-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.insights-dot-1 {
+  width: 8px;
+  height: 8px;
+  background-color: #1abc9c;
+  border-radius: 50%;
+}
+
+.insights-dot-2 {
+  width: 8px;
+  height: 8px;
+  background-color: #6ae6cd;
+  border-radius: 50%;
+}
+
+.insights-title {
+  font-family: Georgia, serif;
+  font-weight: bold;
+  font-size: 20px;
+  color: #1abc9c;
+  text-align: left;
+}
+
+.insights-section-title {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: 20px;
+  color: #000000;
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.insights-article-section {
+  margin-left: 13px;
+  margin-bottom: 16px;
+}
+
+.insights-article-name {
+  font-family: Georgia, serif;
+  font-weight: bold;
+  font-size: 14px;
+  color: #000000;
+  text-align: left;
+  margin-bottom: 4px;
+}
+
+.insights-author-name {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 15.01px;
+  color: #666666;
+  text-align: left;
+}
+
+.trending-topics-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.topic-button {
+  background-color: #f9f9f9;
+  height: 36px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 18px;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #6b6b6b;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.topic-button:hover {
+  background-color: #e8e8e8;
+}
