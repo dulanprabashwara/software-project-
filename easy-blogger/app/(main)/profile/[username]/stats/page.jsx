@@ -13,12 +13,11 @@
 
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { X } from "lucide-react";
 
 export default function OtherUserStatsPage({ params }) {
-  const unwrappedParams = use(params);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -40,9 +39,11 @@ export default function OtherUserStatsPage({ params }) {
 
   // Mock user data - would come from API based on params.username
   const stats = {
-    name: "Phil Jackson",
+    name: params.username || "User",
     followers: "1,245",
     following: 89,
+    reads: "23.4K",
+    shares: 156,
   };
 
   // Mock data for lists
@@ -105,6 +106,47 @@ export default function OtherUserStatsPage({ params }) {
     },
   ];
 
+  const reads = [
+    {
+      id: 1,
+      title: "The Future of AI in 2026",
+      author: "Sarah Chen",
+      date: "Jan 2, 2026",
+      readTime: "5 min read",
+    },
+    {
+      id: 2,
+      title: "Mastering React Patterns",
+      author: "David Miller",
+      date: "Jan 1, 2026",
+      readTime: "8 min read",
+    },
+    {
+      id: 3,
+      title: "Design Systems 101",
+      author: "Emily Davis",
+      date: "Dec 28, 2025",
+      readTime: "6 min read",
+    },
+  ];
+
+  const shares = [
+    {
+      id: 1,
+      title: "The Future of AI in 2026",
+      platform: "Twitter",
+      date: "Jan 2, 2026",
+      likes: 12,
+    },
+    {
+      id: 2,
+      title: "Mastering React Patterns",
+      platform: "LinkedIn",
+      date: "Jan 1, 2026",
+      comments: 5,
+    },
+  ];
+
   return (
     <>
       {/* Backdrop with blur */}
@@ -164,6 +206,32 @@ export default function OtherUserStatsPage({ params }) {
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
                 )}
               </button>
+
+              <button
+                onClick={() => setActiveTab("reads")}
+                className={`pb-3 text-sm font-medium transition-colors relative ${
+                  activeTab === "reads" ? "text-[#111827]" : "text-[#6B7280]"
+                }`}
+              >
+                <span className="mr-1">Reads</span>
+                <span className="text-[#6B7280]">{stats.reads}</span>
+                {activeTab === "reads" && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab("shares")}
+                className={`pb-3 text-sm font-medium transition-colors relative ${
+                  activeTab === "shares" ? "text-[#111827]" : "text-[#6B7280]"
+                }`}
+              >
+                <span className="mr-1">Shares</span>
+                <span className="text-[#6B7280]">{stats.shares}</span>
+                {activeTab === "shares" && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
+                )}
+              </button>
             </div>
           </div>
 
@@ -191,6 +259,9 @@ export default function OtherUserStatsPage({ params }) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
+                        Message
+                      </button>
                       {user.isFollowing ? (
                         <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
                           Following
@@ -228,9 +299,62 @@ export default function OtherUserStatsPage({ params }) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
+                        Message
+                      </button>
                       <button className="px-4 py-1.5 text-sm text-white bg-[#1ABC9C] rounded-full hover:bg-[#17a589] transition-colors">
                         Follow
                       </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Reads Tab */}
+            {activeTab === "reads" && (
+              <div className="space-y-5">
+                {reads.map((article) => (
+                  <div
+                    key={article.id}
+                    className="border-b border-[#E5E7EB] pb-4 last:border-0"
+                  >
+                    <h3 className="font-semibold text-[#111827] mb-2">
+                      {article.title}
+                    </h3>
+                    <p className="text-sm text-[#6B7280]">
+                      {article.author} · {article.date} · {article.readTime}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Shares Tab */}
+            {activeTab === "shares" && (
+              <div className="space-y-5">
+                {shares.map((share) => (
+                  <div
+                    key={share.id}
+                    className="border-b border-[#E5E7EB] pb-4 last:border-0"
+                  >
+                    <h3 className="font-semibold text-[#111827] mb-2">
+                      {share.title}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-[#6B7280]">
+                        Shared to {share.platform} · {share.date}
+                      </p>
+                      {share.likes && (
+                        <span className="px-2 py-1 bg-[#D1FAE5] text-[#059669] text-xs font-medium rounded">
+                          {share.likes} likes
+                        </span>
+                      )}
+                      {share.comments && (
+                        <span className="px-2 py-1 bg-[#DBEAFE] text-[#2563EB] text-xs font-medium rounded">
+                          {share.comments} comments
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}

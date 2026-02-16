@@ -266,6 +266,9 @@ export default function UserStatsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
+                        Message
+                      </button>
                       {user.isFollowing ? (
                         <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
                           Following
