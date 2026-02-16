@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Header from "../../../components/layout/Header";
 import Sidebar from "../../../components/layout/Sidebar";
-import { Info, Calendar, CreditCard } from "lucide-react";
+import { Shield, Calendar, CreditCard } from "lucide-react";
 
 export default function ManageSubscriptionPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -32,54 +32,57 @@ export default function ManageSubscriptionPage() {
               Subscription & Billing
             </h1>
             <p className="text-[#6B7280] text-sm">
-              Manage your plan and billing details.
+              Manage your plan and billing details,
             </p>
           </div>
 
           {/* Current Plan Card */}
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 mb-6">
-            <div className="flex items-start justify-between mb-4">
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 mb-8 shadow-sm">
+            <div className="flex items-start justify-between mb-8">
               <div className="flex items-center gap-3">
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium text-[#6B7280] uppercase tracking-wide">
-                      Current Plan
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">
+                      CURRENT PLAN
                     </span>
-                    <span className="px-2 py-0.5 bg-[#D1FAE5] text-[#059669] text-xs font-medium rounded">
+                    <span className="px-2.5 py-0.5 bg-[#D1FAE5] text-[#10B981] text-[10px] font-bold uppercase tracking-wider rounded-full">
                       Active
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-semibold text-[#111827]">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h2
+                      className="text-2xl text-[#111827]"
+                      style={{ fontFamily: "Georgia, serif" }}
+                    >
                       Premium Plan
                     </h2>
-                    <Info className="w-4 h-4 text-[#6B7280]" />
+                    <Shield className="w-5 h-5 text-[#10B981]" />
                   </div>
-                  <p className="text-sm text-[#6B7280] mt-1">
-                    You are currently subscribed to the Premium plan.
+                  <p className="text-sm text-[#6B7280]">
+                    You are currently subscribed to the Premium plan,
                   </p>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-right flex items-baseline gap-1">
                 <p className="text-2xl font-bold text-[#111827]">$9.99</p>
                 <p className="text-sm text-[#6B7280]">/month</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 pt-4 border-t border-[#E5E7EB]">
+            <div className="grid grid-cols-2 gap-12 pt-8 border-t border-[#F3F4F6]">
               <div>
-                <p className="text-xs font-medium text-[#6B7280] uppercase tracking-wide mb-1">
-                  Billing Cycle
+                <p className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-2">
+                  BILLING CYCLE
                 </p>
-                <p className="text-sm text-[#111827] font-medium">Monthly</p>
+                <p className="text-base text-[#111827] font-medium">Monthly</p>
               </div>
               <div>
-                <p className="text-xs font-medium text-[#6B7280] uppercase tracking-wide mb-1">
-                  Next Billing Date
+                <p className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-2">
+                  NEXT BILLING DATE
                 </p>
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-[#3B82F6]" />
-                  <p className="text-sm text-[#111827] font-medium">
+                  <Calendar className="w-4 h-4 text-[#10B981]" />
+                  <p className="text-base text-[#111827] font-medium">
                     July 15, 2025
                   </p>
                 </div>
@@ -88,41 +91,48 @@ export default function ManageSubscriptionPage() {
           </div>
 
           {/* Payment Method Card */}
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6 mb-6">
-            <h2 className="text-lg font-semibold text-[#111827] mb-4">
+          <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 mb-8 shadow-sm">
+            <h2
+              className="text-xl text-[#111827] mb-6"
+              style={{ fontFamily: "Georgia, serif" }}
+            >
               Payment Method
             </h2>
 
-            <div className="flex items-center justify-between p-4 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#111827] rounded flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-white" />
+            <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-[#E5E7EB] mb-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-8 bg-[#111827] rounded flex items-center justify-center">
+                  <div className="w-6 h-4 border border-white/50 rounded-sm relative">
+                    <div className="absolute top-1 left-0 w-full h-px bg-white/50"></div>
+                  </div>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#111827]">
+                  <p className="text-sm font-bold text-[#374151]">
                     Visa ending in 4242
                   </p>
-                  <p className="text-xs text-[#6B7280]">Expires 12/28</p>
+                  <p className="text-xs text-[#9CA3AF]">Expires 12/28</p>
                 </div>
               </div>
-              <button className="px-4 py-2 text-sm font-medium text-[#3B82F6] hover:text-[#2563EB] transition-colors">
+              <button className="text-sm font-semibold text-[#3B82F6] hover:text-[#2563EB] transition-colors">
                 Update
               </button>
             </div>
 
-            <button className="mt-4 text-sm text-[#3B82F6] hover:text-[#2563EB] transition-colors">
+            <button className="text-sm font-medium text-[#3B82F6] hover:text-[#2563EB] transition-colors">
               View billing history
             </button>
           </div>
 
           {/* Cancel Subscription Section */}
-          <div className="bg-white rounded-xl border border-[#E5E7EB] p-6">
-            <p className="text-sm text-[#6B7280] mb-4">
+          <div className="border-t border-[#E5E7EB] pt-8 flex items-start justify-between">
+            <p className="text-sm text-[#9CA3AF] max-w-md">
               Canceling your subscription will downgrade your account to the
               Free plan at the end of the billing cycle.
             </p>
-            <button className="px-6 py-2.5 border border-[#DC2626] text-[#DC2626] rounded-lg text-sm font-medium hover:bg-[#FEF2F2] transition-colors">
-              Cancel Subscription
+            <button className="px-6 py-2.5 border border-[#FDA4AF] text-[#F43F5E] rounded bg-white text-sm font-medium hover:bg-[#FFF1F2] transition-colors">
+              Cancel
+              <br />
+              Subscription
             </button>
           </div>
         </div>
