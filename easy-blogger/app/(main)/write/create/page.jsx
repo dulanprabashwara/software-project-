@@ -4,9 +4,30 @@ import { Editor } from "@tinymce/tinymce-react";
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Header from "../../../../components/layout/Header";
-import Sidebar from "../../../../components/layout/Sidebar";
-import { Image as ImageIcon, X } from "lucide-react";
+import {
+  Undo,
+  Redo,
+  Copy,
+  Clipboard,
+  Bold,
+  Italic,
+  Underline,
+  Type,
+  Link2,
+  Image as ImageIcon,
+  List,
+  ListOrdered,
+  ListChecks,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  IndentIncrease,
+  IndentDecrease,
+  Minus,
+  Plus,
+  X,
+} from "lucide-react";
 
 export default function CreateArticlePage() {
   const router = useRouter();
@@ -14,18 +35,22 @@ export default function CreateArticlePage() {
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [articleMode, setArticleMode] = useState("new");
+  const [articleMode, setArticleMode] = useState("new"); 
   const [lastSaved, setLastSaved] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [zoom, setZoom] = useState(100);
+  const [textStyle, setTextStyle] = useState("Paragraph Text");
+  const [fontFamily, setFontFamily] = useState("Arial");
   const [fontSize, setFontSize] = useState(16);
   const [history, setHistory] = useState([{ title: "", content: "" }]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
 
+
   const fileInputRef = useRef(null);
   const titleRef = useRef(null);
   const editorRef = useRef(null);
+
 
   // Auto-save functionality
   useEffect(() => {
@@ -67,6 +92,7 @@ export default function CreateArticlePage() {
     setMounted(true);
   }, []);
 
+
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -107,8 +133,235 @@ export default function CreateArticlePage() {
     }
   };
 
-  // Note: TinyMCE provides built-in formatting through its toolbar.
-  // Custom formatting functions have been removed as they were incompatible with TinyMCE.
+  const applyFormatting = (format) => {
+    if (!contentRef.current) return;
+
+    const textarea = contentRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+
+    if (!selectedText) {
+      alert("Please select some text first");
+      return;
+    }
+
+    let formattedText = selectedText;
+
+    switch (format) {
+      case "bold":
+        formattedText = `**${selectedText}**`;
+        break;
+      case "italic":
+        formattedText = `*${selectedText}*`;
+        break;
+      case "underline":
+        formattedText = `<u>${selectedText}</u>`;
+        break;
+      case "link":
+        const url = prompt("Enter URL:");
+        if (!url) return;
+        formattedText = `[${selectedText}](${url})`;
+        break;
+      case "color":
+        const color = prompt("Enter color (e.g., red, #FF0000):");
+        if (!color) return;
+        formattedText = `<span style="color: ${color}">${selectedText}</span>`;
+        break;
+    }
+
+    const newContent =
+      content.substring(0, start) + formattedText + content.substring(end);
+    setContent(newContent);
+
+    // Update history
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push({ title, content: newContent });
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+
+    // Restore cursor position
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        start + formattedText.length,
+        start + formattedText.length,
+      );
+    }, 0);
+  };
+
+  const applyListFormatting = (listType) => {
+    if (!contentRef.current) return;
+
+    const textarea = contentRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+
+    if (!selectedText) {
+      alert("Please select some text first");
+      return;
+    }
+
+    const lines = selectedText.split("\n");
+    let formattedLines;
+
+    switch (listType) {
+      case "bullet":
+        formattedLines = lines.map((line) =>
+          line.trim() ? `- ${line.trim()}` : line,
+        );
+        break;
+      case "numbered":
+        formattedLines = lines.map((line, index) =>
+          line.trim() ? `${index + 1}. ${line.trim()}` : line,
+        );
+        break;
+      case "checklist":
+        formattedLines = lines.map((line) =>
+          line.trim() ? `- [ ] ${line.trim()}` : line,
+        );
+        break;
+      default:
+        return;
+    }
+
+    const formattedText = formattedLines.join("\n");
+    const newContent =
+      content.substring(0, start) + formattedText + content.substring(end);
+    setContent(newContent);
+
+    // Update history
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push({ title, content: newContent });
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+
+  const applyAlignment = (alignment) => {
+    if (!contentRef.current) return;
+
+    const textarea = contentRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+
+    if (!selectedText) {
+      alert("Please select some text first");
+      return;
+    }
+
+    let formattedText;
+    switch (alignment) {
+      case "left":
+        formattedText = `<div style="text-align: left">${selectedText}</div>`;
+        break;
+      case "center":
+        formattedText = `<div style="text-align: center">${selectedText}</div>`;
+        break;
+      case "right":
+        formattedText = `<div style="text-align: right">${selectedText}</div>`;
+        break;
+      case "justify":
+        formattedText = `<div style="text-align: justify">${selectedText}</div>`;
+        break;
+      default:
+        return;
+    }
+
+    const newContent =
+      content.substring(0, start) + formattedText + content.substring(end);
+    setContent(newContent);
+
+    // Update history
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push({ title, content: newContent });
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+
+  const applyIndentation = (direction) => {
+    if (!contentRef.current) return;
+
+    const textarea = contentRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+
+    if (!selectedText) {
+      alert("Please select some text first");
+      return;
+    }
+
+    const lines = selectedText.split("\n");
+    let formattedLines;
+
+    if (direction === "increase") {
+      formattedLines = lines.map((line) => `  ${line}`);
+    } else {
+      formattedLines = lines.map((line) => line.replace(/^  /, ""));
+    }
+
+    const formattedText = formattedLines.join("\n");
+    const newContent =
+      content.substring(0, start) + formattedText + content.substring(end);
+    setContent(newContent);
+
+    // Update history
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push({ title, content: newContent });
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+
+  const handleCopy = async () => {
+    if (contentRef.current) {
+      const start = contentRef.current.selectionStart;
+      const end = contentRef.current.selectionEnd;
+      const selectedText = content.substring(start, end);
+      if (selectedText) {
+        try {
+          await navigator.clipboard.writeText(selectedText);
+          alert("Text copied to clipboard!");
+        } catch (err) {
+          console.error("Failed to copy:", err);
+          alert("Failed to copy text");
+        }
+      } else {
+        alert("Please select some text first");
+      }
+    }
+  };
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (contentRef.current) {
+        const start = contentRef.current.selectionStart;
+        const end = contentRef.current.selectionEnd;
+        const newContent =
+          content.substring(0, start) + text + content.substring(end);
+        setContent(newContent);
+
+        // Update history
+        const newHistory = history.slice(0, historyIndex + 1);
+        newHistory.push({ title, content: newContent });
+        setHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+      }
+    } catch (err) {
+      // Clipboard permission denied - this is expected behavior
+      // Users should use Ctrl+V (Windows/Linux) or Cmd+V (Mac) for pasting
+      if (err.name === "NotAllowedError") {
+        alert(
+          "Clipboard access denied. Please use Ctrl+V (or Cmd+V on Mac) to paste.",
+        );
+      } else {
+        console.error("Failed to paste:", err);
+        alert("Failed to paste. Please use Ctrl+V instead.");
+      }
+    }
+  };
 
   const handleZoomChange = (delta) => {
     setZoom((prev) => Math.max(50, Math.min(200, prev + delta)));
@@ -148,6 +401,7 @@ export default function CreateArticlePage() {
       }),
     );
     router.push("/write/preview");
+
   };
 
   const toggleSidebar = () => {
@@ -155,10 +409,11 @@ export default function CreateArticlePage() {
   };
 
   const plainText = editorRef.current
-    ? editorRef.current.getContent({ format: "text" })
-    : "";
+   ? editorRef.current.getContent({ format: "text" })
+   : "";
 
   const charCount = plainText.length;
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -172,39 +427,42 @@ export default function CreateArticlePage() {
       >
         {/* Top Bar */}
         {/* Top Bar */}
-        <div className="bg-white border-b border-[#E5E7EB] px-8 py-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-3 items-center">
-              {/* Left: Saved status */}
-              <div className="text-sm text-[#6B7280] justify-self-start">
-                {isSaving
-                  ? "Saving..."
-                  : lastSaved
-                    ? `Saved at ${lastSaved.toLocaleTimeString()}`
-                    : "Saved / Saving..."}
-              </div>
+<div className="bg-white border-b border-[#E5E7EB] px-8 py-6">
+  <div className="max-w-6xl mx-auto">
+    <div className="grid grid-cols-3 items-center">
+      {/* Left: Saved status */}
+      <div className="text-sm text-[#6B7280] justify-self-start">
+        {isSaving
+          ? "Saving..."
+          : lastSaved
+            ? `Saved at ${lastSaved.toLocaleTimeString()}`
+            : "Saved / Saving..."}
+      </div>
 
-              {/* Center: Title + subtitle */}
-              <div className="text-center">
-                <h1 className="text-4xl font-serif font-bold text-[#111827]">
-                  Create your Article
-                </h1>
-                <p className="text-[#6B7280] mt-1">
-                  Create your own Article here
-                </p>
-              </div>
+      {/* Center: Title + subtitle */}
+      <div className="text-center">
+        <h1 className="text-4xl font-serif font-bold text-[#111827]">
+          Create your Article
+        </h1>
+        <p className="text-[#6B7280] mt-1">Create your own Article here</p>
+      </div>
 
-              {/* Right: Button */}
-              <div className="justify-self-end">
-                <span className="inline-flex items-center px-6 py-2.5 bg-[#1ABC9C] text-white rounded-full text-sm font-medium">
-                  {articleMode === "draft" ? "Draft Article" : "New Article"}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Right: Button */}
+      <div className="justify-self-end">
+        <span
+          className="inline-flex items-center px-6 py-2.5 bg-[#1ABC9C] text-white rounded-full text-sm font-medium"
+        >
+          {articleMode === "draft" ? "Draft Article" : "New Article"}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
 
+                  
         {/* Toolbar (TinyMCE toolbar will render here) */}
+
+
 
         {/* Editor Content */}
         <div
@@ -317,47 +575,45 @@ export default function CreateArticlePage() {
               </label>
               <div className="relative">
                 <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
-                  {!mounted ? (
-                    <div className="h-[260px] bg-white" />
-                  ) : (
-                    <Editor
-                      onInit={(evt, editor) => (editorRef.current = editor)}
-                      value={content}
-                      onEditorChange={(newContent) => {
-                        setContent(newContent);
-                        const newHistory = history.slice(0, historyIndex + 1);
-                        newHistory.push({ title, content: newContent });
-                        setHistory(newHistory);
-                        setHistoryIndex(newHistory.length - 1);
-                      }}
-                      
-                      apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
-                      init={{
-                        readonly: false,
-                        promotion: false,
-                        height: 260,
-                        menubar: false,
-                        branding: false,
-                        placeholder: "Write your blog content here...",
-                        //fixed_toolbar_container: "#tinymce-toolbar",
-                        plugins: [
-                          "lists",
-                          "link",
-                          "image",
-                          "table",
-                          "code",
-                          "wordcount",
-                          "autolink",
-                        ],
-                        toolbar:
-                          "undo redo | blocks | bold italic underline | " +
-                          "alignleft aligncenter alignright alignjustify | " +
-                          "bullist numlist | link image table | code",
-                        content_style: `body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: ${fontSize}px; }`,
-                      }}
-                    />
-                  )}
-                </div>
+{!mounted ? (
+  <div className="h-[260px] bg-white" />
+) : (
+  <Editor
+    onInit={(evt, editor) => (editorRef.current = editor)}
+    apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
+    value={content}
+    onEditorChange={(newContent) => {
+      setContent(newContent);
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push({ title, content: newContent });
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    }}
+    init={{
+      height: 260,
+      menubar: false,
+      branding: false,
+      placeholder: "Write your blog content here...",
+      //fixed_toolbar_container: "#tinymce-toolbar",
+      plugins: [
+        "lists",
+        "link",
+        "image",
+        "table",
+        "code",
+        "wordcount",
+        "autolink",
+      ],
+      toolbar:
+        "undo redo | blocks | bold italic underline | " +
+        "alignleft aligncenter alignright alignjustify | " +
+        "bullist numlist | link image table | code",
+      content_style: `body { font-family: ${fontFamily}; font-size: ${fontSize}px; }`,
+    }}
+  />
+)}
+
+</div>
 
                 <div className="absolute right-4 bottom-4 flex items-center gap-2">
                   <span className="text-xs text-[#6B7280]">
@@ -374,7 +630,9 @@ export default function CreateArticlePage() {
 
         {/* Bottom Action Buttons */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] px-8 py-6 z-30">
-          <div className="max-w-5xl mx-auto flex items-center justify-center gap-20">
+          <div
+            className="max-w-5xl mx-auto flex items-center justify-center gap-20"
+          >
             <button
               onClick={() => router.push("/home")}
               className="px-8 py-3 bg-[#111827] hover:bg-[#1f2937] text-white rounded-full text-sm font-medium transition-colors"

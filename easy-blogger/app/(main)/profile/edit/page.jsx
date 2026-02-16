@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   Camera,
   Lock,
@@ -19,12 +18,8 @@ import {
  * Features: Profile photo upload, bio editing, email settings, password change, account deletion
  */
 
-import { useSubscription } from "../../../subscription/SubscriptionContext";
-
 export default function EditProfilePage() {
   const router = useRouter();
-  // Use global subscription context
-  const { isPremium, togglePremium } = useSubscription();
   const [displayName, setDisplayName] = useState("Emma Richardson");
   const [username, setUsername] = useState("Emma Richardson");
   const [email, setEmail] = useState("emma.richardson@example.com");
@@ -119,14 +114,6 @@ export default function EditProfilePage() {
           Edit Profile
         </h1>
         <div className="flex items-center gap-3">
-          {/* Dev Toggle for testing */}
-          <button
-            onClick={togglePremium}
-            className="px-3 py-1 text-xs bg-gray-200 rounded mr-2 hover:bg-gray-300 transition-colors"
-          >
-            Toggle Premium ({isPremium ? "ON" : "OFF"})
-          </button>
-
           <button
             onClick={() => router.push("/profile")}
             className="px-6 py-2.5 bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] text-[#374151] rounded-full text-sm font-medium transition-colors"
@@ -149,11 +136,7 @@ export default function EditProfilePage() {
           {/* Profile Photo */}
           <div className="shrink-0">
             <div className="relative">
-              <div
-                className={`w-32 h-32 rounded-full overflow-hidden bg-[#F3F4F6] border-4 shadow-lg ${
-                  isPremium ? "border-[#F59E0B]" : "border-white"
-                }`}
-              >
+              <div className="w-32 h-32 rounded-full overflow-hidden bg-[#F3F4F6] border-4 border-white shadow-lg">
                 <img
                   src={profilePhoto}
                   alt="Profile"
@@ -173,33 +156,6 @@ export default function EditProfilePage() {
                 onChange={handlePhotoUpload}
                 className="hidden"
               />
-
-              {/* Verified Badge for Premium - Fixed overlap */}
-              {isPremium && (
-                <div className="absolute top-0 right-0 drop-shadow-md">
-                  <svg
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M22.5 12.5L20.1 15.3L20.4 19L16.8 19.8L14.9 23L11.5 21.6L8.1 23L6.2 19.8L2.6 19L2.9 15.3L0.5 12.5L2.9 9.7L2.6 6L6.2 5.2L8.1 2L11.5 3.4L14.9 2L16.8 5.2L20.4 6L20.1 9.7L22.5 12.5Z"
-                      fill="#1ABC9C"
-                      stroke="white"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M7 12L10 15L16 9"
-                      stroke="white"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              )}
             </div>
           </div>
 
@@ -207,7 +163,7 @@ export default function EditProfilePage() {
           <div className="flex-1 space-y-6">
             {/* Display Name */}
             <div>
-              <label className="text-sm font-semibold text-[#374151] mb-2 flex items-center gap-2">
+              <label className="block text-sm font-semibold text-[#374151] mb-2">
                 Display Name
               </label>
               <input
@@ -227,6 +183,19 @@ export default function EditProfilePage() {
               <input
                 type="text"
                 value={username}
+                readOnly
+                className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB] cursor-not-allowed"
+              />
+            </div>
+
+            {/* Email (Read-only) */}
+            <div>
+              <label className="block text-sm font-semibold text-[#374151] mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
                 readOnly
                 className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB] cursor-not-allowed"
               />
@@ -253,69 +222,31 @@ export default function EditProfilePage() {
         </div>
       </div>
 
-      {/* Subscription Card - Conditional */}
-      {isPremium ? (
-        /* Premium Member Card */
-        <div className="bg-white rounded-xl border border-[#1ABC9C] p-6 mb-6 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-[#1ABC9C] to-transparent opacity-10 rounded-bl-full pointer-events-none"></div>
-
-          <div className="flex items-center justify-between relative z-10">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-[#F59E0B] rounded-full flex items-center justify-center shadow-lg">
-                <Crown className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h3
-                    className="text-lg font-bold text-[#111827]"
-                    style={{ fontFamily: "Georgia, serif" }}
-                  >
-                    You are a Premium Member
-                  </h3>
-                  <span className="px-2 py-0.5 bg-[#FEF3C7] text-[#D97706] text-[10px] font-bold uppercase tracking-wider rounded-full">
-                    PREMIUM
-                  </span>
-                </div>
-                <p className="text-sm text-[#6B7280]">
-                  Your subscription renews on Jan 22, 2026
-                </p>
-              </div>
+      {/* Premium Upgrade Card */}
+      <div className="bg-linear-to-r from-[#EFF6FF] to-[#DBEAFE] rounded-xl border border-[#BFDBFE] p-6 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-linear-to-br from-[#FBBF24] to-[#F59E0B] rounded-full flex items-center justify-center shadow-lg">
+              <Crown className="w-6 h-6 text-white" />
             </div>
-            <Link
-              href="/subscription/manage"
-              className="px-6 py-2.5 bg-[#111827] hover:bg-[#374151] text-white rounded-full text-sm font-medium transition-colors whitespace-nowrap ml-4"
-            >
-              Manage Subscription
-            </Link>
-          </div>
-        </div>
-      ) : (
-        /* Free Tier Upgrade Card */
-        <div className="bg-linear-to-r from-[#EFF6FF] to-[#DBEAFE] rounded-xl border border-[#BFDBFE] p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-linear-to-br from-[#FBBF24] to-[#F59E0B] rounded-full flex items-center justify-center shadow-lg">
-                <Crown className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-[#111827] mb-1">
-                  Upgrade to Premium
-                </h3>
-                <p className="text-sm text-[#6B7280]">
-                  Get unlimited stories, advanced analytics, exclusive AI
-                  writing tools, and expert support starting today.
-                </p>
-              </div>
+            <div>
+              <h3 className="text-lg font-bold text-[#111827] mb-1">
+                Upgrade to Premium
+              </h3>
+              <p className="text-sm text-[#6B7280]">
+                Get unlimited stories, advanced analytics, exclusive AI writing
+                tools, and expert support starting today.
+              </p>
             </div>
-            <button
-              onClick={() => router.push("/subscription/upgrade")}
-              className="px-6 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors whitespace-nowrap ml-4"
-            >
-              Upgrade Now
-            </button>
           </div>
+          <button
+            onClick={() => router.push("/subscription/upgrade")}
+            className="px-6 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors whitespace-nowrap ml-4"
+          >
+            Upgrade Now
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Account Settings Card */}
       <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 mb-6">
@@ -454,51 +385,53 @@ export default function EditProfilePage() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* LinkedIn Integration */}
-        <div className="pt-6 mt-6 border-t border-[#E5E7EB]">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 bg-[#EFF6FF] rounded-lg flex items-center justify-center">
-              <Linkedin className="w-5 h-5 text-[#0077B5]" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-[#111827] mb-1">
-                LinkedIn Integration
-              </h3>
-              <p className="text-sm text-[#6B7280]">
-                Connect your LinkedIn account to easily share your blog articles
-              </p>
-            </div>
+      {/* LinkedIn Connection */}
+      <div>
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 bg-[#F3F4F6] rounded-lg flex items-center justify-center">
+            <Linkedin className="w-5 h-5 text-[#6B7280]" />
           </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-[#111827] mb-1">
+              LinkedIn Integration
+            </h3>
+            <p className="text-sm text-[#6B7280] mb-4">
+              Connect your LinkedIn account to easily share your blog articles
+            </p>
 
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#0077B5] rounded-lg flex items-center justify-center">
-                <Linkedin className="w-6 h-6 text-white" />
+            {linkedInConnected ? (
+              <div className="flex items-center justify-between p-4 border border-[#E5E7EB] rounded-lg bg-[#F9FAFB]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#0A66C2] rounded-lg flex items-center justify-center">
+                    <Linkedin className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-[#111827]">
+                      LinkedIn Connected
+                    </p>
+                    <p className="text-sm text-[#6B7280]">
+                      Share articles directly to your LinkedIn profile
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setLinkedInConnected(false)}
+                  className="px-4 py-2 text-[#DC2626] hover:bg-[#FEF2F2] rounded-lg text-sm font-medium transition-colors"
+                >
+                  Disconnect
+                </button>
               </div>
-              <div>
-                <p className="font-medium text-[#111827]">
-                  {linkedInConnected
-                    ? "LinkedIn Connected"
-                    : "LinkedIn Disconnected"}
-                </p>
-                <p className="text-sm text-[#6B7280]">
-                  {linkedInConnected
-                    ? "Share articles directly to your LinkedIn profile"
-                    : "Connect to share articles"}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setLinkedInConnected(!linkedInConnected)}
-              className={`text-sm font-medium transition-colors ${
-                linkedInConnected
-                  ? "text-red-500 hover:text-red-600"
-                  : "text-[#0077B5] hover:text-[#006097]"
-              }`}
-            >
-              {linkedInConnected ? "Disconnect" : "Connect"}
-            </button>
+            ) : (
+              <button
+                onClick={() => setLinkedInConnected(true)}
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#0A66C2] hover:bg-[#004182] text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                <Linkedin className="w-4 h-4" />
+                Connect LinkedIn
+              </button>
+            )}
           </div>
         </div>
       </div>
