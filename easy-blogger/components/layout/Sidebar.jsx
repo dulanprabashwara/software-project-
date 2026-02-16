@@ -4,11 +4,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { useSubscription } from "../../app/subscription/SubscriptionContext";
-
 export default function Sidebar({ isOpen = true, onOpenEngagement }) {
   const pathname = usePathname();
-  const { isPremium } = useSubscription();
 
   const navItems = [
     { icon: "home", label: "Home", href: "/home" },
@@ -16,54 +13,19 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
     { icon: "profile", label: "Profile", href: "/profile" },
     { icon: "stories", label: "Stories", href: "/stories" },
     { icon: "stats", label: "Stats", href: "/stats" },
-    {
-      icon: "ai",
-      label: "AI Generate",
-      href: isPremium ? "/ai-generate" : "/subscription/upgrade",
-      activePath: "/ai-generate",
-    },
-  ];
-
-  const bottomNavItems = [
+    { icon: "ai", label: "AI Generate", href: "/ai-generate" },
     {
       icon: "following",
       label: "Following",
       href: "/profile/user_stats?tab=following",
     },
-    {
-      icon: "membership",
-      label: "Membership",
-      href: isPremium ? "/subscription/manage" : "/subscription/upgrade",
-    },
+    { icon: "membership", label: "Membership", href: "/subscription/upgrade" },
   ];
 
-  const isActive = (href, activePath) => {
-    // If activePath is explicitly provided, strictly check against that path
-    if (activePath) {
-      return pathname.startsWith(activePath);
-    }
-
+  const isActive = (href) => {
     if (href === "/home") {
       return pathname === "/home";
     }
-
-    // Special handling for Profile to verify it's the user's own profile
-    if (href === "/profile") {
-      // Exact match
-      if (pathname === "/profile") return true;
-
-      // Known own-profile sub-routes
-      const ownProfileRoutes = [
-        "/profile/edit",
-        "/profile/user_stats",
-        "/profile/normal",
-        "/profile/premium",
-      ];
-
-      // If it starts with any of these, it's the user's own profile section
-      return ownProfileRoutes.some((route) => pathname.startsWith(route));
-    }
-
     return pathname.startsWith(href);
   };
 
@@ -216,25 +178,7 @@ export default function Sidebar({ isOpen = true, onOpenEngagement }) {
               <Link
                 href={item.href}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
-                  isActive(item.href, item.activePath)
-                    ? "bg-[#E8F8F5] text-[#1ABC9C]"
-                    : "text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]"
-                }`}
-              >
-                {getIcon(item.icon)}
-                <span>{item.label}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        <ul className="space-y-1 mt-1">
-          {bottomNavItems.map((item) => (
-            <li key={item.label}>
-              <Link
-                href={item.href}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
-                  isActive(item.href, item.activePath)
+                  isActive(item.href)
                     ? "bg-[#E8F8F5] text-[#1ABC9C]"
                     : "text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]"
                 }`}
