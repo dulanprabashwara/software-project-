@@ -9,6 +9,13 @@ export default function Page() {
                     <h1 className="text-4xl font-serif font-bold text-[#111827] mb-6">
                         Unpublished Articles
                     </h1>
+                    <p className="text-[#6B7280] text-base">
+                        You can edit your unpublished articles here.
+                    </p>
+                    <div className="mt-8 border-t border-black/20" /> {/* Top divider */}
+                    <div className="py-16" />{/* Content placeholder */}
+                    <div className="border-t border-black/20" /> {/* Bottom divider (above buttons area) */}
+
                 </div>
 
             </div>
