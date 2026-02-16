@@ -141,7 +141,7 @@
   align-items: flex-end;
   gap: 8px;
   flex: 1;
-  margin-left:6px;
+  margin-left:2px;
   margin-top: 10px;
   
 }
@@ -254,7 +254,14 @@
   stroke: #1abc9c;
   stroke-width: 2;
   margin-top: 15px;
-  margin-right: 20px;
+  margin-right: 8px;
+}
+
+.three-dots-icon {
+  width: 16px;
+  height: 16px;
+  margin-top: 15px;
+  margin-right: 10px;
 }
 
 /* User input section */
