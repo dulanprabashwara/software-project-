@@ -47,7 +47,6 @@ export default function ChooseMethodPage() {
             </div>
 
             {/* Divider */}
-            <div className="w-full h-px bg-linear-to-r from-transparent via-[#E5E7EB] to-transparent mb-6"></div>
 
             {/* Subtitle */}
             <p className="text-[#6B7280] text-base">
