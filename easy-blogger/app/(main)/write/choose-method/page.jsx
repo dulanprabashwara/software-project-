@@ -47,7 +47,6 @@ export default function ChooseMethodPage() {
             </div>
 
             {/* Divider */}
-            <div className="w-full h-px bg-linear-to-r from-transparent via-[#E5E7EB] to-transparent mb-6"></div>
 
             {/* Subtitle */}
             <p className="text-[#6B7280] text-base">
@@ -64,7 +63,7 @@ export default function ChooseMethodPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Create New Article Card */}
             <button
-              onClick={() => router.push("/write/create")}
+              onClick={() => router.push("/write/select-method")}
               className="group relative bg-linear-to-br from-[#D4F1E8] to-[#B8E8D8] hover:from-[#1ABC9C] hover:to-[#16A085] rounded-2xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
             >
               <div className="flex flex-col items-center gap-4">
