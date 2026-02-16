@@ -583,12 +583,17 @@ export default function AIArticleGeneratorPage() {
         </div>
 
         <div className="mb-8">
-          <h3 className="insights-section-title">TOP AI Assisted Articles</h3>
+          <h3 className="insights-section-title">Top AI Assisted Articles</h3>
           <div className="space-y-3">
             {topAIArticles.map((article, index) => (
               <div key={index} className="insights-article-section">
-                <h4 className="insights-article-name">{article.title}</h4>
-                <p className="insights-author-name">{article.authors} </p>
+                <div className="insights-article-header">
+                  <span className="insights-article-number">{index + 1}</span> 
+                  <h4 className="insights-article-name">{article.title}</h4>
+                </div>
+                <div className="insights-author-section">
+                  <p className="insights-author-name">{article.authors} </p>
+                </div>
               </div>
             ))}
           </div>

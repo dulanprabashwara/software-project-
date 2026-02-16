@@ -443,6 +443,13 @@
   margin-bottom: 24px;
 }
 
+.insights-article-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
 .insights-dots {
   display: flex;
   gap: 4px;
@@ -480,7 +487,7 @@
 }
 
 .insights-article-section {
-  margin-left: 13px;
+  margin-left: 10px;
   margin-bottom: 16px;
 }
 
@@ -493,12 +500,30 @@
   margin-bottom: 4px;
 }
 
+.insights-author-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.insights-article-number {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 24px;
+  color: #E8E8E8;
+  font-weight: 400;
+  
+}
+
 .insights-author-name {
   font-family: "Segoe UI", system-ui, sans-serif;
   font-weight: 400;
   font-size: 15.01px;
   color: #666666;
   text-align: left;
+  margin-left: 26px;
+  margin-top: -10px;
+  flex: 1;
 }
 
 .trending-topics-buttons {
