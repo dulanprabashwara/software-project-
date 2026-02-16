@@ -135,6 +135,20 @@ export default function Page() {
             </button>
           </div>
           <div className="mt-10 border-t border-black/20" />
+          <div className="mt-8 flex items-center justify-between px-6">
+            <button className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
+                Edit as New
+            </button>
+
+            <button className="rounded-full bg-[#10B981] px-14 py-4 text-white font-medium shadow-lg hover:bg-[#0EA371]">
+                Back
+            </button>
+
+            <button className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
+                Edit Existing
+            </button>
+         </div>
+
 
         </div>
       </div>

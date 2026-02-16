@@ -125,6 +125,18 @@ body {
   animation-fill-mode: forwards;
 }
 
+/* Global Button Hover Effect */
+button {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+
 /* See More Button Style */
 .see-more-btn {
   padding: 1rem 3.5rem;
