@@ -125,7 +125,17 @@ export default function Page() {
             })}
           </div>
 
+          <div className="mt-12 border-t border-black/10" />
+          <div className="mt-10 flex justify-center">
+            <button 
+              type="button"
+              className="see-more-btn"
+            >
+                See more
+            </button>
+          </div>
           <div className="mt-10 border-t border-black/20" />
+
         </div>
       </div>
     </div>
