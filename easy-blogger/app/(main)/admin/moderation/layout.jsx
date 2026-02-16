@@ -3,30 +3,42 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 export default function ModerationLayout({ children }) {
-  const pathname = usePathname(); // "Is the user on /queue or /offers?"
+  const pathname = usePathname();
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Moderation Dashboard</h1>
+    <div className="p-8 max-w-7xl mx-auto h-screen flex flex-col">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-[#111827]" style={{ fontFamily: "Georgia, serif" }}>
+          Moderation
+        </h1>
+      </div>
 
-      {/* --- THE MODE SWITCHER (Tabs) --- */}
-      <div className="tabs tabs-boxed mb-8 bg-base-200 w-fit">
+      {/* --- TOGGLE SWITCHER --- */}
+      <div className="bg-gray-200 p-1 rounded-full w-fit flex mb-6 mx-auto md:mx-0">
         <Link 
           href="/admin/moderation/queue" 
-          className={`tab ${pathname.includes('queue') ? 'tab-active' : ''}`}
+          className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+            pathname.includes('queue') 
+            ? 'bg-white text-[#1ABC9C] shadow-sm' 
+            : 'text-[#6B7280] hover:text-[#111827]'
+          }`}
         >
-          Moderation Queue
+          Queue
         </Link>
         <Link 
           href="/admin/moderation/offers" 
-          className={`tab ${pathname.includes('offers') ? 'tab-active' : ''}`}
+          className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+            pathname.includes('offers') 
+            ? 'bg-white text-[#1ABC9C] shadow-sm' 
+            : 'text-[#6B7280] hover:text-[#111827]'
+          }`}
         >
-          Manage Offers
+          Offers
         </Link>
       </div>
 
-      {/* --- THE PAGE CONTENT LOADS HERE --- */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
+      {/* --- CONTENT --- */}
+      <div className="flex-1 min-h-0">
         {children}
       </div>
     </div>
