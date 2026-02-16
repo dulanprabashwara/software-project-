@@ -5,12 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HelpCircle, Sparkles, MessageCircle } from "lucide-react";
 
-import { useSubscription } from "../../app/subscription/SubscriptionContext";
-
 // Top navigation header component for the app layout
 export default function Header({ onToggleSidebar }) {
   const router = useRouter();
-  const { isPremium } = useSubscription();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef(null);
@@ -161,11 +158,7 @@ export default function Header({ onToggleSidebar }) {
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-colors duration-150 relative ${
-                isPremium
-                  ? "border-[#F59E0B]"
-                  : "border-[#E5E7EB] hover:border-[#1ABC9C]"
-              }`}
+              className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#E5E7EB] hover:border-[#1ABC9C] transition-colors duration-150"
             >
               <img
                 src={user.avatar}
@@ -174,74 +167,19 @@ export default function Header({ onToggleSidebar }) {
               />
             </button>
 
-            {/* Badge overlay on avatar */}
-            {isPremium && (
-              <div className="absolute -bottom-1 -right-1 drop-shadow-md z-10">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M22.5 12.5L20.1 15.3L20.4 19L16.8 19.8L14.9 23L11.5 21.6L8.1 23L6.2 19.8L2.6 19L2.9 15.3L0.5 12.5L2.9 9.7L2.6 6L6.2 5.2L8.1 2L11.5 3.4L14.9 2L16.8 5.2L20.4 6L20.1 9.7L22.5 12.5Z"
-                    fill="#1ABC9C"
-                    stroke="white"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M7 12L10 15L16 9"
-                    stroke="white"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            )}
-
             {/* Profile Dropdown Menu */}
             {mounted && showProfileMenu && (
               <div className="absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-lg border border-[#E5E7EB] overflow-hidden z-50">
                 {/* User Profile Section */}
                 <div className="p-4 border-b border-[#E5E7EB]">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-[#6B7280] flex items-center justify-center text-white text-lg font-semibold relative">
-                      {isPremium ? (
-                        <div className="absolute inset-0 rounded-full border-2 border-[#F59E0B]"></div>
-                      ) : null}
+                    <div className="w-12 h-12 rounded-full bg-[#6B7280] flex items-center justify-center text-white text-lg font-semibold">
                       {user.initials}
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-1">
-                        <p className="font-medium text-[#111827] text-sm">
-                          {user.name}
-                        </p>
-                        {isPremium && (
-                          <span className="text-[#1ABC9C]">
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M22.5 12.5L20.1 15.3L20.4 19L16.8 19.8L14.9 23L11.5 21.6L8.1 23L6.2 19.8L2.6 19L2.9 15.3L0.5 12.5L2.9 9.7L2.6 6L6.2 5.2L8.1 2L11.5 3.4L14.9 2L16.8 5.2L20.4 6L20.1 9.7L22.5 12.5Z"
-                                fill="#1ABC9C"
-                              />
-                              <path
-                                d="M7 12L10 15L16 9"
-                                stroke="white"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </span>
-                        )}
-                      </div>
+                      <p className="font-medium text-[#111827] text-sm">
+                        {user.name}
+                      </p>
                       <Link
                         href="/profile"
                         className="text-xs text-[#6B7280] hover:text-[#111827] transition-colors"
@@ -269,27 +207,16 @@ export default function Header({ onToggleSidebar }) {
                   </Link>
                 </div>
 
-                {/* Become a Premium Member / Manage Subscription */}
+                {/* Become a Premium Member */}
                 <div className="border-t border-[#E5E7EB] py-3 px-4">
-                  {isPremium ? (
-                    <Link
-                      href="/subscription/manage"
-                      onClick={() => setShowProfileMenu(false)}
-                      className="flex items-center gap-2 text-sm text-[#6B7280] hover:text-[#111827] transition-colors"
-                    >
-                      <span>Manage Subscription</span>
-                      <Sparkles className="w-4 h-4 text-[#FBBF24]" />
-                    </Link>
-                  ) : (
-                    <Link
-                      href="/subscription/upgrade"
-                      onClick={() => setShowProfileMenu(false)}
-                      className="flex items-center gap-2 text-sm text-[#6B7280] hover:text-[#111827] transition-colors"
-                    >
-                      <span>Become a Premium member</span>
-                      <Sparkles className="w-4 h-4 text-[#FBBF24]" />
-                    </Link>
-                  )}
+                  <Link
+                    href="/subscription/upgrade"
+                    onClick={() => setShowProfileMenu(false)}
+                    className="flex items-center gap-2 text-sm text-[#6B7280] hover:text-[#111827] transition-colors"
+                  >
+                    <span>Become a Premium member</span>
+                    <Sparkles className="w-4 h-4 text-[#FBBF24]" />
+                  </Link>
                 </div>
 
                 {/* Sign Out Section */}
