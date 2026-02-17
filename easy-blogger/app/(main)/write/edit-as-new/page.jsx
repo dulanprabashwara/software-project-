@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Image as ImageIcon, X } from "lucide-react";
 import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
 
@@ -15,8 +16,11 @@ export default function Page() {
   const [articleMode, setArticleMode] = useState("draft");
   const [zoom, setZoom] = useState(100);
   const [title, setTitle] = useState("");
+  const [mounted, setMounted] = useState(false);
+
 
   const router = useRouter();
+  const fileInputRef = useRef(null);
   const toggleSidebar = () => setSidebarOpen((p) => !p);
 
   // Auto-save functionality
@@ -52,6 +56,43 @@ export default function Page() {
     const seed = JSON.parse(seedRaw);
     setTitle(seed.title || "");
   }, [router]);
+
+  // Load draft on mount
+  useEffect(() => {
+    const draft = localStorage.getItem("draft_edit_as_new");
+    if (draft) {
+      const parsed = JSON.parse(draft);
+      setContent(parsed.content || "");
+      setCoverImage(parsed.coverImage || null);
+    }
+  }, []);
+
+  //Add “mounted” state (fix refresh hydration)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size must be less than 5MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCoverImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setCoverImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -101,29 +142,88 @@ export default function Page() {
           className="px-8 py-8 overflow-y-auto"
           style={{ height: "calc(100vh - 260px)" }}
         >
+        <div
+          className="max-w-5xl mx-auto space-y-6"
+          style={{
+            transform: `scale(${zoom / 100})`,
+            transformOrigin: "top center",
+          }}
+        >
+        {/* Blog Title */}
+        <div className="bg-[#F8FAFC] rounded-lg p-6">
+          <label className="block text-sm font-semibold text-[#111827] mb-3">
+            Blog Title
+          </label>
+          <input
+            type="text"
+            value={title}
+            readOnly
+            className="w-full px-4 py-3 bg-gray-100 border border-[#E5E7EB] rounded-lg text-[#111827] cursor-not-allowed"
+          />
+        </div>
+
+        {/* Add Cover Image NOW VISIBLE */}
+        <div className="bg-[#F8FAFC] rounded-lg p-6">
+        <label className="block text-sm font-semibold text-[#111827] mb-3">
+            Add Cover Image
+        </label>
+
+        {!coverImage ? (
           <div
-            className="max-w-5xl mx-auto space-y-6"
-            style={{
-              transform: `scale(${zoom / 100})`,
-              transformOrigin: "top center",
-            }}
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith("image/")) {
+              const fakeEvent = { target: { files: [file] } };
+              handleImageUpload(fakeEvent);
+            }
+          }}
+          className="border-2 border-dashed border-[#E5E7EB] rounded-lg p-12 text-center cursor-pointer hover:border-[#1ABC9C] transition-colors bg-white"
           >
-            {/* Blog Title */}
-            <div className="bg-[#F8FAFC] rounded-lg p-6">
-              <label className="block text-sm font-semibold text-[#111827] mb-3">
-                Blog Title
-              </label>
-              <input
-                type="text"
-                value={title}
-                readOnly
-                className="w-full px-4 py-3 bg-gray-100 border border-[#E5E7EB] rounded-lg text-[#111827] cursor-not-allowed"
-              />
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-16 h-16 rounded-full bg-[#F8FAFC] flex items-center justify-center">
+              <ImageIcon className="w-8 h-8 text-[#6B7280]" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[#111827] mb-1">
+                Click to upload or drag and drop
+              </p>
+              <p className="text-xs text-[#6B7280]">
+                PNG, JPG, GIF or WEBP (Max 5 MB)
+              </p>
             </div>
           </div>
         </div>
+        ) : (
+        <div className="relative border-2 border-[#E5E7EB] rounded-lg overflow-hidden bg-white">
+          <img
+            src={coverImage}
+            alt="Cover"
+            className="w-full h-64 object-cover"
+          />
+          <button
+            onClick={handleRemoveImage}
+            className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-[#F8FAFC] transition-colors"
+          >
+            <X className="w-5 h-5 text-[#DC2626]" />
+          </button>
+        </div>
+        )}
 
-        <div className="p-8">Title seed: {title}</div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/gif,image/webp"
+          onChange={handleImageUpload}
+          className="hidden"
+        />
+
+        {!coverImage && <p className="text-xs text-[#DC2626] mt-2">*Required</p>}
+        </div>
+        </div>
+        </div>
       </main>
     </div>
   );
