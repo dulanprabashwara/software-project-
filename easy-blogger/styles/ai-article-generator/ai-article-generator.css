@@ -497,7 +497,12 @@
   font-size: 14px;
   color: #000000;
   text-align: left;
-  margin-bottom: 4px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.insights-article-name:hover {
+  color: #1ABC9C;
 }
 
 .insights-author-section {
