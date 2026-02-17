@@ -6,12 +6,42 @@ import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
 
 export default function Page() {
-  const router = useRouter();
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const toggleSidebar = () => setSidebarOpen((p) => !p);
+  const [content, setContent] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
+  const [coverImage, setCoverImage] = useState(null);
   const [articleMode, setArticleMode] = useState("draft");
   const [zoom, setZoom] = useState(100);
   const [title, setTitle] = useState("");
+
+  const router = useRouter();
+  const toggleSidebar = () => setSidebarOpen((p) => !p);
+
+  // Auto-save functionality
+  useEffect(() => {
+    const saveTimer = setTimeout(() => {
+      if (coverImage || content) {
+        setIsSaving(true);
+        setTimeout(() => {
+          setIsSaving(false);
+          setLastSaved(new Date());
+
+          localStorage.setItem(
+            "draft_edit_as_new",
+            JSON.stringify({
+              content,
+              coverImage,
+              lastSaved: new Date().toISOString(),
+            }),
+          );
+        }, 500);
+      }
+    }, 2000);
+
+    return () => clearTimeout(saveTimer);
+  }, [content, coverImage]);
 
   useEffect(() => {
     const seedRaw = sessionStorage.getItem("edit_as_new_seed");
@@ -39,7 +69,13 @@ export default function Page() {
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-3 items-center">
               <div className="text-sm text-[#6B7280] justify-self-start">
-                Saved / Saving...
+                {isSaving
+                  ? "Saving..."
+                  : lastSaved
+                    ? `Saved at ${lastSaved.toLocaleTimeString()}`
+                    : "Saved / Saving..."
+                }
+
               </div>
               
               <div className="text-center">
