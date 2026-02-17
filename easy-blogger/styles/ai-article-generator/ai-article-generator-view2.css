@@ -58,8 +58,8 @@
 
 /* Selected keywords section */
 .selected-keywords-section {
-  margin-bottom: 20px;
-  margin-left: 87px;
+  margin-bottom: 30px;
+  margin-left: 107px;
   width:90%;
 }
 
@@ -126,7 +126,7 @@
   align-items: center;
   gap: 20px;
   margin-bottom: 20px;
-  margin-left: 87px;
+  margin-left: 107px;
  
   width:100%;
 }
@@ -251,8 +251,8 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 20px;
-  margin-left: 87px;
-  margin-top: 10px;
+  margin-left: 107px;
+  margin-top: 40px;
   width:100%;
 }
 
@@ -325,13 +325,14 @@
  
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-left: 87px;
+  gap: 8px;
+  margin-left: 107px;
+  margin-top: 30px;
   
 }
 
 .generate-button {
-  height: 56px;
+  height: 48px;
   width: 90%;
   border-radius: 8px;
   background-color: #1ABC9C;
