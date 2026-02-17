@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { HelpCircle, Sparkles, MessageCircle } from "lucide-react";
 
 import { useSubscription } from "../../app/subscription/SubscriptionContext";
@@ -10,6 +10,7 @@ import { useSubscription } from "../../app/subscription/SubscriptionContext";
 // Top navigation header component for the app layout
 export default function Header({ onToggleSidebar }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isPremium } = useSubscription();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -264,8 +265,14 @@ export default function Header({ onToggleSidebar }) {
                     className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[#F9FAFB] transition-colors text-left"
                     onClick={() => setShowProfileMenu(false)}
                   >
-                    <MessageCircle className="w-5 h-5 text-[#6B7280]" />
-                    <span className="text-sm text-[#6B7280]">Messages</span>
+                    <MessageCircle
+                      className={`w-5 h-5 ${pathname === "/chat" ? "text-[#1ABC9C]" : "text-[#6B7280]"}`}
+                    />
+                    <span
+                      className={`text-sm ${pathname === "/chat" ? "font-bold text-[#1ABC9C]" : "text-[#6B7280]"}`}
+                    >
+                      Messages
+                    </span>
                   </Link>
                 </div>
 
