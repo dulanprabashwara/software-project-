@@ -449,6 +449,34 @@
   width: 97%;
 }
 
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-left: -295px;
+  margin-right: 130px;
+margin-top:-20px;
+}
+
+.back-button:hover {
+  opacity: 0.8;
+  background-color: rgba(26, 188, 156, 0.1);
+}
+
+.back-text {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  color: #1ABC9C;
+  text-transform: lowercase;
+}
+
 .result-container {
   display: flex;
   align-items: flex-start;
