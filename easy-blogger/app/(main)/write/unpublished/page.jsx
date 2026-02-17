@@ -12,6 +12,7 @@ const ARTICLES = [
     desc:
       "Explore the latest developments in artificial intelligence and how they are revolutionizing the way we create, curate, and consume content across digital platforms.",
     image: "/images/Unpublished_IMG/robot.jpg",
+    profileImage: "/images/Unpublished_IMG/profile.jpg",
   },
   {
     id: "a2",
@@ -21,6 +22,7 @@ const ARTICLES = [
     desc:
       "Learn the essential principles, patterns, and best practices for creating web applications that can handle millions of users while maintaining performance and reliability.",
     image: "/images/Unpublished_IMG/code.jpg",
+    profileImage: "/images/Unpublished_IMG/profile.jpg",
   },
 ];
 
@@ -115,7 +117,12 @@ export default function Page() {
                         {/* text */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 text-sm text-[#6B7280]">
-                            <div className="h-8 w-8 rounded-full bg-black/10" />
+                            <img
+                            src={a.profileImage}
+                            alt={a.author}
+                            className="h-8 w-8 rounded-full object-cover border border-black/10"
+                            />
+
                             <span className="font-medium">{a.author}</span>
                             <span className="opacity-60">·</span>
                             <span>{a.date}</span>
@@ -179,7 +186,7 @@ export default function Page() {
             </button>
             
           </div>
-          
+
             <button
               onClick={() => router.push("/write/choose-method")}
               className="rounded-full bg-[#10B981] px-14 py-4 text-white font-medium shadow-lg hover:bg-[#0EA371]">
