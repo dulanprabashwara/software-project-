@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const ARTICLES = [
   {
@@ -10,7 +11,8 @@ const ARTICLES = [
     title: "How AI is Transforming Content Creation in 2025",
     desc:
       "Explore the latest developments in artificial intelligence and how they are revolutionizing the way we create, curate, and consume content across digital platforms.",
-    image: "/images/robot.jpg",
+    image: "/images/Unpublished_IMG/robot.jpg",
+    profileImage: "/images/Unpublished_IMG/profile.jpg",
   },
   {
     id: "a2",
@@ -19,19 +21,102 @@ const ARTICLES = [
     title: "The Complete Guide to Building Scalable Web Applications",
     desc:
       "Learn the essential principles, patterns, and best practices for creating web applications that can handle millions of users while maintaining performance and reliability.",
-    image: "/images/code.jpg",
+    image: "/images/Unpublished_IMG/code.jpg",
+    profileImage: "/images/Unpublished_IMG/profile.jpg",
+  },
+];
+
+const MORE_ARTICLES = [
+  {
+    id: "a3",
+    author: "Emma Richardson",
+    date: "Dec 2, 2025",
+    title: "UI/UX Principles for Modern Web Apps",
+    desc:
+      "A practical guide to spacing, typography, colors, and interaction patterns that make web apps feel clean and professional.",
+    image: "/images/Unpublished_IMG/uiux.jpg",
+    profileImage: "/images/Unpublished_IMG/profile.jpg",
+  },
+  {
+    id: "a4",
+    author: "Emma Richardson",
+    date: "Dec 1, 2025",
+    title: "Optimizing React Performance for Large Projects",
+    desc:
+      "Learn how to avoid unnecessary re-renders, use memoization effectively, and keep your React app fast as it grows.",
+    image: "/images/Unpublished_IMG/react.jpg",
+    profileImage: "/images/Unpublished_IMG/profile.jpg",
+  },
+  {
+    id: "a5",
+    author: "Emma Richardson",
+    date: "Nov 30, 2025",
+    title: "Best Practices for API Design in 2025",
+    desc:
+      "From REST conventions to pagination and error handling—build APIs that are easy to use and maintain.",
+    image: "/images/Unpublished_IMG/api.jpg",
+    profileImage: "/images/Unpublished_IMG/profile.jpg",
+  },
+  {
+    id: "a6",
+    author: "Emma Richardson",
+    date: "Nov 29, 2025",
+    title: "PostgreSQL Tips for Content Platforms",
+    desc:
+      "Indexes, full-text search, schema design, and query optimization ideas for article-based applications.",
+    image: "/images/Unpublished_IMG/postgres.jpg",
+    profileImage: "/images/Unpublished_IMG/profile.jpg",
   },
 ];
 
 export default function Page() {
   const [selectedId, setSelectedId] = useState(null); // none selected initially
+  const [errorMsg, setErrorMsg] = useState(""); //popup error message
+  const [errorTarget, setErrorTarget] = useState(null); 
+  const router = useRouter();  
+
+  const [visibleArticles, setVisibleArticles] = useState(ARTICLES);
+  const [loadedCount, setLoadedCount] = useState(0);
 
   const toggleSelect = (id) => {
     setSelectedId((prev) => (prev === id ? null : id));
   };
 
+  // show popup and auto-hide after 2.5s
+  const showError = (msg, target) => {
+    setErrorMsg(msg);
+    setErrorTarget(target);
+
+    setTimeout(() => {
+      setErrorMsg("");
+      setErrorTarget(null);
+    }, 2500);
+  };
+
+
+  const handleEditAsNew = () => {
+    if (!selectedId) return showError("Select an article before edit", "new");
+    router.push("/write/edit-as-new");
+  };
+
+  const handleEditExisting = () => {
+    if (!selectedId) return showError("Select an article before edit", "existing");
+    router.push("/write/edit-existing");
+  };
+
+  const PAGE_SIZE = 2;
+  const handleSeeMore = () => {
+    const next = MORE_ARTICLES.slice(loadedCount, loadedCount + PAGE_SIZE);
+    if (next.length === 0) return;
+    setVisibleArticles((prev) => [...prev, ...next]);
+    setLoadedCount((prev) => prev + next.length);
+  };
+
+  const hasMore = loadedCount < MORE_ARTICLES.length;
+
   return (
     <div className="min-h-screen bg-linear-to-br from-[#E8F5F1] via-[#F0F9FF] to-[#FDF4FF] flex items-center justify-center p-6">
+        
       <div className="w-full max-w-6xl">
         <div className="bg-white rounded-2xl shadow-2xl p-12">
           <div className="text-center mb-8">
@@ -47,7 +132,7 @@ export default function Page() {
 
             {/* Articles */}
           <div className="mt-10 space-y-10">
-            {ARTICLES.map((a, idx) => {
+            {visibleArticles.map((a, idx) => {
               const active = a.id === selectedId;
 
               return (
@@ -88,7 +173,12 @@ export default function Page() {
                         {/* text */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 text-sm text-[#6B7280]">
-                            <div className="h-8 w-8 rounded-full bg-black/10" />
+                            <img
+                            src={a.profileImage}
+                            alt={a.author}
+                            className="h-8 w-8 rounded-full object-cover border border-black/10"
+                            />
+
                             <span className="font-medium">{a.author}</span>
                             <span className="opacity-60">·</span>
                             <span>{a.date}</span>
@@ -117,7 +207,7 @@ export default function Page() {
                     </div>
                   </button>
 
-                  {idx !== ARTICLES.length - 1 ? (
+                  {idx !== visibleArticles.length - 1 ? (
                     <div className="mt-10 border-t border-black/10" />
                   ) : null}
                 </div>
@@ -126,30 +216,60 @@ export default function Page() {
           </div>
 
           <div className="mt-12 border-t border-black/10" />
-          <div className="mt-10 flex justify-center">
-            <button 
-              type="button"
-              className="see-more-btn"
+          {hasMore && (
+            <>
+            <div className="mt-10 flex justify-center">
+            <button
+            type="button"
+            className="see-more-btn"
+            onClick={handleSeeMore}
             >
-                See more
+              See more
             </button>
           </div>
+            </>
+          )}
+
           <div className="mt-10 border-t border-black/20" />
+
           <div className="mt-8 flex items-center justify-between px-6">
-            <button className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
+
+          {/* Edit as New */}
+          <div className="flex flex-col items-center">
+            {errorMsg && errorTarget === "new" && (
+              <div className="mb-3 bg-red-100 text-red-700 px-4 py-2 rounded-lg shadow-md">
+                {errorMsg}
+              </div>
+            )}
+            <button
+              onClick={handleEditAsNew}
+              className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
                 Edit as New
             </button>
+            
+          </div>
 
-            <button className="rounded-full bg-[#10B981] px-14 py-4 text-white font-medium shadow-lg hover:bg-[#0EA371]">
+            <button
+              onClick={() => router.push("/write/choose-method")}
+              className="rounded-full bg-[#10B981] px-14 py-4 text-white font-medium shadow-lg hover:bg-[#0EA371]">
                 Back
             </button>
 
-            <button className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
-                Edit Existing
-            </button>
+            {/* Edit Existing */}
+            <div className="flex flex-col items-center">
+              {errorMsg && errorTarget === "existing" && (
+              <div className="mb-3 bg-red-100 text-red-700 px-4 py-2 rounded-lg shadow-md">
+                {errorMsg}
+              </div>
+              )}
+              <button
+                onClick={handleEditExisting}
+                className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
+                  Edit Existing
+              </button>
+            
+            </div>
          </div>
-
-
         </div>
       </div>
     </div>
