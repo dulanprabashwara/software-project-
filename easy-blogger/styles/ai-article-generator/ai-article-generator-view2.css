@@ -7,14 +7,47 @@
 .ai-generator-main {
   width: 950px;
   max-width: 100%;
-  height: 930px;
+  height: 100vh;
   min-height: 100vh;
   background-color: #FAFAFA;
   margin: 0 auto;
   padding: 0 16px;
   display: flex;
   flex-direction: column;
+ }/* position: relative;
+  overflow-y: scroll !important;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+  scrollbar-gutter: stable;
 }
+
+/* Custom scrollbar styling for AI generator */
+/*.ai-generator-main::-webkit-scrollbar {
+  width: 8px;
+  appearance: auto;
+}
+
+.ai-generator-main::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.ai-generator-main::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+  border: 1px solid #a1a1a1;
+  min-height: 20px;
+}
+
+.ai-generator-main::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.ai-generator-main::-webkit-scrollbar-thumb:active {
+  background: #1ABC9C;
+}*/
+
+/* Firefox scrollbar styling - already included above */
 
 /* Title section styles - same as View 1 */
 .ai-generator-title {
@@ -58,8 +91,8 @@
 
 /* Selected keywords section */
 .selected-keywords-section {
-  margin-bottom: 20px;
-  margin-left: 87px;
+  margin-bottom: 30px;
+  margin-left: 107px;
   width:90%;
 }
 
@@ -126,7 +159,7 @@
   align-items: center;
   gap: 20px;
   margin-bottom: 20px;
-  margin-left: 87px;
+  margin-left: 107px;
  
   width:100%;
 }
@@ -136,7 +169,7 @@
   font-size: 16px;
   font-weight: 400;
   color: #000000;
-  margin-right: 170px;
+  margin-right: 100px;
 }
 
 .article-length-dropdown {
@@ -251,8 +284,8 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 20px;
-  margin-left: 87px;
-  margin-top: 10px;
+  margin-left: 107px;
+  margin-top: 40px;
   width:100%;
 }
 
@@ -265,7 +298,7 @@
   font-size: 16px;
   font-weight: 400;
   color: #000000;
-  margin-right: 170px;
+  margin-right: 80px;
 }
 
 .tone-options {
@@ -325,13 +358,14 @@
  
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-left: 87px;
+  gap: 8px;
+  margin-left: 107px;
+  margin-top: 30px;
   
 }
 
 .generate-button {
-  height: 56px;
+  height: 48px;
   width: 90%;
   border-radius: 8px;
   background-color: #1ABC9C;
@@ -406,4 +440,109 @@
   .generate-button {
     width: 100%;
   }
+}
+
+/* View 3: Article Result Styles */
+.article-result-section {
+  margin-top:8px;
+  margin-left: 0px;
+  width: 97%;
+}
+
+.result-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.result-left-side {
+  flex: 1;
+}
+
+.result-right-side {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.heres-article-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  color: #000000;
+  margin: 0;
+  margin-bottom: 6px;
+}
+
+.article-title-label {
+  width: 595px;
+  height: 65px;
+  background-color: #FCFFFE;
+  border: 1px solid #A9A9A9;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.article-title-label:hover {
+  border-color: #1ABC9C;
+  box-shadow: 0 2px 8px rgba(26, 188, 156, 0.1);
+}
+
+.article-title-text {
+  font-family: 'Georgia', serif;
+  font-weight: bold;
+  font-size: 18px;
+  color: #000000;
+  flex: 1;
+  text-align: left;
+}
+
+.open-book-icon {
+  color: #1E1E1E;
+  font-weight: bold;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.article-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 2px;
+}
+
+.action-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-icon svg {
+  width: 16px;
+  height: 16px;
+  color: #A9A9A9;
+  transition: color 0.2s ease;
+}
+
+.action-icon:hover svg {
+  color: #1ABC9C;
+}
+
+.action-icon:active svg {
+  color: #1ABC9C;
+  transform: scale(0.95);
 }
