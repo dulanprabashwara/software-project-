@@ -33,6 +33,7 @@ export default function AIArticleGeneratorPage() {
   const [tone, setTone] = useState("professional");
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const intervalRef = useRef(null);
 
   // Trending articles data
@@ -194,6 +195,8 @@ export default function AIArticleGeneratorPage() {
 
   const handleGenerateArticle = () => {
     if (selectedKeywords.length > 0) {
+      setIsGenerating(true);
+      
       // Handle article generation
       console.log("Generating article with:", {
         input: userInput,
@@ -201,6 +204,11 @@ export default function AIArticleGeneratorPage() {
         length: articleLength,
         tone: tone,
       });
+      
+      // Stop loading after 4 seconds
+      setTimeout(() => {
+        setIsGenerating(false);
+      }, 4000);
     }
   };
 
@@ -552,19 +560,57 @@ export default function AIArticleGeneratorPage() {
               </div>
 
               <div className="generate-button-section">
-                <button
-                  onClick={handleGenerateArticle}
-                  disabled={isGenerateButtonDisabled}
-                  className="generate-button"
-                >
-                  <div className="generate-button-icon">
-                    <img
-                      src="/icons/Ai article generator icon white.png"
-                      alt="Generate AI Article"
-                    />
+                {isGenerating ? (
+                  <div className="generate-loading-container">
+                    <div className="loading-spinner">
+                      <svg
+                        className="spinner-svg"
+                        width="50"
+                        height="50"
+                        viewBox="0 0 50 50"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle
+                          className="spinner-circle"
+                          cx="25"
+                          cy="25"
+                          r="20"
+                          fill="none"
+                          strokeWidth="5"
+                          stroke="#B4EFDD"
+                          strokeDasharray="125.6"
+                          strokeDashoffset="31.4"
+                        />
+                        <circle
+                          className="spinner-circle-active"
+                          cx="25"
+                          cy="25"
+                          r="20"
+                          fill="none"
+                          strokeWidth="5"
+                          stroke="#1ABC9C"
+                          strokeDasharray="125.6"
+                          strokeDashoffset="31.4"
+                        />
+                      </svg>
+                    </div>
+                    <p className="loading-text">Generating the article..</p>
                   </div>
-                  <span className="generate-button-text">Generate AI Article</span>
-                </button>
+                ) : (
+                  <button
+                    onClick={handleGenerateArticle}
+                    disabled={isGenerateButtonDisabled}
+                    className="generate-button"
+                  >
+                    <div className="generate-button-icon">
+                      <img
+                        src="/icons/Ai article generator icon white.png"
+                        alt="Generate AI Article"
+                      />
+                    </div>
+                    <span className="generate-button-text">Generate AI Article</span>
+                  </button>
+                )}
               </div>
               </>
             )}
