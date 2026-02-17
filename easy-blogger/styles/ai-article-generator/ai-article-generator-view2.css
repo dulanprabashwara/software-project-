@@ -411,9 +411,9 @@
 
 /* View 3: Article Result Styles */
 .article-result-section {
-  margin-top: 40px;
-  margin-left: 107px;
-  width: 90%;
+  margin-top:20px;
+  margin-left: 0px;
+  width: 97%;
 }
 
 .result-container {

@@ -211,7 +211,7 @@ export default function AIArticleGeneratorPage() {
         setIsGenerating(false);
         // Set sample generated article data
         setGeneratedArticle({
-          title: "Understanding the Impact of Artificial Intelligence on Modern Society",
+          title: "Artificial Intelligence",
           content: "Artificial Intelligence has revolutionized the way we live, work, and interact with technology..."
         });
         setCurrentView("result");
