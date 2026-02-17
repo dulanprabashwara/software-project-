@@ -7,14 +7,47 @@
 .ai-generator-main {
   width: 950px;
   max-width: 100%;
-  height: 930px;
+  height: 100vh;
   min-height: 100vh;
   background-color: #FAFAFA;
   margin: 0 auto;
   padding: 0 16px;
   display: flex;
   flex-direction: column;
+ }/* position: relative;
+  overflow-y: scroll !important;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+  scrollbar-gutter: stable;
 }
+
+/* Custom scrollbar styling for AI generator */
+/*.ai-generator-main::-webkit-scrollbar {
+  width: 8px;
+  appearance: auto;
+}
+
+.ai-generator-main::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.ai-generator-main::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+  border: 1px solid #a1a1a1;
+  min-height: 20px;
+}
+
+.ai-generator-main::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.ai-generator-main::-webkit-scrollbar-thumb:active {
+  background: #1ABC9C;
+}*/
+
+/* Firefox scrollbar styling - already included above */
 
 /* Title section styles - same as View 1 */
 .ai-generator-title {
@@ -411,7 +444,7 @@
 
 /* View 3: Article Result Styles */
 .article-result-section {
-  margin-top:20px;
+  margin-top:8px;
   margin-left: 0px;
   width: 97%;
 }
@@ -440,12 +473,12 @@
   font-size: 16px;
   color: #000000;
   margin: 0;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .article-title-label {
   width: 595px;
-  height: 72px;
+  height: 65px;
   background-color: #FCFFFE;
   border: 1px solid #A9A9A9;
   border-radius: 8px;
@@ -483,7 +516,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-top: 8px;
+  margin-top: 2px;
 }
 
 .action-icon {

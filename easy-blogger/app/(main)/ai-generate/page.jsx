@@ -233,8 +233,8 @@ export default function AIArticleGeneratorPage() {
   return (
     <div className="flex h-full">
       {/* AI Article Generator Main Section */}
-      <div className="ai-generator-main flex-1 overflow-y-auto">
-        <div className="ai-content-wrapper">
+      <div className="ai-generator-main flex-1 overflow-y-auto">     
+           <div className="ai-content-wrapper">
           {/* Title Section */}
           <div className="ai-generator-title justify-between">
             <div className="flex items-center gap-3">
