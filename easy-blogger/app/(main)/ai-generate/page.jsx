@@ -652,6 +652,13 @@ export default function AIArticleGeneratorPage() {
                     
                     {/* Action icons */}
                     <div className="article-actions">
+                      <button className="back-button" title="Back" onClick={() => setCurrentView("input")}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
+                          <path d="M19 12H5"></path>
+                          <path d="M12 19l-7-7 7-7"></path>
+                        </svg>
+                        <span className="back-text">back to prompt</span>
+                      </button>
                       <button className="action-icon" title="Regenerate">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M23 4v6h-6"></path>
