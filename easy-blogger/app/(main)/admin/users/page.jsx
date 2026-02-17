@@ -1,8 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Filter } from "lucide-react";
 
 export default function UserListPage() {
+  const [users, setUsers] = useState([]); 
+  const [loading, setLoading] = useState(true); 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState({
     regular: false,
@@ -11,19 +13,17 @@ export default function UserListPage() {
     active: false,
   });
 
-  // Mock initial data matching your UI
-  const [users, setUsers] = useState([
-    { id: "RID0024", name: "Emma Richardson", email: "emma.richardson@gmail.com", type: "Premium", status: "Active" },
-    { id: "RID0012", name: "Michael Chen", email: "michael.chen@gmail.com", type: "Premium", status: "Active" },
-    { id: "RID0060", name: "Sophia Martinez", email: "sophia.martinez@gmail.com", type: "Regular", status: "Banned" },
-    { id: "RID0021", name: "Love Quinn", email: "love.quinn@gmail.com", type: "Premium", status: "Active" },
-    { id: "RID0030", name: "John Smith", email: "john.smith@gmail.com", type: "Premium", status: "Active" },
-    { id: "RID0005", name: "Alison Dilaurentis", email: "alison.dilaurentis@gmail.com", type: "Regular", status: "Active" },
-    { id: "RID0034", name: "Guinevere Beck", email: "guinevere.beck@gmail.com", type: "Regular", status: "Active" },
-    { id: "RID0016", name: "David Rose", email: "david.rose@gmail.com", type: "Regular", status: "Banned" }
-  ]);
+  // 1. Fetch data from YOUR API when the page loads
+  useEffect(() => {
+    fetch('/api/users')
+      .then((res) => res.json())
+      .then((data) => {
+        setUsers(data);
+        setLoading(false);
+      });
+  }, []);
 
-  // Logic: Handle Banning via Toggle Switch
+  // Logic: Handle Banning via Toggle Switch locally
   const handleToggleStatus = (id) => {
     setUsers(prevUsers => prevUsers.map(user => {
       if (user.id === id) {
@@ -55,7 +55,7 @@ export default function UserListPage() {
     <div className="p-8 bg-white min-h-screen">
       <h1 className="text-4xl font-bold mb-8 text-[#111827] ml-4" style={{ fontFamily: "serif" }}>User List</h1>
       
-      {/* Container matching Design 1 */}
+      {/* Container matching the larger [1050px] Design */}
       <div className="max-w-[1050px] bg-[#D1D5DB]/50 rounded-[45px] overflow-hidden shadow-sm">
         
         {/* Header Filter Bar with Teal Accent */}
@@ -98,44 +98,53 @@ export default function UserListPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-white/20 transition-colors">
-                  <td className="p-2 pl-16">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-gray-400">
-                        <span className="text-[10px]">👤</span>
-                      </div>
-                      <div>
-                        <div className="font-bold text-gray-800 text-[14px]">
-                          {user.name}<span className="text-gray-400 font-medium ml-1">[{user.id}]</span>
-                        </div>
-                        <div className="text-[10px] text-gray-400 italic font-medium -mt-1">{user.email}</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="p-2 text-center">
-                    <span className="font-black text-gray-800 text-[15px] tracking-tighter uppercase">
-                      {user.type}
-                    </span>
-                  </td>
-
-                  <td className="p-2 text-center">
-                    {/* Integrated Ban Toggle: Switching Off = Banned */}
-                    <div className="flex justify-center">
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only peer" 
-                          checked={user.status === "Active"} 
-                          onChange={() => handleToggleStatus(user.id)}
-                        />
-                        <div className="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-[#1ABC9C] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5"></div>
-                      </label>
-                    </div>
+              {loading ? (
+                /* Proving architecture: Shows spinner while fetching from Mock API */
+                <tr>
+                  <td colSpan="3" className="text-center p-20">
+                    <span className="loading loading-spinner loading-lg text-[#1ABC9C]"></span>
+                    <p className="text-xs text-gray-400 mt-2">Fetching User Records...</p>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-white/20 transition-colors">
+                    <td className="p-2 pl-16">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-gray-400">
+                          <span className="text-[10px]">👤</span>
+                        </div>
+                        <div>
+                          <div className="font-bold text-gray-800 text-[14px]">
+                            {user.name}<span className="text-gray-400 font-medium ml-1">[{user.id}]</span>
+                          </div>
+                          <div className="text-[10px] text-gray-400 italic font-medium -mt-1">{user.email}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="p-2 text-center">
+                      <span className="font-black text-gray-800 text-[15px] tracking-tighter uppercase">
+                        {user.type}
+                      </span>
+                    </td>
+
+                    <td className="p-2 text-center">
+                      <div className="flex justify-center">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer" 
+                            checked={user.status === "Active"} 
+                            onChange={() => handleToggleStatus(user.id)}
+                          />
+                          <div className="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-[#1ABC9C] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5"></div>
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
