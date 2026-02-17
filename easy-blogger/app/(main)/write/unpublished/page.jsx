@@ -27,7 +27,7 @@ const ARTICLES = [
 export default function Page() {
   const [selectedId, setSelectedId] = useState(null); // none selected initially
   const router = useRouter();  
-  
+
   const toggleSelect = (id) => {
     setSelectedId((prev) => (prev === id ? null : id));
   };
@@ -138,15 +138,21 @@ export default function Page() {
           </div>
           <div className="mt-10 border-t border-black/20" />
           <div className="mt-8 flex items-center justify-between px-6">
-            <button className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
+            <button
+              onClick={() => router.push("/write/edit-as-new")}
+              className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
                 Edit as New
             </button>
 
-            <button className="rounded-full bg-[#10B981] px-14 py-4 text-white font-medium shadow-lg hover:bg-[#0EA371]">
+            <button
+              onClick={() => router.push("/write/choose-method")}
+              className="rounded-full bg-[#10B981] px-14 py-4 text-white font-medium shadow-lg hover:bg-[#0EA371]">
                 Back
             </button>
 
-            <button className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
+            <button
+              onClick={() => router.push("/write/edit-existing")}
+              className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
                 Edit Existing
             </button>
          </div>
