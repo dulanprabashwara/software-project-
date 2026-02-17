@@ -10,6 +10,7 @@ import {
   Crown,
   AlertTriangle,
   Linkedin,
+  Globe,
 } from "lucide-react";
 
 /**
@@ -39,6 +40,7 @@ export default function EditProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [linkedInConnected, setLinkedInConnected] = useState(false);
+  const [wordpressConnected, setWordpressConnected] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -105,6 +107,26 @@ export default function EditProfilePage() {
       )
     ) {
       alert("Account deletion - to be implemented");
+    }
+  };
+
+  const handleLinkedInToggle = () => {
+    if (linkedInConnected) {
+      if (confirm("Do you want to disconnect from LinkedIn?")) {
+        setLinkedInConnected(false);
+      }
+    } else {
+      setLinkedInConnected(true);
+    }
+  };
+
+  const handleWordPressToggle = () => {
+    if (wordpressConnected) {
+      if (confirm("Do you want to disconnect from WordPress?")) {
+        setWordpressConnected(false);
+      }
+    } else {
+      setWordpressConnected(true);
     }
   };
 
@@ -490,7 +512,7 @@ export default function EditProfilePage() {
               </div>
             </div>
             <button
-              onClick={() => setLinkedInConnected(!linkedInConnected)}
+              onClick={handleLinkedInToggle}
               className={`text-sm font-medium transition-colors ${
                 linkedInConnected
                   ? "text-red-500 hover:text-red-600"
@@ -498,6 +520,53 @@ export default function EditProfilePage() {
               }`}
             >
               {linkedInConnected ? "Disconnect" : "Connect"}
+            </button>
+          </div>
+        </div>
+
+        {/* WordPress Integration */}
+        <div className="pt-6 mt-6 border-t border-[#E5E7EB]">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 bg-[#F3F4F6] rounded-lg flex items-center justify-center">
+              <Globe className="w-5 h-5 text-[#21759B]" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-[#111827] mb-1">
+                WordPress Integration
+              </h3>
+              <p className="text-sm text-[#6B7280]">
+                Connect your WordPress site to publish blog articles directly
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#21759B] rounded-lg flex items-center justify-center">
+                <Globe className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="font-medium text-[#111827]">
+                  {wordpressConnected
+                    ? "WordPress Connected"
+                    : "WordPress Disconnected"}
+                </p>
+                <p className="text-sm text-[#6B7280]">
+                  {wordpressConnected
+                    ? "Publish articles directly to your WordPress site"
+                    : "Connect to publish articles"}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleWordPressToggle}
+              className={`text-sm font-medium transition-colors ${
+                wordpressConnected
+                  ? "text-red-500 hover:text-red-600"
+                  : "text-[#21759B] hover:text-[#1A5F7A]"
+              }`}
+            >
+              {wordpressConnected ? "Disconnect" : "Connect"}
             </button>
           </div>
         </div>
