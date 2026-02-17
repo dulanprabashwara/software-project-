@@ -96,6 +96,11 @@ export default function Page() {
 
   const handleEditAsNew = () => {
     if (!selectedId) return showError("Select an article before edit", "new");
+    const selected = visibleArticles.find((a) => a.id === selectedId);
+    sessionStorage.setItem(
+    "edit_as_new_seed",
+    JSON.stringify({ id: selected.id, title: selected.title })
+  );
     router.push("/write/edit-as-new");
   };
 
