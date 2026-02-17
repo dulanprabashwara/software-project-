@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const ARTICLES = [
   {
@@ -25,7 +26,8 @@ const ARTICLES = [
 
 export default function Page() {
   const [selectedId, setSelectedId] = useState(null); // none selected initially
-
+  const router = useRouter();  
+  
   const toggleSelect = (id) => {
     setSelectedId((prev) => (prev === id ? null : id));
   };
