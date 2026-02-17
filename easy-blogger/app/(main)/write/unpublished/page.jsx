@@ -26,14 +26,39 @@ const ARTICLES = [
 
 export default function Page() {
   const [selectedId, setSelectedId] = useState(null); // none selected initially
+  const [errorMsg, setErrorMsg] = useState(""); //popup error message
+  const [errorTarget, setErrorTarget] = useState(null); 
   const router = useRouter();  
 
   const toggleSelect = (id) => {
     setSelectedId((prev) => (prev === id ? null : id));
   };
 
+  // show popup and auto-hide after 2.5s
+  const showError = (msg, target) => {
+    setErrorMsg(msg);
+    setErrorTarget(target);
+
+    setTimeout(() => {
+      setErrorMsg("");
+      setErrorTarget(null);
+    }, 2500);
+  };
+
+
+  const handleEditAsNew = () => {
+    if (!selectedId) return showError("Select an article before edit", "new");
+    router.push("/write/edit-as-new");
+  };
+
+  const handleEditExisting = () => {
+    if (!selectedId) return showError("Select an article before edit", "existing");
+    router.push("/write/edit-existing");
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-br from-[#E8F5F1] via-[#F0F9FF] to-[#FDF4FF] flex items-center justify-center p-6">
+        
       <div className="w-full max-w-6xl">
         <div className="bg-white rounded-2xl shadow-2xl p-12">
           <div className="text-center mb-8">
@@ -137,27 +162,45 @@ export default function Page() {
             </button>
           </div>
           <div className="mt-10 border-t border-black/20" />
+
           <div className="mt-8 flex items-center justify-between px-6">
+
+          {/* Edit as New */}
+          <div className="flex flex-col items-center">
+            {errorMsg && errorTarget === "new" && (
+              <div className="mb-3 bg-red-100 text-red-700 px-4 py-2 rounded-lg shadow-md">
+                {errorMsg}
+              </div>
+            )}
             <button
-              onClick={() => router.push("/write/edit-as-new")}
+              onClick={handleEditAsNew}
               className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
                 Edit as New
             </button>
-
+            
+          </div>
+          
             <button
               onClick={() => router.push("/write/choose-method")}
               className="rounded-full bg-[#10B981] px-14 py-4 text-white font-medium shadow-lg hover:bg-[#0EA371]">
                 Back
             </button>
 
-            <button
-              onClick={() => router.push("/write/edit-existing")}
-              className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
-                Edit Existing
-            </button>
+            {/* Edit Existing */}
+            <div className="flex flex-col items-center">
+              {errorMsg && errorTarget === "existing" && (
+              <div className="mb-3 bg-red-100 text-red-700 px-4 py-2 rounded-lg shadow-md">
+                {errorMsg}
+              </div>
+              )}
+              <button
+                onClick={handleEditExisting}
+                className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90">
+                  Edit Existing
+              </button>
+            
+            </div>
          </div>
-
-
         </div>
       </div>
     </div>
