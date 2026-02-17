@@ -30,7 +30,7 @@
     "**/*.mts",
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "app/(main)/write/select-method/page.jsx"  ],
   "exclude": [
     "node_modules"
   ]

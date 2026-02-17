@@ -17,7 +17,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSubscription } from "../../subscription/SubscriptionContext";
-import "../../../styles/ai article generator/ai-article-generator.css";
+import "../../../styles/ai-article-generator/ai-article-generator.css";
+import "../../../styles/ai-article-generator/ai-article-generator-view2.css";
 
 export default function AIArticleGeneratorPage() {
   // NOTE: Header and Sidebar are provided by app/(main)/layout.jsx
@@ -25,32 +26,14 @@ export default function AIArticleGeneratorPage() {
 
   const router = useRouter();
   const { isPremium, isLoading } = useSubscription();
-
-  useEffect(() => {
-    if (!isLoading && !isPremium) {
-      router.push("/subscription/upgrade");
-    }
-  }, [isPremium, isLoading, router]);
-
   const [currentView, setCurrentView] = useState("input"); // "input" or "keywords"
   const [userInput, setUserInput] = useState("");
   const [selectedKeywords, setSelectedKeywords] = useState([]);
   const [articleLength, setArticleLength] = useState("short");
   const [tone, setTone] = useState("professional");
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const intervalRef = useRef(null);
-
-  if (isLoading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1ABC9C]"></div>
-      </div>
-    );
-  }
-
-  if (!isPremium) {
-    return null; // Return null while redirecting
-  }
 
   // Trending articles data
   const trendingArticles = [
@@ -106,20 +89,16 @@ export default function AIArticleGeneratorPage() {
 
   // Keywords data
   const keywords = [
-    "Machine learning",
+    "Algorithms",
     "Deep learning",
     "Neural networks",
-    "Data science",
+    "Machine learning",
+    "Computer science",
+    "Computer vision",
+    "Robotics",
     "Artificial intelligence",
-    "Python",
-    "TensorFlow",
-    "PyTorch",
-    "Algorithms",
-    "Big data",
-    "Cloud computing",
-    "Cybersecurity",
-    "Blockchain",
-    "IoT",
+    "Work automation",
+    "AI services",
   ];
 
   // Insights sidebar data - Top AI assisted articles
@@ -140,6 +119,12 @@ export default function AIArticleGeneratorPage() {
     "Environment",
   ];
 
+  useEffect(() => {
+    if (!isLoading && !isPremium) {
+      router.push("/subscription/upgrade");
+    }
+  }, [isPremium, isLoading, router]);
+
   // Auto-play slider
   useEffect(() => {
     intervalRef.current = setInterval(() => {
@@ -152,6 +137,18 @@ export default function AIArticleGeneratorPage() {
       }
     };
   }, [trendingArticles.length]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1ABC9C]"></div>
+      </div>
+    );
+  }
+
+  if (!isPremium) {
+    return null; // Return null while redirecting
+  }
 
   const handleManualSlide = (direction) => {
     if (direction === "next") {
@@ -207,7 +204,16 @@ export default function AIArticleGeneratorPage() {
     }
   };
 
-  const isGenerateButtonDisabled = selectedKeywords.length === 0;
+  const isGenerateButtonDisabled = selectedKeywords.length === 0 || !articleLength || !tone;
+
+  const getArticleLengthDisplay = () => {
+    const options = {
+      'short': { left: 'Short', right: '300-1000' },
+      'mid-length': { left: 'Mid-length', right: '1000-2000' },
+      'long': { left: 'Long', right: '2000+' }
+    };
+    return options[articleLength] || { left: 'Short', right: '300-1000' };
+  };
 
   return (
     <div className="flex h-full">
@@ -375,7 +381,7 @@ export default function AIArticleGeneratorPage() {
           {/* User Input Section */}
           <div className="user-input-section">
             <p className="user-prompt-text">
-              Hello, what do you hope to write today
+              Hello.. what do you hope to write today
             </p>
 
             {currentView === "input" ? (
@@ -421,118 +427,151 @@ export default function AIArticleGeneratorPage() {
                 </button>
               </>
             ) : (
-              /* Keyword Selection Section */
-              <div className="space-y-6 max-w-[1000px] mx-auto px-6">
-                {/* Keywords */}
-                <div className="bg-white rounded-xl p-6 shadow-sm">
-                  <h3
-                    className="text-lg font-medium mb-4"
-                    style={{ fontFamily: "Roboto, sans-serif" }}
-                  >
-                    Choose the keywords which defines your article content
-                  </h3>
-                  <div className="flex flex-wrap gap-2 mb-4">
+              <>
+                <div className="selected-keywords-section">
+                  <h2 className="selected-keywords-title">
+                    Choose the keywords that define the content of your article
+                  </h2>
+
+                  <div className="keyword-buttons-container">
                     {keywords.map((keyword) => (
                       <button
                         key={keyword}
                         onClick={() => handleKeywordToggle(keyword)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all transform hover:scale-105 ${
-                          selectedKeywords.includes(keyword)
-                            ? "bg-[#1ABC9C] text-white shadow-md"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                        className={`keyword-button ${
+                          selectedKeywords.includes(keyword) ? "selected" : ""
+                        } ${selectedKeywords.length >= 4 && !selectedKeywords.includes(keyword) ? "disabled" : ""}`}
+                        disabled={
+                          selectedKeywords.length >= 4 && !selectedKeywords.includes(keyword)
+                        }
                       >
                         {keyword}
                       </button>
                     ))}
                   </div>
-                  <p className="text-sm text-gray-600 font-medium">
-                    Selected: {selectedKeywords.length} keywords
+
+                  <p className="selected-keywords-title">
+                    {selectedKeywords.length === 4
+                      ? "selected: 4 keywords(Maximum)"
+                      : "selected: " + selectedKeywords.length + " keywords"}
                   </p>
                 </div>
 
-                {/* Article Length */}
-                <div className="bg-white rounded-xl p-6 shadow-sm">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Article Length
-                  </label>
-                  <select
-                    value={articleLength}
-                    onChange={(e) => setArticleLength(e.target.value)}
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:border-[#1ABC9C] focus:ring-2 focus:ring-[#1ABC9C]/20"
+                <div className="article-length-section">
+                <p className="article-length-text">Article Length :</p>
+                
+                <div className="article-length-dropdown">
+                  <div 
+                    className="dropdown-header"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   >
-                    <option value="short">Short 300-1000</option>
-                    <option value="mid-length">Mid-length 1000-2000</option>
-                    <option value="long">Long 2000+</option>
-                  </select>
-                </div>
-
-                {/* Tone Selection */}
-                <div className="bg-white rounded-xl p-6 shadow-sm">
-                  <label className="block text-sm font-medium text-gray-700 mb-4">
-                    Tone
-                  </label>
-                  <div className="space-y-3">
-                    {["humorous", "professional", "casual"].map(
-                      (toneOption) => (
-                        <label
-                          key={toneOption}
-                          className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                        >
-                          <input
-                            type="radio"
-                            name="tone"
-                            value={toneOption}
-                            checked={tone === toneOption}
-                            onChange={(e) => setTone(e.target.value)}
-                            className="w-5 h-5 text-[#1ABC9C] focus:ring-[#1ABC9C]"
-                          />
-                          <span className="capitalize text-gray-700 font-medium">
-                            {toneOption}
-                          </span>
-                        </label>
-                      ),
-                    )}
+                    <div className="dropdown-header-content">
+                      <span className="dropdown-header-left">{getArticleLengthDisplay().left}</span>
+                      <span className="dropdown-header-right">{getArticleLengthDisplay().right}</span>
+                    </div>
+                    <svg
+                      className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`}
+                      width="12"
+                      height="8"
+                      viewBox="0 0 12 8"
+                      fill="none"
+                    >
+                      <path d="M1 1L6 6L11 1" stroke="#000000" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
                   </div>
+                  {isDropdownOpen && (
+                    <div className="dropdown-menu">
+                      <div 
+                        className="menu-item"
+                        onClick={() => {
+                          setArticleLength('short');
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        <span className="menu-item-left">Short</span>
+                        <span className="menu-item-right">300-1000</span>
+                      </div>
+                      <div 
+                        className="menu-item"
+                        onClick={() => {
+                          setArticleLength('mid-length');
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        <span className="menu-item-left">Mid-length</span>
+                        <span className="menu-item-right">1000-2000</span>
+                      </div>
+                      <div 
+                        className="menu-item"
+                        onClick={() => {
+                          setArticleLength('long');
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        <span className="menu-item-left">Long</span>
+                        <span className="menu-item-right">2000+</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </div>
 
-                {/* Generate Button */}
+              <div className={`tone-selection-section ${isDropdownOpen ? 'dropdown-open' : ''}`}>
+                <p className="tone-text">Tone :</p>
+                
+                <div className="tone-options">
+                  {["professional", "casual", "humorous"].map(
+                    (toneOption) => (
+                      <div key={toneOption} className="tone-option">
+                        <input
+                          type="radio"
+                          id={`tone-${toneOption}`}
+                          name="tone"
+                          value={toneOption}
+                          checked={tone === toneOption}
+                          onChange={(e) => setTone(e.target.value)}
+                          className="radio-button"
+                        />
+                        <label htmlFor={`tone-${toneOption}`} className="tone-label">
+                          {toneOption}
+                        </label>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+
+              <div className="generate-button-section">
                 <button
                   onClick={handleGenerateArticle}
                   disabled={isGenerateButtonDisabled}
-                  className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-medium transition-colors ${
-                    isGenerateButtonDisabled
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-[#1ABC9C] text-white hover:bg-[#16a085]"
-                  }`}
+                  className="generate-button"
                 >
-                  <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center">
+                  <div className="generate-button-icon">
                     <img
                       src="/icons/Ai article generator icon white.png"
                       alt="Generate AI Article"
-                      className="w-4 h-4"
                     />
                   </div>
-                  Generate AI Article
+                  <span className="generate-button-text">Generate AI Article</span>
                 </button>
               </div>
+              </>
             )}
           </div>
         </div>
       </div>
 
-      {/* Insights Sidebar */}
       <div className="insights-sidebar">
-        {/* Insights Title */}
         <div className="insights-header">
+          <h2 className="insights-title">Insights</h2>
           <div className="insights-dots">
             <div className="insights-dot-1"></div>
             <div className="insights-dot-2"></div>
           </div>
-          <h2 className="insights-title">Insights</h2>
+          
         </div>
 
-        {/* Top AI Assisted Articles */}
         <div className="mb-8">
           <h3 className="insights-section-title">TOP AI Assisted Articles</h3>
           <div className="space-y-3">
@@ -545,7 +584,6 @@ export default function AIArticleGeneratorPage() {
           </div>
         </div>
 
-        {/* Trending Topics */}
         <div>
           <h3 className="insights-section-title">Trending topics</h3>
           <div className="trending-topics-buttons">
