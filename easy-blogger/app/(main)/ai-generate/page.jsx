@@ -303,7 +303,7 @@ export default function AIArticleGeneratorPage() {
                         </div>
                       </div>
 
-                      <h3 className="article-title">
+                      <h3 className="article-title" onClick={() => console.log('Article clicked:', trendingArticles[currentArticleIndex].title)}>
                         {trendingArticles[currentArticleIndex].title}
                       </h3>
 
