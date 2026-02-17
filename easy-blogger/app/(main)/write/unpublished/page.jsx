@@ -26,11 +26,57 @@ const ARTICLES = [
   },
 ];
 
+const MORE_ARTICLES = [
+  {
+    id: "a3",
+    author: "Emma Richardson",
+    date: "Dec 2, 2025",
+    title: "UI/UX Principles for Modern Web Apps",
+    desc:
+      "A practical guide to spacing, typography, colors, and interaction patterns that make web apps feel clean and professional.",
+    image: "/images/Unpublished_IMG/uiux.jpg",
+    profileImage: "/images/Unpublished_IMG/profile.jpg",
+  },
+  {
+    id: "a4",
+    author: "Emma Richardson",
+    date: "Dec 1, 2025",
+    title: "Optimizing React Performance for Large Projects",
+    desc:
+      "Learn how to avoid unnecessary re-renders, use memoization effectively, and keep your React app fast as it grows.",
+    image: "/images/Unpublished_IMG/react.jpg",
+    profileImage: "/images/Unpublished_IMG/profile.jpg",
+  },
+  {
+    id: "a5",
+    author: "Emma Richardson",
+    date: "Nov 30, 2025",
+    title: "Best Practices for API Design in 2025",
+    desc:
+      "From REST conventions to pagination and error handling—build APIs that are easy to use and maintain.",
+    image: "/images/Unpublished_IMG/api.jpg",
+    profileImage: "/images/Unpublished_IMG/profile.jpg",
+  },
+  {
+    id: "a6",
+    author: "Emma Richardson",
+    date: "Nov 29, 2025",
+    title: "PostgreSQL Tips for Content Platforms",
+    desc:
+      "Indexes, full-text search, schema design, and query optimization ideas for article-based applications.",
+    image: "/images/Unpublished_IMG/postgres.jpg",
+    profileImage: "/images/Unpublished_IMG/profile.jpg",
+  },
+];
+
 export default function Page() {
   const [selectedId, setSelectedId] = useState(null); // none selected initially
   const [errorMsg, setErrorMsg] = useState(""); //popup error message
   const [errorTarget, setErrorTarget] = useState(null); 
   const router = useRouter();  
+
+  const [visibleArticles, setVisibleArticles] = useState(ARTICLES);
+  const [loadedCount, setLoadedCount] = useState(0);
 
   const toggleSelect = (id) => {
     setSelectedId((prev) => (prev === id ? null : id));
@@ -58,6 +104,16 @@ export default function Page() {
     router.push("/write/edit-existing");
   };
 
+  const PAGE_SIZE = 2;
+  const handleSeeMore = () => {
+    const next = MORE_ARTICLES.slice(loadedCount, loadedCount + PAGE_SIZE);
+    if (next.length === 0) return;
+    setVisibleArticles((prev) => [...prev, ...next]);
+    setLoadedCount((prev) => prev + next.length);
+  };
+
+  const hasMore = loadedCount < MORE_ARTICLES.length;
+
   return (
     <div className="min-h-screen bg-linear-to-br from-[#E8F5F1] via-[#F0F9FF] to-[#FDF4FF] flex items-center justify-center p-6">
         
@@ -76,7 +132,7 @@ export default function Page() {
 
             {/* Articles */}
           <div className="mt-10 space-y-10">
-            {ARTICLES.map((a, idx) => {
+            {visibleArticles.map((a, idx) => {
               const active = a.id === selectedId;
 
               return (
@@ -151,7 +207,7 @@ export default function Page() {
                     </div>
                   </button>
 
-                  {idx !== ARTICLES.length - 1 ? (
+                  {idx !== visibleArticles.length - 1 ? (
                     <div className="mt-10 border-t border-black/10" />
                   ) : null}
                 </div>
@@ -160,14 +216,20 @@ export default function Page() {
           </div>
 
           <div className="mt-12 border-t border-black/10" />
-          <div className="mt-10 flex justify-center">
-            <button 
-              type="button"
-              className="see-more-btn"
+          {hasMore && (
+            <>
+            <div className="mt-10 flex justify-center">
+            <button
+            type="button"
+            className="see-more-btn"
+            onClick={handleSeeMore}
             >
-                See more
+              See more
             </button>
           </div>
+            </>
+          )}
+
           <div className="mt-10 border-t border-black/20" />
 
           <div className="mt-8 flex items-center justify-between px-6">
