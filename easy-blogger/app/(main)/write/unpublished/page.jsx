@@ -10,7 +10,7 @@ const ARTICLES = [
     title: "How AI is Transforming Content Creation in 2025",
     desc:
       "Explore the latest developments in artificial intelligence and how they are revolutionizing the way we create, curate, and consume content across digital platforms.",
-    image: "/images/robot.jpg",
+    image: "/images/Unpublished_IMG/robot.jpg",
   },
   {
     id: "a2",
@@ -19,7 +19,7 @@ const ARTICLES = [
     title: "The Complete Guide to Building Scalable Web Applications",
     desc:
       "Learn the essential principles, patterns, and best practices for creating web applications that can handle millions of users while maintaining performance and reliability.",
-    image: "/images/code.jpg",
+    image: "/images/Unpublished_IMG/code.jpg",
   },
 ];
 
