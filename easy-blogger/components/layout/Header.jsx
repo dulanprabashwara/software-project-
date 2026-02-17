@@ -51,7 +51,7 @@ export default function Header({ onToggleSidebar }) {
 
       {/* Right */}
       <div className="flex items-center gap-3">
-        <Link href="/write" className="bg-[#1ABC9C] text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 hover:bg-[#17a589]">
+        <Link href="/write/choose-method" className="bg-[#1ABC9C] text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 hover:bg-[#17a589]">
           <PenSquare size={16} /> <span className="hidden sm:inline">Write</span>
         </Link>
 
