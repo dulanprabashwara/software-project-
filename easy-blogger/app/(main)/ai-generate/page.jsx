@@ -745,7 +745,7 @@ export default function AIArticleGeneratorPage() {
             onMouseLeave={(e) => {
               // Only set to false if mouse is not entering the close button area
               const relatedTarget = e.relatedTarget;
-              const isEnteringCloseButton = relatedTarget && (
+              const isEnteringCloseButton = relatedTarget && relatedTarget.classList && (
                 relatedTarget.classList.contains('preview-close-circle') ||
                 relatedTarget.classList.contains('preview-close-button-circle') ||
                 relatedTarget.classList.contains('preview-copy-icon') ||
