@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {HelpCircle,Sparkles,MessageCircle,Search,PenSquare,Bell,Menu,LogOut,} from "lucide-react";
+import {HelpCircle,Sparkles,MessageCircle,Search,PenSquare,Bell,Menu,LogOut,BadgeCheck} from "lucide-react";
 import { useSubscription } from "../../app/subscription/SubscriptionContext";
 
 export default function Header({ onToggleSidebar }) { //onToggleSidebar is a function passed down
@@ -99,6 +99,11 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
             aria-label="User menu"
           >
             <img src={user.avatar} alt="User" className="w-full h-full object-cover" />
+            {isPremium && (
+              <div className="absolute -bottom-1 -right-1 drop-shadow-md z-10">
+                <BadgeCheck className="w-5 h-5 text-[#1ABC9C]" />
+              </div>
+            )}
           </button>
 
           {open && (
