@@ -34,7 +34,7 @@ export default function Sidebar({ isOpen }) {
       ))}
     </div>
 
-    {/* 2. Write Button (mt-auto pushes this to the bottom) */}
+    {/*   Write Button*/}
     <Link href="/write/choose-method" className="mt-auto border-t pt-4 flex items-center gap-3 text-gray-700">
       <Plus size={24} className="bg-[#1ABC9C] text-white rounded-full p-1" />
       <span className="text-sm font-bold">Write Story</span>
