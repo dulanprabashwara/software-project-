@@ -602,36 +602,6 @@ margin-top:-20px;
   color: #FFFFFF;
 }
 
-.preview-title-section {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.preview-title {
-  font-family: Georgia, serif;
-  font-weight: bold;
-  font-size: 20px;
-  color: #000000;
-  margin: 0;
-}
-
-.preview-book-icon {
-  stroke: #1E1E1E;
-}
-
-.preview-close-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.preview-close-button:hover {
-  background-color: rgba(26, 188, 156, 0.1);
-}
 
 /* Close Button Circle */
 .preview-close-circle {
@@ -691,9 +661,9 @@ margin-top:-20px;
 .preview-article-title {
   font-family: Georgia, serif;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 20px;
   color: #000000;
-  margin: 0 0 16px 0;
+  margin: 0 0 1px 0;
   text-align: center;
 }
 
