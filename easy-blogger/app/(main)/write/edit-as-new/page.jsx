@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Image as ImageIcon, X } from "lucide-react";
 import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
+import { Editor } from "@tinymce/tinymce-react";
 
 export default function Page() {
   
@@ -17,11 +18,14 @@ export default function Page() {
   const [zoom, setZoom] = useState(100);
   const [title, setTitle] = useState("");
   const [mounted, setMounted] = useState(false);
-
+  const [history, setHistory] = useState([{ title: "", content: "" }]);
+  const [historyIndex, setHistoryIndex] = useState(0);
 
   const router = useRouter();
   const fileInputRef = useRef(null);
   const toggleSidebar = () => setSidebarOpen((p) => !p);
+  const editorRef = useRef(null);
+  const [fontSize, setFontSize] = useState(16);
 
   // Auto-save functionality
   useEffect(() => {
@@ -93,6 +97,11 @@ export default function Page() {
       fileInputRef.current.value = "";
     }
   };
+  const plainText = editorRef.current
+  ? editorRef.current.getContent({ format: "text" })
+  : "";
+
+  const charCount = plainText.length;
 
   return (
     <div className="min-h-screen bg-white">
@@ -116,7 +125,6 @@ export default function Page() {
                     ? `Saved at ${lastSaved.toLocaleTimeString()}`
                     : "Saved / Saving..."
                 }
-
               </div>
               
               <div className="text-center">
@@ -162,7 +170,7 @@ export default function Page() {
           />
         </div>
 
-        {/* Add Cover Image NOW VISIBLE */}
+        {/* Add Cover image */}
         <div className="bg-[#F8FAFC] rounded-lg p-6">
         <label className="block text-sm font-semibold text-[#111827] mb-3">
             Add Cover Image
@@ -195,7 +203,7 @@ export default function Page() {
               </p>
             </div>
           </div>
-        </div>
+          </div>
         ) : (
         <div className="relative border-2 border-[#E5E7EB] rounded-lg overflow-hidden bg-white">
           <img
@@ -221,6 +229,66 @@ export default function Page() {
         />
 
         {!coverImage && <p className="text-xs text-[#DC2626] mt-2">*Required</p>}
+        </div>
+
+        {/* Write Content */}
+        <div className="bg-[#F8FAFC] rounded-lg p-6">
+          <label className="block text-sm font-semibold text-[#111827] mb-3">
+            Write
+          </label>
+          <div className="relative">
+            <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
+              {!mounted ? (
+                <div className="h-[260px] bg-white" />
+              ) : (
+                <Editor
+                  onInit={(evt, editor) => (editorRef.current = editor)}
+                  value={content}
+                  onEditorChange={(newContent) => {
+                    setContent(newContent);
+                    const newHistory = history.slice(0, historyIndex + 1);
+                    newHistory.push({ title, content: newContent });
+                    setHistory(newHistory);
+                    setHistoryIndex(newHistory.length - 1);
+                  }}
+                      
+                  apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
+                  init={{
+                    readonly: false,
+                    promotion: false,
+                    height: 260,
+                    menubar: false,
+                    branding: false,
+                    placeholder: "Write your blog content here...",
+                    //fixed_toolbar_container: "#tinymce-toolbar",
+                    plugins: [
+                      "lists",
+                      "link",
+                      "image",
+                      "table",
+                      "code",
+                      "wordcount",
+                      "autolink",
+                    ],
+                    toolbar:
+                      "undo redo | blocks | bold italic underline | " +
+                      "alignleft aligncenter alignright alignjustify | " +
+                      "bullist numlist | link image table | code",
+                      content_style: `body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: ${fontSize}px; }`,
+                  }}
+                />
+                )}
+            </div>
+
+            <div className="absolute right-4 bottom-4 flex items-center gap-2">
+              <span className="text-xs text-[#6B7280]">
+                {charCount}/20,000
+              </span>
+              {content.length === 0 && (
+                <span className="text-xs text-[#DC2626]">*Required</span>
+              )}
+            </div>
+          </div>
         </div>
         </div>
         </div>
