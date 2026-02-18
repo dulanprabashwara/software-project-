@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-// This acts as your temporary "Database"
 export async function GET() {
   const dummyUsers = [
     { id: "RID0024", name: "Emma Richardson", email: "emma.richardson@gmail.com", type: "Premium", status: "Active" },
@@ -12,8 +11,21 @@ export async function GET() {
     { id: "RID0034", name: "Guinevere Beck", email: "guinevere.beck@gmail.com", type: "Regular", status: "Active" },
     { id: "RID0016", name: "David Rose", email: "david.rose@gmail.com", type: "Regular", status: "Banned" }
   ];
-
-  // Adding a slight delay
-  await new Promise(resolve => setTimeout(resolve, 800)); 
   return NextResponse.json(dummyUsers);
+}
+
+export async function POST(request) {
+  try {
+    const body = await request.json();
+    
+    // FUTURE POSTGRESQL LOGIC:
+    // const result = await prisma.auditLog.create({ data: body });
+    
+    console.log("📥 Audit Data Captured for PostgreSQL Table:");
+    console.log(`- Row Data: [Admin: ${body.performedBy}, Action: ${body.action}, Reason: ${body.reason}]`);
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ success: false }, { status: 500 });
+  }
 }
