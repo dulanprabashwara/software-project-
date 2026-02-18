@@ -35,6 +35,7 @@ export default function AIArticleGeneratorPage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedArticle, setGeneratedArticle] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
   const intervalRef = useRef(null);
 
   // Trending articles data
@@ -634,7 +635,7 @@ export default function AIArticleGeneratorPage() {
                     <p className="heres-article-text">Here's your article..</p>
                     
                     {/* Article title label */}
-                    <div className="article-title-label">
+                    <div className="article-title-label" onClick={() => setShowPreview(true)}>
                       <span className="article-title-text">{generatedArticle.title}</span>
                       <svg 
                         className="open-book-icon" 
@@ -729,6 +730,77 @@ export default function AIArticleGeneratorPage() {
           </div>
         </div>
       </div>
+      
+      {/* Preview Overlay */}
+      {showPreview && (
+        <div className="preview-overlay">
+          <div className="preview-box">
+            {/* Preview Header */}
+            <div className="preview-header">
+              <div className="preview-title-section">
+                <h2 className="preview-title">Article Preview</h2>
+                <svg 
+                  className="preview-book-icon" 
+                  width="20" 
+                  height="20" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="#1E1E1E" 
+                  strokeWidth="2"
+                >
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+              </div>
+              <button className="preview-close-button" onClick={() => setShowPreview(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
+                  <path d="M18 6L6 18"></path>
+                  <path d="M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            
+            {/* Preview Content - Common Layout Elements */}
+            <div className="preview-content">
+              <div className="preview-article-info">
+                <h3 className="preview-article-title">{generatedArticle.title}</h3>
+                <p className="preview-article-excerpt">{generatedArticle.content}</p>
+              </div>
+              
+              {/* Action buttons */}
+              <div className="preview-actions">
+                <button className="preview-action-button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M23 4v6h-6"></path>
+                    <path d="M1 20v-6h6"></path>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                  </svg>
+                  <span>Regenerate</span>
+                </button>
+                <button className="preview-action-button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  <span>Copy</span>
+                </button>
+                <button className="preview-action-button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                  </svg>
+                  <span>Like</span>
+                </button>
+                <button className="preview-action-button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-3"></path>
+                  </svg>
+                  <span>Dislike</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
