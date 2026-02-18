@@ -17,8 +17,7 @@ export default function HomePage() {
       <Header onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
       <Sidebar isOpen={sidebarOpen} />
 
-      <main
-  className={`pt-16 flex h-[calc(100vh-64px)] overflow-hidden transition-[margin] duration-300 ${sidebarOpen ? "ml-64" : "ml-0"}`}
+  <main className={`pt-16 flex h-[calc(100vh-64px)] overflow-hidden transition-[margin] duration-300 ${sidebarOpen ? "ml-64" : "ml-0"}`}
 >
   <MainFeed articles={DATA.articles} />
   <RightFeed

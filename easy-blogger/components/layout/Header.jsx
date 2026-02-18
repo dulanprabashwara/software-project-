@@ -124,7 +124,7 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
 
               {/*icon help, message,membership from menulink function*/}
 
-              <div className="border-t my-1" />
+              <div className="border-t border-[#e5e7eb] my-1" />
               <Link
                 href="#"
                 onClick={() => setOpen(false)}
@@ -149,7 +149,7 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
                 <Sparkles size={16} /> {membership.label}
               </Link>
 
-              <div className="border-t my-1" />
+              <div className="border-t border-[#e5e7eb] my-1" />
 
               <Link href="./login"
                 onClick={() => {
