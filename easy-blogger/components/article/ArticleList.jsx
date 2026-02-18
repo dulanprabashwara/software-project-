@@ -21,12 +21,17 @@
     trending: [
     { title: "The Future of Remote Work: What 2025 Holds", author: "Sarah Chen" },
     { title: "Building Better Products with AI", author: "Marcus Rivera" },
-    { title: "Design Systems That Actually Work", author: "Emma Thompson" }
+    { title: "Places to visit this Spring", author: "Lexi Hernes" },
+    { title: "Magic eyes", author: "Silvester Wilde" },
+    { title: "Trees of York", author: "Chester Abernathy" }
   ],
-  topics: ["Technology", "AI", "Lifestyle", "Startup", "Design", "Programming"],
+  topics: ["Technology", "AI", "Lifestyle", "Startup", "Design", "Programming","health","nature","beauty"],
+  
   usersToFollow: [
     { name: "David Miller", bio: "Tech writer", avatar: "https://i.pravatar.cc/150?img=12" },
-    { name: "Sophia Anderson", bio: "UX designer", avatar: "https://i.pravatar.cc/150?img=25" }
+    { name: "Sophia Anderson", bio: "UX designer", avatar: "https://i.pravatar.cc/150?img=25" },
+    { name: "Mage Reston", bio: "Nature lover", avatar: "https://i.pravatar.cc/150?img=13" },
+    { name: "Silena Boulevard", bio: "Beauty", avatar: "https://i.pravatar.cc/150?img=5" },
   ]
 
   };

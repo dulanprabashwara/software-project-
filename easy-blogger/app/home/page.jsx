@@ -14,17 +14,20 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header onToggleSidebar={() => setSidebarOpen((v) => !v)} />
+      <Header onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
       <Sidebar isOpen={sidebarOpen} />
 
-      <main className="pt-16 flex h-[calc(100vh-64px)] overflow-hidden">
-        <MainFeed articles={DATA.articles} />
-        <RightFeed
-          trending={DATA.trending}
-          topics={DATA.topics}
-          usersToFollow={DATA.usersToFollow}
-        />
-      </main>
+      <main
+  className={`pt-16 flex h-[calc(100vh-64px)] overflow-hidden transition-[margin] duration-300 ${sidebarOpen ? "ml-64" : "ml-0"}`}
+>
+  <MainFeed articles={DATA.articles} />
+  <RightFeed
+    trending={DATA.trending}
+    topics={DATA.topics}
+    usersToFollow={DATA.usersToFollow}
+  />
+</main>
+
     </div>
   );
 }
