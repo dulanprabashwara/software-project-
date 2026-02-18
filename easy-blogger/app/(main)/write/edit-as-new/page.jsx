@@ -61,6 +61,7 @@ export default function Page() {
     setTitle(seed.title || "");
   }, [router]);
 
+
   // Load draft on mount
   useEffect(() => {
     const draft = localStorage.getItem("draft_edit_as_new");
@@ -102,6 +103,47 @@ export default function Page() {
   : "";
 
   const charCount = plainText.length;
+
+  //Add handlePreview and handleDiscard functions
+  const handleDiscard = () => {
+    if (
+      confirm(
+        "Are you sure you want to discard this article? All unsaved changes will be lost.",
+      )
+    ) {
+      localStorage.removeItem("draft_edit_as_new");
+      setContent("");
+      setCoverImage(null);
+      setHistory([{ title: "", content: "" }]);
+      setHistoryIndex(0);
+      setLastSaved(null);
+      router.push("/home");
+    }
+  };
+
+  const handlePreview = () => {
+    // title comes from session seed and is readOnly, so we only validate content here
+    const plainTextNow = editorRef.current
+    ? editorRef.current.getContent({ format: "text" }).trim()
+    : "";
+
+    if (!plainTextNow) {
+      alert("Please enter content before previewing");
+      return;
+    }
+
+    sessionStorage.setItem(
+      "preview_article",
+      JSON.stringify({
+        title,
+        content,
+        coverImage,
+      }),
+    );
+
+    router.push("/write/preview");
+  };
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -284,13 +326,42 @@ export default function Page() {
               <span className="text-xs text-[#6B7280]">
                 {charCount}/20,000
               </span>
-              {content.length === 0 && (
+              {plainText.trim().length === 0 && (
                 <span className="text-xs text-[#DC2626]">*Required</span>
-              )}
+            )}
+
             </div>
           </div>
         </div>
         </div>
+        </div>
+        {/* Bottom Action Buttons */}
+        <div
+          className={`fixed bottom-0 right-0 bg-white border-t border-[#E5E7EB] px-8 py-6 z-30 transition-all duration-300 ease-in-out ${
+          sidebarOpen ? "left-60" : "left-0"
+          }`}
+        > 
+          <div className="max-w-5xl mx-auto flex items-center justify-center gap-20">
+            <button
+              onClick={() => router.push("/home")}
+              className="px-8 py-3 bg-[#111827] hover:bg-[#1f2937] text-white rounded-full text-sm font-medium transition-colors"
+            >
+              Exit Editor
+            </button>
+            <button
+              onClick={handlePreview}
+              disabled={!title || !content}
+              className="px-8 py-3 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Preview
+            </button>
+            <button
+              onClick={handleDiscard}
+              className="px-8 py-3 bg-[#111827] hover:bg-[#1f2937] text-white rounded-full text-sm font-medium transition-colors"
+            >
+              Discard
+            </button>
+          </div>
         </div>
       </main>
     </div>
