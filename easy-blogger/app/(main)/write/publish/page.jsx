@@ -1,6 +1,38 @@
 "use client";
 
+import { useState } from "react";
+
+{/*Define a reusable section component for better structure and readability*/}
+function Section({ title, children }) {
+  return (
+    <div className="p-10">
+      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+      <div className="mt-4">{children}</div>
+    </div>
+  );
+}
+
 export default function PublishArticlePage() {
+
+  const [tagInput, setTagInput] = useState("");
+  const [tags, setTags] = useState(["Technology", "Design", "Blogging"]);
+  const MAX_TAGS = 5;
+
+  const addTag = (raw) => {
+    const t = raw.trim();
+    if (!t) return;
+
+    if (tags.length >= MAX_TAGS) return;
+
+    if (tags.some((x) => x.toLowerCase() === t.toLowerCase())) return;
+
+    setTags((prev) => [...prev, t]);
+  };
+
+  const removeTag = (tag) => {
+    setTags((prev) => prev.filter((t) => t !== tag));
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
       <div className="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-gray-100">
@@ -11,11 +43,52 @@ export default function PublishArticlePage() {
           </p>
         </div>
 
+        {/*Border line*/}
         <div className="border-t border-gray-100" />
-        <div className="p-10 space-y-10">
-          {/* Sections will be added in next commits */}
-          <div className="text-gray-400 text-center">Coming next: tags, timing, share, actions</div>
-        </div>
+
+        <Section title="Tags">
+          <div className="space-y-3">
+            <input
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              placeholder="Add a tag"
+              className="w-full h-11 rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addTag(tagInput);
+                  setTagInput("");
+                }
+                if (e.key === "Backspace" && tagInput.length === 0 && tags.length > 0) {
+                  setTags((prev) => prev.slice(0, -1));
+                }
+              }}
+              disabled={tags.length >= MAX_TAGS}
+            />
+
+            <div className="flex flex-wrap items-center gap-3">
+              {tags.map((t) => (
+                <span
+                key={t}
+                className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-gray-100 px-3 py-1 text-xs text-gray-700"
+                >
+                {t}
+                <button
+                  type="button"
+                  onClick={() => removeTag(t)}
+                  className="text-gray-700 hover:text-black leading-none"
+                >
+                  ✕
+                </button>
+                </span>
+              ))}
+
+              <span className="text-sm text-gray-400">
+                Add up to {MAX_TAGS} tags
+              </span>
+            </div>
+          </div>
+        </Section>
 
         <div className="border-t border-gray-100" />
         <div className="p-8 flex items-center justify-between">
@@ -24,6 +97,7 @@ export default function PublishArticlePage() {
             Schedule post
           </button>
         </div>
+        
       </div>
     </div>
   );
