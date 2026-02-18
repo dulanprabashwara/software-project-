@@ -13,10 +13,18 @@ function Section({ title, children }) {
 }
 
 export default function PublishArticlePage() {
-
+  
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState(["Technology", "Design", "Blogging"]);
   const MAX_TAGS = 5;
+  const [timing, setTiming] = useState("now"); // "now" or "schedule"
+  const [scheduledDate, setScheduledDate] = useState(""); // "YYYY-MM-DD"
+  const [scheduledTime, setScheduledTime] = useState(""); // "HH:MM" 24h
+  const [dateOpen, setDateOpen] = useState(false);
+  const [timeOpen, setTimeOpen] = useState(false);
+  const [tpHour, setTpHour] = useState("10");
+  const [tpMinute, setTpMinute] = useState("30");
+  const [tpPeriod, setTpPeriod] = useState("AM");
 
   const addTag = (raw) => {
     const t = raw.trim();
@@ -31,6 +39,31 @@ export default function PublishArticlePage() {
 
   const removeTag = (tag) => {
     setTags((prev) => prev.filter((t) => t !== tag));
+  };
+
+  const pad2 = (n) => String(n).padStart(2, "0");
+
+  const to12Hour = (hhmm) => {
+    const [hh, mm] = hhmm.split(":").map(Number);
+    const period = hh >= 12 ? "PM" : "AM";
+    const h12 = hh % 12 === 0 ? 12 : hh % 12;
+    return `${h12}:${pad2(mm)} ${period}`;
+  };
+
+  const to24Hour = (hour12, minute, period) => {
+    let h = parseInt(hour12, 10);
+    const m = parseInt(minute, 10);
+    if (period === "AM") {
+      if (h === 12) h = 0;
+    } else {
+      if (h !== 12) h += 12;
+    }
+    return `${pad2(h)}:${pad2(m)}`;
+  };
+
+  const formatDateMMDDYYYY = (yyyy_mm_dd) => {
+    const [y, m, d] = yyyy_mm_dd.split("-");
+    return `${m}/${d}/${y}`;
   };
 
   return (
@@ -90,7 +123,9 @@ export default function PublishArticlePage() {
           </div>
         </Section>
 
+        {/*Border line*/}
         <div className="border-t border-gray-100" />
+        
         <div className="p-8 flex items-center justify-between">
           <button className="px-8 py-3 rounded-full bg-black text-white">Back</button>
           <button className="px-8 py-3 rounded-full bg-emerald-500 text-white">
