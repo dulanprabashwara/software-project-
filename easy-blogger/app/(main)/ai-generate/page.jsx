@@ -35,7 +35,28 @@ export default function AIArticleGeneratorPage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedArticle, setGeneratedArticle] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [isCursorInsidePreview, setIsCursorInsidePreview] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const intervalRef = useRef(null);
+
+  // Copy to clipboard function
+  const handleCopyToClipboard = async () => {
+    if (generatedArticle) {
+      try {
+        const textToCopy = `${generatedArticle.title}\n\n${generatedArticle.content}`;
+        await navigator.clipboard.writeText(textToCopy);
+        setIsCopied(true);
+        
+        // Reset copied status after 6 seconds
+        setTimeout(() => {
+          setIsCopied(false);
+        }, 6000);
+      } catch (err) {
+        console.error('Failed to copy text: ', err);
+      }
+    }
+  };
 
   // Trending articles data
   const trendingArticles = [
@@ -634,7 +655,7 @@ export default function AIArticleGeneratorPage() {
                     <p className="heres-article-text">Here's your article..</p>
                     
                     {/* Article title label */}
-                    <div className="article-title-label">
+                    <div className="article-title-label" onClick={() => setShowPreview(true)}>
                       <span className="article-title-text">{generatedArticle.title}</span>
                       <svg 
                         className="open-book-icon" 
@@ -657,7 +678,7 @@ export default function AIArticleGeneratorPage() {
                           <path d="M19 12H5"></path>
                           <path d="M12 19l-7-7 7-7"></path>
                         </svg>
-                        <span className="back-text">back to prompt</span>
+                        <span className="back-text">back</span>
                       </button>
                       <button className="action-icon" title="Regenerate">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -729,6 +750,102 @@ export default function AIArticleGeneratorPage() {
           </div>
         </div>
       </div>
+      
+      {/* Preview Overlay */}
+      {showPreview && (
+        <div 
+          className="preview-overlay"
+          onMouseEnter={() => setIsCursorInsidePreview(false)}
+          onClick={() => setIsCursorInsidePreview(false)}
+        >
+          <div 
+            className="preview-box"
+            onMouseEnter={() => setIsCursorInsidePreview(true)}
+            onMouseLeave={(e) => {
+              // Only set to false if mouse is not entering the close button area
+              const relatedTarget = e.relatedTarget;
+              const isEnteringCloseButton = relatedTarget && relatedTarget.classList && (
+                relatedTarget.classList.contains('preview-close-circle') ||
+                relatedTarget.classList.contains('preview-close-button-circle') ||
+                relatedTarget.classList.contains('preview-copy-icon') ||
+                relatedTarget.classList.contains('preview-save-icon') ||
+                relatedTarget.classList.contains('preview-edit-button')
+              );
+              
+              if (!isEnteringCloseButton) {
+                setIsCursorInsidePreview(false);
+              }
+            }}
+          >
+            {/* Close Button - Only show when cursor is outside preview box */}
+            {!isCursorInsidePreview && (
+              <div 
+                className="preview-close-circle"
+                onMouseEnter={() => setIsCursorInsidePreview(false)}
+                onMouseLeave={() => setIsCursorInsidePreview(false)}
+              >
+                <button className="preview-close-button-circle" onClick={() => setShowPreview(false)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+                    <path d="M18 6L6 18"></path>
+                    <path d="M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+            )}
+            
+            {/* Preview Header */}
+            <div className="preview-header">
+              {/* Action Icons */}
+              <div className="preview-header-actions">
+                <button className="preview-copy-icon" title="Copy" onClick={handleCopyToClipboard}>
+                  {isCopied ? (
+                    <span className="preview-copied-message">copied to clipboard</span>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  )}
+                </button>
+                
+                <button className="preview-save-icon" title="save to unpublished articles">
+                  <img 
+                    src="/icons/Save.png" 
+                    alt="Save"
+                    width="16" 
+                    height="16"
+                  />
+                  <span className="preview-save-text">save draft</span>
+                </button>
+                
+                <button className="preview-edit-button" title="Edit">
+                  <span className="preview-edit-text">edit</span>
+                </button>
+              </div>
+            </div>
+            
+            {/* Preview Content - Common Layout Elements */}
+            <div className="preview-content">
+              <div className="preview-article-info">
+                <h3 className="preview-article-title">{generatedArticle.title}</h3>
+                <p className="preview-article-excerpt">{generatedArticle.content}</p>
+              </div>
+              
+              {/* Action buttons */}
+              <div className="preview-actions">
+                <button className="preview-action-button"></button>
+              </div>
+              
+              {/* Footer with word count */}
+              <div className="preview-footer">
+                <span className="preview-word-count">
+                 word count: {generatedArticle.content.split(' ').length}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
