@@ -13,20 +13,15 @@ export default function HomePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
+    <div className="h-screen bg-white overflow-hidden">
+      <Header onToggleSidebar={() => setSidebarOpen((p) => !p)} />
       <Sidebar isOpen={sidebarOpen} />
 
-  <main className={`pt-16 flex h-[calc(100vh-64px)] overflow-hidden transition-[margin] duration-300 ${sidebarOpen ? "ml-64" : "ml-0"}`}
->
-  <MainFeed articles={DATA.articles} />
-  <RightFeed
-    trending={DATA.trending}
-    topics={DATA.topics}
-    usersToFollow={DATA.usersToFollow}
-  />
-</main>
-
+      {/* IMPORTANT: mt-16 instead of pt-16, and fixed height */}
+      <main className={`mt-16 h-[calc(100vh-64px)] flex overflow-hidden ${sidebarOpen ? "ml-64" : "ml-0"}`}>
+        <MainFeed articles={DATA.articles} />
+        <RightFeed trending={DATA.trending} topics={DATA.topics} usersToFollow={DATA.usersToFollow} />
+      </main>
     </div>
   );
 }

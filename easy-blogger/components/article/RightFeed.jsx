@@ -2,7 +2,7 @@
 
 export default function RightFeed({ trending, topics, usersToFollow }) {
   return (
-    <aside className="hidden lg:block w-[320px] p-8 overflow-y-auto space-y-10">
+    <aside className="hidden lg:block w-[320px] min-h-0 p-8 overflow-y-auto space-y-10">
       {/* Trending */}
       <div>
         <h3 className="font-bold mb-4 font-serif">Trending</h3>

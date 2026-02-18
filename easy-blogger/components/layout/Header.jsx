@@ -19,8 +19,7 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
     avatar: "https://i.pravatar.cc/150?img=47",
   };
 
- useEffect(() => setMounted(true), []); //set mounted as true after first loading
-
+  
   // Close dropdown when clicking outside (only when open) 9trackes 'open' variable
   useEffect(() => {
     if (!open) return;
@@ -33,7 +32,7 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
     return () => document.removeEventListener("mousedown", onDown); //clean up effect. remove mouse listner
   }, [open]);
 
-  if (!mounted) return <header className="h-16 border-b bg-white" />; //load a skelton if the UI isn't rendered
+    //load a skelton if the UI isn't rendered
 
   const membership = isPremium
     ? { label: "Manage Membership", href: "/subscription/manage" } //set membership states [make object] using 'isPremium'  taken from 'useSubscription' component
