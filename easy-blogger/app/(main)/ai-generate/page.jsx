@@ -785,7 +785,7 @@ export default function AIArticleGeneratorPage() {
                   </svg>
                 </button>
                 
-                <button className="preview-save-icon" title="Save">
+                <button className="preview-save-icon" title="save to unpublished articles">
                   <img 
                     src="/icons/Save.png" 
                     alt="Save"
