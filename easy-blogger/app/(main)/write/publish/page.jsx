@@ -1,35 +1,28 @@
-/**
- * Publish Article Confirmation Page
- *
- * Purpose: Confirmation page before publishing an article
- * Flow: User clicks "Publish" button from the editor
- *
- * Features:
- * - Preview of article title and summary
- * - Add/edit tags before publishing
- * - Set cover image
- * - Choose publication visibility (public/unlisted)
- * - Confirm publish action
- * - Cancel and return to editor
- *
- * Actions:
- * - Confirm Publish → Article goes live, redirect to published article
- * - Cancel → Return to editor
- */
+"use client";
 
 export default function PublishArticlePage() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">Publish Article</h1>
-        <p className="text-gray-500 mb-8">
-          Review and confirm before publishing your article.
-        </p>
-        <div className="text-gray-400 space-y-4">
-          <p>Article Title: "Your Article Title Here"</p>
-          <p>Tags: technology, programming, web development</p>
-          <p className="mt-8">• Confirm Publish</p>
-          <p>• Cancel</p>
+    <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
+      <div className="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="p-10 text-center">
+          <h1 className="text-4xl font-semibold text-gray-900">Publish your Article</h1>
+          <p className="mt-3 text-gray-500">
+            You can publish now or schedule a time to publish
+          </p>
+        </div>
+
+        <div className="border-t border-gray-100" />
+        <div className="p-10 space-y-10">
+          {/* Sections will be added in next commits */}
+          <div className="text-gray-400 text-center">Coming next: tags, timing, share, actions</div>
+        </div>
+
+        <div className="border-t border-gray-100" />
+        <div className="p-8 flex items-center justify-between">
+          <button className="px-8 py-3 rounded-full bg-black text-white">Back</button>
+          <button className="px-8 py-3 rounded-full bg-emerald-500 text-white">
+            Schedule post
+          </button>
         </div>
       </div>
     </div>
