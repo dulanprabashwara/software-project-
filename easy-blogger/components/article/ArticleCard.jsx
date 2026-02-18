@@ -1,3 +1,6 @@
+import DOMPurify from "dompurify";
+
+
 // Displays a single article preview card in lists
 export default function ArticleCard({ article }) {
   return (
@@ -34,9 +37,14 @@ export default function ArticleCard({ article }) {
           <h2 className="text-xl font-bold text-[#111827] mb-2 leading-tight font-serif hover:text-[#1ABC9C] transition-colors duration-150 cursor-pointer">
             {article.title}
           </h2>
-          <p className="text-[#6B7280] text-base leading-relaxed line-clamp-3">
-            {article.description}
-          </p>
+          <div className="text-[#6B7280] text-base leading-relaxed line-clamp-3">
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(article.content),
+              }}
+            />
+          </div>
+
         </div>
 
         {/* Thumbnail */}

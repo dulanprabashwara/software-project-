@@ -1,287 +1,151 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { HelpCircle, Sparkles, MessageCircle } from "lucide-react";
+import {HelpCircle,Sparkles,MessageCircle,Search,PenSquare,Bell,Menu,LogOut,} from "lucide-react";
+import { useSubscription } from "../../app/subscription/SubscriptionContext";
 
-// Top navigation header component for the app layout
-export default function Header({ onToggleSidebar }) {
-  const router = useRouter();
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const menuRef = useRef(null);
+export default function Header({ onToggleSidebar }) { //onToggleSidebar is a function passed down
+  const {isPremium}  = useSubscription(); //get subscription states
 
-  // Mock user data
+  const [open, setOpen] = useState(false); //user dropdown open or closed
+  const [mounted, setMounted] = useState(false); //for good rendering?
+  const menuRef = useRef(null); //reference for user-dropdown menu
+
+  //mock user details
   const user = {
-    name: "Dulan prabashwara",
-    email: "rji**************@gmail.com",
+    name: "Emma Richardson",
+    email: "richardsonem17@gmail.com",
     avatar: "https://i.pravatar.cc/150?img=47",
-    initials: "D",
   };
 
-  // Set mounted state on client
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+ useEffect(() => setMounted(true), []); //set mounted as true after first loading
 
-  // Close menu when clicking outside
+  // Close dropdown when clicking outside (only when open) 9trackes 'open' variable
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowProfileMenu(false);
-      }
+    if (!open) return;
+
+    const onDown = (e) => { // 'e' is the mouse event
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
     };
 
-    if (showProfileMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    document.addEventListener("mousedown", onDown); //global event listner for mouse press
+    return () => document.removeEventListener("mousedown", onDown); //clean up effect. remove mouse listner
+  }, [open]);
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showProfileMenu]);
+  if (!mounted) return <header className="h-16 border-b bg-white" />; //load a skelton if the UI isn't rendered
 
-  const handleSignOut = () => {
-    // Handle sign out logic
-    alert("Signing out...");
-    router.push("/");
-  };
+  const membership = isPremium
+    ? { label: "Manage Membership", href: "/subscription/manage" } //set membership states [make object] using 'isPremium'  taken from 'useSubscription' component
+    : { label: "Become a Member", href: "/subscription/upgrade" };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white border-b border-[#E5E7EB] z-50 h-16">
-      <div className="h-full max-w-360 mx-auto px-6 flex items-center justify-between">
-        {/* Left: Hamburger + Logo */}
-        <div className="flex items-center gap-4">
-          {/* Hamburger menu */}
+    <header className="fixed top-0 inset-x-0 z-50 h-16 bg-white border-b px-6 flex items-center justify-between">
+      {/* Left stuff (logo, sidebar button)*/}
+      <div className="flex items-center gap-4"> {/*left div*/}
+        <button
+          onClick={onToggleSidebar}
+          className="p-2 hover:bg-gray-100 rounded-lg"
+          aria-label="Toggle sidebar" 
+        > {/*for screenreaders*/}
+          <Menu size={20} /> {/*menu icon from lucide*/}
+        </button>
+
+        <Link href="/home" className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[#1ABC9C] font-serif">
+            Easy Blogger
+          </h1>
+        </Link>
+      </div>
+
+      {/* Search (md+) */}
+      <div className="flex-1 max-w-md mx-8 relative hidden md:block">
+        <Search
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+          size={18}
+        />
+        <input
+          placeholder="Search..."
+          className="w-full pl-11 pr-4 py-2 bg-gray-50 border rounded-full text-sm outline-none focus:ring-1 ring-[#1ABC9C]"
+        />
+      </div>
+
+      {/* Right */}
+      <div className="flex items-center gap-3">
+        <Link
+          href="/write/choose-method"
+          className="bg-[#1ABC9C] text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 hover:bg-[#17a589]"
+        >
+          <PenSquare size={16} />
+          <span className="hidden sm:inline">Write</span>
+        </Link>
+
+        <button className="relative p-2 text-gray-500 hover:bg-gray-50 rounded-full" aria-label="Notifications">
+          <Bell size={22} />
+          <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+        </button>
+
+        {/* Avatar + Dropdown */}
+        <div className="relative" ref={menuRef}> {/* store a reference to this element*/}
           <button
-            onClick={onToggleSidebar}
-            className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150"
+            onClick={() => setOpen((prev) => !prev)}
+            className={`w-9 h-9 rounded-full border-2 overflow-hidden ${
+              isPremium ? "border-amber-400" : "border-transparent"
+            }`}
+            aria-label="User menu"
           >
-            <svg
-              className="w-5 h-5 text-[#111827]"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+            <img src={user.avatar} alt="User" className="w-full h-full object-cover" />
           </button>
 
-          {/* Logo */}
-          <Link href="/home" className="flex items-center gap-1">
-            <img
-              src="/images/easy-blogger-logo.png"
-              alt="Easy Blogger Logo"
-              className="h-12 w-auto"
-            />
-            <h1
-              className="text-2xl font-bold text-[#1ABC9C]"
-              style={{ fontFamily: "Georgia, serif" }}
-            >
-              Easy Blogger
-            </h1>
-          </Link>
-        </div>
-
-        {/* Center: Search */}
-        <div className="flex-1 max-w-xl mx-8">
-          <div className="relative">
-            <svg
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7280]"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search stories, topics, and people..."
-              className="w-full pl-12 pr-4 py-3 text-sm bg-[#F8FAFC] border border-[#E5E7EB] rounded-full focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent placeholder-[#6B7280] transition-all duration-150"
-            />
-          </div>
-        </div>
-
-        {/* Right: Write button + Notifications + Avatar */}
-        <div className="flex items-center gap-4">
-          {/* Write button */}
-          <Link href="/write/choose-method">
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors duration-150">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
-              Write
-            </button>
-          </Link>
-
-          {/* Notifications */}
-          <button className="relative p-2 hover:bg-[#F8FAFC] rounded-full transition-colors duration-150">
-            <svg
-              className="w-6 h-6 text-[#6B7280]"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              />
-            </svg>
-            {/* Notification dot */}
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#DC2626] rounded-full"></span>
-          </button>
-
-          {/* User avatar with dropdown */}
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#E5E7EB] hover:border-[#1ABC9C] transition-colors duration-150"
-            >
-              <img
-                src={user.avatar}
-                alt="User avatar"
-                className="w-full h-full object-cover"
-              />
-            </button>
-
-            {/* Profile Dropdown Menu */}
-            {mounted && showProfileMenu && (
-              <div className="absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-lg border border-[#E5E7EB] overflow-hidden z-50">
-                {/* User Profile Section */}
-                <div className="p-4 border-b border-[#E5E7EB]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-[#6B7280] flex items-center justify-center text-white text-lg font-semibold">
-                      {user.initials}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-[#111827] text-sm">
-                        {user.name}
-                      </p>
-                      <Link
-                        href="/profile"
-                        className="text-xs text-[#6B7280] hover:text-[#111827] transition-colors"
-                        onClick={() => setShowProfileMenu(false)}
-                      >
-                        View profile
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Help Option */}
-                <div className="py-2">
-                  <button className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[#F9FAFB] transition-colors text-left">
-                    <HelpCircle className="w-5 h-5 text-[#6B7280]" />
-                    <span className="text-sm text-[#6B7280]">Help</span>
-                  </button>
-                  <Link
-                    href="/chat"
-                    className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-[#F9FAFB] transition-colors text-left"
-                    onClick={() => setShowProfileMenu(false)}
-                  >
-                    <MessageCircle className="w-5 h-5 text-[#6B7280]" />
-                    <span className="text-sm text-[#6B7280]">Messages</span>
-                  </Link>
-                </div>
-
-                {/* Become a Premium Member */}
-                <div className="border-t border-[#E5E7EB] py-3 px-4">
-                  <Link
-                    href="/subscription/upgrade"
-                    onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2 text-sm text-[#6B7280] hover:text-[#111827] transition-colors"
-                  >
-                    <span>Become a Premium member</span>
-                    <Sparkles className="w-4 h-4 text-[#FBBF24]" />
-                  </Link>
-                </div>
-
-                {/* Sign Out Section */}
-                <div className="border-t border-[#E5E7EB] py-3 px-4">
-                  <button
-                    onClick={handleSignOut}
-                    className="text-sm text-[#6B7280] hover:text-[#111827] transition-colors mb-2"
-                  >
-                    Sign out
-                  </button>
-                  <p className="text-xs text-[#9CA3AF]">{user.email}</p>
-                </div>
-
-                {/* Footer Links */}
-                <div className="border-t border-[#E5E7EB] py-3 px-4">
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#9CA3AF]">
-                    <a
-                      href="#"
-                      className="hover:text-[#6B7280] transition-colors"
-                    >
-                      About
-                    </a>
-                    <a
-                      href="#"
-                      className="hover:text-[#6B7280] transition-colors"
-                    >
-                      Blog
-                    </a>
-                    <a
-                      href="#"
-                      className="hover:text-[#6B7280] transition-colors"
-                    >
-                      Careers
-                    </a>
-                    <a
-                      href="#"
-                      className="hover:text-[#6B7280] transition-colors"
-                    >
-                      Privacy
-                    </a>
-                    <a
-                      href="#"
-                      className="hover:text-[#6B7280] transition-colors"
-                    >
-                      Terms
-                    </a>
-                  </div>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#9CA3AF] mt-1">
-                    <a
-                      href="#"
-                      className="hover:text-[#6B7280] transition-colors"
-                    >
-                      Text to speech
-                    </a>
-                    <a
-                      href="#"
-                      className="hover:text-[#6B7280] transition-colors"
-                    >
-                      More
-                    </a>
-                  </div>
-                </div>
+          {open && (
+            <div className="absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-xl py-2 animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-4 py-2 border-none mb-1 text-sm">
+                <p className="font-bold truncate">
+                  <Link href="./profile"> {user.name}</Link>
+                </p>
+                <p className="text-gray-500 text-xs truncate">{user.email}</p>
               </div>
-            )}
-          </div>
+
+              {/*icon help, message,membership from menulink function*/}
+
+              <div className="border-t my-1" />
+              <Link
+                href="#"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
+              >
+                <HelpCircle size={16} /> Help
+              </Link>
+
+              <Link
+                href="/chat"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
+              >
+                <MessageCircle size={16} /> Messages
+              </Link>
+
+              <Link
+                href={membership.href}
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-amber-600"
+              >
+                <Sparkles size={16} /> {membership.label}
+              </Link>
+
+              <div className="border-t my-1" />
+
+              <Link href="./login"
+                onClick={() => {
+                  setOpen(false);
+                  alert("Logging out!!");
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-red-500"
+              >
+                <LogOut size={16} /> Sign out
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </header>
