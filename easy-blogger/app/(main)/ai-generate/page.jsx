@@ -744,7 +744,7 @@ export default function AIArticleGeneratorPage() {
             onMouseEnter={() => setIsCursorInsidePreview(true)}
             onMouseLeave={(e) => {
               // Only set to false if mouse is not entering the close button
-              if (!e.relatedTarget?.closest('.preview-close-circle')) {
+              if (!e.relatedTarget || !e.relatedTarget.closest('.preview-close-circle')) {
                 setIsCursorInsidePreview(false);
               }
             }}
