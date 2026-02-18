@@ -569,11 +569,20 @@ margin-top:-20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .preview-close-button-circle:hover {
-  background-color: #1ABC9C;
+  background-color: #5A5A5A;
+  transform: scale(1.1);
+}
+
+.preview-close-button-circle svg {
+  transition: transform 0.2s ease;
+}
+
+.preview-close-button-circle:hover svg {
+  transform: scale(1.1);
 }
 
 .preview-content {

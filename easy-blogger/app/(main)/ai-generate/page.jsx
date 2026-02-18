@@ -742,11 +742,20 @@ export default function AIArticleGeneratorPage() {
           <div 
             className="preview-box"
             onMouseEnter={() => setIsCursorInsidePreview(true)}
-            onMouseLeave={() => setIsCursorInsidePreview(false)}
+            onMouseLeave={(e) => {
+              // Only set to false if mouse is not entering the close button
+              if (!e.relatedTarget?.closest('.preview-close-circle')) {
+                setIsCursorInsidePreview(false);
+              }
+            }}
           >
             {/* Close Button - Only show when cursor is outside preview box */}
             {!isCursorInsidePreview && (
-              <div className="preview-close-circle">
+              <div 
+                className="preview-close-circle"
+                onMouseEnter={() => setIsCursorInsidePreview(false)}
+                onMouseLeave={() => setIsCursorInsidePreview(false)}
+              >
                 <button className="preview-close-button-circle" onClick={() => setShowPreview(false)}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
                     <path d="M18 6L6 18"></path>
