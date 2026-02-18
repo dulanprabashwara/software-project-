@@ -459,9 +459,9 @@
   transition: opacity 0.2s ease;
   padding: 4px 8px;
   border-radius: 4px;
-  margin-left: -295px;
-  margin-right: 130px;
-margin-top:-20px;
+  margin-left: -278px;
+  margin-right: 190px;
+
 }
 
 .back-button:hover {
@@ -794,7 +794,7 @@ margin-top:-20px;
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-top: 2px;
+  margin-top: -2px;
 }
 
 .action-icon {
