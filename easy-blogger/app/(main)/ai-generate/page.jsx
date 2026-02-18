@@ -17,8 +17,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSubscription } from "../../subscription/SubscriptionContext";
+import { mockArticles } from "../../api/mockData";
 import "../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../styles/ai-article-generator/ai-article-generator-view2.css";
+import "../../../styles/ai-article-generator/articles-view.css";
 
 export default function AIArticleGeneratorPage() {
   // NOTE: Header and Sidebar are provided by app/(main)/layout.jsx
@@ -26,7 +28,7 @@ export default function AIArticleGeneratorPage() {
 
   const router = useRouter();
   const { isPremium, isLoading } = useSubscription();
-  const [currentView, setCurrentView] = useState("input"); // "input" or "keywords"
+  const [currentView, setCurrentView] = useState("input"); // "input", "keywords", "articles"
   const [userInput, setUserInput] = useState("");
   const [selectedKeywords, setSelectedKeywords] = useState([]);
   const [articleLength, setArticleLength] = useState("short");
@@ -201,6 +203,133 @@ export default function AIArticleGeneratorPage() {
     return null; // Return null while redirecting
   }
 
+  // Articles View
+  if (currentView === "articles") {
+    return (
+      <div className="flex h-full">
+        {/* AI Article Generator Main Section */}
+        <div className="ai-generator-main flex-1 overflow-y-auto">     
+          <div className="ai-content-wrapper">
+            {/* Title Section */}
+            <div className="ai-generator-title justify-between">
+              <div className="flex items-center gap-3">
+                {/* Menu Icon */}
+                <button
+                  onClick={() => setCurrentView("input")}
+                  className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150"
+                >
+                  <img
+                    src="/icons/menu icon.png"
+                    alt="Menu"
+                    className="ai-generator-menu-icon"
+                  />
+                </button>
+
+                {/* AI Article Generator Symbol */}
+                <img
+                  src="/icons/Ai article generator icon teel color.png"
+                  alt="AI Article Generator"
+                  className="ai-generator-ai-icon"
+                />
+
+                <h1 className="ai-generator-title-text">AI Article Generator</h1>
+              </div>
+            </div>
+
+            {/* Previous Generations and New Article Section */}
+            <div className="flex items-center justify-between mt-5">
+              {/* Previous Generations */}
+              <div className="previous-generations">
+                {/* Chat Icon */}
+                <div className="previous-generations-icon">
+                  <img
+                    src="/icons/chat.png"
+                    alt="Chat"
+                    className="w-4 h-4"
+                    style={{ filter: "invert(1)" }}
+                  />
+                </div>
+                
+                {/* Previous Generations Text */}
+                <span className="previous-generations-text">
+                  Previous Generations
+                </span>
+              </div>
+
+              {/* New Article Button */}
+              <button
+                onClick={() => setCurrentView("input")}
+                className="new-article-button"
+              >
+                <span>+ New Article</span>
+              </button>
+            </div>
+
+            {/* Articles Content */}
+            <div className="px-6 py-8">
+              {/* Article Labels */}
+              <div className="articles-container">
+                {mockArticles.map((article) => (
+                  <div key={article.id} className="article-label">
+                    {/* Article Title */}
+                    <span className="article-title">
+                      {article.title}
+                    </span>
+                    
+                    {/* Generated Time */}
+                    <span className="article-time">
+                      {article.date}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Insights Sidebar */}
+        <div className="insights-sidebar">
+          <div className="insights-header">
+            <h2 className="insights-title">Insights</h2>
+            <div className="insights-dots">
+              <div className="insights-dot-1"></div>
+              <div className="insights-dot-2"></div>
+            </div>
+            
+          </div>
+
+          <div className="mb-8">
+            <h3 className="insights-section-title">Top AI Assisted Articles</h3>
+            <div className="space-y-3">
+              {topAIArticles.map((article, index) => (
+                <div key={index} className="insights-article-section">
+                  <div className="insights-article-header">
+                    <span className="insights-article-number">{index + 1}</span> 
+                    <h4 className="insights-article-name">{article.title}</h4>
+                  </div>
+                  <div className="insights-author-section">
+                    <p className="insights-author-name">{article.authors} </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="insights-section-title">Trending topics</h3>
+            <div className="trending-topics-buttons">
+              {trendingTopics.map((topic, index) => (
+                <button key={index} className="topic-button">
+                  {topic}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handleManualSlide = (direction) => {
     if (direction === "next") {
       setCurrentArticleIndex((prev) => (prev + 1) % trendingArticles.length);
@@ -316,11 +445,16 @@ export default function AIArticleGeneratorPage() {
           <div className="ai-generator-title justify-between">
             <div className="flex items-center gap-3">
               {/* Menu Icon */}
-              <img
-                src="/icons/menu icon.png"
-                alt="Menu"
-                className="ai-generator-menu-icon"
-              />
+              <button
+                onClick={() => setCurrentView("articles")}
+                className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150"
+              >
+                <img
+                  src="/icons/menu icon.png"
+                  alt="Menu"
+                  className="ai-generator-menu-icon"
+                />
+              </button>
 
               {/* AI Article Generator Symbol */}
               <img
