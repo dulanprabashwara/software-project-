@@ -743,8 +743,17 @@ export default function AIArticleGeneratorPage() {
             className="preview-box"
             onMouseEnter={() => setIsCursorInsidePreview(true)}
             onMouseLeave={(e) => {
-              // Only set to false if mouse is not entering the close button
-              if (!e.relatedTarget || !e.relatedTarget.closest('.preview-close-circle')) {
+              // Only set to false if mouse is not entering the close button area
+              const relatedTarget = e.relatedTarget;
+              const isEnteringCloseButton = relatedTarget && (
+                relatedTarget.classList.contains('preview-close-circle') ||
+                relatedTarget.classList.contains('preview-close-button-circle') ||
+                relatedTarget.classList.contains('preview-copy-icon') ||
+                relatedTarget.classList.contains('preview-save-icon') ||
+                relatedTarget.classList.contains('preview-edit-button')
+              );
+              
+              if (!isEnteringCloseButton) {
                 setIsCursorInsidePreview(false);
               }
             }}
