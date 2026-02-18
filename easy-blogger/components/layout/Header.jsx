@@ -91,36 +91,43 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
 
         {/* Avatar + Dropdown */}
         <div className="relative" ref={menuRef}> {/* store a reference to this element*/}
-          <button
-            onClick={() => setOpen((prev) => !prev)}
+          
+          <div>
+          <button  
+          onClick={() => setOpen((prev) => !prev)}
             className={`w-9 h-9 rounded-full border-2 overflow-hidden ${
               isPremium ? "border-amber-400" : "border-transparent"
             }`}
             aria-label="User menu"
           >
             <img src={user.avatar} alt="User" className="w-full h-full object-cover" />
-            {isPremium && (
+            
+          </button>
+          
+          {isPremium && (
               <div className="absolute -bottom-1 -right-1 drop-shadow-md z-10">
                 <BadgeCheck className="w-5 h-5 text-[#1ABC9C]" />
               </div>
             )}
-          </button>
-
+             
+            </div>
           {open && (
             <div className="absolute right-0 mt-2 w-56 bg-white border border-[#e5e7eb] rounded-xl shadow-xl py-2 animate-in fade-in zoom-in-95 duration-100">
               <div className={`w-17 h-17 rounded-full border-2 overflow-hidden mx-auto ${isPremium ? "border-amber-400" : "border-transparent" }`}>
                 <img src={user.avatar} alt="User" className="w-full h-full object-cover" />
               </div>
               <div className="px-4 py-2 border-none mb-1 text-sm   mb-0">
-                <p className="font-bold truncate">
-                 
-                  <Link href="./profile">
-                   
-                    {user.name} 
-                     
-                  </Link>
-                 
-                </p>
+               
+                <p className="font-bold">
+  <Link href="./profile" className="flex items-center justify-between">
+    <span className="truncate">{user.name}</span>
+
+    {isPremium && (
+      <BadgeCheck className="w-5 h-5 text-[#1ABC9C] flex-shrink-0 ml-2" />
+    )}
+  </Link>
+</p>
+
                 <p className="text-gray-500 text-xs truncate">{user.email}</p>
 
               </div>
