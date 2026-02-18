@@ -270,6 +270,34 @@ export default function AIArticleGeneratorPage() {
 
   const isGenerateButtonDisabled = selectedKeywords.length === 0 || !articleLength || !tone;
 
+  const handleRegenerateArticle = () => {
+    if (generatedArticle) {
+      setIsGenerating(true);
+      
+      // Clear current article during loading
+      setGeneratedArticle(null);
+      
+      // Handle article regeneration
+      console.log("Regenerating article with:", {
+        title: generatedArticle.title,
+        content: generatedArticle.content,
+        length: articleLength,
+        tone: tone,
+      });
+      
+      // Stop loading after 4 seconds and show result
+      setTimeout(() => {
+        setIsGenerating(false);
+        // Set sample regenerated article data
+        setGeneratedArticle({
+          title: "Regenerated: " + generatedArticle.title,
+          content: "This is a regenerated version of the article with updated content and insights..."
+        });
+        setCurrentView("result");
+      }, 4000);
+    }
+  };
+
   const getArticleLengthDisplay = () => {
     const options = {
       'short': { left: 'Short', right: '300-1000' },
@@ -708,7 +736,7 @@ export default function AIArticleGeneratorPage() {
                         </svg>
                         <span className="back-text">back</span>
                       </button>
-                      <button className="action-icon" title="Regenerate">
+                      <button className="action-icon" title="Regenerate" onClick={handleRegenerateArticle}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M23 4v6h-6"></path>
                           <path d="M1 20v-6h6"></path>
