@@ -17,8 +17,8 @@ export default function HomePage() {
       <Header onToggleSidebar={() => setSidebarOpen((p) => !p)} />
       <Sidebar isOpen={sidebarOpen} />
 
-      {/* IMPORTANT: mt-16 instead of pt-16, and fixed height */}
-      <main className={`mt-4 h-[calc(100vh-64px)] w-full flex overflow-hidden duration-300 ease-in-out ${sidebarOpen ? "ml-64" : "ml-0"}`}>
+      
+      <main className={`mt-16 h-[calc(100vh-64px)] flex overflow-hidden duration-600 ease-in-out ${sidebarOpen ? "ml-64" : "ml-0"}`}>
         <MainFeed articles={DATA.articles} />
         <RightFeed trending={DATA.trending} topics={DATA.topics} usersToFollow={DATA.usersToFollow} />
       </main>

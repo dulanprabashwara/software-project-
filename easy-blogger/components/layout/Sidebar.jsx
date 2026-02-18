@@ -21,7 +21,7 @@ export default function Sidebar({ isOpen }) {
   ];
 
   return (
-  <aside className={`fixed left-0 top-16 bottom-0 w-64 bg-white border-r border-[#e5e7eb] transition-transform ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+  <aside className={`fixed left-0 top-16 bottom-0 w-64 bg-white border-r border-[#e5e7eb] duration-600 ease-in-out transition-transform ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
   <nav className="p-4 h-full flex flex-col">
     
     {/*  Main Links */}
