@@ -37,7 +37,26 @@ export default function AIArticleGeneratorPage() {
   const [generatedArticle, setGeneratedArticle] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [isCursorInsidePreview, setIsCursorInsidePreview] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const intervalRef = useRef(null);
+
+  // Copy to clipboard function
+  const handleCopyToClipboard = async () => {
+    if (generatedArticle) {
+      try {
+        const textToCopy = `${generatedArticle.title}\n\n${generatedArticle.content}`;
+        await navigator.clipboard.writeText(textToCopy);
+        setIsCopied(true);
+        
+        // Reset copied status after 6 seconds
+        setTimeout(() => {
+          setIsCopied(false);
+        }, 6000);
+      } catch (err) {
+        console.error('Failed to copy text: ', err);
+      }
+    }
+  };
 
   // Trending articles data
   const trendingArticles = [
@@ -778,11 +797,15 @@ export default function AIArticleGeneratorPage() {
             <div className="preview-header">
               {/* Action Icons */}
               <div className="preview-header-actions">
-                <button className="preview-copy-icon" title="Copy">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                  </svg>
+                <button className="preview-copy-icon" title="Copy" onClick={handleCopyToClipboard}>
+                  {isCopied ? (
+                    <span className="preview-copied-message">copied to clipboard</span>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  )}
                 </button>
                 
                 <button className="preview-save-icon" title="save to unpublished articles">
