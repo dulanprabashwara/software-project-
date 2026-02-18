@@ -204,8 +204,6 @@ export default function CreateArticlePage() {
           </div>
         </div>
 
-        {/* Toolbar (TinyMCE toolbar will render here) */}
-
         {/* Editor Content */}
         <div
           className="px-8 py-8 overflow-y-auto"
