@@ -767,20 +767,28 @@ export default function AIArticleGeneratorPage() {
             
             {/* Preview Header */}
             <div className="preview-header">
-              <div className="preview-title-section">
-                <h2 className="preview-title">Article Preview</h2>
-                <svg 
-                  className="preview-book-icon" 
-                  width="20" 
-                  height="20" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="#1E1E1E" 
-                  strokeWidth="2"
-                >
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                </svg>
+              {/* Action Icons */}
+              <div className="preview-header-actions">
+                <button className="preview-copy-icon" title="Copy">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+                
+                <button className="preview-save-icon" title="Save">
+                  <img 
+                    src="/icons/Save.png" 
+                    alt="Save"
+                    width="16" 
+                    height="16"
+                  />
+                  <span className="preview-save-text">save draft</span>
+                </button>
+                
+                <button className="preview-edit-button" title="Edit">
+                  <span className="preview-edit-text">edit</span>
+                </button>
               </div>
             </div>
             
