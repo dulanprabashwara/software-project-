@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
+
 
 {/*Define a reusable section component for better structure and readability*/}
 function Section({ title, children }) {
@@ -65,6 +67,30 @@ export default function PublishArticlePage() {
     const [y, m, d] = yyyy_mm_dd.split("-");
     return `${m}/${d}/${y}`;
   };
+
+  useEffect(() => {
+    if (timing !== "now") return;
+
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = pad2(now.getMonth() + 1);
+    const d = pad2(now.getDate());
+    const hh = pad2(now.getHours());
+    const mm = pad2(now.getMinutes());
+
+    setScheduledDate(`${y}-${m}-${d}`);
+    setScheduledTime(`${hh}:${mm}`);
+    setDateOpen(false);
+    setTimeOpen(false);
+
+    // sync 12h picker values
+    const hhNum = now.getHours();
+    const period = hhNum >= 12 ? "PM" : "AM";
+    const hour = hhNum % 12 === 0 ? 12 : hhNum % 12;
+    setTpHour(String(hour));
+    setTpMinute(pad2(now.getMinutes()));
+    setTpPeriod(period);
+  }, [timing]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
