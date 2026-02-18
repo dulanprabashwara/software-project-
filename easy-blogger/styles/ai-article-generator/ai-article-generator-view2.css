@@ -543,6 +543,39 @@ margin-top:-20px;
   background-color: rgba(26, 188, 156, 0.1);
 }
 
+/* Close Button Circle */
+.preview-close-circle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  background-color: #6B6B6B;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.preview-close-button-circle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.preview-close-button-circle:hover {
+  background-color: #1ABC9C;
+}
+
 .preview-content {
   padding: 24px;
   flex: 1;

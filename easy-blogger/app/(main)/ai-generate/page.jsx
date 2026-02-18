@@ -36,6 +36,7 @@ export default function AIArticleGeneratorPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedArticle, setGeneratedArticle] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [isCursorInsidePreview, setIsCursorInsidePreview] = useState(false);
   const intervalRef = useRef(null);
 
   // Trending articles data
@@ -733,8 +734,28 @@ export default function AIArticleGeneratorPage() {
       
       {/* Preview Overlay */}
       {showPreview && (
-        <div className="preview-overlay">
-          <div className="preview-box">
+        <div 
+          className="preview-overlay"
+          onMouseEnter={() => setIsCursorInsidePreview(false)}
+          onClick={() => setIsCursorInsidePreview(false)}
+        >
+          <div 
+            className="preview-box"
+            onMouseEnter={() => setIsCursorInsidePreview(true)}
+            onMouseLeave={() => setIsCursorInsidePreview(false)}
+          >
+            {/* Close Button - Only show when cursor is outside preview box */}
+            {!isCursorInsidePreview && (
+              <div className="preview-close-circle">
+                <button className="preview-close-button-circle" onClick={() => setShowPreview(false)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+                    <path d="M18 6L6 18"></path>
+                    <path d="M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+            )}
+            
             {/* Preview Header */}
             <div className="preview-header">
               <div className="preview-title-section">
@@ -752,12 +773,6 @@ export default function AIArticleGeneratorPage() {
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                 </svg>
               </div>
-              <button className="preview-close-button" onClick={() => setShowPreview(false)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
-                  <path d="M18 6L6 18"></path>
-                  <path d="M6 6l12 12"></path>
-                </svg>
-              </button>
             </div>
             
             {/* Preview Content - Common Layout Elements */}
