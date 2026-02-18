@@ -33,7 +33,30 @@ export default function AIArticleGeneratorPage() {
   const [tone, setTone] = useState("professional");
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedArticle, setGeneratedArticle] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [isCursorInsidePreview, setIsCursorInsidePreview] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const intervalRef = useRef(null);
+
+  // Copy to clipboard function
+  const handleCopyToClipboard = async () => {
+    if (generatedArticle) {
+      try {
+        const textToCopy = `${generatedArticle.title}\n\n${generatedArticle.content}`;
+        await navigator.clipboard.writeText(textToCopy);
+        setIsCopied(true);
+        
+        // Reset copied status after 6 seconds
+        setTimeout(() => {
+          setIsCopied(false);
+        }, 6000);
+      } catch (err) {
+        console.error('Failed to copy text: ', err);
+      }
+    }
+  };
 
   // Trending articles data
   const trendingArticles = [
@@ -103,10 +126,10 @@ export default function AIArticleGeneratorPage() {
 
   // Insights sidebar data - Top AI assisted articles
   const topAIArticles = [
-    { title: "Understanding Neural Networks", views: "12.5K" },
-    { title: "Python for Data Science", views: "10.2K" },
-    { title: "Machine Learning Basics", views: "8.7K" },
-    { title: "AI Ethics and Governance", views: "7.3K" },
+    { title: "Understanding Neural Networks", authors: "Sarah Chan" },
+    { title: "Python for Data Science", authors: "Rebecca Hudson" },
+    { title: "Machine Learning Basics", authors: "Danielle Cruise " },
+    { title: "AI Ethics and Governance", authors: "Janet Wales" },
   ];
 
   // Trending topics
@@ -194,6 +217,8 @@ export default function AIArticleGeneratorPage() {
 
   const handleGenerateArticle = () => {
     if (selectedKeywords.length > 0) {
+      setIsGenerating(true);
+      
       // Handle article generation
       console.log("Generating article with:", {
         input: userInput,
@@ -201,6 +226,17 @@ export default function AIArticleGeneratorPage() {
         length: articleLength,
         tone: tone,
       });
+      
+      // Stop loading after 2 seconds and show result
+      setTimeout(() => {
+        setIsGenerating(false);
+        // Set sample generated article data
+        setGeneratedArticle({
+          title: "Artificial Intelligence",
+          content: "Artificial Intelligence has revolutionized the way we live, work, and interact with technology..."
+        });
+        setCurrentView("result");
+      }, 2000);
     }
   };
 
@@ -218,8 +254,8 @@ export default function AIArticleGeneratorPage() {
   return (
     <div className="flex h-full">
       {/* AI Article Generator Main Section */}
-      <div className="ai-generator-main flex-1 overflow-y-auto">
-        <div className="ai-content-wrapper">
+      <div className="ai-generator-main flex-1 overflow-y-auto">     
+           <div className="ai-content-wrapper">
           {/* Title Section */}
           <div className="ai-generator-title justify-between">
             <div className="flex items-center gap-3">
@@ -288,7 +324,7 @@ export default function AIArticleGeneratorPage() {
                         </div>
                       </div>
 
-                      <h3 className="article-title">
+                      <h3 className="article-title" onClick={() => console.log('Article clicked:', trendingArticles[currentArticleIndex].title)}>
                         {trendingArticles[currentArticleIndex].title}
                       </h3>
 
@@ -327,7 +363,7 @@ export default function AIArticleGeneratorPage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
                             />
                           </svg>
                           <span className="stat-number">
@@ -357,6 +393,16 @@ export default function AIArticleGeneratorPage() {
                             strokeWidth={2}
                             d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                           />
+                        </svg>
+                        <svg
+                          className="three-dots-icon"
+                          fill="none"
+                          stroke="#1ABC9C"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle cx="12" cy="12" r="1" fill="#1ABC9C"/>
+                          <circle cx="19" cy="12" r="1" fill="#1ABC9C"/>
+                          <circle cx="5" cy="12" r="1" fill="#1ABC9C"/>
                         </svg>
                       </div>
                     </div>
@@ -542,21 +588,125 @@ export default function AIArticleGeneratorPage() {
               </div>
 
               <div className="generate-button-section">
-                <button
-                  onClick={handleGenerateArticle}
-                  disabled={isGenerateButtonDisabled}
-                  className="generate-button"
-                >
-                  <div className="generate-button-icon">
-                    <img
-                      src="/icons/Ai article generator icon white.png"
-                      alt="Generate AI Article"
-                    />
+                {isGenerating ? (
+                  <div className="generate-loading-container">
+                    <div className="loading-spinner">
+                      <svg
+                        className="spinner-svg"
+                        width="50"
+                        height="50"
+                        viewBox="0 0 50 50"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle
+                          className="spinner-circle"
+                          cx="25"
+                          cy="25"
+                          r="20"
+                          fill="none"
+                          strokeWidth="5"
+                          stroke="#B4EFDD"
+                          strokeDasharray="125.6"
+                          strokeDashoffset="31.4"
+                        />
+                        <circle
+                          className="spinner-circle-active"
+                          cx="25"
+                          cy="25"
+                          r="20"
+                          fill="none"
+                          strokeWidth="5"
+                          stroke="#1ABC9C"
+                          strokeDasharray="125.6"
+                          strokeDashoffset="31.4"
+                        />
+                      </svg>
+                    </div>
+                    <p className="loading-text">Generating the article..</p>
                   </div>
-                  <span className="generate-button-text">Generate AI Article</span>
-                </button>
+                ) : !generatedArticle ? (
+                  <button
+                    onClick={handleGenerateArticle}
+                    disabled={isGenerateButtonDisabled}
+                    className="generate-button"
+                  >
+                    <div className="generate-button-icon">
+                      <img
+                        src="/icons/Ai article generator icon white.png"
+                        alt="Generate AI Article"
+                      />
+                    </div>
+                    <span className="generate-button-text">Generate AI Article</span>
+                  </button>
+                ) : null}
               </div>
               </>
+            )}
+
+            {/* View 3: Article Result */}
+            {currentView === "result" && generatedArticle && (
+              <div className="article-result-section">
+                <div className="result-container">
+                  {/* Left side - empty for spacing */}
+                  <div className="result-left-side"></div>
+                  
+                  {/* Right side - content */}
+                  <div className="result-right-side">
+                    <p className="heres-article-text">Here's your article..</p>
+                    
+                    {/* Article title label */}
+                    <div className="article-title-label" onClick={() => setShowPreview(true)}>
+                      <span className="article-title-text">{generatedArticle.title}</span>
+                      <svg 
+                        className="open-book-icon" 
+                        width="20" 
+                        height="20" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="#1E1E1E" 
+                        strokeWidth="2"
+                      >
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                      </svg>
+                    </div>
+                    
+                    {/* Action icons */}
+                    <div className="article-actions">
+                      <button className="back-button" title="Back" onClick={() => setCurrentView("input")}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
+                          <path d="M19 12H5"></path>
+                          <path d="M12 19l-7-7 7-7"></path>
+                        </svg>
+                        <span className="back-text">back</span>
+                      </button>
+                      <button className="action-icon" title="Regenerate">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M23 4v6h-6"></path>
+                          <path d="M1 20v-6h6"></path>
+                          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                      </button>
+                      <button className="action-icon" title="Copy">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                      </button>
+                      <button className="action-icon" title="Like">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                        </svg>
+                      </button>
+                      <button className="action-icon" title="Dislike">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-3"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -573,12 +723,17 @@ export default function AIArticleGeneratorPage() {
         </div>
 
         <div className="mb-8">
-          <h3 className="insights-section-title">TOP AI Assisted Articles</h3>
+          <h3 className="insights-section-title">Top AI Assisted Articles</h3>
           <div className="space-y-3">
             {topAIArticles.map((article, index) => (
               <div key={index} className="insights-article-section">
-                <h4 className="insights-article-name">{article.title}</h4>
-                <p className="insights-author-name">{article.views} views</p>
+                <div className="insights-article-header">
+                  <span className="insights-article-number">{index + 1}</span> 
+                  <h4 className="insights-article-name">{article.title}</h4>
+                </div>
+                <div className="insights-author-section">
+                  <p className="insights-author-name">{article.authors} </p>
+                </div>
               </div>
             ))}
           </div>
@@ -595,6 +750,102 @@ export default function AIArticleGeneratorPage() {
           </div>
         </div>
       </div>
+      
+      {/* Preview Overlay */}
+      {showPreview && (
+        <div 
+          className="preview-overlay"
+          onMouseEnter={() => setIsCursorInsidePreview(false)}
+          onClick={() => setIsCursorInsidePreview(false)}
+        >
+          <div 
+            className="preview-box"
+            onMouseEnter={() => setIsCursorInsidePreview(true)}
+            onMouseLeave={(e) => {
+              // Only set to false if mouse is not entering the close button area
+              const relatedTarget = e.relatedTarget;
+              const isEnteringCloseButton = relatedTarget && relatedTarget.classList && (
+                relatedTarget.classList.contains('preview-close-circle') ||
+                relatedTarget.classList.contains('preview-close-button-circle') ||
+                relatedTarget.classList.contains('preview-copy-icon') ||
+                relatedTarget.classList.contains('preview-save-icon') ||
+                relatedTarget.classList.contains('preview-edit-button')
+              );
+              
+              if (!isEnteringCloseButton) {
+                setIsCursorInsidePreview(false);
+              }
+            }}
+          >
+            {/* Close Button - Only show when cursor is outside preview box */}
+            {!isCursorInsidePreview && (
+              <div 
+                className="preview-close-circle"
+                onMouseEnter={() => setIsCursorInsidePreview(false)}
+                onMouseLeave={() => setIsCursorInsidePreview(false)}
+              >
+                <button className="preview-close-button-circle" onClick={() => setShowPreview(false)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+                    <path d="M18 6L6 18"></path>
+                    <path d="M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+            )}
+            
+            {/* Preview Header */}
+            <div className="preview-header">
+              {/* Action Icons */}
+              <div className="preview-header-actions">
+                <button className="preview-copy-icon" title="Copy" onClick={handleCopyToClipboard}>
+                  {isCopied ? (
+                    <span className="preview-copied-message">copied to clipboard</span>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  )}
+                </button>
+                
+                <button className="preview-save-icon" title="save to unpublished articles">
+                  <img 
+                    src="/icons/Save.png" 
+                    alt="Save"
+                    width="16" 
+                    height="16"
+                  />
+                  <span className="preview-save-text">save draft</span>
+                </button>
+                
+                <button className="preview-edit-button" title="Edit">
+                  <span className="preview-edit-text">edit</span>
+                </button>
+              </div>
+            </div>
+            
+            {/* Preview Content - Common Layout Elements */}
+            <div className="preview-content">
+              <div className="preview-article-info">
+                <h3 className="preview-article-title">{generatedArticle.title}</h3>
+                <p className="preview-article-excerpt">{generatedArticle.content}</p>
+              </div>
+              
+              {/* Action buttons */}
+              <div className="preview-actions">
+                <button className="preview-action-button"></button>
+              </div>
+              
+              {/* Footer with word count */}
+              <div className="preview-footer">
+                <span className="preview-word-count">
+                 word count: {generatedArticle.content.split(' ').length}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
