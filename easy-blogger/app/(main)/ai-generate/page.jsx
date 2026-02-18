@@ -161,6 +161,34 @@ export default function AIArticleGeneratorPage() {
     };
   }, [trendingArticles.length]);
 
+  useEffect(() => {
+    // Add or remove loading class from body based on isLoading state
+    if (isLoading) {
+      document.body.classList.add('loading');
+    } else {
+      document.body.classList.remove('loading');
+    }
+    
+    // Cleanup function
+    return () => {
+      document.body.classList.remove('loading');
+    };
+  }, [isLoading]);
+
+  useEffect(() => {
+    // Add or remove loading class from body based on isGenerating state
+    if (isGenerating) {
+      document.body.classList.add('loading');
+    } else {
+      document.body.classList.remove('loading');
+    }
+    
+    // Cleanup function
+    return () => {
+      document.body.classList.remove('loading');
+    };
+  }, [isGenerating]);
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">

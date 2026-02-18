@@ -442,6 +442,15 @@
   }
 }
 
+/* Loading State - Prevents user interaction during loading */
+body.loading {
+  cursor: not-allowed !important;
+}
+
+body.loading * {
+  cursor: not-allowed !important;
+}
+
 /* View 3: Article Result Styles */
 .article-result-section {
   margin-top:8px;
