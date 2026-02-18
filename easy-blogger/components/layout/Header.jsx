@@ -104,7 +104,7 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
 
           {open && (
             <div className="absolute right-0 mt-2 w-56 bg-white border border-[#e5e7eb] rounded-xl shadow-xl py-2 animate-in fade-in zoom-in-95 duration-100">
-              <div className = "w-17 h-17 rounded-full border-0 overflow-hidden mx-auto">
+              <div className={`w-17 h-17 rounded-full border-2 overflow-hidden mx-auto ${isPremium ? "border-amber-400" : "border-transparent" }`}>
                 <img src={user.avatar} alt="User" className="w-full h-full object-cover" />
               </div>
               <div className="px-4 py-2 border-none mb-1 text-sm   mb-0">
