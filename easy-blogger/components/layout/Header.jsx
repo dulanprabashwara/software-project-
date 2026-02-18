@@ -40,7 +40,7 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
     : { label: "Become a Member", href: "/subscription/upgrade" };
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 h-16 bg-white border-b px-6 flex items-center justify-between">
+    <header className="fixed top-0 inset-x-0 z-50 h-16 bg-white border-b border-[#6B6B6B] px-6 flex items-center justify-between">
       {/* Left stuff (logo, sidebar button)*/}
       <div className="flex items-center gap-4"> {/*left div*/}
         <button

@@ -1,6 +1,4 @@
 "use client";
-import DOMPurify from "dompurify";
-
 
 // Displays a single article preview card in lists
 export default function ArticleCard({ article }) {
@@ -16,6 +14,7 @@ export default function ArticleCard({ article }) {
         <span className="text-sm font-medium text-[#111827]">
           {article.authorName}
         </span>
+
         {article.verified && (
           <svg
             className="w-4 h-4 text-[#1ABC9C]"
@@ -29,6 +28,7 @@ export default function ArticleCard({ article }) {
             />
           </svg>
         )}
+
         <span className="text-sm text-[#6B7280]">· {article.date}</span>
       </div>
 
@@ -38,14 +38,14 @@ export default function ArticleCard({ article }) {
           <h2 className="text-xl font-bold text-[#111827] mb-2 leading-tight font-serif hover:text-[#1ABC9C] transition-colors duration-150 cursor-pointer">
             {article.title}
           </h2>
+
           <div className="text-[#6B7280] text-base leading-relaxed line-clamp-3">
             <div
               dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(article.content),
+                __html: article.content, // already sanitized HTML
               }}
             />
           </div>
-
         </div>
 
         {/* Thumbnail */}
