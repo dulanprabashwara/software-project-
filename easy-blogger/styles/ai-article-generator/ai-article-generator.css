@@ -321,6 +321,15 @@
   color: #a9a9a9;
 }
 
+/* Input Error Message */
+.input-error-message {
+  color: #e25457;
+  font-size: 14px;
+  font-family: "Inter", sans-serif;
+  margin-top: 8px;
+  margin-left: 67px;
+}
+
 .word-count {
   position: absolute;
   bottom: 8px;

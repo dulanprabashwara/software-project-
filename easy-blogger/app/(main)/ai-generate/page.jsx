@@ -40,13 +40,33 @@ export default function AIArticleGeneratorPage() {
   const [isCursorInsidePreview, setIsCursorInsidePreview] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [articles, setArticles] = useState([]);
+  const [inputError, setInputError] = useState("");
   const intervalRef = useRef(null);
+
+  // Validation function for user input
+  const validateUserInput = (text) => {
+    // Check if text contains at least one English letter
+    const hasEnglishLetter = /[a-zA-Z]/.test(text);
+    
+    if (!hasEnglishLetter) {
+      setInputError("Please enter a valid text!");
+      return false;
+    }
+    
+    setInputError("");
+    return true;
+  };
 
   // Fetch articles list from API
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const response = await fetch('/api/articles');
+        const response = await fetch('/api/ai-generate');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         // Set articles list only
@@ -367,15 +387,21 @@ export default function AIArticleGeneratorPage() {
   const handleUserInputChange = (e) => {
     const text = e.target.value;
     const words = text.trim().split(" ");
+    
     // Enforce 50-word limit for user input
     if (words.length <= 50) {
       setUserInput(text);
+      // Clear error when user is typing
+      setInputError("");
     }
   };
 
   const handleContinueToKeywords = () => {
     if (userInput.trim()) {
-      setCurrentView("keywords");
+      if (validateUserInput(userInput)) {
+        setCurrentView("keywords");
+      }
+      // If validation fails, error will be shown by validateUserInput
     }
   };
 
@@ -403,7 +429,12 @@ export default function AIArticleGeneratorPage() {
       // Fetch generated article from API
       const fetchGeneratedArticle = async () => {
         try {
-          const response = await fetch('/api/articles');
+          const response = await fetch('/api/ai-generate');
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
           const data = await response.json();
           
           if (data.generatedArticle) {
@@ -422,6 +453,9 @@ export default function AIArticleGeneratorPage() {
   };
 
   const isGenerateButtonDisabled = selectedKeywords.length === 0 || !articleLength || !tone;
+
+// Check if continue button should be disabled
+const isContinueButtonDisabled = !userInput.trim() || inputError !== "";
 
   const handleRegenerateArticle = () => {
     if (generatedArticle) {
@@ -663,9 +697,16 @@ export default function AIArticleGeneratorPage() {
                   </span>
                 </div>
 
+                {/* Error Message */}
+                {inputError && (
+                  <div className="input-error-message">
+                    {inputError}
+                  </div>
+                )}
+
                 <button
                   onClick={handleContinueToKeywords}
-                  disabled={!userInput.trim()}
+                  disabled={isContinueButtonDisabled}
                   className="continue-button"
                 >
                   <span className="continue-button-text">
