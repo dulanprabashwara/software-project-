@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { useSubscription } from "../../subscription/SubscriptionContext";
 import "../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../styles/ai-article-generator/ai-article-generator-view2.css";
+import "../../../styles/ai-article-generator/articles-view.css";
 
 export default function AIArticleGeneratorPage() {
   // NOTE: Header and Sidebar are provided by app/(main)/layout.jsx
@@ -26,7 +27,7 @@ export default function AIArticleGeneratorPage() {
 
   const router = useRouter();
   const { isPremium, isLoading } = useSubscription();
-  const [currentView, setCurrentView] = useState("input"); // "input" or "keywords"
+  const [currentView, setCurrentView] = useState("input"); // "input", "keywords", "articles"
   const [userInput, setUserInput] = useState("");
   const [selectedKeywords, setSelectedKeywords] = useState([]);
   const [articleLength, setArticleLength] = useState("short");
@@ -38,7 +39,64 @@ export default function AIArticleGeneratorPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [isCursorInsidePreview, setIsCursorInsidePreview] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [articles, setArticles] = useState([]);
+  const [inputError, setInputError] = useState("");
+  const [isLoadingTransition, setIsLoadingTransition] = useState(false);
   const intervalRef = useRef(null);
+
+  // Validation function for user input
+  const validateUserInput = (text) => {
+    // Check if text contains at least one English letter
+    const hasEnglishLetter = /[a-zA-Z]/.test(text);
+    
+    if (!hasEnglishLetter) {
+      setInputError("Please enter a valid text!");
+      return false;
+    }
+    
+    setInputError("");
+    return true;
+  };
+
+  // Fetch articles list from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/ai-generate');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Set all data from API
+        if (data.articles) {
+          setArticles(data.articles);
+        }
+        if (data.trendingArticles) {
+          // Note: trendingArticles is already used in slider
+          // This ensures compatibility with existing slider logic
+        }
+        if (data.topAIArticles) {
+          // Note: topAIArticles is already used in insights sidebar
+          // This ensures compatibility with existing insights logic
+        }
+        if (data.trendingTopics) {
+          // Note: trendingTopics is already used in insights sidebar
+          // This ensures compatibility with existing topics logic
+        }
+        if (data.keywords) {
+          // Note: keywords is already used in keyword selection
+          // This ensures compatibility with existing keyword logic
+        }
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Copy to clipboard function
   const handleCopyToClipboard = async () => {
@@ -161,6 +219,34 @@ export default function AIArticleGeneratorPage() {
     };
   }, [trendingArticles.length]);
 
+  useEffect(() => {
+    // Add or remove loading class from body based on isLoading state
+    if (isLoading) {
+      document.body.classList.add('loading');
+    } else {
+      document.body.classList.remove('loading');
+    }
+    
+    // Cleanup function
+    return () => {
+      document.body.classList.remove('loading');
+    };
+  }, [isLoading]);
+
+  useEffect(() => {
+    // Add or remove loading class from body based on isGenerating state
+    if (isGenerating) {
+      document.body.classList.add('loading');
+    } else {
+      document.body.classList.remove('loading');
+    }
+    
+    // Cleanup function
+    return () => {
+      document.body.classList.remove('loading');
+    };
+  }, [isGenerating]);
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -171,6 +257,130 @@ export default function AIArticleGeneratorPage() {
 
   if (!isPremium) {
     return null; // Return null while redirecting
+  }
+
+  // Articles View
+  if (currentView === "articles") {
+    return (
+      <div className="flex h-full">
+        {/* AI Article Generator Main Section */}
+        <div className="ai-generator-main flex-1 overflow-y-auto">     
+          <div className="ai-content-wrapper">
+            {/* Title Section */}
+            <div className="ai-generator-title justify-between">
+              <div className="flex items-center gap-3">
+                {/* Menu Icon */}
+                <button
+                  onClick={() => setCurrentView("input")}
+                  className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150"
+                >
+                  <img
+                    src="/icons/menu icon.png"
+                    alt="Menu"
+                    className="ai-generator-menu-icon"
+                  />
+                </button>
+
+                {/* AI Article Generator Symbol */}
+                <img
+                  src="/icons/Ai article generator icon teel color.png"
+                  alt="AI Article Generator"
+                  className="ai-generator-ai-icon"
+                />
+
+                <h1 className="ai-generator-title-text">AI Article Generator</h1>
+              </div>
+            </div>
+
+            {/* Previous Generations and New Article Section */}
+            <div className="flex items-center justify-between mt-5">
+              {/* Previous Generations */}
+              <div className="previous-generations">
+                {/* Chat Icon */}
+                <div className="previous-generations-icon">
+                  <img
+                    src="/icons/chat.png"
+                    alt="Chat"
+                    className="w-4 h-4"
+                    style={{ filter: "invert(1)" }}
+                  />
+                </div>
+                
+                {/* Previous Generations Text */}
+                <span className="previous-generations-text">
+                  Previous Generations
+                </span>
+              </div>
+
+              {/* New Article Button */}
+              <button
+                onClick={() => setCurrentView("input")}
+                className="new-article-button"
+              >
+                <span>+ New Article</span>
+              </button>
+            </div>
+
+            {/* Articles Content */}
+            <div className="px-6 py-8">
+              {/* Articles List */}
+              <div className="articles-list">
+                {articles.map((article) => (
+                  <div key={article.id} className="article-label">
+                    <div className="article-title">
+                      <span>{article.title}</span>
+                    </div>
+                    <div className="article-date">
+                      <span>{article.date}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Insights Sidebar */}
+        <div className="insights-sidebar">
+          <div className="insights-header">
+            <h2 className="insights-title">Insights</h2>
+            <div className="insights-dots">
+              <div className="insights-dot-1"></div>
+              <div className="insights-dot-2"></div>
+            </div>
+            
+          </div>
+
+          <div className="mb-8">
+            <h3 className="insights-section-title">Top AI Assisted Articles</h3>
+            <div className="space-y-3">
+              {topAIArticles.map((article, index) => (
+                <div key={index} className="insights-article-section">
+                  <div className="insights-article-header">
+                    <span className="insights-article-number">{index + 1}</span> 
+                    <h4 className="insights-article-name">{article.title}</h4>
+                  </div>
+                  <div className="insights-author-section">
+                    <p className="insights-author-name">{article.authors} </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="insights-section-title">Trending topics</h3>
+            <div className="trending-topics-buttons">
+              {trendingTopics.map((topic, index) => (
+                <button key={index} className="topic-button">
+                  {topic}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const handleManualSlide = (direction) => {
@@ -194,15 +404,31 @@ export default function AIArticleGeneratorPage() {
   const handleUserInputChange = (e) => {
     const text = e.target.value;
     const words = text.trim().split(" ");
+    
     // Enforce 50-word limit for user input
     if (words.length <= 50) {
       setUserInput(text);
+      // Clear error when user is typing
+      setInputError("");
     }
   };
 
   const handleContinueToKeywords = () => {
     if (userInput.trim()) {
-      setCurrentView("keywords");
+      if (validateUserInput(userInput)) {
+        setIsLoadingTransition(true);
+        
+        // Add loading class to body for blur effect
+        document.body.classList.add('loading-transition');
+        
+        // Transition to keywords view after 2 seconds
+        setTimeout(() => {
+          setIsLoadingTransition(false);
+          document.body.classList.remove('loading-transition');
+          setCurrentView("keywords");
+        }, 2000);
+      }
+      // If validation fails, error will be shown by validateUserInput
     }
   };
 
@@ -227,20 +453,64 @@ export default function AIArticleGeneratorPage() {
         tone: tone,
       });
       
-      // Stop loading after 2 seconds and show result
-      setTimeout(() => {
-        setIsGenerating(false);
-        // Set sample generated article data
-        setGeneratedArticle({
-          title: "Artificial Intelligence",
-          content: "Artificial Intelligence has revolutionized the way we live, work, and interact with technology..."
-        });
-        setCurrentView("result");
-      }, 2000);
+      // Fetch generated article from API
+      const fetchGeneratedArticle = async () => {
+        try {
+          const response = await fetch('/api/ai-generate');
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          
+          if (data.generatedArticle) {
+            setGeneratedArticle(data.generatedArticle);
+            setCurrentView("result");
+          }
+        } catch (error) {
+          console.error('Failed to fetch generated article:', error);
+        } finally {
+          setIsGenerating(false);
+        }
+      };
+
+      fetchGeneratedArticle();
     }
   };
 
   const isGenerateButtonDisabled = selectedKeywords.length === 0 || !articleLength || !tone;
+
+// Check if continue button should be disabled
+const isContinueButtonDisabled = !userInput.trim() || inputError !== "";
+
+  const handleRegenerateArticle = () => {
+    if (generatedArticle) {
+      setIsGenerating(true);
+      
+      // Clear current article during loading
+      setGeneratedArticle(null);
+      
+      // Handle article regeneration
+      console.log("Regenerating article with:", {
+        title: generatedArticle.title,
+        content: generatedArticle.content,
+        length: articleLength,
+        tone: tone,
+      });
+      
+      // Stop loading after 4 seconds and show result
+      setTimeout(() => {
+        setIsGenerating(false);
+        // Set sample regenerated article data
+        setGeneratedArticle({
+          title: "Regenerated: " + generatedArticle.title,
+          content: "This is a regenerated version of the article with updated content and insights..."
+        });
+        setCurrentView("result");
+      }, 4000);
+    }
+  };
 
   const getArticleLengthDisplay = () => {
     const options = {
@@ -260,11 +530,16 @@ export default function AIArticleGeneratorPage() {
           <div className="ai-generator-title justify-between">
             <div className="flex items-center gap-3">
               {/* Menu Icon */}
-              <img
-                src="/icons/menu icon.png"
-                alt="Menu"
-                className="ai-generator-menu-icon"
-              />
+              <button
+                onClick={() => setCurrentView("articles")}
+                className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150"
+              >
+                <img
+                  src="/icons/menu icon.png"
+                  alt="Menu"
+                  className="ai-generator-menu-icon"
+                />
+              </button>
 
               {/* AI Article Generator Symbol */}
               <img
@@ -449,9 +724,16 @@ export default function AIArticleGeneratorPage() {
                   </span>
                 </div>
 
+                {/* Error Message */}
+                {inputError && (
+                  <div className="input-error-message">
+                    {inputError}
+                  </div>
+                )}
+
                 <button
                   onClick={handleContinueToKeywords}
-                  disabled={!userInput.trim()}
+                  disabled={isContinueButtonDisabled}
                   className="continue-button"
                 >
                   <span className="continue-button-text">
@@ -624,7 +906,7 @@ export default function AIArticleGeneratorPage() {
                     </div>
                     <p className="loading-text">Generating the article..</p>
                   </div>
-                ) : !generatedArticle ? (
+                ) : !generatedArticle || isGenerating ? (
                   <button
                     onClick={handleGenerateArticle}
                     disabled={isGenerateButtonDisabled}
@@ -680,7 +962,7 @@ export default function AIArticleGeneratorPage() {
                         </svg>
                         <span className="back-text">back</span>
                       </button>
-                      <button className="action-icon" title="Regenerate">
+                      <button className="action-icon" title="Regenerate" onClick={handleRegenerateArticle}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M23 4v6h-6"></path>
                           <path d="M1 20v-6h6"></path>
@@ -751,6 +1033,15 @@ export default function AIArticleGeneratorPage() {
         </div>
       </div>
       
+      {/* Loading Transition Overlay */}
+      {isLoadingTransition && (
+        <div className="loading-transition-overlay">
+          <div className="loading-spinner-container">
+            <div className="loading-spinner-transition"></div>
+          </div>
+        </div>
+      )}
+
       {/* Preview Overlay */}
       {showPreview && (
         <div 
@@ -758,11 +1049,27 @@ export default function AIArticleGeneratorPage() {
           onMouseEnter={() => setIsCursorInsidePreview(false)}
           onClick={() => setIsCursorInsidePreview(false)}
         >
+          {/* Close Button - Only show when cursor is outside preview box */}
+          {!isCursorInsidePreview && (
+            <div 
+              className="preview-close-circle"
+              onMouseEnter={() => setIsCursorInsidePreview(false)}
+              onMouseLeave={() => setIsCursorInsidePreview(false)}
+            >
+              <button className="preview-close-button-circle" onClick={() => setShowPreview(false)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+                  <path d="M18 6L6 18"></path>
+                  <path d="M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          )}
+          
           <div 
             className="preview-box"
             onMouseEnter={() => setIsCursorInsidePreview(true)}
             onMouseLeave={(e) => {
-              // Only set to false if mouse is not entering the close button area
+              // Only set to false if mouse is not entering close button area
               const relatedTarget = e.relatedTarget;
               const isEnteringCloseButton = relatedTarget && relatedTarget.classList && (
                 relatedTarget.classList.contains('preview-close-circle') ||
@@ -777,21 +1084,6 @@ export default function AIArticleGeneratorPage() {
               }
             }}
           >
-            {/* Close Button - Only show when cursor is outside preview box */}
-            {!isCursorInsidePreview && (
-              <div 
-                className="preview-close-circle"
-                onMouseEnter={() => setIsCursorInsidePreview(false)}
-                onMouseLeave={() => setIsCursorInsidePreview(false)}
-              >
-                <button className="preview-close-button-circle" onClick={() => setShowPreview(false)}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
-                    <path d="M18 6L6 18"></path>
-                    <path d="M6 6l12 12"></path>
-                  </svg>
-                </button>
-              </div>
-            )}
             
             {/* Preview Header */}
             <div className="preview-header">
@@ -835,13 +1127,13 @@ export default function AIArticleGeneratorPage() {
               <div className="preview-actions">
                 <button className="preview-action-button"></button>
               </div>
-              
-              {/* Footer with word count */}
-              <div className="preview-footer">
-                <span className="preview-word-count">
+            </div>
+            
+            {/* Footer with word count - Sibling to content */}
+            <div className="preview-footer">
+              <span className="preview-word-count">
                  word count: {generatedArticle.content.split(' ').length}
-                </span>
-              </div>
+              </span>
             </div>
           </div>
         </div>

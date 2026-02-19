@@ -1,0 +1,140 @@
+/* Articles View Styles */
+
+/* Articles List */
+.articles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Add vertical gap between article labels */
+}
+
+/* Article Label Container */
+.article-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 93px;
+  width: 90%;
+  border-bottom: 3px solid #bac6c4 !important;
+  box-shadow: 0 5px 4px rgba(0, 0, 0, 0.1);
+  background-color: #f3f6f5;
+  border-radius: 8px;
+  margin-right: 20px;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+/* Article Title */
+.article-title {
+  color: #000000;
+  font-size: 18px;
+  font-family: Georgia, serif;
+  margin-left: 20px !important;
+}
+
+/* Article Date */
+.article-date {
+  color: #A9A9A9;
+  font-size: 14px;
+  font-family: Georgia, serif;
+  margin-right: 40px !important;
+}
+
+/* Article Labels Container */
+.articles-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px; /* space-y-8 equivalent */
+}
+
+/* Previous Generations Section */
+.previous-generations {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Previous Generations Chat Icon */
+.previous-generations-icon {
+  width: 30px;
+  height: 30px;
+  border: 2px solid #000000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left:30px;
+}
+
+/* Previous Generations Text */
+.previous-generations-text {
+  color: #000000;
+  font-size: 25px;
+  font-family: Georgia, bold;
+}
+
+/* New Article Button */
+.new-article-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  background-color: #dff8f1;
+  color: #1ABC9C;
+  border: 2px solid #1ABC9C;
+  margin-right:100px;
+}
+
+.new-article-button:hover {
+  background-color: #E8F5F3;
+  color: #17a589;
+  border-color: #17a589;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .article-label {
+    width: 100%;
+    max-width: 700px;
+  }
+  
+  .article-title {
+    font-size: 16px;
+  }
+  
+  .article-time {
+    font-size: 12px;
+  }
+  
+  .previous-generations-text {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .article-label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    height: auto;
+    padding: 16px 0;
+  }
+  
+  .article-title {
+    font-size: 14px;
+  }
+  
+  .article-time {
+    font-size: 12px;
+  }
+  
+  .previous-generations {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
