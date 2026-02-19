@@ -286,6 +286,6 @@ export default function QueuePage() {
           </div>
         )}
       </div>
-git checkout main    </div>
+    </div>
   );
 }
