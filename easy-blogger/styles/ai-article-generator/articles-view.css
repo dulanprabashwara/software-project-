@@ -29,7 +29,7 @@
   color: #000000;
   font-size: 18px;
   font-family: Georgia, serif;
-  margin-left: 20px;
+  margin-left: 20px !important;
 }
 
 /* Article Date */
