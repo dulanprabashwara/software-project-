@@ -17,7 +17,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSubscription } from "../../subscription/SubscriptionContext";
-import { mockArticles, mockGeneratedArticle } from "../../api/mockData";
 import "../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../styles/ai-article-generator/ai-article-generator-view2.css";
 import "../../../styles/ai-article-generator/articles-view.css";
@@ -40,7 +39,27 @@ export default function AIArticleGeneratorPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [isCursorInsidePreview, setIsCursorInsidePreview] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [articles, setArticles] = useState([]);
   const intervalRef = useRef(null);
+
+  // Fetch articles list from API
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const response = await fetch('/api/articles');
+        const data = await response.json();
+        
+        // Set articles list only
+        if (data.articles) {
+          setArticles(data.articles);
+        }
+      } catch (error) {
+        console.error('Failed to fetch articles:', error);
+      }
+    };
+
+    fetchArticles();
+  }, []);
 
   // Copy to clipboard function
   const handleCopyToClipboard = async () => {
@@ -267,19 +286,16 @@ export default function AIArticleGeneratorPage() {
 
             {/* Articles Content */}
             <div className="px-6 py-8">
-              {/* Article Labels */}
-              <div className="articles-container">
-                {mockArticles.map((article) => (
+              {/* Articles List */}
+              <div className="articles-list">
+                {articles.map((article) => (
                   <div key={article.id} className="article-label">
-                    {/* Article Title */}
-                    <span className="article-title">
-                      {article.title}
-                    </span>
-                    
-                    {/* Generated Time */}
-                    <span className="article-time">
-                      {article.date}
-                    </span>
+                    <div className="article-title">
+                      <span>{article.title}</span>
+                    </div>
+                    <div className="article-date">
+                      <span>{article.date}</span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -384,13 +400,24 @@ export default function AIArticleGeneratorPage() {
         tone: tone,
       });
       
-      // Stop loading after 2 seconds and show result
-      setTimeout(() => {
-        setIsGenerating(false);
-        // Set sample generated article data with long content for scrollbar testing
-        setGeneratedArticle(mockGeneratedArticle);
-        setCurrentView("result");
-      }, 2000);
+      // Fetch generated article from API
+      const fetchGeneratedArticle = async () => {
+        try {
+          const response = await fetch('/api/articles');
+          const data = await response.json();
+          
+          if (data.generatedArticle) {
+            setGeneratedArticle(data.generatedArticle);
+            setCurrentView("result");
+          }
+        } catch (error) {
+          console.error('Failed to fetch generated article:', error);
+        } finally {
+          setIsGenerating(false);
+        }
+      };
+
+      fetchGeneratedArticle();
     }
   };
 
@@ -811,7 +838,7 @@ export default function AIArticleGeneratorPage() {
                     </div>
                     <p className="loading-text">Generating the article..</p>
                   </div>
-                ) : !generatedArticle ? (
+                ) : !generatedArticle || isGenerating ? (
                   <button
                     onClick={handleGenerateArticle}
                     disabled={isGenerateButtonDisabled}

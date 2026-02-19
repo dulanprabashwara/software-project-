@@ -11,6 +11,7 @@
   box-shadow: 0 5px 4px rgba(0, 0, 0, 0.1);
   background-color: #f0f1f0;
   border-radius: 8px;
+  margin-right: 10px;
 }
 
 /* Article Title */
@@ -26,7 +27,7 @@
   color: #A9A9A9;
   font-size: 14px;
   font-family: Georgia, serif;
-  margin-right: 30px;
+  margin-right: 40px;
 }
 
 /* Article Labels Container */
