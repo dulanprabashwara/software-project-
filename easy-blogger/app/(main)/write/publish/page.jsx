@@ -297,8 +297,20 @@ export default function PublishArticlePage() {
               </div>
             </div>
           </div>
+          
+          {scheduledDate && scheduledTime && (
+            <div className="mt-6 text-sm">
+              <p className="text-gray-600">
+                This article will be published on
+              </p>
+              <p className="mt-1 font-semibold text-gray-900">
+                {formatDateMMDDYYYY(scheduledDate)} at {to12Hour(scheduledTime)}
+              </p>
+            </div>
+          )}
+
         </Section>
-        
+
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
