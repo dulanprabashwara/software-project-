@@ -41,6 +41,7 @@ export default function AIArticleGeneratorPage() {
   const [isCopied, setIsCopied] = useState(false);
   const [articles, setArticles] = useState([]);
   const [inputError, setInputError] = useState("");
+  const [isLoadingTransition, setIsLoadingTransition] = useState(false);
   const intervalRef = useRef(null);
 
   // Validation function for user input
@@ -399,7 +400,17 @@ export default function AIArticleGeneratorPage() {
   const handleContinueToKeywords = () => {
     if (userInput.trim()) {
       if (validateUserInput(userInput)) {
-        setCurrentView("keywords");
+        setIsLoadingTransition(true);
+        
+        // Add loading class to body for blur effect
+        document.body.classList.add('loading-transition');
+        
+        // Transition to keywords view after 2 seconds
+        setTimeout(() => {
+          setIsLoadingTransition(false);
+          document.body.classList.remove('loading-transition');
+          setCurrentView("keywords");
+        }, 2000);
       }
       // If validation fails, error will be shown by validateUserInput
     }
@@ -1006,6 +1017,15 @@ const isContinueButtonDisabled = !userInput.trim() || inputError !== "";
         </div>
       </div>
       
+      {/* Loading Transition Overlay */}
+      {isLoadingTransition && (
+        <div className="loading-transition-overlay">
+          <div className="loading-spinner-container">
+            <div className="loading-spinner-transition"></div>
+          </div>
+        </div>
+      )}
+
       {/* Preview Overlay */}
       {showPreview && (
         <div 
