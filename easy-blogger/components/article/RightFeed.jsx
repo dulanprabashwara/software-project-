@@ -2,7 +2,7 @@
 
 export default function RightFeed({ trending, topics, usersToFollow }) {
   return (
-    <aside className="hidden lg:block w-[320px] min-h-0 p-8 overflow-y-auto space-y-10">
+    <aside className="hidden border-l border-[#e5e7eb] lg:block w-80 z-0 shrink-0  p-8 overflow-y-auto ">
       {/* Trending */}
       <div>
         <h3 className="font-bold mb-4 font-serif">Trending</h3>
@@ -37,7 +37,7 @@ export default function RightFeed({ trending, topics, usersToFollow }) {
       </div>
 
       {/* Who to follow */}
-      <div>
+      <div className="mt-3">
         <h3 className="font-bold mb-4 font-serif">Who to follow</h3>
         {usersToFollow.map((user, i) => (
           <div key={i} className="flex items-center justify-between mb-4">
