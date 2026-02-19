@@ -278,8 +278,8 @@ export default function SignupPage() {
             </button>
 
             {/* Email */}
-            <Link
-              href="/signup/email"
+            <button
+              onClick={() => router.push("/signup/email")}
               className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
             >
               <svg
@@ -296,7 +296,7 @@ export default function SignupPage() {
                 />
               </svg>
               <span className="text-[#111827] text-sm">Sign up with email</span>
-            </Link>
+            </button>
           </div>
 
           {/* Sign In Link */}
