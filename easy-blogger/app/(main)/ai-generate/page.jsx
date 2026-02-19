@@ -60,7 +60,7 @@ export default function AIArticleGeneratorPage() {
 
   // Fetch articles list from API
   useEffect(() => {
-    const fetchArticles = async () => {
+    const fetchData = async () => {
       try {
         const response = await fetch('/api/ai-generate');
         
@@ -70,16 +70,32 @@ export default function AIArticleGeneratorPage() {
         
         const data = await response.json();
         
-        // Set articles list only
+        // Set all data from API
         if (data.articles) {
           setArticles(data.articles);
         }
+        if (data.trendingArticles) {
+          // Note: trendingArticles is already used in slider
+          // This ensures compatibility with existing slider logic
+        }
+        if (data.topAIArticles) {
+          // Note: topAIArticles is already used in insights sidebar
+          // This ensures compatibility with existing insights logic
+        }
+        if (data.trendingTopics) {
+          // Note: trendingTopics is already used in insights sidebar
+          // This ensures compatibility with existing topics logic
+        }
+        if (data.keywords) {
+          // Note: keywords is already used in keyword selection
+          // This ensures compatibility with existing keyword logic
+        }
       } catch (error) {
-        console.error('Failed to fetch articles:', error);
+        console.error('Failed to fetch data:', error);
       }
     };
 
-    fetchArticles();
+    fetchData();
   }, []);
 
   // Copy to clipboard function

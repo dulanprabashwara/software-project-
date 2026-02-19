@@ -192,6 +192,7 @@
   text-align: left;
   line-height: 1.3;
   width: 600px;
+  margin-left: -2px !important;
 }
 
 .article-title:hover {
