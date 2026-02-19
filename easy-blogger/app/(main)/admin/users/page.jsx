@@ -77,7 +77,7 @@ export default function UserListPage() {
   return (
     <div className="p-8 bg-white min-h-screen relative overflow-hidden">
       <h1 className="text-4xl font-bold mb-8 text-[#111827] ml-4" style={{ fontFamily: "serif" }}>User List</h1>
-      <div className={`max-w-[1050px] bg-[#D1D5DB]/50 rounded-[45px] overflow-hidden shadow-sm transition-all duration-500 ${selectedUser ? "blur-md opacity-40 pointer-events-none" : ""}`}>
+      <div className={`max-w-262.5 bg-[#D1D5DB]/50 rounded-[45px] overflow-hidden shadow-sm transition-all duration-500 ${selectedUser ? "blur-md opacity-40 pointer-events-none" : ""}`}>
         <div className="bg-[#D1D5DB] p-5 px-10 border-b-[3px] border-[#1ABC9C] flex items-center justify-between">
           <div className="flex items-center gap-5 text-[11px] font-bold text-gray-600 uppercase">
              <div className="flex items-center gap-2"><Filter size={16} /> Filter by</div>
@@ -111,7 +111,7 @@ export default function UserListPage() {
                     <td className="p-2 text-center">
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" className="sr-only peer" checked={user.status === "Active"} onChange={() => handleToggleClick(user)} />
-                        <div className="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-[#1ABC9C] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5"></div>
+                        <div className="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-[#1ABC9C] after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5"></div>
                       </label>
                     </td>
                   </tr>
@@ -122,7 +122,7 @@ export default function UserListPage() {
         </div>
       </div>
 
-      <aside className={`fixed top-[120px] right-10 bottom-10 w-84 bg-[#D1D5DB] border border-gray-300 rounded-[40px] shadow-2xl transition-transform duration-500 z-50 ${selectedUser ? "translate-x-0" : "translate-x-[120%]"}`}>
+      <aside className={`fixed top-30 right-10 bottom-10 w-84 bg-[#D1D5DB] border border-gray-300 rounded-[40px] shadow-2xl transition-transform duration-500 z-50 ${selectedUser ? "translate-x-0" : "translate-x-[120%]"}`}>
         {selectedUser && (
           <div className="p-10 relative flex flex-col items-center h-full">
             <button onClick={() => setSelectedUser(null)} className="absolute top-6 right-6 text-red-500 hover:bg-white/40 p-1.5 rounded-full"><X size={24}/></button>
@@ -142,7 +142,7 @@ export default function UserListPage() {
 
       {/* RESTORED PREVIOUS BAN MODAL UI */}
       {banningUser && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white p-8 rounded-[40px] shadow-2xl max-w-sm w-full border border-gray-100 animate-in zoom-in duration-200">
             <h2 className="text-2xl font-bold text-red-600 mb-2 text-center">Ban User?</h2>
             <p className="text-sm text-gray-500 mb-6 font-medium text-center">Are you sure you want to ban <strong>{banningUser.name}</strong>?</p>
