@@ -3,6 +3,14 @@
 import Link from "next/link";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
+import { useRouter } from "next/navigation";
+import { auth } from "../../../lib/firebase";
+import {
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+import { API_BASE_URL, getHeaders } from "../../../lib/api";
 
 // Google Icon
 const GoogleIcon = () => (
@@ -62,6 +70,44 @@ const EmailIcon = () => (
 );
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const handleGoogleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const token = await result.user.getIdToken();
+
+      // Sync with backend
+      await fetch(`${API_BASE_URL}/api/auth/sync`, {
+        method: "POST",
+        headers: getHeaders(token),
+      });
+
+      router.push("/home");
+    } catch (error) {
+      console.error("Error logging in with Google", error);
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    try {
+      const provider = new FacebookAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const token = await result.user.getIdToken();
+
+      // Sync with backend
+      await fetch(`${API_BASE_URL}/api/auth/sync`, {
+        method: "POST",
+        headers: getHeaders(token),
+      });
+
+      router.push("/home");
+    } catch (error) {
+      console.error("Error logging in with Facebook", error);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Background with gradient blobs */}
@@ -98,11 +144,11 @@ export default function LoginPage() {
 
           {/* Social Sign-in Buttons */}
           <div className="space-y-3 mb-6">
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleGoogleLogin}>
               <GoogleIcon />
               Continue with Google
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleFacebookLogin}>
               <FacebookIcon />
               Continue with Facebook
             </Button>
