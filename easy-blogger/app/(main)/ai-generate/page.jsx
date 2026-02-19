@@ -17,7 +17,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSubscription } from "../../subscription/SubscriptionContext";
-import { mockArticles } from "../../api/mockData";
+import { mockArticles, mockGeneratedArticle } from "../../api/mockData";
 import "../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../styles/ai-article-generator/ai-article-generator-view2.css";
 import "../../../styles/ai-article-generator/articles-view.css";
@@ -387,11 +387,8 @@ export default function AIArticleGeneratorPage() {
       // Stop loading after 2 seconds and show result
       setTimeout(() => {
         setIsGenerating(false);
-        // Set sample generated article data
-        setGeneratedArticle({
-          title: "Artificial Intelligence",
-          content: "Artificial Intelligence has revolutionized the way we live, work, and interact with technology..."
-        });
+        // Set sample generated article data with long content for scrollbar testing
+        setGeneratedArticle(mockGeneratedArticle);
         setCurrentView("result");
       }, 2000);
     }
@@ -948,11 +945,27 @@ export default function AIArticleGeneratorPage() {
           onMouseEnter={() => setIsCursorInsidePreview(false)}
           onClick={() => setIsCursorInsidePreview(false)}
         >
+          {/* Close Button - Only show when cursor is outside preview box */}
+          {!isCursorInsidePreview && (
+            <div 
+              className="preview-close-circle"
+              onMouseEnter={() => setIsCursorInsidePreview(false)}
+              onMouseLeave={() => setIsCursorInsidePreview(false)}
+            >
+              <button className="preview-close-button-circle" onClick={() => setShowPreview(false)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+                  <path d="M18 6L6 18"></path>
+                  <path d="M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          )}
+          
           <div 
             className="preview-box"
             onMouseEnter={() => setIsCursorInsidePreview(true)}
             onMouseLeave={(e) => {
-              // Only set to false if mouse is not entering the close button area
+              // Only set to false if mouse is not entering close button area
               const relatedTarget = e.relatedTarget;
               const isEnteringCloseButton = relatedTarget && relatedTarget.classList && (
                 relatedTarget.classList.contains('preview-close-circle') ||
@@ -967,21 +980,6 @@ export default function AIArticleGeneratorPage() {
               }
             }}
           >
-            {/* Close Button - Only show when cursor is outside preview box */}
-            {!isCursorInsidePreview && (
-              <div 
-                className="preview-close-circle"
-                onMouseEnter={() => setIsCursorInsidePreview(false)}
-                onMouseLeave={() => setIsCursorInsidePreview(false)}
-              >
-                <button className="preview-close-button-circle" onClick={() => setShowPreview(false)}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
-                    <path d="M18 6L6 18"></path>
-                    <path d="M6 6l12 12"></path>
-                  </svg>
-                </button>
-              </div>
-            )}
             
             {/* Preview Header */}
             <div className="preview-header">
@@ -1025,13 +1023,13 @@ export default function AIArticleGeneratorPage() {
               <div className="preview-actions">
                 <button className="preview-action-button"></button>
               </div>
-              
-              {/* Footer with word count */}
-              <div className="preview-footer">
-                <span className="preview-word-count">
+            </div>
+            
+            {/* Footer with word count - Sibling to content */}
+            <div className="preview-footer">
+              <span className="preview-word-count">
                  word count: {generatedArticle.content.split(' ').length}
-                </span>
-              </div>
+              </span>
             </div>
           </div>
         </div>

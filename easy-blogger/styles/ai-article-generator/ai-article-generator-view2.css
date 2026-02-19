@@ -510,6 +510,142 @@ body.loading * {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+}
+
+/* Override global scrollbar hiding for preview box */
+.preview-box,
+.preview-content {
+  -ms-overflow-style: auto !important;
+  scrollbar-width: auto !important;
+}
+
+/* Custom scrollbar for preview box - Override global hiding */
+.preview-box::-webkit-scrollbar,
+.preview-content::-webkit-scrollbar {
+  display: block !important;
+  width: 16px !important;
+  height: 6px !important;
+}
+
+.preview-box::-webkit-scrollbar-track,
+.preview-content::-webkit-scrollbar-track {
+  background: #f3f5f5;
+  border-radius: 8px;
+}
+
+.preview-box::-webkit-scrollbar-thumb,
+.preview-content::-webkit-scrollbar-thumb {
+  background: #f1f1f1;
+  border-radius: 4px;
+  opacity: 0.05;
+}
+
+.preview-box::-webkit-scrollbar-thumb:hover,
+.preview-content::-webkit-scrollbar-thumb:hover {
+  background: #dfe4e2;
+  opacity: 1;
+}
+
+/* Firefox scrollbar - Override global hiding */
+.preview-box::-moz-scrollbar,
+.preview-content::-moz-scrollbar {
+  -ms-overflow-style: auto !important;
+  scrollbar-width: 16px !important;
+}
+
+.preview-box::-moz-scrollbar-track,
+.preview-content::-moz-scrollbar-track {
+  background: #dededece;
+  border-radius: 8px;
+}
+
+.preview-box::-moz-scrollbar-thumb,
+.preview-content::-moz-scrollbar-thumb {
+  background: #f1f1f1;
+  border-radius: 4px;
+  opacity: 0.05;
+}
+
+.preview-box::-moz-scrollbar-thumb:hover,
+.preview-content::-moz-scrollbar-thumb:hover {
+  background: #f6f8f7;
+  opacity: 5%;
+}
+
+/* IE scrollbar - Override global hiding */
+.preview-box::-ms-scrollbar,
+.preview-content::-ms-scrollbar {
+  -ms-overflow-style: auto !important;
+  scrollbar-width: 16px !important;
+}
+
+.preview-box::-ms-scrollbar-track,
+.preview-content::-ms-scrollbar-track {
+  background: #f6f9f8;
+  border-radius: 8px;
+}
+
+.preview-box::-ms-scrollbar-thumb,
+.preview-content::-ms-scrollbar-thumb {
+  background: #000000;
+  border-radius: 4px;
+  opacity: 0.05;
+}
+
+.preview-box::-ms-scrollbar-thumb:hover,
+.preview-content::-ms-scrollbar-thumb:hover {
+  background: #000000;
+  opacity: 5%;
+}
+
+/* Preview content layout - Fixed for proper scrolling */
+.preview-content {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0; /* Ensure content can shrink */
+}
+
+/* Article content section */
+.preview-article-info {
+  margin-bottom: 20px;
+}
+
+.preview-article-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+.preview-article-excerpt {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #555;
+  margin-bottom: 20px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Footer section - Fixed at bottom inside preview box */
+.preview-footer {
+  border-top: 1px solid #E8E8E8;
+  padding: 16px 24px;
+  background-color: #F9F9F9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 40px; /* Fixed height */
+  flex-shrink: 0; /* Prevent footer from shrinking */
+}
+
+.preview-word-count {
+  font-size: 12px;
+  color: #888;
+  font-weight: 500;
 }
 
 .preview-header {
@@ -612,11 +748,11 @@ body.loading * {
 }
 
 
-/* Close Button Circle */
+/* Close Button Circle - Positioned outside preview box */
 .preview-close-circle {
   position: absolute;
   top: 20px;
-  right: 20px;
+  right: 20px; /* Correct position outside preview box */
   width: 32px;
   height: 32px;
   background-color: #6B6B6B;
