@@ -14,11 +14,31 @@ function Section({ title, children }) {
   );
 }
 
+function Toggle({ enabled, setEnabled }) {
+  return (
+    <button
+      type="button"
+      onClick={() => setEnabled((v) => !v)}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+        enabled ? "bg-emerald-500" : "bg-gray-300"
+      }`}
+      aria-pressed={enabled}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+          enabled ? "translate-x-6" : "translate-x-1"
+        }`}
+      />
+    </button>
+  );
+}
+
 export default function PublishArticlePage() {
   
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState(["Technology", "Design", "Blogging"]);
   const MAX_TAGS = 5;
+
   const [timing, setTiming] = useState("now"); // "now" or "schedule"
   const [scheduledDate, setScheduledDate] = useState(""); // "YYYY-MM-DD"
   const [scheduledTime, setScheduledTime] = useState(""); // "HH:MM" 24h
@@ -27,6 +47,11 @@ export default function PublishArticlePage() {
   const [tpHour, setTpHour] = useState("10");
   const [tpMinute, setTpMinute] = useState("30");
   const [tpPeriod, setTpPeriod] = useState("AM");
+
+  // Social sharing
+  const [shareLinkedIn, setShareLinkedIn] = useState(true);
+  const [shareWordPress, setShareWordPress] = useState(true);
+
 
   const addTag = (raw) => {
     const t = raw.trim();
@@ -126,6 +151,8 @@ export default function PublishArticlePage() {
     window.addEventListener("mousedown", onClick);
     return () => window.removeEventListener("mousedown", onClick);
   }, []);
+
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
@@ -349,6 +376,7 @@ export default function PublishArticlePage() {
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
+        
         
         <div className="p-8 flex items-center justify-between">
           <button className="px-8 py-3 rounded-full bg-black text-white">Back</button>
