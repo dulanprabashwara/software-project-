@@ -17,7 +17,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSubscription } from "../../../../subscription/SubscriptionContext";
 import "../../../../../styles/ai-article-generator/ai-article-generator.css";
-import "../../../../../styles/ai-article-generator/articles-view.css";
+import "../../../../../styles/ai-article-generator/ai-article-generator-details.css";
 
 export default function ArticleDetailsPage() {
   const params = useParams();
