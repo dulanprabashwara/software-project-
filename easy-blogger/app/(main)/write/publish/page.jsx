@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import { useEffect } from "react";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock} from "lucide-react";
+import Image from "next/image";
 
 //Define a reusable section component for better structure and readability
 function Section({ title, children }) {
   return (
     <div className="p-10">
       <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-      <div className="mt-2">{children}</div>
+      <div className="mt-5">{children}</div>
     </div>
   );
 }
@@ -181,7 +182,7 @@ export default function PublishArticlePage() {
           <div className="w-[90%] border-t border-gray-400" />
         </div>
 
-      {/*Tags input section*/}
+        {/*Tags input section*/}
         <Section title="Tags">
           <div className="space-y-3">
             <input
@@ -389,27 +390,50 @@ export default function PublishArticlePage() {
 
         <Section title="Social Sharing">
           <div className="space-y-6">
+
             {/* LinkedIn */}
-            <div className="flex items-start gap-4">
-              <Toggle enabled={shareLinkedIn} setEnabled={setShareLinkedIn} />
-              <div>
-                <p className="text-sm">
-                  Share on <span className="font-semibold">LinkedIn</span>
-                </p>
-                <p className="text-sm text-gray-500">
+            <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
+              <div className="flex items-center">
+                <Toggle enabled={shareLinkedIn} setEnabled={setShareLinkedIn} />
+              </div>
+              <div className="flex items-center">
+                <p className="text-sm font-semibold text-gray-900">Share on LinkedIn</p>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center">
+                <Image
+                src="/icons/linkedin.png"
+                alt="LinkedIn"
+                width={60}
+                height={60}
+                className="object-contain"
+                />
+              </div>
+              <div className="flex items-center">
+                <p className="text-sm text-gray-700">
                   Connected as <span className="font-semibold">Emma Richardson</span>
                 </p>
               </div>
             </div>
 
             {/* WordPress */}
-            <div className="flex items-start gap-4">
-              <Toggle enabled={shareWordPress} setEnabled={setShareWordPress} />
-              <div>
-                <p className="text-sm">
-                  Share on <span className="font-semibold">WordPress</span>
-                </p>
-                <p className="text-sm text-gray-500">
+            <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
+              <div className="flex items-center">
+                <Toggle enabled={shareWordPress} setEnabled={setShareWordPress} />
+              </div>
+              <div className="flex items-center">
+                <p className="text-sm font-semibold text-gray-900">Share on WordPress</p>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center">
+                <Image
+                src="/icons/wordpress.png"
+                alt="WordPress"
+                width={60}
+                height={60}
+                className="object-contain"
+                />
+              </div>
+              <div className="flex items-center">
+                <p className="text-sm text-gray-700">
                   Connected as <span className="font-semibold">Emma Richardson</span>
                 </p>
               </div>
@@ -428,6 +452,10 @@ export default function PublishArticlePage() {
           </div>
 
         </Section>
+
+        <div className="flex justify-center">
+          <div className="w-[90%] border-t border-gray-400" />
+        </div>
         
         <div className="p-8 flex items-center justify-between">
           <button className="px-8 py-3 rounded-full bg-black text-white">Back</button>
