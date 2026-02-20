@@ -6,22 +6,24 @@ import { useRouter } from "next/navigation";
 import { HelpCircle, Sparkles, MessageCircle } from "lucide-react";
 
 import { useSubscription } from "../../app/subscription/SubscriptionContext";
+import { useAuth } from "../../app/context/AuthContext";
 
 // Top navigation header component for the app layout
 export default function Header({ onToggleSidebar }) {
   const router = useRouter();
   const { isPremium } = useSubscription();
+  const { user, logout } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef(null);
 
-  // Mock user data
-  const user = {
-    name: "Dulan prabashwara",
-    email: "rji**************@gmail.com",
-    avatar: "https://i.pravatar.cc/150?img=47",
-    initials: "D",
-  };
+  // Derive display values from Firebase user
+  const displayName = user?.displayName || user?.email?.split("@")[0] || "User";
+  const displayEmail = user?.email || "";
+  const avatarUrl =
+    user?.photoURL ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1ABC9C&color=fff`;
+  const initials = displayName.charAt(0).toUpperCase();
 
   // Set mounted state on client
   useEffect(() => {
@@ -45,9 +47,8 @@ export default function Header({ onToggleSidebar }) {
     };
   }, [showProfileMenu]);
 
-  const handleSignOut = () => {
-    // Handle sign out logic
-    alert("Signing out...");
+  const handleSignOut = async () => {
+    await logout();
     router.push("/");
   };
 
@@ -168,7 +169,7 @@ export default function Header({ onToggleSidebar }) {
               }`}
             >
               <img
-                src={user.avatar}
+                src={avatarUrl}
                 alt="User avatar"
                 className="w-full h-full object-cover"
               />
@@ -207,16 +208,16 @@ export default function Header({ onToggleSidebar }) {
                 {/* User Profile Section */}
                 <div className="p-4 border-b border-[#E5E7EB]">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-[#6B7280] flex items-center justify-center text-white text-lg font-semibold relative">
+                    <div className="w-12 h-12 rounded-full bg-[#1ABC9C] flex items-center justify-center text-white text-lg font-semibold relative">
                       {isPremium ? (
                         <div className="absolute inset-0 rounded-full border-2 border-[#F59E0B]"></div>
                       ) : null}
-                      {user.initials}
+                      {initials}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-1">
                         <p className="font-medium text-[#111827] text-sm">
-                          {user.name}
+                          {displayName}
                         </p>
                         {isPremium && (
                           <span className="text-[#1ABC9C]">
@@ -300,7 +301,7 @@ export default function Header({ onToggleSidebar }) {
                   >
                     Sign out
                   </button>
-                  <p className="text-xs text-[#9CA3AF]">{user.email}</p>
+                  <p className="text-xs text-[#9CA3AF]">{displayEmail}</p>
                 </div>
 
                 {/* Footer Links */}
