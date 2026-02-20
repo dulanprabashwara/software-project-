@@ -183,6 +183,35 @@ export default function PublishArticlePage() {
     setShowShareText(true);
   }, [shareLinkedIn, shareWordPress]);
 
+  useEffect(() => {
+    if (timing !== "now") return;
+
+    const updateNow = () => {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = pad2(now.getMonth() + 1);
+      const d = pad2(now.getDate());
+      const hh = pad2(now.getHours());
+      const mm = pad2(now.getMinutes());
+
+      setScheduledDate(`${y}-${m}-${d}`);
+      setScheduledTime(`${hh}:${mm}`);
+
+      // sync 12h picker values too (optional, but good)
+      const hhNum = now.getHours();
+      const period = hhNum >= 12 ? "PM" : "AM";
+      const hour = hhNum % 12 === 0 ? 12 : hhNum % 12;
+      setTpHour(String(hour));
+      setTpMinute(pad2(now.getMinutes()));
+      setTpPeriod(period);
+    };
+
+    updateNow(); // update immediately
+    const id = setInterval(updateNow, 1000 * 30); // every 30s (or use 60s)
+
+    return () => clearInterval(id);
+  }, [timing]);
+
   const isPastDateTime = () => {
     if (!scheduledDate || !scheduledTime) return false;
 
