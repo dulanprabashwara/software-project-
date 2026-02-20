@@ -110,7 +110,16 @@ export default function QueuePage() {
       <div className="w-2/3 bg-white rounded-2xl shadow-sm border border-[#E5E7EB] flex flex-col overflow-hidden relative">
         {activePost ? (
           <>
-            <div className="p-8 flex-1 overflow-y-auto">
+            {/* REPORTER DETAILS HEADER */}
+            <div className="p-6 px-8 border-b border-gray-100 text-sm">
+              <div className="space-y-0.5">
+                <p className="text-[#111827]"><span className="font-semibold">Reported by</span> {activePost.reporter}</p>
+                <p className="text-[#111827]"><span className="font-semibold">Reason:</span> {activePost.reason}</p>
+                <p className="text-[#111827]"><span className="font-semibold">Time of reported:</span> {activePost.timeReported}</p>
+              </div>
+            </div>
+
+            <div className="p-8 flex-1 overflow-y-auto pt-4">
               <h1 className="text-2xl font-bold text-[#111827] mb-6 font-serif">{activePost.title}</h1>
               {activePost.image && <div className="mb-6"><img src={activePost.image} alt="Post content" className="rounded-lg shadow-sm w-full max-h-80 object-cover" /></div>}
               <p className="text-[#374151] leading-relaxed text-base whitespace-pre-line">{activePost.content}</p>
