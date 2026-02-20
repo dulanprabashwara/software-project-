@@ -53,7 +53,7 @@ export default function Header({ onToggleSidebar }) {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white border-b border-[#E5E7EB] z-50 h-16">
+    <header className="fixed top-0 left-0 right-0 bg-white border-b border-[#E5E7EB] z-1000 h-16">
       <div className="h-full max-w-360 mx-auto px-6 flex items-center justify-between">
         {/* Left: Hamburger + Logo */}
         <div className="flex items-center gap-4">
@@ -214,9 +214,9 @@ export default function Header({ onToggleSidebar }) {
                       ) : null}
                       {initials}
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1">
-                        <p className="font-medium text-[#111827] text-sm">
+                        <p className="font-medium text-[#111827] text-sm truncate">
                           {displayName}
                         </p>
                         {isPremium && (
@@ -301,7 +301,9 @@ export default function Header({ onToggleSidebar }) {
                   >
                     Sign out
                   </button>
-                  <p className="text-xs text-[#9CA3AF]">{displayEmail}</p>
+                  <p className="text-xs text-[#9CA3AF] truncate">
+                    {displayEmail}
+                  </p>
                 </div>
 
                 {/* Footer Links */}

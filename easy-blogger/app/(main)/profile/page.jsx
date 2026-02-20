@@ -164,8 +164,7 @@ export default function ProfilePage() {
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {/* Masking Strip for Green Line Artifact */}
-        <div className="absolute top-0 right-0 w-3 h-full bg-white z-50 pointer-events-none" />
-
+        <div className="absolute top-0 right-0 w-3 h-full bg-white z-10 pointer-events-none" />
         <div className="max-w-3xl mx-auto px-8 py-8 pr-12">
           {/* Profile Header */}
           <div className="flex items-center justify-between mb-6">

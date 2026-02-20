@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 // Mock article data
 const mockGeneratedArticle = {
@@ -17,7 +17,7 @@ Future of AI
 The future of AI holds exciting possibilities, from more advanced language models to improved machine learning algorithms. Staying updated with AI blogs and research papers will help you remain at the forefront of this technological revolution.
 
 Conclusion
-Whether you're a developer, researcher, or simply curious about AI, there's a wealth of information available through dedicated AI blogs and resources. The key is to find reliable sources that provide accurate, up-to-date information about this rapidly evolving field.`
+Whether you're a developer, researcher, or simply curious about AI, there's a wealth of information available through dedicated AI blogs and resources. The key is to find reliable sources that provide accurate, up-to-date information about this rapidly evolving field.`,
 };
 
 // Mock articles list with detailed information
@@ -26,10 +26,11 @@ const mockArticles = [
     id: "1",
     title: "Understanding Machine Learning Fundamentals",
     date: "2024-01-15 10:30 AM",
-    textPrompt: "Write an article on artificial intelligence and machine learning fundamentals for beginners",
+    textPrompt:
+      "Write an article on artificial intelligence and machine learning fundamentals for beginners",
     keywordsPresented: [
       "Algorithms",
-      "Deep learning", 
+      "Deep learning",
       "Neural networks",
       "Machine learning",
       "Computer science",
@@ -37,7 +38,7 @@ const mockArticles = [
       "Robotics",
       "Artificial intelligence",
       "Work automation",
-      "AI services"
+      "AI services",
     ],
     keywordsSelected: ["Machine learning", "Artificial intelligence"],
     articleLengthSelected: "short",
@@ -70,7 +71,7 @@ Unsupervised learning explores data without predefined labels, discovering hidde
 
 Reinforcement learning learns through interaction with an environment, receiving rewards for desired actions and penalties for mistakes. This approach powers game-playing AI, robotics, and autonomous systems.
 
-Practical implementation often starts with libraries like scikit-learn for classical ML algorithms, then progresses to deep learning frameworks like TensorFlow or PyTorch for neural networks. These tools abstract away much of the mathematical complexity, allowing beginners to focus on problem-solving and application development.`
+Practical implementation often starts with libraries like scikit-learn for classical ML algorithms, then progresses to deep learning frameworks like TensorFlow or PyTorch for neural networks. These tools abstract away much of the mathematical complexity, allowing beginners to focus on problem-solving and application development.`,
       },
       {
         title: "Regenerated: Understanding Machine Learning Fundamentals",
@@ -88,18 +89,19 @@ The learning process involves feeding your algorithm training data and letting i
 
 Evaluation is crucial. You need to know if your model actually works on new data. Metrics like accuracy, precision, recall, and F1-score help you assess performance and compare different approaches.
 
-The field offers endless specializations - from computer vision and natural language processing to reinforcement learning and automated machine learning. Start with the fundamentals, practice on real datasets, and gradually explore areas that interest you most.`
-      }
-    ]
+The field offers endless specializations - from computer vision and natural language processing to reinforcement learning and automated machine learning. Start with the fundamentals, practice on real datasets, and gradually explore areas that interest you most.`,
+      },
+    ],
   },
   {
-    id: "2", 
+    id: "2",
     title: "The Future of Natural Language Processing",
     date: "2024-01-14 2:45 PM",
-    textPrompt: "Explore the future of NLP and how AI is transforming human-computer communication",
+    textPrompt:
+      "Explore the future of NLP and how AI is transforming human-computer communication",
     keywordsPresented: [
       "Algorithms",
-      "Deep learning", 
+      "Deep learning",
       "Neural networks",
       "Machine learning",
       "Computer science",
@@ -107,9 +109,13 @@ The field offers endless specializations - from computer vision and natural lang
       "Robotics",
       "Artificial intelligence",
       "Work automation",
-      "AI services"
+      "AI services",
     ],
-    keywordsSelected: ["Deep learning", "Neural networks", "Artificial intelligence"],
+    keywordsSelected: [
+      "Deep learning",
+      "Neural networks",
+      "Artificial intelligence",
+    ],
     articleLengthSelected: "mid-length",
     toneSelected: "casual",
     content: `Natural Language Processing (NLP) is experiencing a revolutionary transformation, thanks to advances in deep learning and neural networks. The way humans communicate with machines is evolving at an unprecedented pace, opening up new possibilities for interaction and understanding.
@@ -127,16 +133,17 @@ Looking ahead, the future of NLP promises even more exciting developments. We're
 The integration of multimodal capabilities - combining text with images, audio, and video - will create more natural and comprehensive communication experiences. Imagine describing a complex problem verbally while showing a diagram, and having an AI understand both perfectly.
 
 As these technologies advance, we'll need to address important questions about privacy, bias, and the authenticity of human-AI interactions. The line between human and machine communication will continue to blur, requiring new social norms and ethical frameworks.`,
-    regeneratedArticles: []
+    regeneratedArticles: [],
   },
   {
     id: "3",
     title: "AI Ethics and Responsible Development",
     date: "2024-01-13 9:15 AM",
-    textPrompt: "Discuss the ethical considerations in AI development and responsible practices",
+    textPrompt:
+      "Discuss the ethical considerations in AI development and responsible practices",
     keywordsPresented: [
       "Algorithms",
-      "Deep learning", 
+      "Deep learning",
       "Neural networks",
       "Machine learning",
       "Computer science",
@@ -144,7 +151,7 @@ As these technologies advance, we'll need to address important questions about p
       "Robotics",
       "Artificial intelligence",
       "Work automation",
-      "AI services"
+      "AI services",
     ],
     keywordsSelected: ["Artificial intelligence", "Algorithms"],
     articleLengthSelected: "long",
@@ -175,18 +182,19 @@ The explainability of AI decisions is crucial for building trust and ensuring ac
 
 Environmental sustainability in AI development is an emerging ethical concern. The computational resources required to train large AI models contribute significantly to carbon emissions and energy consumption. Responsible AI development must consider the environmental impact and work toward more efficient algorithms, renewable energy sources, and sustainable computing practices.
 
-The future of AI ethics will require continuous dialogue between technologists, ethicists, policymakers, and the public. As AI capabilities evolve, our ethical frameworks must adapt to address new challenges while ensuring that AI development remains aligned with human values and serves the greater good.`
-      }
-    ]
+The future of AI ethics will require continuous dialogue between technologists, ethicists, policymakers, and the public. As AI capabilities evolve, our ethical frameworks must adapt to address new challenges while ensuring that AI development remains aligned with human values and serves the greater good.`,
+      },
+    ],
   },
   {
     id: "4",
     title: "Deep Learning Applications in Healthcare",
     date: "2024-01-12 4:20 PM",
-    textPrompt: "Examine how deep learning is revolutionizing medical diagnosis and treatment",
+    textPrompt:
+      "Examine how deep learning is revolutionizing medical diagnosis and treatment",
     keywordsPresented: [
       "Algorithms",
-      "Deep learning", 
+      "Deep learning",
       "Neural networks",
       "Machine learning",
       "Computer science",
@@ -194,9 +202,13 @@ The future of AI ethics will require continuous dialogue between technologists, 
       "Robotics",
       "Artificial intelligence",
       "Work automation",
-      "AI services"
+      "AI services",
     ],
-    keywordsSelected: ["Deep learning", "Computer vision", "Artificial intelligence"],
+    keywordsSelected: [
+      "Deep learning",
+      "Computer vision",
+      "Artificial intelligence",
+    ],
     articleLengthSelected: "short",
     toneSelected: "professional",
     content: `Deep learning is revolutionizing healthcare by enabling more accurate diagnoses, personalized treatments, and improved patient outcomes. These advanced AI systems are transforming how medical professionals approach disease detection, treatment planning, and drug discovery.
@@ -212,8 +224,8 @@ Personalized medicine is another area where deep learning excels. By analyzing g
 The integration of deep learning in healthcare also extends to administrative tasks, such as scheduling, billing, and resource allocation. These applications help healthcare providers operate more efficiently, allowing them to focus more on patient care.
 
 As these technologies continue to evolve, the future of healthcare looks increasingly data-driven, predictive, and personalized, promising better outcomes for patients worldwide.`,
-    regeneratedArticles: []
-  }
+    regeneratedArticles: [],
+  },
 ];
 
 // Trending articles data
@@ -302,19 +314,19 @@ const keywords = [
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const articleId = searchParams.get('id');
-  
+  const articleId = searchParams.get("id");
+
   // If articleId is provided, return specific article details
   if (articleId) {
-    const article = mockArticles.find(a => a.id === articleId);
-    
+    const article = mockArticles.find((a) => a.id === articleId);
+
     if (!article) {
-      return NextResponse.json({ error: 'Article not found' }, { status: 404 });
+      return NextResponse.json({ error: "Article not found" }, { status: 404 });
     }
-    
+
     return NextResponse.json(article);
   }
-  
+
   // Otherwise, return all data for the main AI generator page
   return NextResponse.json({
     generatedArticle: mockGeneratedArticle,
@@ -322,22 +334,27 @@ export async function GET(request) {
     trendingArticles: trendingArticles,
     topAIArticles: topAIArticles,
     trendingTopics: trendingTopics,
-    keywords: keywords
+    keywords: keywords,
   });
 }
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    
+
     // FUTURE POSTGRESQL LOGIC:
     // const result = await prisma.articles.create({ data: body });
-    
+
     console.log("📝 Article Data Captured for PostgreSQL Table:");
-    console.log(`- Article Data: [Title: ${body.title}, Content Length: ${body.content?.length || 0}]`);
+    console.log(
+      `- Article Data: [Title: ${body.title}, Content Length: ${body.content?.length || 0}]`,
+    );
 
     return NextResponse.json({ success: true, data: body }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 },
+    );
   }
 }
