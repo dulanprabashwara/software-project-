@@ -33,6 +33,18 @@ function Toggle({ enabled, setEnabled }) {
   );
 }
 
+function Radio({ checked }) {
+  return (
+    <span
+      className={`inline-flex h-4 w-4 items-center justify-center rounded-full border ${
+        checked ? "border-emerald-500" : "border-gray-300"
+      }`}
+    >
+      {checked && <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />}
+    </span>
+  );
+}
+
 export default function PublishArticlePage() {
   
   const [tagInput, setTagInput] = useState("");
@@ -223,25 +235,23 @@ export default function PublishArticlePage() {
           <div className="flex items-start justify-between gap-8">
             {/* Left: radio */}
             <div className="space-y-3 pt-1">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input
-                type="radio"
-                name="timing"
-                checked={timing === "now"}
-                onChange={() => setTiming("now")}
-                />
-                  Publish now
-              </label>
+              <button
+              type="button"
+              onClick={() => setTiming("now")}
+              className="flex items-center gap-3 text-sm text-gray-700"
+              >
+                <Radio checked={timing === "now"} />
+                Publish now
+              </button>
 
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input
-                type="radio"
-                name="timing"
-                checked={timing === "schedule"}
-                onChange={() => setTiming("schedule")}
-                />
-                  Schedule for later
-              </label>
+              <button
+              type="button"
+              onClick={() => setTiming("schedule")}
+              className="flex items-center gap-3 text-sm text-gray-700"
+              >
+                <Radio checked={timing === "schedule"} />
+                Schedule for later
+              </button>
             </div>
 
             {/* Right: date + time pickers */}
