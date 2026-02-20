@@ -326,7 +326,11 @@ export default function AIArticleGeneratorPage() {
               {/* Articles List */}
               <div className="articles-list">
                 {articles.map((article) => (
-                  <div key={article.id} className="article-label">
+                  <div 
+                    key={article.id} 
+                    className="article-label cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => router.push(`/ai-generate/article/${article.id}`)}
+                  >
                     <div className="article-title">
                       <span>{article.title}</span>
                     </div>
