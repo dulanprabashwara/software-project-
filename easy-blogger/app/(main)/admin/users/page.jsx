@@ -112,7 +112,7 @@ export default function UserListPage() {
     <div className="p-8 bg-white min-h-screen relative overflow-hidden">
       <h1 className="text-4xl font-bold mb-8 text-[#111827] ml-4" style={{ fontFamily: "serif" }}>User List</h1>
       
-      <div className={`max-w-[1050px] bg-[#D1D5DB]/50 rounded-[45px] overflow-hidden shadow-sm transition-all duration-500 pb-4 ${selectedUser ? "blur-md opacity-40 pointer-events-none" : ""}`}>
+      <div className={`max-w-262.5 bg-[#D1D5DB]/50 rounded-[45px] overflow-hidden shadow-sm transition-all duration-500 pb-4 ${selectedUser ? "blur-md opacity-40 pointer-events-none" : ""}`}>
         <div className="bg-[#D1D5DB] p-5 px-10 border-b-[3px] border-[#1ABC9C] flex items-center justify-between">
           <div className="flex items-center gap-5 text-[11px] font-bold text-gray-600 uppercase">
              <div className="flex items-center gap-2"><Filter size={16} /> Filter by</div>
