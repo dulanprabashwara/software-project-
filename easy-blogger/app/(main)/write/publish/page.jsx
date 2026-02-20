@@ -46,6 +46,7 @@ function Radio({ checked }) {
   );
 }
 
+
 export default function PublishArticlePage() {
   
   const [tagInput, setTagInput] = useState("");
@@ -181,6 +182,16 @@ export default function PublishArticlePage() {
     setShareText(`This article will be shared on ${platforms.join(" and ")} when it is published`);
     setShowShareText(true);
   }, [shareLinkedIn, shareWordPress]);
+
+  const isPastDateTime = () => {
+    if (!scheduledDate || !scheduledTime) return false;
+
+    const selected = new Date(`${scheduledDate}T${scheduledTime}`);
+    const now = new Date();
+
+    return selected < now;
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
@@ -386,6 +397,11 @@ export default function PublishArticlePage() {
                   </div>
                 )}
               </div>
+              {timing === "schedule" && isPastDateTime() && (
+                <p className="mt-3 text-sm text-red-500">
+                  You cannot schedule an article in the past.
+                </p>
+              )}
             </div>
           </div>
 
@@ -499,8 +515,15 @@ export default function PublishArticlePage() {
         
         <div className="p-8 flex items-center justify-center gap-40">
           <button className="px-8 py-3 rounded-full bg-black text-white">Back</button>
-          <button className="px-8 py-3 rounded-full bg-emerald-500 text-white">
-            Schedule post
+          <button
+            disabled={timing === "schedule" && isPastDateTime()}
+            className={`px-8 py-3 rounded-full text-white transition ${
+            timing === "schedule" && isPastDateTime()
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-emerald-500 hover:bg-emerald-600"
+            }`}
+          >
+            {timing === "schedule" ? "Schedule post" : "Publish now"}
           </button>
         </div>
         
