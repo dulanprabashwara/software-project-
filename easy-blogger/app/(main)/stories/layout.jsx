@@ -3,9 +3,9 @@
 import { useState } from "react";
 import RightFeed from "../../../components/article/RightFeed";
 import { DATA } from "../../../components/article/ArticleList";
-import Saved from "./saved/saved";
-import Reacted from "./reacted/reacted";
-import History from "./history/history";
+import Published from "./published/Published";
+import Unpublished from "./unpublished/Unpublished";
+import Scheduled from "./scheduled/Scheduled";
 
 export default function Layout({ children }) {
   const [active, setActive] = useState(0);
@@ -18,11 +18,11 @@ export default function Layout({ children }) {
   {/* Header + Tabs (fixed area) */}
   <div className="  p-3 border-b border-[#e5e7eb] px-8">
     <h1 className="text-4xl font-bold mb-0 ">
-      Library
+      Stories
     </h1>
 
     <div className="flex gap-10">
-      {["saved", "reacted", "history"].map((t, i) => (
+      {["unpublished", "published","scheduled"].map((t, i) => (
         <button
           key={i}
           onClick={() => setActive(i)}
@@ -40,9 +40,9 @@ export default function Layout({ children }) {
 
   {/* Scrollable content ONLY */}
   <div className=" h-full flex-1 overflow-y-auto">
-  {active === 0 && <Saved/>}
-  {active === 1 && <Reacted/>}
-  {active === 2 && <History/>}
+  {active === 0 && <Unpublished/>}
+  {active === 1 && <Published/>}
+  {active === 2 && <Scheduled/>}
    
 </div>
 

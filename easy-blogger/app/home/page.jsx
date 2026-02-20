@@ -22,12 +22,17 @@ export default function HomePage() {
       {/* Main takes remaining height */}
       <main className={`flex-1 flex overflow-hidden transition-[margin] duration-500 ease-in-out ${sidebarOpen ? "lg:ml-64" : "lg:ml-0"}`}>
         <Sidebar isOpen={sidebarOpen}/>
-        <MainFeed articles={DATA.articles} />
-        <RightFeed
+        <div className="overflow-y-auto flex-1 mx-auto">
+          <MainFeed articles={DATA.articles} />
+        </div>
+        <div className="overflow-y-auto">
+          <RightFeed
           trending={DATA.trending}
           topics={DATA.topics}
           usersToFollow={DATA.usersToFollow}
         />
+        </div>
+        
       </main>
     </div>
   );
