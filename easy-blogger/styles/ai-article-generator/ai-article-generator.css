@@ -216,10 +216,34 @@
   min-width: 80px;
 }
 
+/* Article Details Page Specific Keyword Styling */
+.article-details-page .keyword-button.selected {
+  background-color: #1ABC9C;
+  color: #FFFFFF;
+  border: 1px solid #1ABC9C;
+  cursor: not-allowed;
+}
+
+.article-details-page .keyword-button:not(.selected) {
+  background-color: #F9F9F9;
+  color: #2C2C2C;
+  border: 1px solid #A9A9A9;
+  cursor: not-allowed;
+  backdrop-filter: blur(1px);
+  opacity: 0.7;
+}
+
+/* Main AI Generator Page Keyword Styling (keep interactive) */
 .keyword-button.selected {
   background-color: #1ABC9C;
   color: #FFFFFF;
   border: 1px solid #A9A9A9;
+  cursor: pointer;
+}
+
+.keyword-button:not(:disabled):not(.selected):not(:hover) {
+  background-color: #F9F9F9;
+  color: #2C2C2C;
 }
 
 .keyword-button:disabled {
@@ -227,11 +251,7 @@
   color: #837777;
   cursor: not-allowed;
   backdrop-filter: blur(1px);
-}
-
-.keyword-button:not(:disabled):not(.selected):not(:hover) {
-  background-color: #F9F9F9;
-  color: #2C2C2C;
+  opacity: 0.7;
 }
 
 /* Article length section */

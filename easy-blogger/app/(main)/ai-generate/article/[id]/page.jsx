@@ -130,7 +130,7 @@ export default function ArticleDetailsPage() {
   return (
     <div className="flex h-full">
       {/* Article Details Main Section */}
-      <div className="ai-generator-main flex-1 overflow-y-auto">     
+      <div className="ai-generator-main flex-1 overflow-y-auto article-details-page">     
         <div className="ai-content-wrapper">
           {/* Title Section */}
           <div className="ai-generator-title justify-between">
@@ -187,7 +187,6 @@ export default function ArticleDetailsPage() {
                   className={`keyword-button ${
                     articleData.keywordsSelected.includes(keyword) ? "selected" : ""
                   }`}
-                  disabled
                 >
                   {keyword}
                 </button>
