@@ -64,7 +64,8 @@ export default function PublishArticlePage() {
   // Social sharing
   const [shareLinkedIn, setShareLinkedIn] = useState(true);
   const [shareWordPress, setShareWordPress] = useState(true);
-
+  const [shareText, setShareText] = useState("");
+  const [showShareText, setShowShareText] = useState(false);  
 
   const addTag = (raw) => {
     const t = raw.trim();
@@ -165,7 +166,21 @@ export default function PublishArticlePage() {
     return () => window.removeEventListener("mousedown", onClick);
   }, []);
 
-  
+  useEffect(() => {
+    const platforms = [];
+    if (shareLinkedIn) platforms.push("LinkedIn");
+    if (shareWordPress) platforms.push("WordPress");
+
+    if (platforms.length === 0) {
+      setShowShareText(false);
+      // wait for fade-out then clear text
+      const t = setTimeout(() => setShareText(""), 200);
+      return () => clearTimeout(t);
+    }
+
+    setShareText(`This article will be shared on ${platforms.join(" and ")} when it is published`);
+    setShowShareText(true);
+  }, [shareLinkedIn, shareWordPress]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
@@ -399,19 +414,30 @@ export default function PublishArticlePage() {
               <div className="flex items-center">
                 <p className="text-sm font-semibold text-gray-900">Share on LinkedIn</p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center">
-                <Image
-                src="/icons/linkedin.png"
-                alt="LinkedIn"
-                width={60}
-                height={60}
-                className="object-contain"
-                />
-              </div>
-              <div className="flex items-center">
+
+              <div className="col-span-2">
+                <div
+                  className={`grid grid-cols-[48px_1fr] items-center transition-all duration-300 ease-out ${
+                  shareLinkedIn
+                  ? "opacity-100 translate-y-0 max-h-20"
+                  : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                  }`}
+                >
+                <div className="flex items-center justify-center">
+                  <div className="h-12 w-12 flex items-center justify-center">
+                    <Image
+                    src="/icons/linkedin.png"
+                    alt="LinkedIn"
+                    width={48}
+                    height={48}
+                    className="object-contain"
+                    />
+                  </div>
+                </div>
                 <p className="text-sm text-gray-700">
                   Connected as <span className="font-semibold">Emma Richardson</span>
                 </p>
+                </div>
               </div>
             </div>
 
@@ -423,32 +449,43 @@ export default function PublishArticlePage() {
               <div className="flex items-center">
                 <p className="text-sm font-semibold text-gray-900">Share on WordPress</p>
               </div>
-              <div className="flex h-11 w-11 items-center justify-center">
-                <Image
-                src="/icons/wordpress.png"
-                alt="WordPress"
-                width={60}
-                height={60}
-                className="object-contain"
-                />
-              </div>
-              <div className="flex items-center">
-                <p className="text-sm text-gray-700">
-                  Connected as <span className="font-semibold">Emma Richardson</span>
-                </p>
+
+              <div className="col-span-2">
+                <div
+                  className={`grid grid-cols-[48px_1fr] items-center transition-all duration-300 ease-out ${
+                    shareWordPress
+                    ? "opacity-100 translate-y-0 max-h-20"
+                    : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                  }`}
+                >
+                  <div className="flex items-center justify-center">
+                    <div className="h-12 w-12 flex items-center justify-center">
+                      <Image
+                      src="/icons/wordpress.png"
+                      alt="WordPress"
+                      width={48}
+                      height={48}
+                      className="object-contain"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700">
+                    Connected as <span className="font-semibold">Emma Richardson</span>
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Dynamic Share Message */}
-            {(shareLinkedIn || shareWordPress) && (
-              <p className="text-sm text-gray-500">
-                This article will be shared on{" "}
-                {shareLinkedIn && "LinkedIn"}
-                {shareLinkedIn && shareWordPress && " and "}
-                {shareWordPress && "WordPress"}{" "}
-                when it is published
-              </p>
-            )}
+            <div
+              className={`transition-all duration-300 ease-out ${
+              showShareText
+              ? "opacity-100 translate-y-0 max-h-20"
+              : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+              }`}
+            >
+              {shareText && <p className="text-sm text-gray-500">{shareText}</p>}
+            </div>
           </div>
 
         </Section>
