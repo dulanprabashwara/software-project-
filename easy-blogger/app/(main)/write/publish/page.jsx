@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import { useEffect } from "react";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock} from "lucide-react";
+import Image from "next/image";
 
 //Define a reusable section component for better structure and readability
 function Section({ title, children }) {
   return (
     <div className="p-10">
       <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-      <div className="mt-2">{children}</div>
+      <div className="mt-5">{children}</div>
     </div>
   );
 }
@@ -33,6 +34,19 @@ function Toggle({ enabled, setEnabled }) {
   );
 }
 
+function Radio({ checked }) {
+  return (
+    <span
+      className={`inline-flex h-4 w-4 items-center justify-center rounded-full border ${
+        checked ? "border-emerald-500" : "border-gray-300"
+      }`}
+    >
+      {checked && <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />}
+    </span>
+  );
+}
+
+
 export default function PublishArticlePage() {
   
   const [tagInput, setTagInput] = useState("");
@@ -51,7 +65,8 @@ export default function PublishArticlePage() {
   // Social sharing
   const [shareLinkedIn, setShareLinkedIn] = useState(true);
   const [shareWordPress, setShareWordPress] = useState(true);
-
+  const [shareText, setShareText] = useState("");
+  const [showShareText, setShowShareText] = useState(false);  
 
   const addTag = (raw) => {
     const t = raw.trim();
@@ -152,15 +167,71 @@ export default function PublishArticlePage() {
     return () => window.removeEventListener("mousedown", onClick);
   }, []);
 
-  
+  useEffect(() => {
+    const platforms = [];
+    if (shareLinkedIn) platforms.push("LinkedIn");
+    if (shareWordPress) platforms.push("WordPress");
+
+    if (platforms.length === 0) {
+      setShowShareText(false);
+      // wait for fade-out then clear text
+      const t = setTimeout(() => setShareText(""), 200);
+      return () => clearTimeout(t);
+    }
+
+    setShareText(`This article will be shared on ${platforms.join(" and ")} when it is published`);
+    setShowShareText(true);
+  }, [shareLinkedIn, shareWordPress]);
+
+  useEffect(() => {
+    if (timing !== "now") return;
+
+    const updateNow = () => {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = pad2(now.getMonth() + 1);
+      const d = pad2(now.getDate());
+      const hh = pad2(now.getHours());
+      const mm = pad2(now.getMinutes());
+
+      setScheduledDate(`${y}-${m}-${d}`);
+      setScheduledTime(`${hh}:${mm}`);
+
+      // sync 12h picker values too (optional, but good)
+      const hhNum = now.getHours();
+      const period = hhNum >= 12 ? "PM" : "AM";
+      const hour = hhNum % 12 === 0 ? 12 : hhNum % 12;
+      setTpHour(String(hour));
+      setTpMinute(pad2(now.getMinutes()));
+      setTpPeriod(period);
+    };
+
+    updateNow(); // update immediately
+    const id = setInterval(updateNow, 1000 * 30); // every 30s (or use 60s)
+
+    return () => clearInterval(id);
+  }, [timing]);
+
+  const isPastDateTime = () => {
+    if (!scheduledDate || !scheduledTime) return false;
+
+    const selected = new Date(`${scheduledDate}T${scheduledTime}`);
+    const now = new Date();
+
+    return selected < now;
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
       <div className="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-10 text-center">
-          <h1 className="text-4xl font-semibold text-gray-900">Publish your Article</h1>
-          <p className="mt-3 text-gray-500">
-            You can publish now or schedule a time to publish
+          <h1 className="text-4xl font-serif font-bold text-[#111827]">Publish your Article</h1>
+          <p className="text-[#6B7280] mt-1">
+            You can publish now or schedule a time to
+          </p>
+          <p className="text-[#6B7280] mt-1">
+            publish
           </p>
         </div>
 
@@ -169,7 +240,7 @@ export default function PublishArticlePage() {
           <div className="w-[90%] border-t border-gray-400" />
         </div>
 
-      {/*Tags input section*/}
+        {/*Tags input section*/}
         <Section title="Tags">
           <div className="space-y-3">
             <input
@@ -223,25 +294,23 @@ export default function PublishArticlePage() {
           <div className="flex items-start justify-between gap-8">
             {/* Left: radio */}
             <div className="space-y-3 pt-1">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input
-                type="radio"
-                name="timing"
-                checked={timing === "now"}
-                onChange={() => setTiming("now")}
-                />
-                  Publish now
-              </label>
+              <button
+              type="button"
+              onClick={() => setTiming("now")}
+              className="flex items-center gap-3 text-sm text-gray-700"
+              >
+                <Radio checked={timing === "now"} />
+                Publish now
+              </button>
 
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input
-                type="radio"
-                name="timing"
-                checked={timing === "schedule"}
-                onChange={() => setTiming("schedule")}
-                />
-                  Schedule for later
-              </label>
+              <button
+              type="button"
+              onClick={() => setTiming("schedule")}
+              className="flex items-center gap-3 text-sm text-gray-700"
+              >
+                <Radio checked={timing === "schedule"} />
+                Schedule for later
+              </button>
             </div>
 
             {/* Right: date + time pickers */}
@@ -357,6 +426,11 @@ export default function PublishArticlePage() {
                   </div>
                 )}
               </div>
+              {timing === "schedule" && isPastDateTime() && (
+                <p className="mt-3 text-sm text-red-500">
+                  You cannot schedule an article in the past.
+                </p>
+              )}
             </div>
           </div>
 
@@ -376,58 +450,109 @@ export default function PublishArticlePage() {
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
+
         <Section title="Social Sharing">
-          {/* Divider */}
+          <div className="space-y-6">
 
-<Section title="">
-  <div className="space-y-6">
+            {/* LinkedIn */}
+            <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
+              <div className="flex items-center">
+                <Toggle enabled={shareLinkedIn} setEnabled={setShareLinkedIn} />
+              </div>
+              <div className="flex items-center">
+                <p className="text-sm font-semibold text-gray-900">Share on LinkedIn</p>
+              </div>
 
-    {/* LinkedIn */}
-    <div className="flex items-start gap-4">
-      <Toggle enabled={shareLinkedIn} setEnabled={setShareLinkedIn} />
-      <div>
-        <p className="text-sm">
-          Share on <span className="font-semibold">LinkedIn</span>
-        </p>
-        <p className="text-sm text-gray-500">
-          Connected as <span className="font-semibold">Emma Richardson</span>
-        </p>
-      </div>
-    </div>
+              <div className="col-span-2">
+                <div
+                  className={`grid grid-cols-[48px_1fr] items-center transition-all duration-300 ease-out ${
+                  shareLinkedIn
+                  ? "opacity-100 translate-y-0 max-h-20"
+                  : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                  }`}
+                >
+                <div className="flex items-center justify-center">
+                  <div className="h-12 w-12 flex items-center justify-center">
+                    <Image
+                    src="/icons/linkedin.png"
+                    alt="LinkedIn"
+                    width={48}
+                    height={48}
+                    className="object-contain"
+                    />
+                  </div>
+                </div>
+                <p className="text-sm text-gray-700">
+                  Connected as <span className="font-semibold">Emma Richardson</span>
+                </p>
+                </div>
+              </div>
+            </div>
 
-    {/* WordPress */}
-    <div className="flex items-start gap-4">
-      <Toggle enabled={shareWordPress} setEnabled={setShareWordPress} />
-      <div>
-        <p className="text-sm">
-          Share on <span className="font-semibold">WordPress</span>
-        </p>
-        <p className="text-sm text-gray-500">
-          Connected as <span className="font-semibold">Emma Richardson</span>
-        </p>
-      </div>
-    </div>
+            {/* WordPress */}
+            <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
+              <div className="flex items-center">
+                <Toggle enabled={shareWordPress} setEnabled={setShareWordPress} />
+              </div>
+              <div className="flex items-center">
+                <p className="text-sm font-semibold text-gray-900">Share on WordPress</p>
+              </div>
 
-    {/* Dynamic Share Message */}
-    {(shareLinkedIn || shareWordPress) && (
-      <p className="text-sm text-gray-500">
-        This article will be shared on{" "}
-        {shareLinkedIn && "LinkedIn"}
-        {shareLinkedIn && shareWordPress && " and "}
-        {shareWordPress && "WordPress"}{" "}
-        when it is published
-      </p>
-    )}
+              <div className="col-span-2">
+                <div
+                  className={`grid grid-cols-[48px_1fr] items-center transition-all duration-300 ease-out ${
+                    shareWordPress
+                    ? "opacity-100 translate-y-0 max-h-20"
+                    : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                  }`}
+                >
+                  <div className="flex items-center justify-center">
+                    <div className="h-12 w-12 flex items-center justify-center">
+                      <Image
+                      src="/icons/wordpress.png"
+                      alt="WordPress"
+                      width={48}
+                      height={48}
+                      className="object-contain"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700">
+                    Connected as <span className="font-semibold">Emma Richardson</span>
+                  </p>
+                </div>
+              </div>
+            </div>
 
-  </div>
-</Section>
+            {/* Dynamic Share Message */}
+            <div
+              className={`transition-all duration-300 ease-out ${
+              showShareText
+              ? "opacity-100 translate-y-0 max-h-20"
+              : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+              }`}
+            >
+              {shareText && <p className="text-sm text-gray-500">{shareText}</p>}
+            </div>
+          </div>
 
         </Section>
+
+        <div className="flex justify-center">
+          <div className="w-[90%] border-t border-gray-400" />
+        </div>
         
-        <div className="p-8 flex items-center justify-between">
+        <div className="p-8 flex items-center justify-center gap-40">
           <button className="px-8 py-3 rounded-full bg-black text-white">Back</button>
-          <button className="px-8 py-3 rounded-full bg-emerald-500 text-white">
-            Schedule post
+          <button
+            disabled={timing === "schedule" && isPastDateTime()}
+            className={`px-8 py-3 rounded-full text-white transition ${
+            timing === "schedule" && isPastDateTime()
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-emerald-500 hover:bg-emerald-600"
+            }`}
+          >
+            {timing === "schedule" ? "Schedule post" : "Publish now"}
           </button>
         </div>
         
