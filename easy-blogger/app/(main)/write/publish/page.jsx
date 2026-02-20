@@ -376,51 +376,46 @@ export default function PublishArticlePage() {
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
+
         <Section title="Social Sharing">
-          {/* Divider */}
+          <div className="space-y-6">
+            {/* LinkedIn */}
+            <div className="flex items-start gap-4">
+              <Toggle enabled={shareLinkedIn} setEnabled={setShareLinkedIn} />
+              <div>
+                <p className="text-sm">
+                  Share on <span className="font-semibold">LinkedIn</span>
+                </p>
+                <p className="text-sm text-gray-500">
+                  Connected as <span className="font-semibold">Emma Richardson</span>
+                </p>
+              </div>
+            </div>
 
-<Section title="">
-  <div className="space-y-6">
+            {/* WordPress */}
+            <div className="flex items-start gap-4">
+              <Toggle enabled={shareWordPress} setEnabled={setShareWordPress} />
+              <div>
+                <p className="text-sm">
+                  Share on <span className="font-semibold">WordPress</span>
+                </p>
+                <p className="text-sm text-gray-500">
+                  Connected as <span className="font-semibold">Emma Richardson</span>
+                </p>
+              </div>
+            </div>
 
-    {/* LinkedIn */}
-    <div className="flex items-start gap-4">
-      <Toggle enabled={shareLinkedIn} setEnabled={setShareLinkedIn} />
-      <div>
-        <p className="text-sm">
-          Share on <span className="font-semibold">LinkedIn</span>
-        </p>
-        <p className="text-sm text-gray-500">
-          Connected as <span className="font-semibold">Emma Richardson</span>
-        </p>
-      </div>
-    </div>
-
-    {/* WordPress */}
-    <div className="flex items-start gap-4">
-      <Toggle enabled={shareWordPress} setEnabled={setShareWordPress} />
-      <div>
-        <p className="text-sm">
-          Share on <span className="font-semibold">WordPress</span>
-        </p>
-        <p className="text-sm text-gray-500">
-          Connected as <span className="font-semibold">Emma Richardson</span>
-        </p>
-      </div>
-    </div>
-
-    {/* Dynamic Share Message */}
-    {(shareLinkedIn || shareWordPress) && (
-      <p className="text-sm text-gray-500">
-        This article will be shared on{" "}
-        {shareLinkedIn && "LinkedIn"}
-        {shareLinkedIn && shareWordPress && " and "}
-        {shareWordPress && "WordPress"}{" "}
-        when it is published
-      </p>
-    )}
-
-  </div>
-</Section>
+            {/* Dynamic Share Message */}
+            {(shareLinkedIn || shareWordPress) && (
+              <p className="text-sm text-gray-500">
+                This article will be shared on{" "}
+                {shareLinkedIn && "LinkedIn"}
+                {shareLinkedIn && shareWordPress && " and "}
+                {shareWordPress && "WordPress"}{" "}
+                when it is published
+              </p>
+            )}
+          </div>
 
         </Section>
         
