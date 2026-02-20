@@ -26,6 +26,8 @@ export default function ArticleDetailsPage() {
   const [articleData, setArticleData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isPremium) {
@@ -108,6 +110,21 @@ export default function ArticleDetailsPage() {
       'long': { left: 'Long', right: '2000+' }
     };
     return options[length] || { left: 'Short', right: '300-1000' };
+  };
+
+  // Copy to clipboard function
+  const handleCopyToClipboard = async (content) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setIsCopied(true);
+      
+      // Reset copied status after 6 seconds
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 6000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
   };
 
   return (
@@ -244,10 +261,8 @@ export default function ArticleDetailsPage() {
               
               {/* Right side - content */}
               <div className="result-right-side">
-                <p className="heres-article-text">Here's your article..</p>
-                
                 {/* Article title label */}
-                <div className="article-title-label">
+                <div className="article-title-label" onClick={() => setShowPreview(true)}>
                   <span className="article-title-text">{articleData.title}</span>
                   <svg 
                     className="open-book-icon" 
@@ -265,14 +280,7 @@ export default function ArticleDetailsPage() {
                 
                 {/* Action icons */}
                 <div className="article-actions">
-                  <button className="back-button" title="Back" onClick={() => router.push("/ai-generate")}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
-                      <path d="M19 12H5"></path>
-                      <path d="M12 19l-7-7 7-7"></path>
-                    </svg>
-                    <span className="back-text">back</span>
-                  </button>
-                  <button className="action-icon" title="Copy">
+                  <button className="action-icon" title="Copy" onClick={() => handleCopyToClipboard(articleData.content)}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -302,9 +310,9 @@ export default function ArticleDetailsPage() {
                     <div className="result-left-side"></div>
                     <div className="result-right-side">
                       <p className="heres-article-text">Regenerated Article {index + 1}..</p>
-                      
-                      <div className="article-title-label">
-                        <span className="article-title-text">{regeneratedArticle.title}</span>
+                        
+                      <div className="article-title-label" onClick={() => setShowPreview(true)}>
+                        <span className="article-title-text">Regenerated: {regeneratedArticle.title.replace('Regenerated: ', '')}</span>
                         <svg 
                           className="open-book-icon" 
                           width="20" 
@@ -320,7 +328,7 @@ export default function ArticleDetailsPage() {
                       </div>
                       
                       <div className="article-actions">
-                        <button className="action-icon" title="Copy">
+                        <button className="action-icon" title="Copy" onClick={() => handleCopyToClipboard(regeneratedArticle.content)}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
@@ -389,6 +397,81 @@ export default function ArticleDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Preview Overlay */}
+      {showPreview && (
+        <div 
+          className="preview-overlay"
+          onClick={() => setShowPreview(false)}
+        >
+          {/* Close Button */}
+          <div 
+            className="preview-close-circle"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPreview(false);
+            }}
+          >
+            <button className="preview-close-button-circle" onClick={() => setShowPreview(false)}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
+                <path d="M18 6L6 18"></path>
+                <path d="M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <div 
+            className="preview-box"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Preview Header */}
+            <div className="preview-header">
+              {/* Action Icons */}
+              <div className="preview-header-actions">
+                <button className="preview-copy-icon" title="Copy" onClick={() => handleCopyToClipboard(articleData.content)}>
+                  {isCopied ? (
+                    <span className="preview-copied-message">copied to clipboard</span>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  )}
+                </button>
+                
+                <button className="preview-save-icon" title="save to unpublished articles">
+                  <img 
+                    src="/icons/Save.png" 
+                    alt="Save"
+                    width="16" 
+                    height="16"
+                  />
+                  <span className="preview-save-text">save draft</span>
+                </button>
+                
+                <button className="preview-edit-button" title="Edit">
+                  <span className="preview-edit-text">edit</span>
+                </button>
+              </div>
+            </div>
+            
+            {/* Preview Content */}
+            <div className="preview-content">
+              <div className="preview-article-info">
+                <h3 className="preview-article-title">{articleData.title}</h3>
+                <p className="preview-article-excerpt">{articleData.content}</p>
+              </div>
+            </div>
+            
+            {/* Footer with word count */}
+            <div className="preview-footer">
+              <span className="preview-word-count">
+                 word count: {articleData.content.split(' ').length}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
