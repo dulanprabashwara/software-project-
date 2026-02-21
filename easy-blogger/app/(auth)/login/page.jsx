@@ -11,7 +11,7 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { useState } from "react";
+import React, { useState } from "react";
 
 // Google Icon
 const GoogleIcon = () => (
@@ -76,6 +76,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const emailInputRef = React.useRef(null);
 
   const handleGoogleLogin = async () => {
     try {
@@ -176,7 +177,10 @@ export default function LoginPage() {
               <FacebookIcon />
               Continue with Facebook
             </Button>
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              onClick={() => emailInputRef.current?.focus()}
+            >
               <EmailIcon />
               Continue with Email
             </Button>
@@ -198,6 +202,7 @@ export default function LoginPage() {
             )}
 
             <Input
+              ref={emailInputRef}
               type="email"
               placeholder="Email address"
               value={email}

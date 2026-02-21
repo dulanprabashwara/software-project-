@@ -67,6 +67,17 @@ export default function EmailSignupPage() {
       // 3. Get token
       const token = await user.getIdToken();
 
+      // 4. Explicitly update the backend sequence to prevent race conditions
+      // where AuthContext's onAuthStateChanged syncs the user before the name is updated.
+      try {
+        const { api } = await import("../../../../lib/api");
+        // We pause for a tiny bit to give AuthContext a chance to create the user row
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await api.updateProfile({ displayName: formData.name }, token);
+      } catch (err) {
+        console.error("Failed to sync name to backend during signup", err);
+      }
+
       router.push("/home");
     } catch (err) {
       console.error(err);

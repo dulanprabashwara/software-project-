@@ -469,6 +469,10 @@ export default function ProfilePage() {
               >
                 {profileData.stats?.totalShares || 0} Shares
               </Link>
+              {" · "}
+              <Link href="/chat" className="hover:underline cursor-pointer">
+                {profileData?.messages || 10} Messages
+              </Link>
             </p>
 
             {/* Edit Profile Link */}
