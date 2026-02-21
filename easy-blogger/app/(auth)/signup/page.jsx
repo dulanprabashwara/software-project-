@@ -10,7 +10,6 @@ import {
   signInWithPopup,
   FacebookAuthProvider,
 } from "firebase/auth";
-import { API_BASE_URL, getHeaders } from "../../../lib/api";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -25,12 +24,6 @@ export default function SignupPage() {
       const result = await signInWithPopup(auth, provider);
       const token = await result.user.getIdToken();
 
-      // Sync with backend
-      await fetch(`${API_BASE_URL}/api/auth/sync`, {
-        method: "POST",
-        headers: getHeaders(token),
-      });
-
       router.push("/home");
     } catch (error) {
       console.error("Error signing up with Google", error);
@@ -42,12 +35,6 @@ export default function SignupPage() {
       const provider = new FacebookAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const token = await result.user.getIdToken();
-
-      // Sync with backend
-      await fetch(`${API_BASE_URL}/api/auth/sync`, {
-        method: "POST",
-        headers: getHeaders(token),
-      });
 
       router.push("/home");
     } catch (error) {

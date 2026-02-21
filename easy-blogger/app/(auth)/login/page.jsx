@@ -9,8 +9,9 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   signInWithPopup,
+  signInWithEmailAndPassword,
 } from "firebase/auth";
-import { API_BASE_URL, getHeaders } from "../../../lib/api";
+import { useState } from "react";
 
 // Google Icon
 const GoogleIcon = () => (
@@ -71,18 +72,16 @@ const EmailIcon = () => (
 
 export default function LoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleGoogleLogin = async () => {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const token = await result.user.getIdToken();
-
-      // Sync with backend
-      await fetch(`${API_BASE_URL}/api/auth/sync`, {
-        method: "POST",
-        headers: getHeaders(token),
-      });
 
       router.push("/home");
     } catch (error) {
@@ -96,15 +95,27 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       const token = await result.user.getIdToken();
 
-      // Sync with backend
-      await fetch(`${API_BASE_URL}/api/auth/sync`, {
-        method: "POST",
-        headers: getHeaders(token),
-      });
-
       router.push("/home");
     } catch (error) {
       console.error("Error logging in with Facebook", error);
+    }
+  };
+
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // Wait a tiny bit for the AuthContext onAuthStateChanged listener
+      // to process the new user and redirect gracefully
+      router.push("/home");
+    } catch (err) {
+      console.error("Error logging in with Email", err);
+      setError("Invalid email or password. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -166,9 +177,27 @@ export default function LoginPage() {
           </div>
 
           {/* Email/Password Form */}
-          <form className="space-y-4">
-            <Input type="email" placeholder="Email address" />
-            <Input type="password" placeholder="Password" />
+          <form className="space-y-4" onSubmit={handleEmailLogin}>
+            {error && (
+              <div className="bg-red-50 text-red-500 text-sm p-3 rounded mb-4 text-center">
+                {error}
+              </div>
+            )}
+
+            <Input
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
 
             {/* Forgot Password Link */}
             <div className="text-right">
@@ -181,8 +210,8 @@ export default function LoginPage() {
             </div>
 
             {/* Sign In Button */}
-            <Button type="submit" variant="primary">
-              Sign In
+            <Button type="submit" variant="primary" disabled={loading}>
+              {loading ? "Signing In..." : "Sign In"}
             </Button>
           </form>
 

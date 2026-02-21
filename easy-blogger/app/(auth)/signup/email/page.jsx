@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "../../../../lib/firebase";
-import { API_BASE_URL, getHeaders } from "../../../../lib/api";
+
 import Button from "../../../../components/ui/Button";
 import Input from "../../../../components/ui/Input";
 
@@ -66,13 +66,6 @@ export default function EmailSignupPage() {
 
       // 3. Get token
       const token = await user.getIdToken();
-
-      // 4. Sync with backend
-      await fetch(`${API_BASE_URL}/api/auth/sync`, {
-        method: "POST",
-        headers: getHeaders(token),
-        body: JSON.stringify({ name: formData.name }), // Optional: send name explicitly
-      });
 
       router.push("/home");
     } catch (err) {
