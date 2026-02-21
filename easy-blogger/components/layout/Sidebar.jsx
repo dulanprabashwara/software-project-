@@ -11,9 +11,9 @@ export default function Sidebar({ isOpen }) {
   // list for links in the sidebar
   const links = [
     { label: "Home", href: "/home", icon: Home },
-    { label: "Library", href: "/library", icon: Library },
+    { label: "Library", href: "/library/saved", icon: Library },
     { label: "Profile", href: "/profile", icon: User },
-    { label: "Stories", href: "/stories", icon: FileText },
+    { label: "Stories", href: "/stories/unpublished", icon: FileText },
     { label: "Stats", href: "/stats", icon: BarChart },
     { label: "AI Generate", href: isPremium ? "/ai-generate" : "/subscription/upgrade", icon: Sparkles },
     { label: "Following", href: "/profile/user_stats?tab=following", icon: Users },

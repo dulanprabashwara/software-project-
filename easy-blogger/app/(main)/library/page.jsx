@@ -1,10 +1,5 @@
- import {active} from "./layout";
- import saved from "./saved/saved";
-export default function page()
-{ 
-     
-     
-         
-               
-    
+import { redirect } from "next/navigation";
+
+export default function Page() {
+  redirect("/library/saved");
 }

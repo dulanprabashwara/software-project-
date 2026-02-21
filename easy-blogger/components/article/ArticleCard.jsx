@@ -37,13 +37,15 @@ export default function ArticleCard({ article }) {
             {article.title}
           </h2>
 
-          <div className="text-[#6B7280] text-base leading-relaxed line-clamp-3">
+          <div className="line-clamp-3">
             <div
+              className="text-gray-500 text-[16px] leading-6 [&_*]:text-gray-500 [&_*]:text-[16px]"
               dangerouslySetInnerHTML={{
-                __html: article.content, // already sanitized HTML
+                __html: article.content,
               }}
             />
           </div>
+
         </div>
 
         {/* Thumbnail */}
