@@ -1,15 +1,39 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../../../lib/firebase";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Navigate to verify-email page
-    router.push("/verify-email");
+    if (!email) return;
+
+    setLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setMessage("Password reset email sent! Check your inbox.");
+      // Optional: Wait a few seconds then push to verify-email or login
+      setTimeout(() => router.push("/login"), 5000);
+    } catch (err) {
+      console.error("Error sending password reset email", err);
+      setError(
+        "Failed to send password reset email. Please ensure this email is registered.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,10 +81,25 @@ export default function ForgotPasswordPage() {
               <br />a link to reset your password.
             </p>
 
+            {/* Feedback Messages */}
+            {error && (
+              <div className="bg-red-50 text-red-500 text-sm p-3 rounded mb-4 text-center">
+                {error}
+              </div>
+            )}
+            {message && (
+              <div className="bg-green-50 text-green-600 text-sm p-3 rounded mb-4 text-center">
+                {message}
+              </div>
+            )}
+
             {/* Email Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               <input
                 type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full text-sm text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:border-[#1ABC9C] focus:bg-white transition-all"
               />
@@ -68,9 +107,10 @@ export default function ForgotPasswordPage() {
               {/* Send Reset Link Button */}
               <button
                 type="submit"
-                className="w-full py-4 px-4 rounded-full text-sm font-semibold bg-[#1ABC9C] text-white hover:bg-[#16a085] transition-colors shadow-sm"
+                disabled={loading}
+                className="w-full py-4 px-4 rounded-full text-sm font-semibold bg-[#1ABC9C] text-white hover:bg-[#16a085] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Send Reset Link
+                {loading ? "Sending..." : "Send Reset Link"}
               </button>
             </form>
 

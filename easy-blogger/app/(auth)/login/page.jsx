@@ -3,6 +3,15 @@
 import Link from "next/link";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
+import { useRouter } from "next/navigation";
+import { auth } from "../../../lib/firebase";
+import {
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import React, { useState } from "react";
 
 // Google Icon
 const GoogleIcon = () => (
@@ -62,6 +71,68 @@ const EmailIcon = () => (
 );
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const emailInputRef = React.useRef(null);
+
+  const handleGoogleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const token = await result.user.getIdToken();
+
+      router.push("/home");
+    } catch (error) {
+      console.error("Error logging in with Google", error);
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    try {
+      const provider = new FacebookAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const token = await result.user.getIdToken();
+
+      router.push("/home");
+    } catch (error) {
+      console.error("Error logging in with Facebook", error);
+    }
+  };
+
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // Wait a tiny bit for the AuthContext onAuthStateChanged listener
+      // to process the new user and redirect gracefully
+      router.push("/home");
+    } catch (err) {
+      console.error("Error logging in with Email", err);
+
+      if (
+        err.code === "auth/invalid-credential" ||
+        err.code === "auth/wrong-password" ||
+        err.code === "auth/user-not-found"
+      ) {
+        setError("Invalid email or password. Please try again.");
+      } else if (err.code === "auth/too-many-requests") {
+        setError(
+          "Account temporarily disabled due to many failed login attempts. Please reset your password or try again later.",
+        );
+      } else {
+        setError(err.message || "An error occurred during login.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Background with gradient blobs */}
@@ -98,15 +169,18 @@ export default function LoginPage() {
 
           {/* Social Sign-in Buttons */}
           <div className="space-y-3 mb-6">
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleGoogleLogin}>
               <GoogleIcon />
               Continue with Google
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleFacebookLogin}>
               <FacebookIcon />
               Continue with Facebook
             </Button>
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              onClick={() => emailInputRef.current?.focus()}
+            >
               <EmailIcon />
               Continue with Email
             </Button>
@@ -120,9 +194,28 @@ export default function LoginPage() {
           </div>
 
           {/* Email/Password Form */}
-          <form className="space-y-4">
-            <Input type="email" placeholder="Email address" />
-            <Input type="password" placeholder="Password" />
+          <form className="space-y-4" onSubmit={handleEmailLogin}>
+            {error && (
+              <div className="bg-red-50 text-red-500 text-sm p-3 rounded mb-4 text-center">
+                {error}
+              </div>
+            )}
+
+            <Input
+              ref={emailInputRef}
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
 
             {/* Forgot Password Link */}
             <div className="text-right">
@@ -135,8 +228,8 @@ export default function LoginPage() {
             </div>
 
             {/* Sign In Button */}
-            <Button type="submit" variant="primary">
-              Sign In
+            <Button type="submit" variant="primary" disabled={loading}>
+              {loading ? "Signing In..." : "Sign In"}
             </Button>
           </form>
 
