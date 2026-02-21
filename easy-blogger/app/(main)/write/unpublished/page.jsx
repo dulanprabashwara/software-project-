@@ -78,6 +78,8 @@ export default function Page() {
   const [visibleArticles, setVisibleArticles] = useState(ARTICLES);
   const [loadedCount, setLoadedCount] = useState(0);
 
+  const [activeTab, setActiveTab] = useState("regular"); // "regular" | "ai"
+
   const toggleSelect = (id) => {
     setSelectedId((prev) => (prev === id ? null : id));
   };
@@ -131,9 +133,47 @@ export default function Page() {
             <p className="text-[#6B7280] text-base">
               You can edit your unpublished articles here.
             </p>
+            {/* Filter Tabs */}
+<div className="flex justify-center mt-10">
+  <div className="w-full max-w-4xl">
+    <div className="flex items-end justify-between px-15">
+      <button
+        type="button"
+        onClick={() => {
+          setActiveTab("regular");
+          setSelectedId(null);
+        }}
+        className={`px-16 py-3 rounded-t-xl text-lg font-medium transition ${
+          activeTab === "regular"
+            ? "bg-[#E9FFF7] text-[#10B981]"
+            : "text-[#10B981]/70 hover:text-[#10B981]"
+        }`}
+      >
+        Regular Articles
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          setActiveTab("ai");
+          setSelectedId(null);
+        }}
+        className={`px-16 py-3 rounded-t-xl text-lg font-medium transition ${
+          activeTab === "ai"
+            ? "bg-[#E9FFF7] text-[#10B981]"
+            : "text-[#10B981]/70 hover:text-[#10B981]"
+        }`}
+      >
+        AI Generated Articles
+      </button>
+    </div>
+
+    <div className="mt-1 border-t-2 border-[#10B981]" />
+  </div>
+</div>
           </div>
 
-          <div className="mt-8 border-t border-black/20" />
+          {/*<div className="mt-8 border-t border-black/20" />*/}
 
             {/* Articles */}
           <div className="mt-10 space-y-10">
@@ -235,7 +275,7 @@ export default function Page() {
             </>
           )}
 
-          <div className="mt-10 border-t border-black/20" />
+          <div className="mt-10 border-t-2 border-black/100" />
 
           <div className="mt-8 flex items-center justify-between px-6">
 
