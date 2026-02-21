@@ -28,7 +28,7 @@ export default function ArticleCard({ article }) {
           <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" />
         )}
 
-        <span className="text-sm text-[#6B7280] flex">·<Clock className="wi-4 h-4 mt-1"/> {article.date}</span>
+        <span className="text-sm text-[#6B7280] flex">·<Clock className="wi-4 h-4 mt-0.5"/> {article.date}</span>
       </div>
 
       {/* Article content */}

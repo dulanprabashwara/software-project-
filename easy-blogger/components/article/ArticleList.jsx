@@ -99,6 +99,7 @@ historyArticles: [
     "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=300&fit=crop",
   comments: 54,
   likes: 4.7,
+  read:"Dec 22, 2025"
 },
 {
   id: 12,
@@ -113,6 +114,7 @@ historyArticles: [
     "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=400&h=300&fit=crop",
   comments: 23,
   likes: 4.4,
+  read:"Dec 17, 2025"
 },
 {
   id: 13,
@@ -127,6 +129,7 @@ historyArticles: [
     "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop",
   comments: 61,
   likes: 4.9,
+  read:"Dec 2, 2025"
 },
 {
   id: 14,
@@ -141,6 +144,7 @@ historyArticles: [
     "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=400&h=300&fit=crop",
   comments: 37,
   likes: 4.6,
+  read:"Nov 30, 2025"
 }
 
 ],
@@ -267,7 +271,7 @@ scheduledArticles:[{
   id: 19,
   authorName: "Emma Richardson",
   authorAvatar: "https://i.pravatar.cc/150?img=47",
-  verified: false,
+  verified: true,
   date: "Jan 22, 2026",
   title: "Content Strategy That Actually Converts",
   content:
