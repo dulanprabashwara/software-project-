@@ -28,7 +28,7 @@ export default function EditProfilePage() {
   const router = useRouter();
   // Use global subscription context
   const { isPremium, togglePremium } = useSubscription();
-  const { user: firebaseUser } = useAuth();
+  const { user: firebaseUser, loading: authLoading } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState("");
@@ -64,7 +64,11 @@ export default function EditProfilePage() {
 
   useEffect(() => {
     async function loadProfile() {
-      if (!firebaseUser) return;
+      if (authLoading) return; // Wait for Firebase to determine auth status
+      if (!firebaseUser) {
+        setLoading(false);
+        return;
+      }
       try {
         const token = await firebaseUser.getIdToken();
         const res = await api.getMe(token);
@@ -82,7 +86,7 @@ export default function EditProfilePage() {
       }
     }
     loadProfile();
-  }, [firebaseUser]);
+  }, [firebaseUser, authLoading]);
 
   const handleSaveChanges = async () => {
     if (!firebaseUser) return;
@@ -90,15 +94,35 @@ export default function EditProfilePage() {
     try {
       const token = await firebaseUser.getIdToken();
 
+      const newAvatarUrl = profilePhoto.startsWith("data:")
+        ? profilePhoto
+        : undefined;
+
       const updateData = {
         displayName,
         bio: about,
         // we'll send avatarUrl if it was changed (but a base64 string might be too large depending on backend limits. Assuming it's small or backend handles it via Cloudinary soon!)
-        avatarUrl: profilePhoto.startsWith("data:") ? profilePhoto : undefined,
+        avatarUrl: newAvatarUrl,
       };
 
+      // 1. Update backend Database
       await api.updateProfile(updateData, token);
-      alert("Profile updated successfully!");
+
+      // 2. Update Firebase Auth Profile (so global Header updates instantly)
+      if (newAvatarUrl || displayName !== firebaseUser.displayName) {
+        const { updateProfile: updateFirebaseAuthProfile } =
+          await import("firebase/auth");
+        await updateFirebaseAuthProfile(firebaseUser, {
+          displayName: displayName,
+          photoURL: newAvatarUrl || firebaseUser.photoURL,
+        });
+
+        // Force AuthContext to refresh by triggering state update
+        // (If there was a global update method here, we'd call it, but reloading the page is safest for now to sync context)
+        window.location.reload();
+      } else {
+        alert("Profile updated successfully!");
+      }
     } catch (err) {
       console.error("Failed to update profile", err);
       alert("Failed to update profile.");
@@ -111,7 +135,7 @@ export default function EditProfilePage() {
     setShowPasswordChange(!showPasswordChange);
   };
 
-  const handleUpdatePassword = () => {
+  const handleUpdatePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       alert("Please fill in all password fields");
       return;
@@ -124,12 +148,55 @@ export default function EditProfilePage() {
       alert("Password must be at least 8 characters");
       return;
     }
-    // Simulate API call
-    alert("Password updated successfully!");
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setShowPasswordChange(false);
+
+    if (!firebaseUser || !firebaseUser.email) return;
+
+    try {
+      // 1. Dyanmically import Firebase Auth functions
+      const {
+        EmailAuthProvider,
+        reauthenticateWithCredential,
+        updatePassword,
+      } = await import("firebase/auth");
+
+      // 2. Create the credential for re-authentication
+      const credential = EmailAuthProvider.credential(
+        firebaseUser.email,
+        currentPassword,
+      );
+
+      // 3. Re-authenticate user
+      await reauthenticateWithCredential(firebaseUser, credential);
+
+      // 4. Safely update to the new password
+      await updatePassword(firebaseUser, newPassword);
+
+      alert("Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setShowPasswordChange(false);
+    } catch (err) {
+      console.error("Failed to update password:", err);
+      // Firebase specific error handling
+      if (
+        err.code === "auth/invalid-credential" ||
+        err.code === "auth/wrong-password" ||
+        err.code === "auth/user-mismatch"
+      ) {
+        alert("The current password you entered is incorrect.");
+      } else if (err.code === "auth/weak-password") {
+        alert(
+          "The new password is too weak. Please choose a stronger password.",
+        );
+      } else if (err.code === "auth/requires-recent-login") {
+        alert(
+          "This operation is sensitive and requires recent authentication. Please log out and log back in.",
+        );
+      } else {
+        alert(err.message || "An error occurred while updating the password.");
+      }
+    }
   };
 
   const handleCancelPasswordChange = () => {

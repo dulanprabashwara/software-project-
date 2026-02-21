@@ -11,7 +11,7 @@ import { api } from "../../../lib/api";
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("home");
   const { isPremium } = useSubscription();
-  const { user: firebaseUser } = useAuth();
+  const { user: firebaseUser, loading: authLoading } = useAuth();
 
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,7 +23,11 @@ export default function ProfilePage() {
   // Fetch real user data from backend
   useEffect(() => {
     async function loadProfile() {
-      if (!firebaseUser) return;
+      if (authLoading) return; // Wait for Firebase to finish initializing
+      if (!firebaseUser) {
+        setLoading(false);
+        return;
+      }
       try {
         const token = await firebaseUser.getIdToken();
         const res = await api.getMe(token);
@@ -40,7 +44,7 @@ export default function ProfilePage() {
       }
     }
     loadProfile();
-  }, [firebaseUser]);
+  }, [firebaseUser, authLoading]);
 
   // About Section State
   const [aboutText, setAboutText] = useState("");

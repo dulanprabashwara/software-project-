@@ -113,7 +113,20 @@ export default function LoginPage() {
       router.push("/home");
     } catch (err) {
       console.error("Error logging in with Email", err);
-      setError("Invalid email or password. Please try again.");
+
+      if (
+        err.code === "auth/invalid-credential" ||
+        err.code === "auth/wrong-password" ||
+        err.code === "auth/user-not-found"
+      ) {
+        setError("Invalid email or password. Please try again.");
+      } else if (err.code === "auth/too-many-requests") {
+        setError(
+          "Account temporarily disabled due to many failed login attempts. Please reset your password or try again later.",
+        );
+      } else {
+        setError(err.message || "An error occurred during login.");
+      }
     } finally {
       setLoading(false);
     }
