@@ -21,7 +21,16 @@ export default function Sidebar({ isOpen }) {
   ];
 
   return (
-  <aside className={`fixed left-0 top-16 bottom-0 w-64 bg-white border-r transition-transform ${isOpen ? "0" : "-translate-x-full"}`}>
+  <aside
+          className={`
+            z-1
+            fixed left-0 top-16   h-[calc(100vh-64px)] w-64
+            bg-white border-r border-[#e5e7eb]
+            transition-transform duration-500 ease-in-out
+            ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          `}
+        >
+
   <nav className="p-4 h-full flex flex-col">
     
     {/*  Main Links */}
@@ -34,8 +43,8 @@ export default function Sidebar({ isOpen }) {
       ))}
     </div>
 
-    {/* 2. Write Button (mt-auto pushes this to the bottom) */}
-    <Link href="/write/choose-method" className="mt-auto border-t pt-4 flex items-center gap-3 text-gray-700">
+    {/*   Write Button*/}
+    <Link href="/write/choose-method" className="mt-auto border-t border-[#e5e7eb] pt-4 flex items-center gap-3 text-gray-700">
       <Plus size={24} className="bg-[#1ABC9C] text-white rounded-full p-1" />
       <span className="text-sm font-bold">Write Story</span>
     </Link>

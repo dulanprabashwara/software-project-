@@ -132,7 +132,7 @@ export default function ProfilePage() {
       verified: false,
       date: "Dec 4, 2025",
       title: "How AI is Transforming Content Creation in 2025",
-      description:
+      content:
         "Explore the latest developments in artificial intelligence and how they are revolutionizing the way we create, curate, and consume content across digital platforms.",
       thumbnail:
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=300&fit=crop",
@@ -147,7 +147,7 @@ export default function ProfilePage() {
       verified: false,
       date: "Nov 25, 2025",
       title: "Designing for Accessibility in 2025",
-      description:
+      content:
         "A deep dive into the design thinking process and how it can help teams solve complex problems, innovate faster, and create products that truly resonate with users.",
       thumbnail:
         "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop",
@@ -166,7 +166,7 @@ export default function ProfilePage() {
         {/* Masking Strip for Green Line Artifact */}
         <div className="absolute top-0 right-0 w-3 h-full bg-white z-50 pointer-events-none" />
 
-        <div className="max-w-3xl mx-auto px-8 py-8 pr-12">
+        <div className="max-w-3xl mx-auto px-8 pl-8 pr-12">
           {/* Profile Header */}
           <div className="flex items-center justify-between mb-6">
             <h1

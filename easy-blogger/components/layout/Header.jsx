@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {HelpCircle,Sparkles,MessageCircle,Search,PenSquare,Bell,Menu,LogOut,} from "lucide-react";
+import {HelpCircle,Sparkles,MessageCircle,Search,PenSquare,Bell,Menu,LogOut,BadgeCheck} from "lucide-react";
 import { useSubscription } from "../../app/subscription/SubscriptionContext";
 
 export default function Header({ onToggleSidebar }) { //onToggleSidebar is a function passed down
@@ -19,8 +19,7 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
     avatar: "https://i.pravatar.cc/150?img=47",
   };
 
- useEffect(() => setMounted(true), []); //set mounted as true after first loading
-
+  
   // Close dropdown when clicking outside (only when open) 9trackes 'open' variable
   useEffect(() => {
     if (!open) return;
@@ -33,14 +32,14 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
     return () => document.removeEventListener("mousedown", onDown); //clean up effect. remove mouse listner
   }, [open]);
 
-  if (!mounted) return <header className="h-16 border-b bg-white" />; //load a skelton if the UI isn't rendered
+    //load a skelton if the UI isn't rendered
 
   const membership = isPremium
     ? { label: "Manage Membership", href: "/subscription/manage" } //set membership states [make object] using 'isPremium'  taken from 'useSubscription' component
     : { label: "Become a Member", href: "/subscription/upgrade" };
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 h-16 bg-white border-b px-6 flex items-center justify-between">
+    <header className="fixed top-0 inset-x-0 z-50 h-16 bg-white border-b border-[#e5e7eb] px-6 flex items-center justify-between">
       {/* Left stuff (logo, sidebar button)*/}
       <div className="flex items-center gap-4"> {/*left div*/}
         <button
@@ -52,6 +51,11 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
         </button>
 
         <Link href="/home" className="flex items-center gap-2">
+         <img
+              src="/images/easy-blogger-logo.png"
+              alt="Easy Blogger Logo"
+              className="h-12 w-auto"
+            />
           <h1 className="text-2xl font-bold text-[#1ABC9C] font-serif">
             Easy Blogger
           </h1>
@@ -66,7 +70,7 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
         />
         <input
           placeholder="Search..."
-          className="w-full pl-11 pr-4 py-2 bg-gray-50 border rounded-full text-sm outline-none focus:ring-1 ring-[#1ABC9C]"
+          className="w-full pl-11 pr-4 py-2 bg-gray-50  border border-[#e5e7eb] rounded-full text-sm outline-none focus:ring-1 ring-[#1ABC9C]"
         />
       </div>
 
@@ -87,28 +91,51 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
 
         {/* Avatar + Dropdown */}
         <div className="relative" ref={menuRef}> {/* store a reference to this element*/}
-          <button
-            onClick={() => setOpen((prev) => !prev)}
+          
+          <div>
+          <button  
+          onClick={() => setOpen((prev) => !prev)}
             className={`w-9 h-9 rounded-full border-2 overflow-hidden ${
               isPremium ? "border-amber-400" : "border-transparent"
             }`}
             aria-label="User menu"
           >
             <img src={user.avatar} alt="User" className="w-full h-full object-cover" />
+            
           </button>
-
-          {open && (
-            <div className="absolute right-0 mt-2 w-56 bg-white border rounded-xl shadow-xl py-2 animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-4 py-2 border-none mb-1 text-sm">
-                <p className="font-bold truncate">
-                  <Link href="./profile"> {user.name}</Link>
-                </p>
-                <p className="text-gray-500 text-xs truncate">{user.email}</p>
+          
+          {isPremium && (
+              <div className="absolute -bottom-1 -right-1 drop-shadow-md z-10">
+                <BadgeCheck className="w-5 h-5 text-[#1ABC9C]" />
               </div>
+            )}
+             
+            </div>
+          {open && (
+            <div className="absolute right-0 mt-2 w-56 bg-white border border-[#e5e7eb] rounded-xl shadow-xl py-2 animate-in fade-in zoom-in-95 duration-100">
+              <div className={`w-17 h-17 rounded-full border-2 overflow-hidden mx-auto ${isPremium ? "border-amber-400" : "border-transparent" }`}>
+                <img src={user.avatar} alt="User" className="w-full h-full object-cover" />
+              </div>
+              <div className="px-4 py-2 border-none mb-1 text-sm   mb-0">
+               
+                <p className="font-bold">
+  <Link href="./profile" className="flex items-center justify-between">
+    <span className="truncate">{user.name}</span>
+
+    {isPremium && (
+      <BadgeCheck className="w-5 h-5 text-[#1ABC9C] flex-shrink-0 ml-2" />
+    )}
+  </Link>
+</p>
+
+                <p className="text-gray-500 text-xs truncate">{user.email}</p>
+
+              </div>
+              
 
               {/*icon help, message,membership from menulink function*/}
 
-              <div className="border-t my-1" />
+              <div className="border-t border-[#e5e7eb] my-1" />
               <Link
                 href="#"
                 onClick={() => setOpen(false)}
@@ -133,7 +160,7 @@ export default function Header({ onToggleSidebar }) { //onToggleSidebar is a fun
                 <Sparkles size={16} /> {membership.label}
               </Link>
 
-              <div className="border-t my-1" />
+              <div className="border-t border-[#e5e7eb] my-1" />
 
               <Link href="./login"
                 onClick={() => {

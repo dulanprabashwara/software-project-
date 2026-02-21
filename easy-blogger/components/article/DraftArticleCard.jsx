@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 // Displays a single article preview card in lists
-export default function ArticleCard({ article }) {
+export default function DraftArticleCard({ article }) {
   return (
     <article className="py-6 border-b border-[#E5E7EB] last:border-0">
       {/* Author info */}
@@ -58,37 +58,7 @@ export default function ArticleCard({ article }) {
         )}
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center justify-between mt-4">
-        <div className="flex items-center gap-4 text-sm text-[#6B7280]">
-          {/* Comments */}
-          <button className="flex items-center gap-1.5 hover:text-[#1ABC9C] transition-colors duration-150">
-            <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
-            <span>{article.comments}</span>
-          </button>
-
-          {/* Rating/Likes */}
-          <button className="flex items-center gap-1.5 hover:text-[#1ABC9C] transition-colors duration-150">
-            <Star className="w-5 h-5" strokeWidth={1.5} />
-            <span>{article.likes}</span>
-          </button>
-        </div>
-
-        <div className="flex items-center gap-1">
-          {/* Bookmark */}
-          <button className="group p-2 hover:bg-[#E8F8F5] rounded-full transition-colors duration-150">
-            <Bookmark
-              className="w-5 h-5 text-[#6B7280] group-hover:text-[#1ABC9C] transition-colors duration-150"
-              strokeWidth={1.5}
-            />
-          </button>
-
-          {/* More options */}
-          <button className="group p-2 hover:bg-[#E8F8F5] rounded-full transition-colors duration-150">
-            <MoreHorizontal className="w-5 h-5 text-[#6B7280] group-hover:text-[#1ABC9C] transition-colors duration-150" />
-          </button>
-        </div>
-      </div>
+      
     </article>
   );
 }

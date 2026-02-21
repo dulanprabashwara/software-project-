@@ -18,7 +18,7 @@ export default function MainLayout({ children }) {
 
       {/* Main content with sidebar offset */}
       <div
-        className={`transition-all duration-300 ease-in-out ${sidebarOpen ? "ml-60" : "ml-0"}`}
+        className={` overflow hidden transition-all duration-300 ease-in-out ${sidebarOpen ? "ml-60" : "ml-0"}`}
       >
         {children}
       </div>

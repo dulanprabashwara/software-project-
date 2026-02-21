@@ -6,6 +6,7 @@ import {
   Star,
   Bookmark,
   MoreHorizontal,
+  Clock
 } from "lucide-react";
 
 // Displays a single article preview card in lists
@@ -27,7 +28,7 @@ export default function ArticleCard({ article }) {
           <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" />
         )}
 
-        <span className="text-sm text-[#6B7280]">· {article.date}</span>
+        <span className="text-sm text-[#6B7280] flex">·<Clock className="wi-4 h-4 mt-0.5"/> {article.date}</span>
       </div>
 
       {/* Article content */}
@@ -64,13 +65,13 @@ export default function ArticleCard({ article }) {
           {/* Comments */}
           <button className="flex items-center gap-1.5 hover:text-[#1ABC9C] transition-colors duration-150">
             <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
-            <span>{article.comments}</span>
+            <span><p>--</p></span>
           </button>
 
           {/* Rating/Likes */}
           <button className="flex items-center gap-1.5 hover:text-[#1ABC9C] transition-colors duration-150">
             <Star className="w-5 h-5" strokeWidth={1.5} />
-            <span>{article.likes}</span>
+            <span> <p>--</p></span>
           </button>
         </div>
 

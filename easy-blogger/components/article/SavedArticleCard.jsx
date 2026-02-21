@@ -78,8 +78,8 @@ export default function ArticleCard({ article }) {
           {/* Bookmark */}
           <button className="group p-2 hover:bg-[#E8F8F5] rounded-full transition-colors duration-150">
             <Bookmark
-              className="w-5 h-5 text-[#6B7280] group-hover:text-[#1ABC9C] transition-colors duration-150"
-              strokeWidth={1.5}
+              className="w-5 h-5 text-[#6B7280] group-hover:text-[#1ABC9C] transition-colors duration-150 fill-[#1abc9c] "
+              strokeWidth={0}
             />
           </button>
 
