@@ -17,9 +17,7 @@ export default function HistoryArticleCard({
   return (
     <article
       onClick={onClick}
-      className={`cursor-pointer border-b border-[#E5E7EB] last:border-0 transition-all duration-600 ${
-        isOpen ? "py-6" : "py-3"
-      }`}
+      className={`cursor-pointer border-b border-[#E5E7EB] last:border-0 transition-all duration-600 py-8 `}
     >
       {/* Author */}
       <div className={`flex items-center gap-2 ${isOpen ? "mb-3" : "mb-1"}`}>
@@ -47,7 +45,7 @@ export default function HistoryArticleCard({
           </h2>
 
           {/* Preview only when open */}
-          {isOpen && (
+           
             <div className="text-[#6B7280] text-base leading-relaxed transition-all duration- 300 line-clamp-3 mt-2">
               <div
                 dangerouslySetInnerHTML={{
@@ -55,11 +53,11 @@ export default function HistoryArticleCard({
                 }}
               />
             </div>
-          )}
+           
         </div>
 
         {/* Thumbnail only when open */}
-        {isOpen && article.thumbnail && (
+       
           <div className="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden">
             <img
               src={article.thumbnail}
@@ -67,7 +65,7 @@ export default function HistoryArticleCard({
               className="w-full h-full object-cover"
             />
           </div>
-        )}
+        
       </div>
 
       {/* Actions */}
