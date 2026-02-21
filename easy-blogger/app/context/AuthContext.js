@@ -13,15 +13,16 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null); // The backend PostgreSQL profile
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      // 1. Instantly unblock the UI so pages (like Profile) can render their shells
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      // 1. Instantly update Firebase state
       setUser(firebaseUser ?? null);
-      setLoading(false);
 
-      // 2. Run the database sync in the background
+      // 2. Fetch Backend Database Profile (for Roles, Premium status, etc.)
       if (firebaseUser) {
         firebaseUser.getIdToken().then((token) => {
           api
@@ -34,13 +35,36 @@ export function AuthProvider({ children }) {
               },
               token,
             )
+            .then(async () => {
+              // After a successful sync, fetch their actual profile to check their Admin role
+              try {
+                const res = await api.getMe(token);
+                if (res.success && res.data) {
+                  setUserProfile(res.data);
+                  setIsAdmin(res.data.role === "ADMIN");
+                }
+              } catch (profileError) {
+                console.error(
+                  "Failed to fetch user backend profile:",
+                  profileError,
+                );
+              }
+            })
             .catch((error) => {
               console.error(
                 "Failed to sync user with backend database:",
                 error,
               );
+            })
+            .finally(() => {
+              // Always unlock the UI once the backend finishes loading
+              setLoading(false);
             });
         });
+      } else {
+        setUserProfile(null);
+        setIsAdmin(false);
+        setLoading(false);
       }
     });
 
@@ -52,7 +76,9 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
+    <AuthContext.Provider
+      value={{ user, userProfile, isAdmin, loading, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
