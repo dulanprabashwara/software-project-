@@ -59,7 +59,10 @@ export const api = {
   // Users & Auth
   syncUser: (userData, token) =>
     fetchAPI("/api/auth/sync", { method: "POST", body: userData, token }),
-  getUserProfile: (username) => fetchAPI(`/api/users/${username}`),
+  getMe: (token) => fetchAPI("/api/users/me", { token }),
+  updateProfile: (data, token) =>
+    fetchAPI("/api/users/me", { method: "PUT", body: data, token }),
+  getUserProfile: (identifier) => fetchAPI(`/api/users/${identifier}`),
 
   // Add more as needed...
 };

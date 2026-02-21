@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -21,17 +21,20 @@ import {
  */
 
 import { useSubscription } from "../../../subscription/SubscriptionContext";
+import { useAuth } from "../../../context/AuthContext";
+import { api } from "../../../../lib/api";
 
 export default function EditProfilePage() {
   const router = useRouter();
   // Use global subscription context
   const { isPremium, togglePremium } = useSubscription();
-  const [displayName, setDisplayName] = useState("Emma Richardson");
-  const [username, setUsername] = useState("Emma Richardson");
-  const [email, setEmail] = useState("emma.richardson@example.com");
-  const [about, setAbout] = useState(
-    "Product Designer & Writer. Passionate about UX design, systems, and the future of design creativity. Sharing insights on building better products.",
-  );
+  const { user: firebaseUser } = useAuth();
+
+  const [loading, setLoading] = useState(true);
+  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [about, setAbout] = useState("");
   const [profilePhoto, setProfilePhoto] = useState("/api/placeholder/120/120");
   const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -59,13 +62,49 @@ export default function EditProfilePage() {
     }
   };
 
-  const handleSaveChanges = () => {
+  useEffect(() => {
+    async function loadProfile() {
+      if (!firebaseUser) return;
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res = await api.getMe(token);
+        if (res.success && res.data) {
+          setDisplayName(res.data.displayName || "");
+          setUsername(res.data.username || "");
+          setEmail(firebaseUser.email || "");
+          setAbout(res.data.bio || "");
+          if (res.data.avatarUrl) setProfilePhoto(res.data.avatarUrl);
+        }
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfile();
+  }, [firebaseUser]);
+
+  const handleSaveChanges = async () => {
+    if (!firebaseUser) return;
     setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      const token = await firebaseUser.getIdToken();
+
+      const updateData = {
+        displayName,
+        bio: about,
+        // we'll send avatarUrl if it was changed (but a base64 string might be too large depending on backend limits. Assuming it's small or backend handles it via Cloudinary soon!)
+        avatarUrl: profilePhoto.startsWith("data:") ? profilePhoto : undefined,
+      };
+
+      await api.updateProfile(updateData, token);
       alert("Profile updated successfully!");
-    }, 1000);
+    } catch (err) {
+      console.error("Failed to update profile", err);
+      alert("Failed to update profile.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleChangePassword = () => {
@@ -129,6 +168,14 @@ export default function EditProfilePage() {
       setWordpressConnected(true);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen pt-20">
+        <p className="text-[#6B7280]">Loading profile data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-8">
