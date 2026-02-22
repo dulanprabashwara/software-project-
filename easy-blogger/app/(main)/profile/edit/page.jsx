@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -21,17 +21,20 @@ import {
  */
 
 import { useSubscription } from "../../../subscription/SubscriptionContext";
+import { useAuth } from "../../../context/AuthContext";
+import { api } from "../../../../lib/api";
 
 export default function EditProfilePage() {
   const router = useRouter();
   // Use global subscription context
   const { isPremium, togglePremium } = useSubscription();
-  const [displayName, setDisplayName] = useState("Emma Richardson");
-  const [username, setUsername] = useState("Emma Richardson");
-  const [email, setEmail] = useState("emma.richardson@example.com");
-  const [about, setAbout] = useState(
-    "Product Designer & Writer. Passionate about UX design, systems, and the future of design creativity. Sharing insights on building better products.",
-  );
+  const { user: firebaseUser, loading: authLoading } = useAuth();
+
+  const [loading, setLoading] = useState(true);
+  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [about, setAbout] = useState("");
   const [profilePhoto, setProfilePhoto] = useState("/api/placeholder/120/120");
   const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -59,20 +62,80 @@ export default function EditProfilePage() {
     }
   };
 
-  const handleSaveChanges = () => {
+  useEffect(() => {
+    async function loadProfile() {
+      if (authLoading) return; // Wait for Firebase to determine auth status
+      if (!firebaseUser) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res = await api.getMe(token);
+        if (res.success && res.data) {
+          setDisplayName(res.data.displayName || "");
+          setUsername(res.data.username || "");
+          setEmail(firebaseUser.email || "");
+          setAbout(res.data.bio || "");
+          if (res.data.avatarUrl) setProfilePhoto(res.data.avatarUrl);
+        }
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfile();
+  }, [firebaseUser, authLoading]);
+
+  const handleSaveChanges = async () => {
+    if (!firebaseUser) return;
     setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const token = await firebaseUser.getIdToken();
+
+      const newAvatarUrl = profilePhoto.startsWith("data:")
+        ? profilePhoto
+        : undefined;
+
+      const updateData = {
+        displayName,
+        bio: about,
+        // we'll send avatarUrl if it was changed (but a base64 string might be too large depending on backend limits. Assuming it's small or backend handles it via Cloudinary soon!)
+        avatarUrl: newAvatarUrl,
+      };
+
+      // 1. Update backend Database
+      await api.updateProfile(updateData, token);
+
+      // 2. Update Firebase Auth Profile (so global Header updates instantly)
+      if (newAvatarUrl || displayName !== firebaseUser.displayName) {
+        const { updateProfile: updateFirebaseAuthProfile } =
+          await import("firebase/auth");
+        await updateFirebaseAuthProfile(firebaseUser, {
+          displayName: displayName,
+          photoURL: newAvatarUrl || firebaseUser.photoURL,
+        });
+
+        // Force AuthContext to refresh by triggering state update
+        // (If there was a global update method here, we'd call it, but reloading the page is safest for now to sync context)
+        window.location.reload();
+      } else {
+        alert("Profile updated successfully!");
+      }
+    } catch (err) {
+      console.error("Failed to update profile", err);
+      alert("Failed to update profile.");
+    } finally {
       setIsSaving(false);
-      alert("Profile updated successfully!");
-    }, 1000);
+    }
   };
 
   const handleChangePassword = () => {
     setShowPasswordChange(!showPasswordChange);
   };
 
-  const handleUpdatePassword = () => {
+  const handleUpdatePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       alert("Please fill in all password fields");
       return;
@@ -85,12 +148,55 @@ export default function EditProfilePage() {
       alert("Password must be at least 8 characters");
       return;
     }
-    // Simulate API call
-    alert("Password updated successfully!");
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setShowPasswordChange(false);
+
+    if (!firebaseUser || !firebaseUser.email) return;
+
+    try {
+      // 1. Dyanmically import Firebase Auth functions
+      const {
+        EmailAuthProvider,
+        reauthenticateWithCredential,
+        updatePassword,
+      } = await import("firebase/auth");
+
+      // 2. Create the credential for re-authentication
+      const credential = EmailAuthProvider.credential(
+        firebaseUser.email,
+        currentPassword,
+      );
+
+      // 3. Re-authenticate user
+      await reauthenticateWithCredential(firebaseUser, credential);
+
+      // 4. Safely update to the new password
+      await updatePassword(firebaseUser, newPassword);
+
+      alert("Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setShowPasswordChange(false);
+    } catch (err) {
+      console.error("Failed to update password:", err);
+      // Firebase specific error handling
+      if (
+        err.code === "auth/invalid-credential" ||
+        err.code === "auth/wrong-password" ||
+        err.code === "auth/user-mismatch"
+      ) {
+        alert("The current password you entered is incorrect.");
+      } else if (err.code === "auth/weak-password") {
+        alert(
+          "The new password is too weak. Please choose a stronger password.",
+        );
+      } else if (err.code === "auth/requires-recent-login") {
+        alert(
+          "This operation is sensitive and requires recent authentication. Please log out and log back in.",
+        );
+      } else {
+        alert(err.message || "An error occurred while updating the password.");
+      }
+    }
   };
 
   const handleCancelPasswordChange = () => {
@@ -129,6 +235,14 @@ export default function EditProfilePage() {
       setWordpressConnected(true);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen pt-20">
+        <p className="text-[#6B7280]">Loading profile data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-8">
