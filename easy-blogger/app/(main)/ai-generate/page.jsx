@@ -870,7 +870,7 @@ export default function AIArticleGeneratorPage() {
               <div className="preview-header-actions">
                 <button className="preview-copy-icon" title="Copy" onClick={handleCopyToClipboard}>
                   {isCopied ? (
-                    <span className="preview-copied-message">copied to clipboard</span>
+                    <span className="preview-copied-message">copied !</span>
                   ) : (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
