@@ -56,12 +56,16 @@ export const api = {
   analyzeContent: (content, token) =>
     fetchAPI("/api/ai/analyze", { method: "POST", body: { content }, token }),
 
-  // Users & Auth
-  syncUser: (userData, token) =>
-    fetchAPI("/api/auth/sync", { method: "POST", body: userData, token }),
+  // Auth Endpoints
+  registerUser: (data, token) =>
+    fetchAPI("/api/auth/register", { method: "POST", body: data, token }),
+  syncUser: (data, token) =>
+    fetchAPI("/api/auth/sync", { method: "POST", body: data, token }),
   getMe: (token) => fetchAPI("/api/users/me", { token }),
+
+  // User Endpoints
   updateProfile: (data, token) =>
-    fetchAPI("/api/users/me", { method: "PUT", body: data, token }),
+    fetchAPI("/api/users/profile", { method: "PUT", body: data, token }),
   getUserProfile: (identifier) => fetchAPI(`/api/users/${identifier}`),
 
   // Add more as needed...
