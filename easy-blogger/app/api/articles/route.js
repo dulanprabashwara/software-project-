@@ -2,8 +2,14 @@
 import { NextResponse } from "next/server";
 import { getArticles, setArticles, makeId } from "../../../lib/articles/store";
 
-export async function GET() {
-  return NextResponse.json({ articles: getArticles() }, { status: 200 });
+export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+  const status = searchParams.get("status");
+
+  const all = getArticles() || [];
+  const filtered = status ? all.filter((a) => a.status === status) : all;
+
+  return NextResponse.json({ articles: filtered }, { status: 200 });
 }
 
 export async function POST(req) {
