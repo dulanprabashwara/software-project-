@@ -29,3 +29,39 @@ export async function POST(req) {
     return NextResponse.json({ message: "Invalid JSON body" }, { status: 400 });
   }
 }
+
+export async function PUT(req) {
+  try {
+    const body = await req.json();
+    const { id } = body;
+
+    if (!id) {
+      return NextResponse.json({ message: "id is required" }, { status: 400 });
+    }
+
+    const current = getArticles();
+    const index = current.findIndex((a) => a.id === id);
+
+    if (index === -1) {
+      return NextResponse.json({ message: "Not found" }, { status: 404 });
+    }
+
+    const existing = current[index];
+    const updated = {
+      ...existing,
+      title: body.title ?? existing.title,
+      content: body.content ?? existing.content,
+      coverImage: body.coverImage ?? existing.coverImage,
+      status: body.status ?? existing.status,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const next = [...current];
+    next[index] = updated;
+    setArticles(next);
+
+    return NextResponse.json({ article: updated }, { status: 200 });
+  } catch {
+    return NextResponse.json({ message: "Invalid JSON body" }, { status: 400 });
+  }
+}
