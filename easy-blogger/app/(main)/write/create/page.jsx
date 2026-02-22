@@ -50,18 +50,28 @@ export default function CreateArticlePage() {
           content,
           coverImage,
           writerName: "Emma Richardson",
-          status: "draft",
+          status: "editing",
         };
 
         let nextDraftId = draftId;
 
         if (!nextDraftId) {
+          // First time -> create
           const data = await createDraft(payload);
           nextDraftId = data.article.id;
           setDraftId(nextDraftId);
-        } else {
-          await updateDraft(nextDraftId, payload);
-        }
+          } else {
+            // Update existing -> if not found, recreate
+            try {
+              await updateDraft(nextDraftId, payload);
+            } catch (err) {
+              console.warn("Update failed, recreating draft...", err);
+
+              const data = await createDraft(payload);
+              nextDraftId = data.article.id;
+              setDraftId(nextDraftId);
+            }
+          }
 
         setLastSaved(new Date());
 
