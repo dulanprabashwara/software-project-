@@ -705,11 +705,11 @@ export default function AIArticleGeneratorPage() {
                   {/* STATE 3: Article result shown inline */}
                   {!isGenerating && !generateError && generatedArticle && (
                     <div className="article-result-section" style={{ width: "100%" }}>
-                      <div className="result-container">
+                      
                         <div className="result-left-side"></div>
-                        <div className="result-right-side">
+                       
                           <p className="heres-article-text">Here&apos;s your article..</p>
-
+                          
                           {/* Clickable title label → opens preview overlay */}
                           <div className="article-title-label" onClick={() => setShowPreview(true)}>
                             <span className="article-title-text">{generatedArticle.title}</span>
@@ -718,8 +718,9 @@ export default function AIArticleGeneratorPage() {
                               <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                             </svg>
                           </div>
-
+                         
                           {/* Action icons row */}
+                          <br></br>
                           <div className="article-actions">
                             {/* ← Back button (from original page.jsx) */}
                             <button className="back-button" title="Back" onClick={() => { setGeneratedArticle(null); setCurrentView("input"); }}>
@@ -752,8 +753,8 @@ export default function AIArticleGeneratorPage() {
                               </svg>
                             </button>
                           </div>
-                        </div>
-                      </div>
+                        
+                      
                     </div>
                   )}
 
