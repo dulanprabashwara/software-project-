@@ -50,6 +50,10 @@ export async function POST(request) {
     if (actionType === 'deletePost') {
       posts = posts.filter(p => String(p.id) !== String(body.postId));
     }
+    if (actionType === 'updateProfile') {
+      // In a real app, we'd update an 'admins' table. 
+      // For now, we just trigger the audit log entry creation below.
+    }
     const newLog = { id: Date.now(), admin: body.admin || "Admin Dulsi", action: body.action, target: body.target, details: body.details || body.reason, endpoint: body.endpoint, timestamp: body.timestamp || new Date().toLocaleString() };
     auditLogs.unshift(newLog);
     return NextResponse.json({ success: true }, { status: 200 });
