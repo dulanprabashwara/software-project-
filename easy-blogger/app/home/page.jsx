@@ -14,7 +14,7 @@ export default function HomePage() {
       </div>
 
       {/* Right Feed */}
-      <div className="w-80 flex-none h-full overflow-y-auto">
+      <div className=" hidden lg:block w-80 flex-none h-full overflow-y-auto">
         <RightFeed
           trending={DATA.trending}
           topics={DATA.topics}

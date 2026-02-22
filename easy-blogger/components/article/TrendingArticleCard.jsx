@@ -9,9 +9,9 @@ import {
 } from "lucide-react";
 
 // Displays a single article preview card in lists
-export default function ArticleCard({ article }) {
+export default function TrendingArticleCard({ article }) {
   return (
-    <article className=" py-6 border-b border-[#E5E7EB] last:border-0">
+    <article className=" w-full py-6 border-b border-[#E5E7EB] last:border-0">
       {/* Author info */}
       <div className="flex items-center gap-2 mb-3">
         <img

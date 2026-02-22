@@ -13,7 +13,7 @@ export default function MainLayout({ children }) {
   };
 
   return (
-    <div className=" h-screen bg-[#F9FAFB]  ">
+    <div className=" h-screen bg-white  ">
       <Header onToggleSidebar={toggleSidebar} />
       <Sidebar isOpen={sidebarOpen} />
 

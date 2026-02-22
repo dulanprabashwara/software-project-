@@ -8,10 +8,7 @@ export default function layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-     
-          
-
-            <div className="h-screen overflow-hidden bg-white flex flex-col">
+     <div className="h-screen overflow-hidden bg-white flex flex-col">
         {/* Header */}
         <div className="h-16 shrink-0">
           <Header onToggleSidebar={() => setSidebarOpen((p) => !p)} />
@@ -28,7 +25,7 @@ export default function layout({ children }) {
           {/* Injected Page Content */}
           {children}
         </main>
-      </div>
+    </div>
      
          
       
