@@ -65,3 +65,24 @@ export async function PUT(req) {
     return NextResponse.json({ message: "Invalid JSON body" }, { status: 400 });
   }
 }
+
+export async function DELETE(req) {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json({ message: "id is required" }, { status: 400 });
+  }
+
+  const current = getArticles();
+  const before = current.length;
+
+  const next = current.filter((a) => a.id !== id);
+  setArticles(next);
+
+  if (next.length === before) {
+    return NextResponse.json({ message: "Not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({ message: "Deleted", id }, { status: 200 });
+}
