@@ -24,19 +24,11 @@ export default function UserListPage() {
   // --- CSV EXPORT LOGIC ---
   const exportToCSV = (filename, userList) => {
     if (userList.length === 0) return alert("No data to export");
-    
-    // Define headers
     const headers = ["ID", "Name", "Email", "Type", "Status", "Start Date", "End Date", "Payment Method"];
-    
-    // Map data to rows
     const rows = userList.map(u => [
       u.id, u.name, u.email, u.type, u.status, u.startDate, u.endDate, u.paymentMethod
     ]);
-
-    // Construct CSV string
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
-    
-    // Create download link
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -65,11 +57,12 @@ export default function UserListPage() {
       return; 
     }
 
+    const userObj = users.find(u => u.id === id);
     const auditEntry = {
       userId: id,
       admin: "Admin Dulsi",
       action: newStatus === "Banned" ? "Banned User" : "Unbanned User",
-      target: `user_${users.find(u => u.id === id)?.name.toLowerCase().replace(' ', '_') || id}`,
+      target: `user_${userObj?.name.toLowerCase().replace(/\s+/g, '_') || id}`,
       details: reason || banReason,
       endpoint: newStatus === "Banned" ? "POST /api/users/{id}/ban" : "POST /api/users/{id}/unban",
       newStatus: newStatus
@@ -87,6 +80,7 @@ export default function UserListPage() {
         setBanningUser(null);
         setBanReason("");
         setValidationError("");
+        if (selectedUser?.id === id) setSelectedUser({...selectedUser, status: newStatus});
       }
     } catch (error) { console.error(error); }
   };
@@ -94,6 +88,7 @@ export default function UserListPage() {
   const filteredUsers = users.filter(user => {
     const cleanQuery = searchQuery.trim().toLowerCase();
     const matchesSearch = (user.name?.toLowerCase() || "").includes(cleanQuery) || (user.email?.toLowerCase() || "").includes(cleanQuery);
+    
     const typeFiltersActive = activeFilters.regular || activeFilters.premium;
     const statusFiltersActive = activeFilters.banned || activeFilters.active;
 
@@ -166,32 +161,73 @@ export default function UserListPage() {
           </table>
         </div>
 
-        {/* --- EXPORT BUTTONS AREA --- */}
         <div className="flex justify-end gap-3 px-10 mt-6 mb-4">
-          <button 
-            onClick={() => exportToCSV("revenue_report.csv", filteredUsers.filter(u => u.type === "Premium"))}
-            className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"
-          >
-            <Download size={14} /> Download Revenue Report
-          </button>
-          <button 
-            onClick={() => exportToCSV("banned_users.csv", filteredUsers.filter(u => u.status === "Banned"))}
-            className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"
-          >
-            <Download size={14} /> Export Banned Users
-          </button>
-          <button 
-            onClick={() => exportToCSV("active_users.csv", filteredUsers.filter(u => u.status === "Active"))}
-            className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"
-          >
-            <Download size={14} /> Export Active Users
-          </button>
+          <button onClick={() => exportToCSV("revenue_report.csv", filteredUsers.filter(u => u.type === "Premium"))} className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"><Download size={14} /> Download Revenue Report</button>
+          <button onClick={() => exportToCSV("banned_users.csv", filteredUsers.filter(u => u.status === "Banned"))} className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"><Download size={14} /> Export Banned Users</button>
+          <button onClick={() => exportToCSV("active_users.csv", filteredUsers.filter(u => u.status === "Active"))} className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"><Download size={14} /> Export Active Users</button>
         </div>
       </div>
 
-      {/* Side Panel & Ban Modal remain unchanged... */}
-      {/* (Rest of your existing Aside and Modal code goes here) */}
+      {/* DYNAMIC SIDE PANEL */}
+      <aside className={`fixed top-20 right-10 bottom-10 w-84 bg-[#D1D5DB] border border-gray-300 rounded-[40px] shadow-2xl transition-transform duration-500 z-50 ${selectedUser ? "translate-x-0" : "translate-x-[120%]"}`}>
+        {selectedUser && (
+          <div className="p-6 relative flex flex-col items-center h-full">
+            <button onClick={() => setSelectedUser(null)} className="absolute top-4 right-4 text-red-500 hover:bg-white/40 p-1 rounded-full"><X size={20}/></button>
+            <h3 className="text-sm font-bold mb-6 text-gray-700 tracking-tight uppercase">Subscription Details</h3>
+            
+            <div className="bg-white p-8 rounded-[35px] w-full shadow-inner border border-gray-200">
+              <div className="text-center mb-6">
+                <h2 className="text-3xl font-black text-gray-900 leading-none" style={{ fontFamily: "serif" }}>
+                  {selectedUser.name.split(' ').map((part, i) => (
+                    <span key={i} className="block">{part}</span>
+                  ))}
+                </h2>
+                <p className="text-[11px] font-bold text-gray-400 mt-2 tracking-widest uppercase">{selectedUser.id}</p>
+              </div>
 
+              <div className="space-y-6 text-center">
+                <div>
+                  <div className="text-lg font-black text-[#111827] uppercase">{selectedUser.type}</div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">(Monthly)</div>
+                </div>
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="text-[10px] italic font-bold text-gray-400 uppercase">Subscription Status:</div>
+                  <div className={`text-xs font-bold ${selectedUser.status === 'Active' ? 'text-green-500' : 'text-red-500'}`}>{selectedUser.status}</div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-[10px] font-bold italic text-gray-500 uppercase"><span>Start Date:</span><span className="text-gray-400">{selectedUser.startDate}</span></div>
+                  <div className="flex justify-between items-center text-[10px] font-bold italic text-gray-500 uppercase"><span>End Date:</span><span className="text-gray-400">{selectedUser.endDate}</span></div>
+                </div>
+                <div className="pt-4 border-t border-gray-100">
+                   <div className="text-[10px] italic font-bold text-gray-400 uppercase mb-1">Payment Method:</div>
+                   <div className="text-xs font-bold text-gray-600">{selectedUser.paymentMethod}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3 w-full mt-auto px-4 text-center">
+               <button className="w-full bg-[#1ABC9C] hover:bg-[#16a085] text-white font-bold py-3 rounded-2xl shadow-md text-xs">Edit Plan</button>
+               <button className="w-full bg-red-100 hover:bg-red-200 text-red-500 font-bold py-3 rounded-2xl text-xs">Cancel Plan</button>
+            </div>
+          </div>
+        )}
+      </aside>
+
+      {/* BAN MODAL */}
+      {banningUser && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white p-8 rounded-[40px] shadow-2xl max-w-sm w-full border border-gray-100 animate-in zoom-in duration-200">
+            <h2 className="text-2xl font-bold text-red-600 mb-2 text-center">Ban User?</h2>
+            <p className="text-sm text-gray-500 mb-6 font-medium text-center">Are you sure you want to ban <strong>{banningUser.name}</strong>?</p>
+            <textarea className={`w-full p-4 border rounded-3xl text-sm h-32 mb-2 outline-none resize-none bg-gray-50 transition-colors ${validationError ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:ring-2 focus:ring-[#1ABC9C]'}`} placeholder="Reason for banning..." value={banReason} onChange={(e) => { setBanReason(e.target.value); if(e.target.value.trim().length >= 10) setValidationError(""); }} />
+            {validationError && <p className="text-[10px] text-red-500 mb-4 ml-4 font-bold flex items-center gap-1"><AlertCircle size={12}/> {validationError}</p>}
+            <div className="flex gap-4 font-bold">
+              <button onClick={() => {setBanningUser(null); setBanReason("");}} className="flex-1 btn btn-ghost rounded-2xl h-12">Cancel</button>
+              <button onClick={() => updateUserStatus(banningUser.id, "Banned")} className="flex-1 btn bg-red-500 hover:bg-red-600 text-white border-none rounded-2xl h-12">Confirm Ban</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

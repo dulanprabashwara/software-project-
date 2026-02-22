@@ -236,7 +236,7 @@ export default function OffersPage() {
                    <span className="text-xl font-black text-[#111827]">Visibility</span>
                    <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" className="sr-only peer" checked={formData.visibility} onChange={toggleVisibility} />
-                      <div className="w-14 h-7 bg-gray-300 rounded-full peer peer-checked:bg-[#1ABC9C] after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-7 shadow-inner"></div>
+                      <div className="w-14 h-7 bg-gray-300 rounded-full peer peer-checked:bg-[#1ABC9C] after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-7 shadow-inner"></div>
                    </label>
                 </div>
               </div>
@@ -254,7 +254,7 @@ export default function OffersPage() {
 
       {/* VERIFICATION MODAL */}
       {showVerifyModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white p-8 rounded-[40px] shadow-2xl max-w-sm w-full text-center animate-in zoom-in duration-200">
             <AlertCircle size={32} className="text-yellow-500 mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Verify Changes</h2>
