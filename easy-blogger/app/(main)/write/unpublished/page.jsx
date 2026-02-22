@@ -116,8 +116,7 @@ export default function Page() {
 
   const handleEditExisting = () => {
     if (!selectedId) return showError("Select an article before edit", "existing");
-    sessionStorage.setItem("edit_existing_id", selectedId);
-    router.push("/write/edit-existing");
+    router.push(`/write/edit-existing/${selectedId}`);
   };
 
   const handleSeeMore = () => {

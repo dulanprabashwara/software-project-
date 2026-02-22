@@ -1,6 +1,11 @@
+// easy-blogger\app\api\articles\route.js
+
+
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+
+export const runtime = "nodejs";
 
 const filePath = path.join(process.cwd(), "data", "articles.json");
 
@@ -22,14 +27,18 @@ function makeId() {
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
   const status = searchParams.get("status");
 
-  const articles = readArticles();
-  const filtered = status
-    ? articles.filter((a) => a.status === status)
-    : articles;
+const articles = readArticles();
+  if (id) {
+    const article = articles.find((a) => a.id === id);
+    if (!article) return Response.json({ message: "Not found" }, { status: 404 });
+    return Response.json({ article }, { status: 200 });
+  }
 
-  return NextResponse.json({ articles: filtered });
+  const filtered = status ? articles.filter((a) => a.status === status) : articles;
+  return Response.json({ articles: filtered }, { status: 200 });
 }
 
 export async function POST(req) {
