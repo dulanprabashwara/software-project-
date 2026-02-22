@@ -37,27 +37,55 @@ export default function CreateArticlePage() {
 
   // Auto-save functionality
   useEffect(() => {
-    const saveTimer = setTimeout(() => {
-      if (title || content) {
+    const saveTimer = setTimeout(async () => {
+      if (!title && !content && !coverImage) return;
+      if (savingRef.current) return;
+
+      try {
+        savingRef.current = true;
         setIsSaving(true);
-        setTimeout(() => {
-          setIsSaving(false);
-          setLastSaved(new Date());
-          localStorage.setItem(
-            "draft_article",
-            JSON.stringify({
-              title,
-              content,
-              coverImage,
-              lastSaved: new Date().toISOString(),
-            }),
-          );
-        }, 500);
+
+        const payload = {
+          title,
+          content,
+          coverImage,
+          writerName: "Emma Richardson",
+          status: "draft",
+        };
+
+        let nextDraftId = draftId;
+
+        if (!nextDraftId) {
+          const data = await createDraft(payload);
+          nextDraftId = data.article.id;
+          setDraftId(nextDraftId);
+        } else {
+          await updateDraft(nextDraftId, payload);
+        }
+
+        setLastSaved(new Date());
+
+        localStorage.setItem(
+          "draft_article",
+          JSON.stringify({
+            title,
+            content,
+            coverImage,
+            draftId: nextDraftId,
+            lastSaved: new Date().toISOString(),
+          }),
+
+        );
+      } catch (err) {
+        console.error("Autosave failed:", err);
+      } finally {
+        setIsSaving(false);
+        savingRef.current = false;
       }
     }, 2000);
 
     return () => clearTimeout(saveTimer);
-  }, [title, content, coverImage]);
+  }, [title, content, coverImage, draftId]);
 
   // Load draft on mount
   useEffect(() => {
@@ -70,7 +98,7 @@ export default function CreateArticlePage() {
       setDraftId(parsed.draftId || null);
     }
   }, []);
-  
+
   //Add “mounted” state (fix refresh hydration)
   useEffect(() => {
     setMounted(true);
