@@ -574,7 +574,7 @@ export default function AIArticleGeneratorPage() {
                   <textarea
                     value={userInput}
                     onChange={handleUserInputChange}
-                    placeholder="Enter your article idea (up to 50 words). You can include your preferred tone (professional, casual, humorous) and length (short, medium, long) directly in your prompt!"
+                    placeholder="Enter your article idea.."
                   />
                   <span className="word-count">
                     {userInput.trim().split(" ").filter((word) => word.length > 0).length}/50 words
