@@ -16,23 +16,23 @@ import {
 } from "lucide-react";
 
 import { useSubscription } from "../../app/subscription/SubscriptionContext";
-import { useAuth } from "../../app/context/AuthContext"; // ✅ same idea as code 2
+import { useAuth } from "../../app/context/AuthContext";  
 
 export default function Header({ onToggleSidebar }) {
   const router = useRouter();
   const { isPremium } = useSubscription();
-  const { user, logout } = useAuth(); // ✅ get real user + logout from backend/auth
+  const { user, logout } = useAuth(); // get user + logout from backend/auth
 
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef(null);
 
-  // ✅ mount fix (code 1 had mounted state but never set it)
+  // mount fix (code 1 had mounted state but never set it)
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // ✅ derive user display values (same concept as code 2)
+  // derive user display values 
   const displayName = user?.displayName || user?.email?.split("@")[0] || "User";
   const displayEmail = user?.email || "";
   const avatarUrl =
@@ -57,7 +57,7 @@ export default function Header({ onToggleSidebar }) {
     ? { label: "Manage Membership", href: "/subscription/manage" }
     : { label: "Become a Member", href: "/subscription/upgrade" };
 
-  // ✅ real sign out like code 2
+  
   const handleSignOut = async () => {
     try {
       setOpen(false);
@@ -204,7 +204,7 @@ export default function Header({ onToggleSidebar }) {
 
               <div className="border-t border-[#e5e7eb] my-1" />
 
-              {/* ✅ same UI look, but real signout */}
+              {/*  signout */}
               <button
                 type="button"
                 onClick={handleSignOut}
