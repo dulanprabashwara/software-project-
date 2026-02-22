@@ -165,6 +165,52 @@ export default function CreateArticlePage() {
     setFontSize((prev) => Math.max(8, Math.min(72, prev + delta)));
   };
 
+  const handleSaveAsDraft = async () => {
+    if (!title || !content) {
+      alert("Title and content required");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+
+      const payload = {
+        title,
+        content,
+        coverImage,
+        writerName: "Emma Richardson",
+        status: "draft",
+      };
+
+      let id = draftId;
+
+      if (!id) {
+        const data = await createDraft(payload);
+        id = data.article.id;
+        setDraftId(id);
+      } else {
+        await updateDraft(id, payload);
+      }
+      
+      // CLEAR LOCAL STORAGE
+      localStorage.removeItem("draft_article");
+
+      // RESET STATE
+      setTitle("");
+      setContent("");
+      setCoverImage(null);
+      setDraftId(null);
+
+      alert("Saved as Draft!");
+      router.push("/write/unpublished"); // adjust path if needed
+    } catch (e) {
+      console.error(e);
+      alert("Failed to save draft");
+    } finally {
+      setIsSaving(false);
+    } 
+  };
+
   const handleDiscard = async () => {
     if (
       confirm(
@@ -252,7 +298,14 @@ export default function CreateArticlePage() {
               </div>
 
               {/* Right: Button */}
-              <div className="justify-self-end">
+              <div className="justify-self-end flex items-center gap-3">
+                <button
+                  onClick={handleSaveAsDraft}
+                  disabled={!title || !content}
+                  className="inline-flex items-center px-6 py-2.5 bg-[#111827] text-white rounded-full text-sm font-medium hover:bg-[#1f2937] disabled:opacity-50"
+                >
+                  Save as Draft
+                </button>
                 <span className="inline-flex items-center px-6 py-2.5 bg-[#1ABC9C] text-white rounded-full text-sm font-medium">
                   {articleMode === "draft" ? "Draft Article" : "New Article"}
                 </span>
