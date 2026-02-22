@@ -189,9 +189,20 @@ export default function EditExistingPage() {
       alert("Please enter both title and content before previewing");
       return;
     }
+    sessionStorage.removeItem("preview_article");
+    sessionStorage.removeItem("preview_context");
+
     sessionStorage.setItem(
-      "preview_article",
-      JSON.stringify({ title, content, coverImage }),
+        "preview_article",
+        JSON.stringify({ title, content, coverImage })
+    );
+    
+    sessionStorage.setItem(
+        "preview_context",
+        JSON.stringify({
+            mode: "edit-existing",
+            id: draftId, // important
+        })
     );
     router.push("/write/preview");
   };

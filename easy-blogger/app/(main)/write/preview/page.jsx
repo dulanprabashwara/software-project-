@@ -12,12 +12,20 @@ export default function Page() {
   const [article, setArticle] = useState(null);
 
   useEffect(() => {
-    const raw = sessionStorage.getItem("preview_article");
-    if (!raw) {
-      router.replace("/create"); // go back if no preview data
+    const rawArticle = sessionStorage.getItem("preview_article");
+    const rawContext = sessionStorage.getItem("preview_context");
+
+    if (!rawArticle || !rawContext) {
+      router.replace("/write/create");
       return;
     }
-    setArticle(JSON.parse(raw));
+
+    try {
+      const parsed = JSON.parse(rawArticle);
+      setArticle(parsed);
+    } catch (e) {
+      router.replace("/write/create");
+    }
   }, [router]);
 
   const toggleSidebar = () => setSidebarOpen((p) => !p);
@@ -83,7 +91,10 @@ export default function Page() {
             <div className="text-center">
               <p className="mb-2 italic text-[#6B7280]">Exit from the editor ?</p>
               <button
-                onClick={() => router.push("/home")}
+                onClick={() => { 
+                  sessionStorage.removeItem("preview_article");
+                  sessionStorage.removeItem("preview_context");
+                  router.push("/home"); }}
                 className="rounded-full bg-black px-6 py-2 text-white"
               >
                 Exit Editor
@@ -103,9 +114,28 @@ export default function Page() {
             <div className="text-center">
               <p className="mb-2 italic text-[#6B7280]">Edit Again?</p>
               <button
-                onClick={() => router.push("/write/create")}
+                onClick={() => {
+                  const raw = sessionStorage.getItem("preview_context");
+                  const ctx = raw ? JSON.parse(raw) : null;
+
+                  // If preview came from edit-existing, go back to that article editor
+                  if (ctx?.mode === "edit-existing" && ctx?.id) {
+                    router.push(`/write/edit-existing/${ctx.id}`);
+                    return;
+                  }
+
+                  // If preview came from edit-as-new (optional)
+                  if (ctx?.mode === "edit-as-new") {
+                    router.push("/write/edit-as-new");
+                    return;
+                  }
+
+                  // Default: create editor
+                  router.push("/write/create");
+                }}
                 className="rounded-full bg-black px-8 py-2 text-white"
               >
+  
                 Edit
               </button>
             </div>
