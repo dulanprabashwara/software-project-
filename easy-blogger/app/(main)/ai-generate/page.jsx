@@ -428,14 +428,6 @@ export default function AIArticleGeneratorPage() {
                 <span className="previous-generations-text">Previous Generations</span>
               </div>
               <div className="flex items-center gap-3">
-                {/* Test: Always show restore button for debugging */}
-                <button 
-                  onClick={handleRestoreArticle} 
-                  className="restore-article-btn"
-                  title="Restore last deleted article"
-                >
-                  <img src="/icons/refresh-ccw-01.png" alt="Restore" className="w-4 h-4" />
-                </button>
                 {deletedArticle && (
                   <button 
                     onClick={handleRestoreArticle} 
