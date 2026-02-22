@@ -70,6 +70,31 @@
   pointer-events: none;
 }
 
+/* Restore button for deleted article */
+.restore-article-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid #1ABC9C;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #1ABC9C;
+}
+
+.restore-article-btn:hover {
+  background: #1ABC9C;
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+.restore-article-btn svg {
+  pointer-events: none;
+}
+
 /* Article Title */
 .article-title {
   color: #000000;

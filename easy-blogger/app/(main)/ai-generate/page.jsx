@@ -71,9 +71,21 @@ export default function AIArticleGeneratorPage() {
   const [isCopied, setIsCopied] = useState(false);
 
   // ── Delete article handler ────────────────────────────────────────────────────────
+  const [deletedArticle, setDeletedArticle] = useState(null);
+  
   const handleDeleteArticle = (articleId, e) => {
     e.stopPropagation(); // Prevent navigation to article detail page
+    const articleToDelete = articles.find(article => article.id === articleId);
+    setDeletedArticle(articleToDelete);
     setArticles(articles.filter(article => article.id !== articleId));
+  };
+
+  // ── Restore article handler ────────────────────────────────────────────────────────
+  const handleRestoreArticle = () => {
+    if (deletedArticle) {
+      setArticles([...articles, deletedArticle]);
+      setDeletedArticle(null);
+    }
   };
 
   // ── Data from API route ────────────────────────────────────────────────────────
@@ -415,9 +427,22 @@ export default function AIArticleGeneratorPage() {
                 </div>
                 <span className="previous-generations-text">Previous Generations</span>
               </div>
-              <button onClick={() => setCurrentView("input")} className="new-article-button">
-                <span>+ New Article</span>
-              </button>
+              <div className="flex items-center gap-3">
+                <button onClick={() => setCurrentView("input")} className="new-article-button">
+                  <span>+ New Article</span>
+                </button>
+                {deletedArticle && (
+                  <button 
+                    onClick={handleRestoreArticle} 
+                    className="restore-article-btn"
+                    title="Restore last deleted article"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 10H21M8 14H16M8 18H16M12 6V12M12 12L8 8M12 12L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="px-6 py-8">
