@@ -1,94 +1,88 @@
-// easy-blogger/app/api/articles/route.js
 import { NextResponse } from "next/server";
-import { getArticles, setArticles, makeId } from "../../../lib/articles/store";
+import fs from "fs";
+import path from "path";
+
+const filePath = path.join(process.cwd(), "data", "articles.json");
+
+// Read articles from file
+function readArticles() {
+  if (!fs.existsSync(filePath)) return [];
+  const data = fs.readFileSync(filePath, "utf-8");
+  return JSON.parse(data || "[]");
+}
+
+// Write articles to file
+function writeArticles(data) {
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+}
+
+function makeId() {
+  return `d_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
 
-  const all = getArticles() || [];
-  const filtered = status ? all.filter((a) => a.status === status) : all;
+  const articles = readArticles();
+  const filtered = status
+    ? articles.filter((a) => a.status === status)
+    : articles;
 
-  return NextResponse.json({ articles: filtered }, { status: 200 });
+  return NextResponse.json({ articles: filtered });
 }
 
 export async function POST(req) {
-  try {
-    const body = await req.json();
+  const body = await req.json();
+  const articles = readArticles();
 
-    const newArticle = {
-      id: makeId(),
-      writerName: body.writerName || "Unknown Writer",
-      date: new Date().toISOString(),
-      title: body.title || "",
-      coverImage: body.coverImage || null,
-      content: body.content || "",
-      status: body.status || "draft",
-      updatedAt: new Date().toISOString(),
-    };
+  const newArticle = {
+    id: makeId(),
+    writerName: body.writerName || "Unknown",
+    date: new Date().toISOString(),
+    title: body.title || "",
+    content: body.content || "",
+    coverImage: body.coverImage || null,
+    status: body.status || "draft",
+    updatedAt: new Date().toISOString(),
+  };
 
-    const current = getArticles();
-    setArticles([newArticle, ...current]);
+  articles.unshift(newArticle);
+  writeArticles(articles);
 
-    return NextResponse.json({ article: newArticle }, { status: 201 });
-  } catch {
-    return NextResponse.json({ message: "Invalid JSON body" }, { status: 400 });
-  }
+  return NextResponse.json({ article: newArticle }, { status: 201 });
 }
 
 export async function PUT(req) {
-  try {
-    const body = await req.json();
-    const { id } = body;
+  const body = await req.json();
+  const { id } = body;
 
-    if (!id) {
-      return NextResponse.json({ message: "id is required" }, { status: 400 });
-    }
+  const articles = readArticles();
+  const index = articles.findIndex((a) => a.id === id);
 
-    const current = getArticles();
-    const index = current.findIndex((a) => a.id === id);
-
-    if (index === -1) {
-      return NextResponse.json({ message: "Not found" }, { status: 404 });
-    }
-
-    const existing = current[index];
-    const updated = {
-      ...existing,
-      title: body.title ?? existing.title,
-      content: body.content ?? existing.content,
-      coverImage: body.coverImage ?? existing.coverImage,
-      status: body.status ?? existing.status,
-      updatedAt: new Date().toISOString(),
-    };
-
-    const next = [...current];
-    next[index] = updated;
-    setArticles(next);
-
-    return NextResponse.json({ article: updated }, { status: 200 });
-  } catch {
-    return NextResponse.json({ message: "Invalid JSON body" }, { status: 400 });
+  if (index === -1) {
+    return NextResponse.json({ message: "Not found" }, { status: 404 });
   }
+
+  articles[index] = {
+    ...articles[index],
+    ...body,
+    updatedAt: new Date().toISOString(),
+  };
+
+  writeArticles(articles);
+
+  return NextResponse.json({ article: articles[index] });
 }
 
 export async function DELETE(req) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 
-  if (!id) {
-    return NextResponse.json({ message: "id is required" }, { status: 400 });
-  }
+  let articles = readArticles();
+  articles = articles.filter((a) => a.id !== id);
 
-  const current = getArticles();
-  const before = current.length;
+  writeArticles(articles);
 
-  const next = current.filter((a) => a.id !== id);
-  setArticles(next);
-
-  if (next.length === before) {
-    return NextResponse.json({ message: "Not found" }, { status: 404 });
-  }
-
-  return NextResponse.json({ message: "Deleted", id }, { status: 200 });
+  return NextResponse.json({ message: "Deleted" });
 }

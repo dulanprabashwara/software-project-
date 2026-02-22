@@ -345,11 +345,11 @@ export default function CreateArticlePage() {
                   }}
                   placeholder="Enter your blog title..."
                   className="w-full px-4 py-3 bg-white border border-[#E5E7EB] rounded-lg text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
-                  maxLength={50}
+                  maxLength={100}
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                   <span className="text-xs text-[#6B7280]">
-                    {title.length}/50
+                    {title.length}/100
                   </span>
                   {title.length === 0 && (
                     <span className="text-xs text-[#DC2626]">*Required</span>
