@@ -3,6 +3,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
+import { X } from "lucide-react";
 import { useSubscription } from "../../subscription/SubscriptionContext";
 import { useAuth } from "../../context/AuthContext";
 import ArticleCard from "../../../components/article/ArticleCard";
@@ -17,6 +19,12 @@ export default function ProfilePage() {
     loading: authLoading,
     updateProfile: updateContextProfile,
   } = useAuth();
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // When ?modal=followers/following/reads/shares is present, show the stats modal
+  const modalTab = searchParams.get("modal");
 
   // Show spinner only while Firebase auth state is being determined (fast, ~50ms).
   const loading = authLoading;
@@ -40,6 +48,14 @@ export default function ProfilePage() {
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [hasAbout, setHasAbout] = useState(false);
 
+  // Stats modal tab state — synced from URL
+  const [statsActiveTab, setStatsActiveTab] = useState(modalTab || "followers");
+
+  // Sync stats tab when URL changes
+  useEffect(() => {
+    if (modalTab) setStatsActiveTab(modalTab);
+  }, [modalTab]);
+
   // Sync about text when profile data arrives
   useEffect(() => {
     if (userProfile) {
@@ -60,6 +76,8 @@ export default function ProfilePage() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const closeModal = () => router.push("/profile");
 
   const handleCopyLink = () => {
     const url = window.location.href;
@@ -187,6 +205,40 @@ export default function ProfilePage() {
       comments: 35,
       likes: 4.9,
     },
+  ];
+
+  // Mock stats modal data
+  const stats = {
+    followers: userProfile?._count?.followers || 0,
+    following: userProfile?._count?.following || 0,
+    reads: userProfile?.stats?.totalReads || 0,
+    shares: userProfile?.stats?.totalShares || 0,
+  };
+
+  const followers = [
+    { id: 1, name: "Sarah Chen", title: "AI Researcher & Tech Writer", avatar: "https://i.pravatar.cc/150?img=1", isFollowing: false },
+    { id: 2, name: "David Miller", title: "Frontend Developer", avatar: "https://i.pravatar.cc/150?img=2", isFollowing: true },
+    { id: 3, name: "James Wilson", title: "Product Manager", avatar: "https://i.pravatar.cc/150?img=3", isFollowing: false },
+    { id: 4, name: "Emily Davis", title: "UX Designer", avatar: "https://i.pravatar.cc/150?img=4", isFollowing: true },
+    { id: 5, name: "Michael Brown", title: "Data Scientist", avatar: "https://i.pravatar.cc/150?img=5", isFollowing: false },
+  ];
+
+  const following = [
+    { id: 1, name: "David Miller", title: "Frontend Developer", avatar: "https://i.pravatar.cc/150?img=2" },
+    { id: 2, name: "Emily Davis", title: "UX Designer", avatar: "https://i.pravatar.cc/150?img=4" },
+    { id: 3, name: "Jessica Taylor", title: "Digital Nomad", avatar: "https://i.pravatar.cc/150?img=6" },
+  ];
+
+  const reads = [
+    { id: 1, title: "The Future of AI in 2026", author: "Sarah Chen", date: "Jan 2, 2026", readTime: "5 min read" },
+    { id: 2, title: "Mastering React Patterns", author: "David Miller", date: "Jan 1, 2026", readTime: "8 min read" },
+    { id: 3, title: "Design Systems 101", author: "Emily Davis", date: "Dec 28, 2025", readTime: "6 min read" },
+    { id: 4, title: "Remote Work Culture", author: "Jessica Taylor", date: "Dec 25, 2025", readTime: "4 min read" },
+  ];
+
+  const shares = [
+    { id: 1, title: "The Future of AI in 2026", platform: "Twitter", date: "Jan 2, 2026", likes: 12 },
+    { id: 2, title: "Mastering React Patterns", platform: "LinkedIn", date: "Jan 1, 2026", comments: 5 },
   ];
 
   if (loading) {
@@ -423,14 +475,14 @@ export default function ProfilePage() {
             {/* Stats Row 1 */}
             <p className="text-sm text-[#6B7280] mb-1">
               <Link
-                href="/profile/user_stats?tab=followers"
+                href="/profile?modal=followers"
                 className="hover:underline cursor-pointer"
               >
                 {userProfile?._count?.followers || 0} Followers
               </Link>
               {" · "}
               <Link
-                href="/profile/user_stats?tab=following"
+                href="/profile?modal=following"
                 className="hover:underline cursor-pointer"
               >
                 {userProfile?._count?.following || 0} Following
@@ -440,14 +492,14 @@ export default function ProfilePage() {
             {/* Stats Row 2 */}
             <p className="text-sm text-[#6B7280] mb-4">
               <Link
-                href="/profile/user_stats?tab=reads"
+                href="/profile?modal=reads"
                 className="hover:underline cursor-pointer"
               >
                 {userProfile?.stats?.totalReads || 0} Reads
               </Link>
               {" · "}
               <Link
-                href="/profile/user_stats?tab=shares"
+                href="/profile?modal=shares"
                 className="hover:underline cursor-pointer"
               >
                 {userProfile?.stats?.totalShares || 0} Shares
@@ -506,6 +558,163 @@ export default function ProfilePage() {
           </div>
         </div>
       </aside>
+
+      {/* Stats Modal — renders over the profile page so the blur has content behind it */}
+      {modalTab && (
+        <>
+          {/* Backdrop: blurs everything including the fixed header */}
+          <div
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[1001]"
+            onClick={closeModal}
+          />
+
+          {/* Modal */}
+          <div className="fixed inset-0 flex items-center justify-center z-[1002] p-4 pointer-events-none">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col pointer-events-auto">
+              {/* Modal Header */}
+              <div className="p-6 border-b border-[#E5E7EB]">
+                <div className="flex items-center justify-between mb-4">
+                  <h2
+                    className="text-2xl font-bold text-[#111827]"
+                    style={{ fontFamily: "Georgia, serif" }}
+                  >
+                    {displayName}
+                  </h2>
+                  <button
+                    onClick={closeModal}
+                    className="p-1 hover:bg-[#F9FAFB] rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5 text-[#6B7280]" />
+                  </button>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex gap-6">
+                  {[
+                    { key: "followers", label: "Followers", count: stats.followers },
+                    { key: "following", label: "Following", count: stats.following },
+                    { key: "reads", label: "Reads", count: stats.reads },
+                    { key: "shares", label: "Shares", count: stats.shares },
+                  ].map(({ key, label, count }) => (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        setStatsActiveTab(key);
+                        router.replace(`/profile?modal=${key}`, { scroll: false });
+                      }}
+                      className={`pb-3 text-sm font-medium transition-colors relative ${
+                        statsActiveTab === key ? "text-[#111827]" : "text-[#6B7280]"
+                      }`}
+                    >
+                      <span className="mr-1">{label}</span>
+                      <span className="text-[#6B7280]">{count}</span>
+                      {statsActiveTab === key && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Modal Content */}
+              <div className="overflow-y-auto p-6 flex-1">
+                {/* Followers Tab */}
+                {statsActiveTab === "followers" && (
+                  <div className="space-y-4">
+                    {followers.map((user) => (
+                      <div key={user.id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full" />
+                          <div>
+                            <p className="font-semibold text-[#111827] text-sm">{user.name}</p>
+                            <p className="text-xs text-[#6B7280]">{user.title}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {user.isFollowing ? (
+                            <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
+                              Following
+                            </button>
+                          ) : (
+                            <button className="px-4 py-1.5 text-sm text-white bg-[#1ABC9C] rounded-full hover:bg-[#17a589] transition-colors">
+                              Follow
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Following Tab */}
+                {statsActiveTab === "following" && (
+                  <div className="space-y-4">
+                    {following.map((user) => (
+                      <div key={user.id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full" />
+                          <div>
+                            <p className="font-semibold text-[#111827] text-sm">{user.name}</p>
+                            <p className="text-xs text-[#6B7280]">{user.title}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
+                            Message
+                          </button>
+                          <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
+                            Unfollow
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Reads Tab */}
+                {statsActiveTab === "reads" && (
+                  <div className="space-y-5">
+                    {reads.map((article) => (
+                      <div key={article.id} className="border-b border-[#E5E7EB] pb-4 last:border-0">
+                        <h3 className="font-semibold text-[#111827] mb-2">{article.title}</h3>
+                        <p className="text-sm text-[#6B7280]">
+                          {article.author} · {article.date} · {article.readTime}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Shares Tab */}
+                {statsActiveTab === "shares" && (
+                  <div className="space-y-5">
+                    {shares.map((share) => (
+                      <div key={share.id} className="border-b border-[#E5E7EB] pb-4 last:border-0">
+                        <h3 className="font-semibold text-[#111827] mb-2">{share.title}</h3>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-[#6B7280]">
+                            Shared to {share.platform} · {share.date}
+                          </p>
+                          {share.likes && (
+                            <span className="px-2 py-1 bg-[#D1FAE5] text-[#059669] text-xs font-medium rounded">
+                              {share.likes} likes
+                            </span>
+                          )}
+                          {share.comments && (
+                            <span className="px-2 py-1 bg-[#DBEAFE] text-[#2563EB] text-xs font-medium rounded">
+                              {share.comments} comments
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
