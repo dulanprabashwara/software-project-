@@ -9,8 +9,14 @@ import { useRouter } from "next/navigation";
 import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
 import { Image as ImageIcon, X } from "lucide-react";
+import { createDraft, updateDraft, deleteDraft } from "../../../../lib/articles/api";
+
 
 export default function CreateArticlePage() {
+
+  const [draftId, setDraftId] = useState(null);
+  const savingRef = useRef(false);
+
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -61,9 +67,10 @@ export default function CreateArticlePage() {
       setTitle(parsed.title || "");
       setContent(parsed.content || "");
       setCoverImage(parsed.coverImage || null);
+      setDraftId(parsed.draftId || null);
     }
   }, []);
-
+  
   //Add “mounted” state (fix refresh hydration)
   useEffect(() => {
     setMounted(true);
