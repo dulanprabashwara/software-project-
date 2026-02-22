@@ -394,7 +394,7 @@ export default function AIArticleGeneratorPage() {
           <div className="ai-content-wrapper">
             <div className="ai-generator-title justify-between">
               <div className="flex items-center gap-3">
-                <button onClick={() => setCurrentView("input")} className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150">
+                <button onClick={() => setCurrentView("input")} className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150" title="view articles">
                   <img src="/icons/menu icon.png" alt="Menu" className="ai-generator-menu-icon" />
                 </button>
                 <img src="/icons/Ai article generator icon teel color.png" alt="AI Article Generator" className="ai-generator-ai-icon" />
@@ -474,7 +474,7 @@ export default function AIArticleGeneratorPage() {
           {/* ── Title bar ── */}
           <div className="ai-generator-title justify-between">
             <div className="flex items-center gap-3">
-              <button onClick={() => setCurrentView("articles")} className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150">
+              <button onClick={() => setCurrentView("articles")} className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150" title="view articles">
                 <img src="/icons/menu icon.png" alt="Menu" className="ai-generator-menu-icon" />
               </button>
               <img src="/icons/Ai article generator icon teel color.png" alt="AI Article Generator" className="ai-generator-ai-icon" />
