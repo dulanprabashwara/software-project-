@@ -85,7 +85,7 @@ export default function LoginPage() {
     // when just sitting on the page if they happen to have an old token resolving)
     if (!authLoading && user && isAuthenticating) {
       if (isAdmin) {
-        router.push("/admin/dashboard");
+        router.push("/admin");
       } else {
         router.push("/home");
       }
