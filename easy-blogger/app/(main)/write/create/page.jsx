@@ -1,3 +1,5 @@
+// easy-blogger\app\(main)\write\create\page.jsx
+
 "use client";
 
 import { Editor } from "@tinymce/tinymce-react";
