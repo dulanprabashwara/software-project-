@@ -455,7 +455,7 @@
   background-color: white;
   border-radius: 12px;
   width: 600px;
-  max-height: 80vh;
+  max-height: 90vh;
   overflow-y: auto;
   position: relative;
   box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
