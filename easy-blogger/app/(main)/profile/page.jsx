@@ -18,8 +18,19 @@ export default function ProfilePage() {
     updateProfile: updateContextProfile,
   } = useAuth();
 
-  const profileData = userProfile;
+  // Show spinner only while Firebase auth state is being determined (fast, ~50ms).
   const loading = authLoading;
+  // Derive display values — Firebase is available immediately as fallback
+  // while the backend userProfile loads asynchronously.
+  const displayName =
+    userProfile?.displayName ||
+    firebaseUser?.displayName ||
+    firebaseUser?.email?.split("@")[0] ||
+    "User";
+  const avatarUrl =
+    userProfile?.avatarUrl ||
+    firebaseUser?.photoURL ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1ABC9C&color=fff`;
 
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
@@ -104,7 +115,7 @@ export default function ProfilePage() {
   };
 
   const handleSaveAbout = async () => {
-    if (aboutText.trim() && profileData) {
+    if (aboutText.trim() && userProfile) {
       try {
         const token = await firebaseUser.getIdToken();
         await api.updateProfile({ bio: aboutText }, token);
@@ -186,21 +197,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (!profileData) {
-    return (
-      <div className="flex items-center justify-center w-full h-full pt-20">
-        <p className="text-red-500">Profile not found</p>
-      </div>
-    );
-  }
-
-  // Derive display values from API data
-  const displayName = profileData.displayName || profileData.username;
-  const avatarUrl =
-    profileData.avatarUrl ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      displayName,
-    )}&background=1ABC9C&color=fff`;
+  // displayName and avatarUrl are already derived above from userProfile + firebaseUser fallback
 
   return (
     <div className="flex h-full w-full">
@@ -385,13 +382,13 @@ export default function ProfilePage() {
                 src={avatarUrl}
                 alt={displayName}
                 className={`w-20 h-20 rounded-full object-cover border-2 ${
-                  profileData.isPremium
+                  userProfile?.isPremium
                     ? "border-[#F59E0B]"
                     : "border-[#E5E7EB]"
                 }`}
               />
               {/* Verified Badge for Premium */}
-              {profileData.isPremium && (
+              {userProfile?.isPremium && (
                 <div className="absolute -bottom-1 -right-1 transform translate-x-1/4 translate-y-1/4 drop-shadow-md">
                   <svg
                     width="24"
@@ -429,14 +426,14 @@ export default function ProfilePage() {
                 href="/profile/user_stats?tab=followers"
                 className="hover:underline cursor-pointer"
               >
-                {profileData._count?.followers || 0} Followers
+                {userProfile?._count?.followers || 0} Followers
               </Link>
               {" · "}
               <Link
                 href="/profile/user_stats?tab=following"
                 className="hover:underline cursor-pointer"
               >
-                {profileData._count?.following || 0} Following
+                {userProfile?._count?.following || 0} Following
               </Link>
             </p>
 
@@ -446,18 +443,18 @@ export default function ProfilePage() {
                 href="/profile/user_stats?tab=reads"
                 className="hover:underline cursor-pointer"
               >
-                {profileData.stats?.totalReads || 0} Reads
+                {userProfile?.stats?.totalReads || 0} Reads
               </Link>
               {" · "}
               <Link
                 href="/profile/user_stats?tab=shares"
                 className="hover:underline cursor-pointer"
               >
-                {profileData.stats?.totalShares || 0} Shares
+                {userProfile?.stats?.totalShares || 0} Shares
               </Link>
               {" · "}
               <Link href="/chat" className="hover:underline cursor-pointer">
-                {profileData?.messages || 10} Messages
+                {userProfile?.messages || 10} Messages
               </Link>
             </p>
 
