@@ -75,12 +75,18 @@ export default function Page() {
   const [errorTarget, setErrorTarget] = useState(null); 
   const router = useRouter();  
 
-  const [visibleArticles, setVisibleArticles] = useState(ARTICLES);
-  const [loadedCount, setLoadedCount] = useState(0);
-
   const [activeTab, setActiveTab] = useState("regular"); // "regular" | "ai"
 
   const [draftArticles, setDraftArticles] = useState([]);
+
+  const PAGE_SIZE = 3;
+
+  // Regular tab pagination (drafts)
+  const [regularVisibleCount, setRegularVisibleCount] = useState(PAGE_SIZE);
+
+  // AI tab pagination (dummy list)
+  const AI_ALL = [...ARTICLES, ...MORE_ARTICLES];
+  const [aiVisibleCount, setAiVisibleCount] = useState(PAGE_SIZE);
 
 
   const toggleSelect = (id) => {
@@ -114,16 +120,18 @@ export default function Page() {
     router.push("/write/edit-existing");
   };
 
-  const PAGE_SIZE = 2;
   const handleSeeMore = () => {
-    const next = MORE_ARTICLES.slice(loadedCount, loadedCount + PAGE_SIZE);
-    if (next.length === 0) return;
-    setVisibleArticles((prev) => [...prev, ...next]);
-    setLoadedCount((prev) => prev + next.length);
+    if (activeTab === "regular") {
+      setRegularVisibleCount((prev) => Math.min(prev + PAGE_SIZE, draftArticles.length));
+    } else {
+      setAiVisibleCount((prev) => Math.min(prev + PAGE_SIZE, AI_ALL.length));
+    }
   };
 
-  const hasMore = loadedCount < MORE_ARTICLES.length;
-
+const hasMore =
+  activeTab === "regular"
+    ? regularVisibleCount < draftArticles.length
+    : aiVisibleCount < AI_ALL.length;
   const loadDrafts = async () => {
     const res = await fetch("/api/articles?status=draft");
     const data = await res.json();
@@ -134,22 +142,31 @@ export default function Page() {
     loadDrafts();
   }, []);
 
+  useEffect(() => {
+    if (activeTab === "regular") {
+      setRegularVisibleCount(PAGE_SIZE);
+    }
+  }, [draftArticles, activeTab]);
+
   //Decide which list to show in the UI
+  // Decide which list to show in the UI
   const displayedArticles =
-    activeTab === "regular"
-      ? draftArticles.map((d) => ({
-        id: d.id,
-        author: d.writerName || "Unknown Writer",
-        date: new Date(d.updatedAt || d.date || Date.now()).toLocaleDateString(),
-        title: d.title || "(Untitled)",
-        desc:
-          d.content
+  activeTab === "regular"
+    ? draftArticles
+        .slice(0, regularVisibleCount) //show only first N drafts
+        .map((d) => ({
+          id: d.id,
+          author: d.writerName || "Unknown Writer",
+          date: new Date(d.updatedAt || d.date || Date.now()).toLocaleDateString(),
+          title: d.title || "(Untitled)",
+          desc: d.content
             ? String(d.content).replace(/<[^>]*>/g, "").slice(0, 160) + "..."
             : "No content yet.",
-        image: d.coverImage || null,hasCover: Boolean(d.coverImage),
-        profileImage: "/images/Unpublished_IMG/profile.jpg",
-      }))
-    : visibleArticles; // keep your AI/dummy list for AI tab
+          image: d.coverImage || null,
+          hasCover: Boolean(d.coverImage),
+          profileImage: "/images/Unpublished_IMG/profile.jpg",
+        }))
+    : AI_ALL.slice(0, aiVisibleCount); //show only first N AI dummy articles
 
   return (
     <div className="min-h-screen bg-linear-to-br from-[#E8F5F1] via-[#F0F9FF] to-[#FDF4FF] flex items-center justify-center p-6">
@@ -172,7 +189,7 @@ export default function Page() {
                     type="button"
                     onClick={() => {
                       setActiveTab("regular");
-                      setSelectedId(null);
+                      setSelectedId(PAGE_SIZE);
                     }}
                     className={`px-16 py-3 rounded-t-xl text-lg font-medium transition ${
                       activeTab === "regular"
@@ -187,7 +204,7 @@ export default function Page() {
                     type="button"
                     onClick={() => {
                       setActiveTab("ai");
-                      setSelectedId(null);
+                      setSelectedId(PAGE_SIZE);
                     }}
                     className={`px-16 py-3 rounded-t-xl text-lg font-medium transition ${
                       activeTab === "ai"
