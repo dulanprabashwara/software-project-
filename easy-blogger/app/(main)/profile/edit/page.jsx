@@ -31,16 +31,45 @@ export default function EditProfilePage() {
   const {
     user: firebaseUser,
     userProfile,
-    loading: authLoading,
+    loading,
     updateProfile: updateContextProfile,
   } = useAuth();
 
-  const loading = authLoading;
-  const [displayName, setDisplayName] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [about, setAbout] = useState("");
-  const [profilePhoto, setProfilePhoto] = useState("/api/placeholder/120/120");
+  // Firebase data is available almost instantly (cached auth state).
+  // Use it as the immediate fallback so the form renders with real data
+  // on first paint. Backend-only fields (username, bio) fill in via
+  // useEffect once syncUser completes.
+  const [displayName, setDisplayName] = useState(
+    userProfile?.displayName || firebaseUser?.displayName || "",
+  );
+  const [username, setUsername] = useState(userProfile?.username || "");
+  const [email] = useState(
+    firebaseUser?.email || userProfile?.email || "",
+  );
+  const [about, setAbout] = useState(userProfile?.bio || "");
+  const [profilePhoto, setProfilePhoto] = useState(
+    userProfile?.avatarUrl || firebaseUser?.photoURL || "/api/placeholder/120/120",
+  );
+
+  const backendFieldsPopulated = useRef(false);
+
+  // Populate backend-only fields once userProfile arrives (handles cold start).
+  useEffect(() => {
+    if (!userProfile || backendFieldsPopulated.current) return;
+    backendFieldsPopulated.current = true;
+    setDisplayName((prev) => prev || userProfile.displayName || "");
+    setUsername(userProfile.username || "");
+    setAbout(userProfile.bio || "");
+    if (userProfile.avatarUrl) setProfilePhoto(userProfile.avatarUrl);
+  }, [userProfile]);
+
+  // Redirect to login if user is definitively not authenticated.
+  useEffect(() => {
+    if (!loading && !firebaseUser) {
+      router.push("/login");
+    }
+  }, [loading, firebaseUser, router]);
+
   const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -67,16 +96,6 @@ export default function EditProfilePage() {
     }
   };
 
-  // Populate form fields from AuthContext profile data (no extra API call)
-  useEffect(() => {
-    if (authLoading || !userProfile) return;
-    setDisplayName(userProfile.displayName || "");
-    setUsername(userProfile.username || "");
-    setEmail(firebaseUser?.email || "");
-    setAbout(userProfile.bio || "");
-    if (userProfile.avatarUrl) setProfilePhoto(userProfile.avatarUrl);
-  }, [userProfile, authLoading, firebaseUser]);
-
   const handleSaveChanges = async () => {
     if (!firebaseUser) return;
     setIsSaving(true);
@@ -96,13 +115,14 @@ export default function EditProfilePage() {
       // 1. Update backend Database
       await api.updateProfile(updateData, token);
 
-      // 2. Update Firebase Auth Profile (so global Header updates instantly)
-      if (newAvatarUrl || displayName !== firebaseUser.displayName) {
+      // 2. Update Firebase Auth Profile (displayName only)
+      // photoURL is intentionally omitted — Firebase Auth rejects base64 data URLs.
+      // The avatar is stored in our backend DB and read from userProfile.avatarUrl.
+      if (displayName !== firebaseUser.displayName) {
         const { updateProfile: updateFirebaseAuthProfile } =
           await import("firebase/auth");
         await updateFirebaseAuthProfile(firebaseUser, {
           displayName: displayName,
-          photoURL: newAvatarUrl || firebaseUser.photoURL,
         });
       }
 
@@ -226,14 +246,6 @@ export default function EditProfilePage() {
       setWordpressConnected(true);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen pt-20">
-        <p className="text-[#6B7280]">Loading profile data...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-8">
