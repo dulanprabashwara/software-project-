@@ -24,6 +24,7 @@ export function AuthProvider({ children }) {
 
       // 2. Fetch Backend Database Profile (for Roles, Premium status, etc.)
       if (firebaseUser) {
+        setLoading(true); // <--- CRITICAL FIX: Ensure loading is true while we fetch the backend profile
         firebaseUser.getIdToken().then((token) => {
           api
             .syncUser(
@@ -35,19 +36,11 @@ export function AuthProvider({ children }) {
               },
               token,
             )
-            .then(async () => {
-              // After a successful sync, fetch their actual profile to check their Admin role
-              try {
-                const res = await api.getMe(token);
-                if (res.success && res.data) {
-                  setUserProfile(res.data);
-                  setIsAdmin(res.data.role === "ADMIN");
-                }
-              } catch (profileError) {
-                console.error(
-                  "Failed to fetch user backend profile:",
-                  profileError,
-                );
+            .then(async (res) => {
+              // syncUser already returns the full user profile including their role
+              if (res.success && res.data) {
+                setUserProfile(res.data);
+                setIsAdmin(res.data.role === "ADMIN");
               }
             })
             .catch((error) => {
