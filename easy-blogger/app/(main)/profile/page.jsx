@@ -11,45 +11,31 @@ import { api } from "../../../lib/api";
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("home");
   const { isPremium } = useSubscription();
-  const { user: firebaseUser, loading: authLoading } = useAuth();
+  const {
+    user: firebaseUser,
+    userProfile,
+    loading: authLoading,
+    updateProfile: updateContextProfile,
+  } = useAuth();
 
-  const [profileData, setProfileData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const profileData = userProfile;
+  const loading = authLoading;
 
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
-
-  // Fetch real user data from backend
-  useEffect(() => {
-    async function loadProfile() {
-      if (authLoading) return; // Wait for Firebase to finish initializing
-      if (!firebaseUser) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const token = await firebaseUser.getIdToken();
-        const res = await api.getMe(token);
-        if (res.success && res.data) {
-          setProfileData(res.data);
-          setAboutText(res.data.bio || "");
-          setHasAbout(!!res.data.bio);
-        }
-      } catch (err) {
-        console.error("Error fetching profile:", err);
-        setError("Failed to load profile data");
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadProfile();
-  }, [firebaseUser, authLoading]);
 
   // About Section State
   const [aboutText, setAboutText] = useState("");
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [hasAbout, setHasAbout] = useState(false);
+
+  // Sync about text when profile data arrives
+  useEffect(() => {
+    if (userProfile) {
+      setAboutText(userProfile.bio || "");
+      setHasAbout(!!userProfile.bio);
+    }
+  }, [userProfile]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -124,7 +110,7 @@ export default function ProfilePage() {
         await api.updateProfile({ bio: aboutText }, token);
         setHasAbout(true);
         setIsEditingAbout(false);
-        setProfileData((prev) => ({ ...prev, bio: aboutText }));
+        updateContextProfile({ bio: aboutText });
       } catch (err) {
         console.error("Failed to update bio", err);
         alert("Failed to save about text.");
@@ -150,7 +136,7 @@ export default function ProfilePage() {
         await api.updateProfile({ bio: null }, token);
         setHasAbout(false);
         setAboutText("");
-        setProfileData((prev) => ({ ...prev, bio: null }));
+        updateContextProfile({ bio: null });
       } catch (err) {
         console.error("Failed to delete bio", err);
         alert("Failed to delete bio.");
@@ -200,10 +186,10 @@ export default function ProfilePage() {
     );
   }
 
-  if (error || !profileData) {
+  if (!profileData) {
     return (
       <div className="flex items-center justify-center w-full h-full pt-20">
-        <p className="text-red-500">{error || "Profile not found"}</p>
+        <p className="text-red-500">Profile not found</p>
       </div>
     );
   }

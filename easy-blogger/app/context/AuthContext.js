@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { api } from "../../lib/api";
@@ -13,47 +19,57 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null); // The backend PostgreSQL profile
+  const [userProfile, setUserProfile] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const updateProfile = useCallback((data) => {
+    setUserProfile((prev) => (prev ? { ...prev, ...data } : prev));
+  }, []);
+
+  const refreshProfile = useCallback(async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return null;
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await api.getMe(token);
+      if (res.success && res.data) {
+        setUserProfile(res.data);
+        setIsAdmin(res.data.role === "ADMIN");
+        return res.data;
+      }
+    } catch (error) {
+      console.error("Failed to refresh profile:", error);
+    }
+    return null;
+  }, []);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // 1. Instantly update Firebase state
       setUser(firebaseUser ?? null);
 
-      // 2. Fetch Backend Database Profile (for Roles, Premium status, etc.)
       if (firebaseUser) {
-        setLoading(true); // <--- CRITICAL FIX: Ensure loading is true while we fetch the backend profile
-        firebaseUser.getIdToken().then((token) => {
-          api
-            .syncUser(
-              {
-                email: firebaseUser.email,
-                displayName:
-                  firebaseUser.displayName || firebaseUser.email.split("@")[0],
-                photoURL: firebaseUser.photoURL,
-              },
-              token,
-            )
-            .then(async (res) => {
-              // syncUser already returns the full user profile including their role
-              if (res.success && res.data) {
-                setUserProfile(res.data);
-                setIsAdmin(res.data.role === "ADMIN");
-              }
-            })
-            .catch((error) => {
-              console.error(
-                "Failed to sync user with backend database:",
-                error,
-              );
-            })
-            .finally(() => {
-              // Always unlock the UI once the backend finishes loading
-              setLoading(false);
-            });
-        });
+        setLoading(true);
+        try {
+          const token = await firebaseUser.getIdToken();
+          const res = await api.syncUser(
+            {
+              email: firebaseUser.email,
+              displayName:
+                firebaseUser.displayName || firebaseUser.email.split("@")[0],
+              photoURL: firebaseUser.photoURL,
+            },
+            token,
+          );
+          if (res.success && res.data) {
+            setUserProfile(res.data);
+            setIsAdmin(res.data.role === "ADMIN");
+          }
+        } catch (error) {
+          console.error("Failed to sync user with backend database:", error);
+        } finally {
+          setLoading(false);
+        }
       } else {
         setUserProfile(null);
         setIsAdmin(false);
@@ -70,7 +86,15 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, userProfile, isAdmin, loading, logout }}
+      value={{
+        user,
+        userProfile,
+        isAdmin,
+        loading,
+        logout,
+        updateProfile,
+        refreshProfile,
+      }}
     >
       {children}
     </AuthContext.Provider>
