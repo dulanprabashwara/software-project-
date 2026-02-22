@@ -28,9 +28,14 @@ export default function EditProfilePage() {
   const router = useRouter();
   // Use global subscription context
   const { isPremium, togglePremium } = useSubscription();
-  const { user: firebaseUser, loading: authLoading } = useAuth();
+  const {
+    user: firebaseUser,
+    userProfile,
+    loading: authLoading,
+    updateProfile: updateContextProfile,
+  } = useAuth();
 
-  const [loading, setLoading] = useState(true);
+  const loading = authLoading;
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -62,31 +67,15 @@ export default function EditProfilePage() {
     }
   };
 
+  // Populate form fields from AuthContext profile data (no extra API call)
   useEffect(() => {
-    async function loadProfile() {
-      if (authLoading) return; // Wait for Firebase to determine auth status
-      if (!firebaseUser) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const token = await firebaseUser.getIdToken();
-        const res = await api.getMe(token);
-        if (res.success && res.data) {
-          setDisplayName(res.data.displayName || "");
-          setUsername(res.data.username || "");
-          setEmail(firebaseUser.email || "");
-          setAbout(res.data.bio || "");
-          if (res.data.avatarUrl) setProfilePhoto(res.data.avatarUrl);
-        }
-      } catch (err) {
-        console.error("Error fetching profile:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadProfile();
-  }, [firebaseUser, authLoading]);
+    if (authLoading || !userProfile) return;
+    setDisplayName(userProfile.displayName || "");
+    setUsername(userProfile.username || "");
+    setEmail(firebaseUser?.email || "");
+    setAbout(userProfile.bio || "");
+    if (userProfile.avatarUrl) setProfilePhoto(userProfile.avatarUrl);
+  }, [userProfile, authLoading, firebaseUser]);
 
   const handleSaveChanges = async () => {
     if (!firebaseUser) return;
@@ -101,7 +90,6 @@ export default function EditProfilePage() {
       const updateData = {
         displayName,
         bio: about,
-        // we'll send avatarUrl if it was changed (but a base64 string might be too large depending on backend limits. Assuming it's small or backend handles it via Cloudinary soon!)
         avatarUrl: newAvatarUrl,
       };
 
@@ -116,13 +104,16 @@ export default function EditProfilePage() {
           displayName: displayName,
           photoURL: newAvatarUrl || firebaseUser.photoURL,
         });
-
-        // Force AuthContext to refresh by triggering state update
-        // (If there was a global update method here, we'd call it, but reloading the page is safest for now to sync context)
-        window.location.reload();
-      } else {
-        alert("Profile updated successfully!");
       }
+
+      // 3. Update AuthContext so all components reflect changes instantly
+      updateContextProfile({
+        displayName,
+        bio: about,
+        ...(newAvatarUrl && { avatarUrl: newAvatarUrl }),
+      });
+
+      router.push("/profile");
     } catch (err) {
       console.error("Failed to update profile", err);
       alert("Failed to update profile.");

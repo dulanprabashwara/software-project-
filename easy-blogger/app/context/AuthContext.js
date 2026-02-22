@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
 import { api } from "../../lib/api";
@@ -13,34 +19,61 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      // 1. Instantly unblock the UI so pages (like Profile) can render their shells
-      setUser(firebaseUser ?? null);
-      setLoading(false);
+  const updateProfile = useCallback((data) => {
+    setUserProfile((prev) => (prev ? { ...prev, ...data } : prev));
+  }, []);
 
-      // 2. Run the database sync in the background
+  const refreshProfile = useCallback(async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return null;
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await api.getMe(token);
+      if (res.success && res.data) {
+        setUserProfile(res.data);
+        setIsAdmin(res.data.role === "ADMIN");
+        return res.data;
+      }
+    } catch (error) {
+      console.error("Failed to refresh profile:", error);
+    }
+    return null;
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser ?? null);
+
       if (firebaseUser) {
-        firebaseUser.getIdToken().then((token) => {
-          api
-            .syncUser(
-              {
-                email: firebaseUser.email,
-                displayName:
-                  firebaseUser.displayName || firebaseUser.email.split("@")[0],
-                photoURL: firebaseUser.photoURL,
-              },
-              token,
-            )
-            .catch((error) => {
-              console.error(
-                "Failed to sync user with backend database:",
-                error,
-              );
-            });
-        });
+        setLoading(true);
+        try {
+          const token = await firebaseUser.getIdToken();
+          const res = await api.syncUser(
+            {
+              email: firebaseUser.email,
+              displayName:
+                firebaseUser.displayName || firebaseUser.email.split("@")[0],
+              photoURL: firebaseUser.photoURL,
+            },
+            token,
+          );
+          if (res.success && res.data) {
+            setUserProfile(res.data);
+            setIsAdmin(res.data.role === "ADMIN");
+          }
+        } catch (error) {
+          console.error("Failed to sync user with backend database:", error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setUserProfile(null);
+        setIsAdmin(false);
+        setLoading(false);
       }
     });
 
@@ -52,7 +85,17 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        userProfile,
+        isAdmin,
+        loading,
+        logout,
+        updateProfile,
+        refreshProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
