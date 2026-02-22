@@ -70,8 +70,11 @@ export default function AIArticleGeneratorPage() {
   const [isCursorInsidePreview, setIsCursorInsidePreview] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
-  // ── Mock data from route.js (previous generations list) ─────────────────────
+  // ── Data from API route ────────────────────────────────────────────────────────
   const [articles, setArticles] = useState([]);
+  const [trendingArticles, setTrendingArticles] = useState([]);
+  const [topAIArticles, setTopAIArticles] = useState([]);
+  const [trendingTopics, setTrendingTopics] = useState([]);
 
   // ── Slider ──────────────────────────────────────────────────────────────────
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
@@ -82,31 +85,12 @@ export default function AIArticleGeneratorPage() {
   const generateTimeoutRef = useRef(null);
   const errorResetRef = useRef(null);
 
-  // ─── Static data (matches route.js exactly) ──────────────────────────────────
-  const trendingArticles = [
-    { title: "The Future of Artificial Intelligence in Healthcare", author: "Dr. Sarah Chen", readTime: "8 min read", excerpt: "Exploring how AI is revolutionizing medical diagnosis and treatment...", publishDate: "31 Dec, 2024", comments: 42, likes: 128, authorImage: "/images/Ai article generator/author image 1.png", coverImage: "/images/Ai article generator/cover image 1.png" },
-    { title: "Sustainable Living: Small Changes, Big Impact", author: "Michael Green", readTime: "5 min read", excerpt: "Simple daily habits that can significantly reduce your carbon footprint...", publishDate: "28 Dec, 2024", comments: 35, likes: 96, authorImage: "/images/Ai article generator/author image 2.png", coverImage: "/images/Ai article generator/cover image 2.png" },
-    { title: "The Rise of Remote Work Culture", author: "Emma Johnson", readTime: "6 min read", excerpt: "How companies are adapting to the new normal of distributed teams...", publishDate: "25 Dec, 2024", comments: 58, likes: 167, authorImage: "/images/Ai article generator/author image 3.png", coverImage: "/images/Ai article generator/cover image 3.png" },
-    { title: "Machine Learning Fundamentals for Beginners", author: "Alex Kumar", readTime: "7 min read", excerpt: "A comprehensive guide to understanding the basics of machine learning...", publishDate: "22 Dec, 2024", comments: 73, likes: 234, authorImage: "/images/Ai article generator/author image 4.png", coverImage: "/images/Ai article generator/cover image 4.png" },
-  ];
-
-  const topAIArticles = [
-    { title: "Understanding Neural Networks", authors: "Sarah Chan" },
-    { title: "Python for Data Science", authors: "Rebecca Hudson" },
-    { title: "Machine Learning Basics", authors: "Danielle Cruise " },
-    { title: "AI Ethics and Governance", authors: "Janet Wales" },
-  ];
-
-  const trendingTopics = ["Technology", "Health", "Business", "Science", "Education", "Environment"];
-
-  // ─── Effects ──────────────────────────────────────────────────────────────────
-
   // Premium gate
   useEffect(() => {
     if (!isLoading && !isPremium) router.push("/subscription/upgrade");
   }, [isPremium, isLoading, router]);
 
-  // ── Fetch previous generations list from route.js mock API ──────────────────
+  // ── Fetch all data from route.js API ────────────────────────────────────────
   // This calls the Next.js API route at /api/ai-generate (route.js in frontend)
   // When DB is ready: replace this URL with real backend endpoint
   useEffect(() => {
@@ -116,10 +100,11 @@ export default function AIArticleGeneratorPage() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         if (data.articles) setArticles(data.articles);
-        // trendingArticles, topAIArticles, trendingTopics, keywords are hardcoded above
-        // as they are static data — no need to set state for them
+        if (data.trendingArticles) setTrendingArticles(data.trendingArticles);
+        if (data.topAIArticles) setTopAIArticles(data.topAIArticles);
+        if (data.trendingTopics) setTrendingTopics(data.trendingTopics);
       } catch (error) {
-        console.error('Failed to fetch articles list:', error);
+        console.error('Failed to fetch data:', error);
       }
     };
     fetchData();
@@ -497,8 +482,8 @@ export default function AIArticleGeneratorPage() {
             </div>
           </div>
 
-          {/* ── Trending slider — only shown on input view ── */}
-          {currentView === "input" && (
+          {/* ── Trending slider — only shown on input view and when data is loaded ── */}
+          {currentView === "input" && trendingArticles.length > 0 && (
             <>
               <div className="trending-section">
                 <div className="trending-header">
