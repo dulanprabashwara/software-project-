@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const ARTICLES = [
@@ -78,6 +78,11 @@ export default function Page() {
   const [visibleArticles, setVisibleArticles] = useState(ARTICLES);
   const [loadedCount, setLoadedCount] = useState(0);
 
+  const [activeTab, setActiveTab] = useState("regular"); // "regular" | "ai"
+
+  const [draftArticles, setDraftArticles] = useState([]);
+
+
   const toggleSelect = (id) => {
     setSelectedId((prev) => (prev === id ? null : id));
   };
@@ -93,10 +98,9 @@ export default function Page() {
     }, 2500);
   };
 
-
   const handleEditAsNew = () => {
     if (!selectedId) return showError("Select an article before edit", "new");
-    const selected = visibleArticles.find((a) => a.id === selectedId);
+    const selected = displayedArticles.find((a) => a.id === selectedId);
     sessionStorage.setItem(
     "edit_as_new_seed",
     JSON.stringify({ id: selected.id, title: selected.title })
@@ -106,6 +110,7 @@ export default function Page() {
 
   const handleEditExisting = () => {
     if (!selectedId) return showError("Select an article before edit", "existing");
+    sessionStorage.setItem("edit_existing_id", selectedId);
     router.push("/write/edit-existing");
   };
 
@@ -119,6 +124,33 @@ export default function Page() {
 
   const hasMore = loadedCount < MORE_ARTICLES.length;
 
+  const loadDrafts = async () => {
+    const res = await fetch("/api/articles?status=draft");
+    const data = await res.json();
+    setDraftArticles(data.articles || []);
+  };
+
+  useEffect(() => {
+    loadDrafts();
+  }, []);
+
+  //Decide which list to show in the UI
+  const displayedArticles =
+    activeTab === "regular"
+      ? draftArticles.map((d) => ({
+        id: d.id,
+        author: d.writerName || "Unknown Writer",
+        date: new Date(d.updatedAt || d.date || Date.now()).toLocaleDateString(),
+        title: d.title || "(Untitled)",
+        desc:
+          d.content
+            ? String(d.content).replace(/<[^>]*>/g, "").slice(0, 160) + "..."
+            : "No content yet.",
+        image: d.coverImage || null,hasCover: Boolean(d.coverImage),
+        profileImage: "/images/Unpublished_IMG/profile.jpg",
+      }))
+    : visibleArticles; // keep your AI/dummy list for AI tab
+
   return (
     <div className="min-h-screen bg-linear-to-br from-[#E8F5F1] via-[#F0F9FF] to-[#FDF4FF] flex items-center justify-center p-6">
         
@@ -131,13 +163,52 @@ export default function Page() {
             <p className="text-[#6B7280] text-base">
               You can edit your unpublished articles here.
             </p>
+
+            {/* Filter Tabs */}
+            <div className="flex justify-center mt-10">
+              <div className="w-full max-w-4xl">
+                <div className="flex items-end justify-between px-15">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("regular");
+                      setSelectedId(null);
+                    }}
+                    className={`px-16 py-3 rounded-t-xl text-lg font-medium transition ${
+                      activeTab === "regular"
+                      ? "bg-[#E9FFF7] text-[#10B981]"
+                      : "text-[#10B981]/70 hover:text-[#10B981]"
+                    }`}
+                  >
+                    Regular Articles
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("ai");
+                      setSelectedId(null);
+                    }}
+                    className={`px-16 py-3 rounded-t-xl text-lg font-medium transition ${
+                      activeTab === "ai"
+                      ? "bg-[#E9FFF7] text-[#10B981]"
+                      : "text-[#10B981]/70 hover:text-[#10B981]"
+                    }`}
+                  >
+                    AI Generated Articles
+                  </button>
+                </div>
+
+                <div className="mt-1 border-t-2 border-[#10B981]" />
+              </div>
+            </div>
           </div>
 
-          <div className="mt-8 border-t border-black/20" />
+          {/*<div className="mt-8 border-t border-black/20" />*/}
 
-            {/* Articles */}
+          {/* Articles */}
           <div className="mt-10 space-y-10">
-            {visibleArticles.map((a, idx) => {
+            {displayedArticles.map((a, idx) => {
               const active = a.id === selectedId;
 
               return (
@@ -200,19 +271,60 @@ export default function Page() {
 
                         {/* image */}
                         <div className="w-[220px] shrink-0 flex justify-end">
-                          <div className="h-28 w-40 overflow-hidden rounded-md bg-black/10">
-                            <img
-                              src={a.image}
-                              alt={a.title}
-                              className="h-full w-full object-cover"
-                            />
+                          <div className="h-28 w-40 overflow-hidden rounded-md bg-black/10 flex items-center justify-center">
+                            {a.hasCover ? (
+                              <img
+                                src={a.image}
+                                alt={a.title}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex flex-col items-center gap-2 text-[#6B7280]">
+                                {/* Image icon */}
+                                <svg
+                                  width="28"
+                                  height="28"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                <path
+                                  d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                />
+                                <path
+                                  d="M3 17l5-5a2 2 0 0 1 3 0l3 3"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                />
+                                <path
+                                  d="M14 15l1-1a2 2 0 0 1 3 0l3 3"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                />
+                                <circle
+                                  cx="9"
+                                  cy="8"
+                                  r="1.5"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                />
+                                </svg>
+
+                                <span className="text-[11px]">Add cover later</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
                     </div>
                   </button>
 
-                  {idx !== visibleArticles.length - 1 ? (
+                  {idx !== displayedArticles.length - 1 ? (
                     <div className="mt-10 border-t border-black/10" />
                   ) : null}
                 </div>
@@ -235,7 +347,7 @@ export default function Page() {
             </>
           )}
 
-          <div className="mt-10 border-t border-black/20" />
+          <div className="mt-10 border-t-2 border-black/100" />
 
           <div className="mt-8 flex items-center justify-between px-6">
 

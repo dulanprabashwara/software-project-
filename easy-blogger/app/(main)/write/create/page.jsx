@@ -1,3 +1,5 @@
+// easy-blogger\app\(main)\write\create\page.jsx
+
 "use client";
 
 import { Editor } from "@tinymce/tinymce-react";
@@ -7,8 +9,14 @@ import { useRouter } from "next/navigation";
 import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
 import { Image as ImageIcon, X } from "lucide-react";
+import { createDraft, updateDraft, deleteDraft } from "../../../../lib/articles/api";
+
 
 export default function CreateArticlePage() {
+
+  const [draftId, setDraftId] = useState(null);
+  const savingRef = useRef(false);
+
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -29,27 +37,65 @@ export default function CreateArticlePage() {
 
   // Auto-save functionality
   useEffect(() => {
-    const saveTimer = setTimeout(() => {
-      if (title || content) {
+    const saveTimer = setTimeout(async () => {
+      if (!title && !content && !coverImage) return;
+      if (savingRef.current) return;
+
+      try {
+        savingRef.current = true;
         setIsSaving(true);
-        setTimeout(() => {
-          setIsSaving(false);
-          setLastSaved(new Date());
-          localStorage.setItem(
-            "draft_article",
-            JSON.stringify({
-              title,
-              content,
-              coverImage,
-              lastSaved: new Date().toISOString(),
-            }),
-          );
-        }, 500);
+
+        const payload = {
+          title,
+          content,
+          coverImage,
+          writerName: "Emma Richardson",
+          status: "editing",
+        };
+
+        let nextDraftId = draftId;
+
+        if (!nextDraftId) {
+          // First time -> create
+          const data = await createDraft(payload);
+          nextDraftId = data.article.id;
+          setDraftId(nextDraftId);
+          } else {
+            // Update existing -> if not found, recreate
+            try {
+              await updateDraft(nextDraftId, payload);
+            } catch (err) {
+              console.warn("Update failed, recreating draft...", err);
+
+              const data = await createDraft(payload);
+              nextDraftId = data.article.id;
+              setDraftId(nextDraftId);
+            }
+          }
+
+        setLastSaved(new Date());
+
+        localStorage.setItem(
+          "draft_article",
+          JSON.stringify({
+            title,
+            content,
+            coverImage,
+            draftId: nextDraftId,
+            lastSaved: new Date().toISOString(),
+          }),
+
+        );
+      } catch (err) {
+        console.error("Autosave failed:", err);
+      } finally {
+        setIsSaving(false);
+        savingRef.current = false;
       }
     }, 2000);
 
     return () => clearTimeout(saveTimer);
-  }, [title, content, coverImage]);
+  }, [title, content, coverImage, draftId]);
 
   // Load draft on mount
   useEffect(() => {
@@ -59,6 +105,7 @@ export default function CreateArticlePage() {
       setTitle(parsed.title || "");
       setContent(parsed.content || "");
       setCoverImage(parsed.coverImage || null);
+      setDraftId(parsed.draftId || null);
     }
   }, []);
 
@@ -118,18 +165,74 @@ export default function CreateArticlePage() {
     setFontSize((prev) => Math.max(8, Math.min(72, prev + delta)));
   };
 
-  const handleDiscard = () => {
+  const handleSaveAsDraft = async () => {
+    if (!title || !content) {
+      alert("Title and content required");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+
+      const payload = {
+        title,
+        content,
+        coverImage,
+        writerName: "Emma Richardson",
+        status: "draft",
+      };
+
+      let id = draftId;
+
+      if (!id) {
+        const data = await createDraft(payload);
+        id = data.article.id;
+        setDraftId(id);
+      } else {
+        await updateDraft(id, payload);
+      }
+      
+      // CLEAR LOCAL STORAGE
+      localStorage.removeItem("draft_article");
+
+      // RESET STATE
+      setTitle("");
+      setContent("");
+      setCoverImage(null);
+      setDraftId(null);
+
+      alert("Saved as Draft!");
+      router.push("/write/unpublished"); // adjust path if needed
+    } catch (e) {
+      console.error(e);
+      alert("Failed to save draft");
+    } finally {
+      setIsSaving(false);
+    } 
+  };
+
+  const handleDiscard = async () => {
     if (
       confirm(
         "Are you sure you want to discard this article? All unsaved changes will be lost.",
       )
     ) {
+      try {
+        if (draftId) {
+          await deleteDraft(draftId);
+        }
+      } catch (e) {
+        console.error("Failed to delete draft:", e);
+      }
+
       localStorage.removeItem("draft_article");
       setTitle("");
       setContent("");
       setCoverImage(null);
       setHistory([{ title: "", content: "" }]);
       setHistoryIndex(0);
+      setDraftId(null);
+
       router.push("/home");
     }
   };
@@ -195,7 +298,14 @@ export default function CreateArticlePage() {
               </div>
 
               {/* Right: Button */}
-              <div className="justify-self-end">
+              <div className="justify-self-end flex items-center gap-3">
+                <button
+                  onClick={handleSaveAsDraft}
+                  disabled={!title || !content}
+                  className="inline-flex items-center px-6 py-2.5 bg-[#111827] text-white rounded-full text-sm font-medium hover:bg-[#1f2937] disabled:opacity-50"
+                >
+                  Save as Draft
+                </button>
                 <span className="inline-flex items-center px-6 py-2.5 bg-[#1ABC9C] text-white rounded-full text-sm font-medium">
                   {articleMode === "draft" ? "Draft Article" : "New Article"}
                 </span>
@@ -235,11 +345,11 @@ export default function CreateArticlePage() {
                   }}
                   placeholder="Enter your blog title..."
                   className="w-full px-4 py-3 bg-white border border-[#E5E7EB] rounded-lg text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
-                  maxLength={50}
+                  maxLength={100}
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                   <span className="text-xs text-[#6B7280]">
-                    {title.length}/50
+                    {title.length}/100
                   </span>
                   {title.length === 0 && (
                     <span className="text-xs text-[#DC2626]">*Required</span>
