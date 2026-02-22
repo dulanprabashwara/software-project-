@@ -155,18 +155,28 @@ export default function CreateArticlePage() {
     setFontSize((prev) => Math.max(8, Math.min(72, prev + delta)));
   };
 
-  const handleDiscard = () => {
+  const handleDiscard = async () => {
     if (
       confirm(
         "Are you sure you want to discard this article? All unsaved changes will be lost.",
       )
     ) {
+      try {
+        if (draftId) {
+          await deleteDraft(draftId);
+        }
+      } catch (e) {
+        console.error("Failed to delete draft:", e);
+      }
+
       localStorage.removeItem("draft_article");
       setTitle("");
       setContent("");
       setCoverImage(null);
       setHistory([{ title: "", content: "" }]);
       setHistoryIndex(0);
+      setDraftId(null);
+
       router.push("/home");
     }
   };
