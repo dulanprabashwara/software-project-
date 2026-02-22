@@ -72,17 +72,18 @@
 
 /* Restore button for deleted article */
 .restore-article-btn {
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
   background: transparent;
-  border: 1px solid #1ABC9C;
+  border: 2px solid #1ABC9C;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
   color: #1ABC9C;
+  flex-shrink: 0;
 }
 
 .restore-article-btn:hover {
@@ -93,6 +94,8 @@
 
 .restore-article-btn svg {
   pointer-events: none;
+  width: 16px;
+  height: 16px;
 }
 
 /* Article Title */

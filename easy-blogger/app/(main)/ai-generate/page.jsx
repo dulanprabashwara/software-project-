@@ -428,8 +428,13 @@ export default function AIArticleGeneratorPage() {
                 <span className="previous-generations-text">Previous Generations</span>
               </div>
               <div className="flex items-center gap-3">
-                <button onClick={() => setCurrentView("input")} className="new-article-button">
-                  <span>+ New Article</span>
+                {/* Test: Always show restore button for debugging */}
+                <button 
+                  onClick={handleRestoreArticle} 
+                  className="restore-article-btn"
+                  title="Restore last deleted article"
+                >
+                  <img src="/icons/refresh-ccw-01.png" alt="Restore" className="w-4 h-4" />
                 </button>
                 {deletedArticle && (
                   <button 
@@ -437,11 +442,12 @@ export default function AIArticleGeneratorPage() {
                     className="restore-article-btn"
                     title="Restore last deleted article"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3 10H21M8 14H16M8 18H16M12 6V12M12 12L8 8M12 12L16 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="miter"/>
-                    </svg>
+                    <img src="/icons/refresh-ccw-01.png" alt="Restore" className="w-4 h-4" />
                   </button>
                 )}
+                <button onClick={() => setCurrentView("input")} className="new-article-button">
+                  <span>+ New Article</span>
+                </button>
               </div>
             </div>
 
@@ -471,7 +477,6 @@ export default function AIArticleGeneratorPage() {
                   </div>
                 ))}
               </div>
-// ...
             </div>
           </div>
         </div>
