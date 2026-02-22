@@ -4,6 +4,7 @@ import Link from "next/link";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../../context/AuthContext";
 import { auth } from "../../../lib/firebase";
 import {
   GoogleAuthProvider,
@@ -75,43 +76,60 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const { user, isAdmin, loading: authLoading } = useAuth();
+
+  // Watch for auth changes. Once the user is fully fetched from the database, redirect them.
+  React.useEffect(() => {
+    // Only redirect if we actively triggered a login request (to prevent auto-redirects
+    // when just sitting on the page if they happen to have an old token resolving)
+    if (!authLoading && user && isAuthenticating) {
+      if (isAdmin) {
+        router.push("/admin");
+      } else {
+        router.push("/home");
+      }
+    }
+  }, [user, isAdmin, authLoading, isAuthenticating, router]);
+
   const emailInputRef = React.useRef(null);
 
   const handleGoogleLogin = async () => {
+    setIsAuthenticating(true);
+    setError("");
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
-
-      router.push("/home");
+      await signInWithPopup(auth, provider);
+      // Let AuthContext handle the redirect via useEffect
     } catch (error) {
       console.error("Error logging in with Google", error);
+      setError("Failed to log in with Google.");
+      setIsAuthenticating(false);
     }
   };
 
   const handleFacebookLogin = async () => {
+    setIsAuthenticating(true);
+    setError("");
     try {
       const provider = new FacebookAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
-
-      router.push("/home");
+      await signInWithPopup(auth, provider);
+      // Let AuthContext handle the redirect via useEffect
     } catch (error) {
       console.error("Error logging in with Facebook", error);
+      setError("Failed to log in with Facebook.");
+      setIsAuthenticating(false);
     }
   };
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setIsAuthenticating(true);
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Wait a tiny bit for the AuthContext onAuthStateChanged listener
-      // to process the new user and redirect gracefully
-      router.push("/home");
+      // Let AuthContext handle the redirect via useEffect
     } catch (err) {
       console.error("Error logging in with Email", err);
 
@@ -128,8 +146,7 @@ export default function LoginPage() {
       } else {
         setError(err.message || "An error occurred during login.");
       }
-    } finally {
-      setLoading(false);
+      setIsAuthenticating(false);
     }
   };
 
@@ -228,8 +245,12 @@ export default function LoginPage() {
             </div>
 
             {/* Sign In Button */}
-            <Button type="submit" variant="primary" disabled={loading}>
-              {loading ? "Signing In..." : "Sign In"}
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isAuthenticating || authLoading}
+            >
+              {isAuthenticating || authLoading ? "Signing In..." : "Sign In"}
             </Button>
           </form>
 

@@ -253,7 +253,7 @@ export default function ArticleDetailsPage() {
           </div>
 
           {/* Generated Article Content */}
-          <div className="article-result-section">
+       
             <div className="result-container">
               {/* Left side - empty for spacing */}
               <div className="result-left-side"></div>
@@ -298,58 +298,9 @@ export default function ArticleDetailsPage() {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Regenerated Articles */}
-          {articleData.regeneratedArticles && articleData.regeneratedArticles.length > 0 && (
-            <div className="regenerated-articles-section">
-              {articleData.regeneratedArticles.map((regeneratedArticle, index) => (
-                <div key={index} className="article-result-section">
-                  <div className="result-container">
-                    <div className="result-left-side"></div>
-                    <div className="result-right-side">
-                      <p className="heres-article-text">Regenerated Article {index + 1}..</p>
-                        
-                      <div className="article-title-label" onClick={() => setShowPreview(true)}>
-                        <span className="article-title-text">Regenerated: {regeneratedArticle.title.replace('Regenerated: ', '')}</span>
-                        <svg 
-                          className="open-book-icon" 
-                          width="20" 
-                          height="20" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="#1E1E1E" 
-                          strokeWidth="2"
-                        >
-                          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                        </svg>
-                      </div>
-                      
-                      <div className="article-actions">
-                        <button className="action-icon" title="Copy" onClick={() => handleCopyToClipboard(regeneratedArticle.content)}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                          </svg>
-                        </button>
-                        <button className="action-icon" title="Like">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                          </svg>
-                        </button>
-                        <button className="action-icon" title="Dislike">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-3"></path>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          
+            
+     
         </div>
       </div>
 

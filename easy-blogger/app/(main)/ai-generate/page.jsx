@@ -70,8 +70,29 @@ export default function AIArticleGeneratorPage() {
   const [isCursorInsidePreview, setIsCursorInsidePreview] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
-  // ── Mock data from route.js (previous generations list) ─────────────────────
+  // ── Delete article handler ────────────────────────────────────────────────────────
+  const [deletedArticle, setDeletedArticle] = useState(null);
+  
+  const handleDeleteArticle = (articleId, e) => {
+    e.stopPropagation(); // Prevent navigation to article detail page
+    const articleToDelete = articles.find(article => article.id === articleId);
+    setDeletedArticle(articleToDelete);
+    setArticles(articles.filter(article => article.id !== articleId));
+  };
+
+  // ── Restore article handler ────────────────────────────────────────────────────────
+  const handleRestoreArticle = () => {
+    if (deletedArticle) {
+      setArticles([...articles, deletedArticle]);
+      setDeletedArticle(null);
+    }
+  };
+
+  // ── Data from API route ────────────────────────────────────────────────────────
   const [articles, setArticles] = useState([]);
+  const [trendingArticles, setTrendingArticles] = useState([]);
+  const [topAIArticles, setTopAIArticles] = useState([]);
+  const [trendingTopics, setTrendingTopics] = useState([]);
 
   // ── Slider ──────────────────────────────────────────────────────────────────
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
@@ -82,31 +103,12 @@ export default function AIArticleGeneratorPage() {
   const generateTimeoutRef = useRef(null);
   const errorResetRef = useRef(null);
 
-  // ─── Static data (matches route.js exactly) ──────────────────────────────────
-  const trendingArticles = [
-    { title: "The Future of Artificial Intelligence in Healthcare", author: "Dr. Sarah Chen", readTime: "8 min read", excerpt: "Exploring how AI is revolutionizing medical diagnosis and treatment...", publishDate: "31 Dec, 2024", comments: 42, likes: 128, authorImage: "/images/Ai article generator/author image 1.png", coverImage: "/images/Ai article generator/cover image 1.png" },
-    { title: "Sustainable Living: Small Changes, Big Impact", author: "Michael Green", readTime: "5 min read", excerpt: "Simple daily habits that can significantly reduce your carbon footprint...", publishDate: "28 Dec, 2024", comments: 35, likes: 96, authorImage: "/images/Ai article generator/author image 2.png", coverImage: "/images/Ai article generator/cover image 2.png" },
-    { title: "The Rise of Remote Work Culture", author: "Emma Johnson", readTime: "6 min read", excerpt: "How companies are adapting to the new normal of distributed teams...", publishDate: "25 Dec, 2024", comments: 58, likes: 167, authorImage: "/images/Ai article generator/author image 3.png", coverImage: "/images/Ai article generator/cover image 3.png" },
-    { title: "Machine Learning Fundamentals for Beginners", author: "Alex Kumar", readTime: "7 min read", excerpt: "A comprehensive guide to understanding the basics of machine learning...", publishDate: "22 Dec, 2024", comments: 73, likes: 234, authorImage: "/images/Ai article generator/author image 4.png", coverImage: "/images/Ai article generator/cover image 4.png" },
-  ];
-
-  const topAIArticles = [
-    { title: "Understanding Neural Networks", authors: "Sarah Chan" },
-    { title: "Python for Data Science", authors: "Rebecca Hudson" },
-    { title: "Machine Learning Basics", authors: "Danielle Cruise " },
-    { title: "AI Ethics and Governance", authors: "Janet Wales" },
-  ];
-
-  const trendingTopics = ["Technology", "Health", "Business", "Science", "Education", "Environment"];
-
-  // ─── Effects ──────────────────────────────────────────────────────────────────
-
   // Premium gate
   useEffect(() => {
     if (!isLoading && !isPremium) router.push("/subscription/upgrade");
   }, [isPremium, isLoading, router]);
 
-  // ── Fetch previous generations list from route.js mock API ──────────────────
+  // ── Fetch all data from route.js API ────────────────────────────────────────
   // This calls the Next.js API route at /api/ai-generate (route.js in frontend)
   // When DB is ready: replace this URL with real backend endpoint
   useEffect(() => {
@@ -116,10 +118,11 @@ export default function AIArticleGeneratorPage() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         if (data.articles) setArticles(data.articles);
-        // trendingArticles, topAIArticles, trendingTopics, keywords are hardcoded above
-        // as they are static data — no need to set state for them
+        if (data.trendingArticles) setTrendingArticles(data.trendingArticles);
+        if (data.topAIArticles) setTopAIArticles(data.topAIArticles);
+        if (data.trendingTopics) setTrendingTopics(data.trendingTopics);
       } catch (error) {
-        console.error('Failed to fetch articles list:', error);
+        console.error('Failed to fetch data:', error);
       }
     };
     fetchData();
@@ -409,7 +412,7 @@ export default function AIArticleGeneratorPage() {
           <div className="ai-content-wrapper">
             <div className="ai-generator-title justify-between">
               <div className="flex items-center gap-3">
-                <button onClick={() => setCurrentView("input")} className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150">
+                <button onClick={() => setCurrentView("input")} className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150" title="view articles">
                   <img src="/icons/menu icon.png" alt="Menu" className="ai-generator-menu-icon" />
                 </button>
                 <img src="/icons/Ai article generator icon teel color.png" alt="AI Article Generator" className="ai-generator-ai-icon" />
@@ -424,9 +427,20 @@ export default function AIArticleGeneratorPage() {
                 </div>
                 <span className="previous-generations-text">Previous Generations</span>
               </div>
-              <button onClick={() => setCurrentView("input")} className="new-article-button">
-                <span>+ New Article</span>
-              </button>
+              <div className="flex items-center gap-3">
+                {deletedArticle && (
+                  <button 
+                    onClick={handleRestoreArticle} 
+                    className="restore-article-btn"
+                    title="Restore last deleted article"
+                  >
+                    <img src="/icons/refresh-ccw-01.png" alt="Restore" className="w-4 h-4" />
+                  </button>
+                )}
+                <button onClick={() => setCurrentView("input")} className="new-article-button">
+                  <span>+ New Article</span>
+                </button>
+              </div>
             </div>
 
             <div className="px-6 py-8">
@@ -436,11 +450,22 @@ export default function AIArticleGeneratorPage() {
                   // route.js GET /?id=articleId returns full article details for that page
                   <div
                     key={article.id}
-                    className="article-label cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="article-label cursor-pointer hover:bg-gray-50 transition-colors article-label-container"
                     onClick={() => router.push(`/ai-generate/article/${article.id}`)}
                   >
                     <div className="article-title"><span>{article.title}</span></div>
                     <div className="article-date"><span>{article.date}</span></div>
+                    <button 
+                      className="delete-article-btn"
+                      onClick={(e) => handleDeleteArticle(article.id, e)}
+                      title="Delete"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="miter"/>
+                        <path d="M19 6V20C19 21 18 22 17 22H7C6 22 5 21 5 20V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="miter"/>
+                        <path d="M8 6V4C8 3 9 2 10 2H14C15 2 16 3 16 4V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="miter"/>
+                      </svg>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -489,7 +514,7 @@ export default function AIArticleGeneratorPage() {
           {/* ── Title bar ── */}
           <div className="ai-generator-title justify-between">
             <div className="flex items-center gap-3">
-              <button onClick={() => setCurrentView("articles")} className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150">
+              <button onClick={() => setCurrentView("articles")} className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150" title="view articles">
                 <img src="/icons/menu icon.png" alt="Menu" className="ai-generator-menu-icon" />
               </button>
               <img src="/icons/Ai article generator icon teel color.png" alt="AI Article Generator" className="ai-generator-ai-icon" />
@@ -497,8 +522,8 @@ export default function AIArticleGeneratorPage() {
             </div>
           </div>
 
-          {/* ── Trending slider — only shown on input view ── */}
-          {currentView === "input" && (
+          {/* ── Trending slider — only shown on input view and when data is loaded ── */}
+          {currentView === "input" && trendingArticles.length > 0 && (
             <>
               <div className="trending-section">
                 <div className="trending-header">
@@ -574,7 +599,7 @@ export default function AIArticleGeneratorPage() {
                   <textarea
                     value={userInput}
                     onChange={handleUserInputChange}
-                    placeholder="Enter your article idea (up to 50 words). You can include your preferred tone (professional, casual, humorous) and length (short, medium, long) directly in your prompt!"
+                    placeholder="Enter your article idea.."
                   />
                   <span className="word-count">
                     {userInput.trim().split(" ").filter((word) => word.length > 0).length}/50 words
@@ -720,11 +745,11 @@ export default function AIArticleGeneratorPage() {
                   {/* STATE 3: Article result shown inline */}
                   {!isGenerating && !generateError && generatedArticle && (
                     <div className="article-result-section" style={{ width: "100%" }}>
-                      <div className="result-container">
+                      
                         <div className="result-left-side"></div>
-                        <div className="result-right-side">
+                       
                           <p className="heres-article-text">Here&apos;s your article..</p>
-
+                          
                           {/* Clickable title label → opens preview overlay */}
                           <div className="article-title-label" onClick={() => setShowPreview(true)}>
                             <span className="article-title-text">{generatedArticle.title}</span>
@@ -733,8 +758,9 @@ export default function AIArticleGeneratorPage() {
                               <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                             </svg>
                           </div>
-
+                         
                           {/* Action icons row */}
+                          <br></br>
                           <div className="article-actions">
                             {/* ← Back button (from original page.jsx) */}
                             <button className="back-button" title="Back" onClick={() => { setGeneratedArticle(null); setCurrentView("input"); }}>
@@ -767,8 +793,8 @@ export default function AIArticleGeneratorPage() {
                               </svg>
                             </button>
                           </div>
-                        </div>
-                      </div>
+                        
+                      
                     </div>
                   )}
 
@@ -884,7 +910,7 @@ export default function AIArticleGeneratorPage() {
               <div className="preview-header-actions">
                 <button className="preview-copy-icon" title="Copy" onClick={handleCopyToClipboard}>
                   {isCopied ? (
-                    <span className="preview-copied-message">copied to clipboard</span>
+                    <span className="preview-copied-message">copied !</span>
                   ) : (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>

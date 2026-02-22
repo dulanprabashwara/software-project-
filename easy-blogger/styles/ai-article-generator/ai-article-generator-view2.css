@@ -453,8 +453,8 @@ body.loading * {
 
 /* View 3: Article Result Styles */
 .article-result-section {
-  margin-top:8px;
-  margin-left: 20px;
+  margin-top:20px;
+  margin-left: 200px;
   width: 97%;
 }
 
@@ -691,7 +691,7 @@ body.loading * {
 .preview-copied-message {
   font-family: "Inter", sans-serif;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 14px;
   color: #1ABC9C;
   white-space: nowrap;
 }

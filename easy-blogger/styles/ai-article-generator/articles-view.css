@@ -22,6 +22,85 @@
   border-top: none !important;
   border-left: none !important;
   border-right: none !important;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* Article Label Container with hover shadow effect */
+.article-label-container {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.article-label-container:hover {
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Delete button for article */
+.delete-article-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.3s ease;
+  color: #6B6B6B;
+}
+
+.article-label-container:hover .delete-article-btn {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.delete-article-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: scale(1.1);
+}
+
+.delete-article-btn svg {
+  pointer-events: none;
+}
+
+/* Restore button for deleted article */
+.restore-article-btn {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 2px solid #1ABC9C;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #1ABC9C;
+  flex-shrink: 0;
+}
+
+.restore-article-btn:hover {
+  background: #1ABC9C;
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+.restore-article-btn:hover img {
+  filter: brightness(0) invert(1);
+}
+
+.restore-article-btn img {
+  filter: brightness(0) saturate(100%) invert(59%) sepia(67%) saturate(471%) hue-rotate(154deg) brightness(96%) contrast(92%);
+  pointer-events: none;
+  width: 16px;
+  height: 16px;
 }
 
 /* Article Title */
