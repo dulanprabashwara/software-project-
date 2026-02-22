@@ -28,13 +28,13 @@ export default function LandingPage() {
             Membership
           </a>
           <a
-            href="#"
+            href="/signup"
             className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
           >
             Write
           </a>
           <a
-            href="#"
+            href="/login"
             className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors"
           >
             Sign in
@@ -66,7 +66,7 @@ export default function LandingPage() {
               A place to read, write, and deepen your understanding
             </p>
             <a
-              href="/login"
+              href="/signup"
               className="inline-block mt-8 mb-16 px-6 py-3 bg-[#111827] text-white text-base rounded-full hover:bg-[#1f2937] hover:scale-105 transition-all duration-300 w-fit animate-fade-in-up animation-delay-400"
             >
               Start reading

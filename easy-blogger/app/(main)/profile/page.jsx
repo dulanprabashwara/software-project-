@@ -3,25 +3,34 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Edit, Trash2 } from "lucide-react";
 import { useSubscription } from "../../subscription/SubscriptionContext";
+import { useAuth } from "../../context/AuthContext";
 import ArticleCard from "../../../components/article/ArticleCard";
+import { api } from "../../../lib/api";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("home");
   const { isPremium } = useSubscription();
+  const {
+    user: firebaseUser,
+    userProfile,
+    loading: authLoading,
+    updateProfile: updateContextProfile,
+  } = useAuth();
 
-  // Mock user data
-  const user = {
-    name: "Emma Richardson",
-    avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop&crop=face",
-    followers: "2.4K",
-    following: 142,
-    reads: "45.2K",
-    shares: 892,
-    messages: 10,
-  };
+  // Show spinner only while Firebase auth state is being determined (fast, ~50ms).
+  const loading = authLoading;
+  // Derive display values — Firebase is available immediately as fallback
+  // while the backend userProfile loads asynchronously.
+  const displayName =
+    userProfile?.displayName ||
+    firebaseUser?.displayName ||
+    firebaseUser?.email?.split("@")[0] ||
+    "User";
+  const avatarUrl =
+    userProfile?.avatarUrl ||
+    firebaseUser?.photoURL ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1ABC9C&color=fff`;
 
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
@@ -30,6 +39,14 @@ export default function ProfilePage() {
   const [aboutText, setAboutText] = useState("");
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [hasAbout, setHasAbout] = useState(false);
+
+  // Sync about text when profile data arrives
+  useEffect(() => {
+    if (userProfile) {
+      setAboutText(userProfile.bio || "");
+      setHasAbout(!!userProfile.bio);
+    }
+  }, [userProfile]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -97,10 +114,18 @@ export default function ProfilePage() {
     setIsEditingAbout(true);
   };
 
-  const handleSaveAbout = () => {
-    if (aboutText.trim()) {
-      setHasAbout(true);
-      setIsEditingAbout(false);
+  const handleSaveAbout = async () => {
+    if (aboutText.trim() && userProfile) {
+      try {
+        const token = await firebaseUser.getIdToken();
+        await api.updateProfile({ bio: aboutText }, token);
+        setHasAbout(true);
+        setIsEditingAbout(false);
+        updateContextProfile({ bio: aboutText });
+      } catch (err) {
+        console.error("Failed to update bio", err);
+        alert("Failed to save about text.");
+      }
     }
   };
 
@@ -115,10 +140,18 @@ export default function ProfilePage() {
     setIsEditingAbout(true);
   };
 
-  const handleDeleteAbout = () => {
+  const handleDeleteAbout = async () => {
     if (confirm("Are you sure you want to delete your bio?")) {
-      setHasAbout(false);
-      setAboutText("");
+      try {
+        const token = await firebaseUser.getIdToken();
+        await api.updateProfile({ bio: null }, token);
+        setHasAbout(false);
+        setAboutText("");
+        updateContextProfile({ bio: null });
+      } catch (err) {
+        console.error("Failed to delete bio", err);
+        alert("Failed to delete bio.");
+      }
     }
   };
 
@@ -156,6 +189,16 @@ export default function ProfilePage() {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center w-full h-full pt-20">
+        <p className="text-[#6B7280]">Loading profile...</p>
+      </div>
+    );
+  }
+
+  // displayName and avatarUrl are already derived above from userProfile + firebaseUser fallback
+
   return (
     <div className="flex h-full w-full">
       {/* Main Content Area */}
@@ -164,16 +207,15 @@ export default function ProfilePage() {
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {/* Masking Strip for Green Line Artifact */}
-        <div className="absolute top-0 right-0 w-3 h-full bg-white z-50 pointer-events-none" />
-
-        <div className="max-w-3xl mx-auto px-8 pl-8 pr-12">
+        <div className="absolute top-0 right-0 w-3 h-full bg-white z-10 pointer-events-none" />
+        <div className="max-w-3xl mx-auto px-8 py-8 pr-12">
           {/* Profile Header */}
           <div className="flex items-center justify-between mb-6">
             <h1
               className="text-3xl font-bold text-[#111827]"
               style={{ fontFamily: "Georgia, serif" }}
             >
-              {user.name}
+              {displayName}
             </h1>
             <div className="relative" ref={menuRef}>
               <button
@@ -337,14 +379,16 @@ export default function ProfilePage() {
             {/* Avatar */}
             <div className="mb-4 relative inline-block">
               <img
-                src={user.avatar}
-                alt={user.name}
+                src={avatarUrl}
+                alt={displayName}
                 className={`w-20 h-20 rounded-full object-cover border-2 ${
-                  isPremium ? "border-[#F59E0B]" : "border-transparent"
+                  userProfile?.isPremium
+                    ? "border-[#F59E0B]"
+                    : "border-[#E5E7EB]"
                 }`}
               />
               {/* Verified Badge for Premium */}
-              {isPremium && (
+              {userProfile?.isPremium && (
                 <div className="absolute -bottom-1 -right-1 transform translate-x-1/4 translate-y-1/4 drop-shadow-md">
                   <svg
                     width="24"
@@ -373,44 +417,44 @@ export default function ProfilePage() {
 
             {/* Name */}
             <h2 className="text-base font-bold text-[#111827] mb-2 flex items-center gap-2">
-              {user.name}
+              {displayName}
             </h2>
 
             {/* Stats Row 1 */}
             <p className="text-sm text-[#6B7280] mb-1">
-              <a
+              <Link
                 href="/profile/user_stats?tab=followers"
                 className="hover:underline cursor-pointer"
               >
-                {user.followers} Followers
-              </a>
+                {userProfile?._count?.followers || 0} Followers
+              </Link>
               {" · "}
-              <a
+              <Link
                 href="/profile/user_stats?tab=following"
                 className="hover:underline cursor-pointer"
               >
-                {user.following} Following
-              </a>
+                {userProfile?._count?.following || 0} Following
+              </Link>
             </p>
 
             {/* Stats Row 2 */}
             <p className="text-sm text-[#6B7280] mb-4">
-              <a
+              <Link
                 href="/profile/user_stats?tab=reads"
                 className="hover:underline cursor-pointer"
               >
-                {user.reads} Reads
-              </a>
+                {userProfile?.stats?.totalReads || 0} Reads
+              </Link>
               {" · "}
-              <a
+              <Link
                 href="/profile/user_stats?tab=shares"
                 className="hover:underline cursor-pointer"
               >
-                {user.shares} Shares
-              </a>
+                {userProfile?.stats?.totalShares || 0} Shares
+              </Link>
               {" · "}
               <Link href="/chat" className="hover:underline cursor-pointer">
-                {user.messages} Messages
+                {userProfile?.messages || 10} Messages
               </Link>
             </p>
 

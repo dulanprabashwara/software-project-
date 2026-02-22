@@ -1,5 +1,6 @@
 import "../styles/globals.css";
 import { SubscriptionProvider } from "./subscription/SubscriptionContext";
+import { AuthProvider } from "./context/AuthContext";
 
 export const metadata = {
   title: "Easy Blogger",
@@ -10,7 +11,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        <SubscriptionProvider>{children}</SubscriptionProvider>
+        <AuthProvider>
+          <SubscriptionProvider>{children}</SubscriptionProvider>
+        </AuthProvider>
       </body>
     </html>
   );

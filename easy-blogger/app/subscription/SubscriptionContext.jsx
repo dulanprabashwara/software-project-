@@ -1,28 +1,27 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const SubscriptionContext = createContext();
 
 export function SubscriptionProvider({ children }) {
+  const { userProfile, loading: authLoading } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Sync premium status from backend profile
   useEffect(() => {
-    // Load persisted state from localStorage
-    const savedPremium = localStorage.getItem("isPremium");
-    if (savedPremium) {
-      setIsPremium(savedPremium === "true");
+    if (authLoading) return;
+    if (userProfile) {
+      setIsPremium(!!userProfile.isPremium);
     }
     setIsLoading(false);
-  }, []);
+  }, [userProfile, authLoading]);
 
+  // Dev toggle for testing (does not persist to backend)
   const togglePremium = () => {
-    setIsPremium((prev) => {
-      const newState = !prev;
-      localStorage.setItem("isPremium", String(newState));
-      return newState;
-    });
+    setIsPremium((prev) => !prev);
   };
 
   return (

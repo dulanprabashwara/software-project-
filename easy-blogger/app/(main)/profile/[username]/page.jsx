@@ -259,7 +259,9 @@ export default function UserProfilePage({ params }) {
           <div className="flex gap-3 mb-8">
             <button
               onClick={() => setIsFollowing(!isFollowing)}
-              className={`flex-1 px-4 py-2 rounded-full text-[14px] font-medium transition-colors ${
+              className={`px-4 py-2 rounded-full text-[14px] font-medium transition-colors ${
+                isFollowing ? "flex-1" : "w-full"
+              } ${
                 isFollowing
                   ? "border border-gray-300 text-gray-700 hover:border-gray-800"
                   : "bg-[#1ABC9C] text-white hover:bg-[#16a085]"
@@ -267,13 +269,15 @@ export default function UserProfilePage({ params }) {
             >
               {isFollowing ? "Following" : "Follow"}
             </button>
-            <Link
-              href="/chat"
-              className="flex-1 px-4 py-2 rounded-full text-[14px] font-medium bg-[#1ABC9C] text-white hover:bg-[#16a085] transition-colors flex items-center justify-center gap-2"
-            >
-              <MessageCircle className="w-4 h-4" />
-              Message
-            </Link>
+            {isFollowing && (
+              <Link
+                href="/chat"
+                className="flex-1 px-4 py-2 rounded-full text-[14px] font-medium bg-[#1ABC9C] text-white hover:bg-[#16a085] transition-colors flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Message
+              </Link>
+            )}
           </div>
 
           {/* Optional: Add section for "More from Medium" or similar if needed */}
