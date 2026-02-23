@@ -1,24 +1,16 @@
-/**
- * Reacted Articles Page
- *
- * Route: /library/reacted
- *
- * Purpose: Shows all articles the user has reacted to (liked/clapped)
- *
- * Features:
- * - List of articles user has liked or clapped for
- * - Shows reaction type (like, clap, love, etc.)
- * - Article preview with author, date, excerpt
- * - Sort by reaction date
- */
+"use client";
 
-export default function ReactedArticlesPage() {
+import ArticleCard from "../../../../components/article/ArticleCard";
+import { DATA } from "../../../../components/article/ArticleList";
+
+export default function Reacted() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">Reacted Articles</h1>
-        <p className="text-gray-500">Articles you've liked or clapped for.</p>
+    <section className="px-8 min-w-0">
+      <div className="max-w-3xl   w-full">
+        {DATA.reactedArticles.map((article) => (
+          <ArticleCard key={article.id} article={article} />
+        ))}
       </div>
-    </div>
+    </section>
   );
 }

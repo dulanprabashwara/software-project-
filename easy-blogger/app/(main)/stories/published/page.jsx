@@ -1,32 +1,16 @@
-/**
- * Published Stories Page
- *
- * Route: /stories/published
- *
-<<<<<<< HEAD
- * Purpose: Shows all articles that are currently live and visible to readers
- *
- * Features:
- * - List of published articles
- * - View stats (reads, likes, comments)
- * - Edit article option
- * - Unpublish option
- * - Share article option
- * - Article preview with title, excerpt, publish date
-=======
- * Purpose: Shows all articles that are currently live
->>>>>>> main
- */
+"use client";
 
-export default function PublishedStoriesPage() {
+import ArticleCard from "../../../../components/article/ArticleCard";
+import { DATA } from "../../../../components/article/ArticleList";
+
+export default function Published() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">Published Stories</h1>
-        <p className="text-gray-500">
-          Articles that are live and visible to readers.
-        </p>
+    <section className="px-8 min-w-0">
+      <div className="max-w-3xl   w-full">
+        {DATA.publishedArticles.map((article) => (
+          <ArticleCard key={article.id} article={article} />
+        ))}
       </div>
-    </div>
+    </section>
   );
 }

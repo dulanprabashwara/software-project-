@@ -1,26 +1,16 @@
-/**
- * Saved Articles Page
- *
- * Route: /library/saved
- *
- * Purpose: Shows all articles the user has bookmarked/saved
- *
- * Features:
- * - List of saved articles with thumbnails
- * - Remove from saved option
- * - Sort by date saved
- * - Article preview with author, date, excerpt
- */
+"use client";
 
-export default function SavedArticlesPage() {
+import SavedArticleCard from "../../../../components/article/SavedArticleCard";
+import { DATA } from "../../../../components/article/ArticleList";
+
+export default function Saved() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">Saved Articles</h1>
-        <p className="text-gray-500">
-          Articles you've bookmarked for later reading.
-        </p>
+    <section className="px-8 min-w-0">
+      <div className="max-w-3xl   w-full">
+        {DATA.savedArticles.map((article) => (
+          <SavedArticleCard key={article.id} article={article} />
+        ))}
       </div>
-    </div>
+    </section>
   );
 }

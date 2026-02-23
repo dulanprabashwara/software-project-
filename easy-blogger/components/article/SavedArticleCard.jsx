@@ -17,7 +17,6 @@ export default function ArticleCard({ article }) {
 
  const toggleBookmark = async () => {
   const next = !saved;
-
   setSaved(next);
   localStorage.setItem(storageKey, next ? "1" : "0");
 
@@ -27,21 +26,24 @@ export default function ArticleCard({ article }) {
     const res = await fetch("/api/saved-articles", {
       method: next ? "POST" : "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(next ? { article } : { id: article.id }),
+      body: JSON.stringify(
+        next ? { article } : { id: article.id }
+      ),
     });
 
     if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`HTTP ${res.status}: ${text}`);
+      throw new Error("Failed");
     }
-  } catch (err) {
+  } catch {
+    // rollback UI if error
     setSaved(!next);
     localStorage.setItem(storageKey, !next ? "1" : "0");
-    alert(err.message || "Operation failed");
+    alert("Operation failed");
   } finally {
     setSaving(false);
   }
 };
+
   return (
     <article className="py-6 border-b border-[#E5E7EB] last:border-0">
       <div className="flex items-center gap-2 mb-3">

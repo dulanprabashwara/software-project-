@@ -13,14 +13,14 @@ export default function MainLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
+    <div className=" h-screen bg-white  ">
       <Header onToggleSidebar={toggleSidebar} />
       <Sidebar isOpen={sidebarOpen} />
 
       {/* Main content with sidebar offset */}
       <main
-        className={`pt-16 transition-all duration-300 ease-in-out ${
-          sidebarOpen ? "ml-60" : "ml-0"
+        className={` h-[calc(100vh-64px)] mt-16 transition-all duration-600 ease-in-out ${
+          sidebarOpen ? "lg:ml-64" : "lg:ml-0"
         }`}
       >
         {children}

@@ -1,25 +1,28 @@
-/**
- * Reading History Page
- *
- * Route: /library/history
- *
- * Purpose: Shows all articles the user has read recently
- *
- * Features:
- * - List of recently read articles
- * - Sorted by last read date (most recent first)
- * - Clear history option
- * - Article preview with author, date, excerpt
- * - Reading progress indicator (if applicable)
- */
+"use client";
 
-export default function ReadingHistoryPage() {
+import { useState } from "react";
+import HistoryArticleCard from "../../../../components/article/HistoryArticleCard";
+import { DATA } from "../../../../components/article/ArticleList";
+
+export default function History() {
+  const [openId, setOpenId] = useState(null);
+
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">Reading History</h1>
-        <p className="text-gray-500">Articles you've recently read.</p>
+    <section className="px-8 min-w-0">
+      <div className="max-w-3xl w-full">
+        {DATA.historyArticles.map((article) => (
+          <HistoryArticleCard
+            key={article.id}
+            article={article}
+            isOpen={openId === article.id /*function to get article ID for opened*/} 
+            onClick={() =>
+              setOpenId((prev) =>
+                prev === article.id ? null : article.id
+              )
+            }
+          />
+        ))}
       </div>
-    </div>
+    </section>
   );
 }
