@@ -132,12 +132,21 @@ export default function Page() {
       return;
     }
 
+    sessionStorage.removeItem("preview_article");
+    sessionStorage.removeItem("preview_context");
+
     sessionStorage.setItem(
-      "preview_article",
+        "preview_article",
+        JSON.stringify({ title, content, coverImage })
+    );
+
+    sessionStorage.setItem(
+      "preview_context",
       JSON.stringify({
         title,
         content,
         coverImage,
+        mode: "edit-as-new",
       }),
     );
 
