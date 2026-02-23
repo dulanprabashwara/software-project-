@@ -164,7 +164,7 @@ export default function Header({ onToggleSidebar }) {
 
               <div className="px-4 py-2 border-none mb-1 text-sm mb-0">
                 <p className="font-bold">
-                  <Link href="./profile" className="flex items-center justify-between">
+                  <Link href="/profile" className="flex items-center justify-between">
                     <span className="truncate">{displayName}</span>
 
                     {isPremium && (
