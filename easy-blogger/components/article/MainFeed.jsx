@@ -12,8 +12,8 @@ export default function MainFeed({ articles }) {
         {articles.map((article) => (
           <div
             key={article.id}
-            className="cursor-pointer"
-            onClick={() => router.push(`/home/read?id=${article.id}`)}
+           
+            
           >
             <ArticleCard article={article} />
           </div>

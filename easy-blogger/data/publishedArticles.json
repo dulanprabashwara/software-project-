@@ -1,0 +1,50 @@
+[
+  {
+    "id": 17,
+    "authorName": "Emma Richardson",
+    "authorAvatar": "https://i.pravatar.cc/150?img=47",
+    "verified": true,
+    "date": "Dec 14, 2025",
+    "title": "Understanding Edge Computing in 2026",
+    "content": "As data generation accelerates, edge computing is transforming how information is processed. By moving computation closer to the source, businesses can reduce latency and improve real-time performance...",
+    "thumbnail": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=300&fit=crop",
+    "comments": 54,
+    "likes": 4.7
+  },
+  {
+    "id": 18,
+    "authorName": "Emma Richardson",
+    "authorAvatar": "https://i.pravatar.cc/150?img=47",
+    "verified": true,
+    "date": "Dec 18, 2025",
+    "title": "Creative Routines of Successful Designers",
+    "content": "Creativity isn’t random inspiration—it’s structured practice. Many top designers follow disciplined routines that balance exploration, rest, and focused production...",
+    "thumbnail": "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=400&h=300&fit=crop",
+    "comments": 23,
+    "likes": 4.4
+  },
+  {
+    "id": 19,
+    "authorName": "Emma Richardson",
+    "authorAvatar": "https://i.pravatar.cc/150?img=47",
+    "verified": true,
+    "date": "Dec 21, 2025",
+    "title": "Building Secure Authentication Systems",
+    "content": "Security is no longer optional. From JWT tokens to OAuth flows and multi-factor authentication, modern systems must be built with protection at their core...",
+    "thumbnail": "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop",
+    "comments": 61,
+    "likes": 4.9
+  },
+  {
+    "id": 14,
+    "authorName": "Emma Richardson",
+    "authorAvatar": "https://i.pravatar.cc/150?img=47",
+    "verified": true,
+    "date": "Dec 28, 2025",
+    "title": "How to Stay Focused in a Distracted World",
+    "content": "With constant notifications and competing priorities, maintaining deep focus has become a skill. By designing intentional work sessions and reducing digital clutter, productivity can dramatically improve...",
+    "thumbnail": "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=400&h=300&fit=crop",
+    "comments": 37,
+    "likes": 4.6
+  }
+]

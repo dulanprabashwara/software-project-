@@ -1,0 +1,26 @@
+[
+  {
+    "id": 15,
+    "authorName": "Emma Richardson",
+    "authorAvatar": "https://i.pravatar.cc/150?img=47",
+    "verified": true,
+    "date": "Jan 3, 2026",
+    "title": "The Rise of AI-Powered Personal Assistants",
+    "content": "Artificial intelligence is redefining productivity through intelligent personal assistants. From scheduling meetings to summarizing documents, AI tools are becoming indispensable in modern workflows...",
+    "thumbnail": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=300&fit=crop",
+    "comments": 48,
+    "likes": 4.8
+  },
+  {
+    "id": 16,
+    "authorName": "Emma Richardson",
+    "authorAvatar": "https://i.pravatar.cc/150?img=47",
+    "verified": true,
+    "date": "Jan 8, 2026",
+    "title": "<<Add title>>",
+    "content": "Sustainability is becoming a central concern in technology development. From energy-efficient data centers to eco-friendly.???",
+    "thumbnail": "https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=400&h=300&fit=crop",
+    "comments": 29,
+    "likes": 4.5
+  }
+]

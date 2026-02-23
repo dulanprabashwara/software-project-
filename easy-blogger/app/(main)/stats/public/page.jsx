@@ -28,7 +28,7 @@ export default function PublicStats() {
        
         
           <div className="flex gap-5 overflow-x-auto bg-white p-3 rounded-[1rem] mb-3 ">
-            {DATA.articles.map((article) => (
+            {DATA.trending.map((article) => (
               <div key={article.id} className=" bg-white w-160 shrink-0 px-4 border-2 rounded-[1rem] border-[#e5e7eb]">
                 <TrendingArticleCard article={article} />
               </div>

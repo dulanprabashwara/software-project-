@@ -1,0 +1,50 @@
+[
+  {
+    "id": 17,
+    "authorName": "Emma Richardson",
+    "authorAvatar": "https://i.pravatar.cc/150?img=47",
+    "verified": true,
+    "date": "Jan 12, 2026",
+    "title": "Why Simplicity Wins in Modern UI Design",
+    "content": "As digital products become more complex, simplicity becomes a competitive advantage. Clean interfaces, intentional spacing, and focused functionality help users achieve their goals faster and with less friction...",
+    "thumbnail": "https://images.unsplash.com/photo-1559028012-481c04fa702d?w=400&h=300&fit=crop",
+    "comments": 34,
+    "likes": 4.7
+  },
+  {
+    "id": 18,
+    "authorName": "Emma Richardson",
+    "authorAvatar": "https://i.pravatar.cc/150?img=47",
+    "verified": true,
+    "date": "Jan 18, 2026",
+    "title": "The Hidden Costs of Overengineering",
+    "content": "While robust systems are important, overengineering can slow teams down and introduce unnecessary complexity. Smart architecture balances scalability with maintainability...",
+    "thumbnail": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=300&fit=crop",
+    "comments": 41,
+    "likes": 4.9
+  },
+  {
+    "id": 19,
+    "authorName": "Emma Richardson",
+    "authorAvatar": "https://i.pravatar.cc/150?img=47",
+    "verified": true,
+    "date": "Jan 22, 2026",
+    "title": "Content Strategy That Actually Converts",
+    "content": "Great content is not just about writing well—it’s about guiding readers toward meaningful action. By aligning storytelling with audience intent, brands can significantly improve engagement and conversion...",
+    "thumbnail": "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=400&h=300&fit=crop",
+    "comments": 27,
+    "likes": 4.4
+  },
+  {
+    "id": 20,
+    "authorName": "Emma Richardson",
+    "authorAvatar": "https://i.pravatar.cc/150?img=47",
+    "verified": true,
+    "date": "Jan 28, 2026",
+    "title": "Building Digital Products with Long-Term Vision",
+    "content": "Successful products are not built for trends—they are built for longevity. Establishing a clear product vision helps teams prioritize features, maintain consistency, and deliver sustainable growth...",
+    "thumbnail": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=400&h=300&fit=crop",
+    "comments": 52,
+    "likes": 4.8
+  }
+]
