@@ -42,7 +42,6 @@ export default function UserStatsPage() {
     name: "Emma Richardson",
     followers: "2,400",
     following: 142,
-    reads: "45.2K",
     shares: 892,
   };
 
@@ -103,37 +102,6 @@ export default function UserStatsPage() {
       name: "Jessica Taylor",
       title: "Digital Nomad",
       avatar: "https://i.pravatar.cc/150?img=6",
-    },
-  ];
-
-  const reads = [
-    {
-      id: 1,
-      title: "The Future of AI in 2026",
-      author: "Sarah Chen",
-      date: "Jan 2, 2026",
-      readTime: "5 min read",
-    },
-    {
-      id: 2,
-      title: "Mastering React Patterns",
-      author: "David Miller",
-      date: "Jan 1, 2026",
-      readTime: "8 min read",
-    },
-    {
-      id: 3,
-      title: "Design Systems 101",
-      author: "Emily Davis",
-      date: "Dec 28, 2025",
-      readTime: "6 min read",
-    },
-    {
-      id: 4,
-      title: "Remote Work Culture",
-      author: "Jessica Taylor",
-      date: "Dec 25, 2025",
-      readTime: "4 min read",
     },
   ];
 
@@ -210,19 +178,6 @@ export default function UserStatsPage() {
                 <span className="mr-1">Following</span>
                 <span className="text-[#6B7280]">{stats.following}</span>
                 {activeTab === "following" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
-                )}
-              </button>
-
-              <button
-                onClick={() => setActiveTab("reads")}
-                className={`pb-3 text-sm font-medium transition-colors relative ${
-                  activeTab === "reads" ? "text-[#111827]" : "text-[#6B7280]"
-                }`}
-              >
-                <span className="mr-1">Reads</span>
-                <span className="text-[#6B7280]">{stats.reads}</span>
-                {activeTab === "reads" && (
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
                 )}
               </button>
@@ -310,25 +265,6 @@ export default function UserStatsPage() {
                         Unfollow
                       </button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Reads Tab */}
-            {activeTab === "reads" && (
-              <div className="space-y-5">
-                {reads.map((article) => (
-                  <div
-                    key={article.id}
-                    className="border-b border-[#E5E7EB] pb-4 last:border-0"
-                  >
-                    <h3 className="font-semibold text-[#111827] mb-2">
-                      {article.title}
-                    </h3>
-                    <p className="text-sm text-[#6B7280]">
-                      {article.author} · {article.date} · {article.readTime}
-                    </p>
                   </div>
                 ))}
               </div>
