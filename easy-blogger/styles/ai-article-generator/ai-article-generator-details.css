@@ -82,7 +82,7 @@
   display: flex;
   align-items: flex-start;
   gap: 20px;
-  margin-left:-150px;
+  margin-left:-300px;
 }
 
 .result-left-side {
@@ -93,7 +93,7 @@
 .result-right-side {
   flex: 1;
   min-width: 0;
-  margin-left: 0px;
+  margin-left: -290px;
 }
 
 /* Regenerated Articles Section */
@@ -165,7 +165,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-top: 10px;
+  margin-top: -10px;
 }
 
 .action-icon {
@@ -437,7 +437,6 @@
   text-transform: capitalize;
 }
 
-/* Preview Overlay */
 .preview-overlay {
   position: fixed;
   top: 0;
@@ -445,154 +444,384 @@
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
 }
 
 .preview-box {
-  background-color: white;
+  width: 750px;
+  height: 90vh;
+  background-color: #f3f5f5;
   border-radius: 12px;
-  width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   position: relative;
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
 }
 
-.preview-header {
-  padding: 20px 20px 0;
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.preview-header-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 16px;
-}
-
-.preview-copy-icon {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  border: none;
-  background: none;
-  padding: 8px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-}
-
-.preview-copy-icon:hover {
-  background-color: #f8f9fa;
-}
-
-.preview-copied-message {
-  color: #1abc9c;
-  font-size: 14px;
-  font-family: Inter, sans-serif;
-}
-
-.preview-save-icon {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  border: none;
-  background: none;
-  padding: 8px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-}
-
-.preview-save-icon:hover {
-  background-color: #f8f9fa;
-}
-
-.preview-save-text {
-  color: #1abc9c;
-  font-size: 14px;
-  font-family: Inter, sans-serif;
-}
-
-.preview-edit-button {
-  cursor: pointer;
-  border: none;
-  background: none;
-  padding: 8px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-}
-
-.preview-edit-button:hover {
-  background-color: #f8f9fa;
-}
-
-.preview-edit-text {
-  color: #1abc9c;
-  font-size: 14px;
-  font-family: Inter, sans-serif;
-}
-
+/* Override global scrollbar hiding for preview box */
+.preview-box,
 .preview-content {
-  padding: 20px;
+  -ms-overflow-style: auto !important;
+  scrollbar-width: auto !important;
 }
 
+/* Custom scrollbar for preview box - Override global hiding */
+.preview-box::-webkit-scrollbar,
+.preview-content::-webkit-scrollbar {
+  display: block !important;
+  width: 12px !important;
+  height: 6px !important;
+}
+
+.preview-box::-webkit-scrollbar-track,
+.preview-content::-webkit-scrollbar-track {
+  background: #f3f5f5;
+  border-radius: 8px;
+}
+
+.preview-box::-webkit-scrollbar-thumb,
+.preview-content::-webkit-scrollbar-thumb {
+  background: #f1f1f1;
+  border-radius: 4px;
+  opacity: 0.05;
+}
+
+.preview-box::-webkit-scrollbar-thumb:hover,
+.preview-content::-webkit-scrollbar-thumb:hover {
+  background: #dfe4e2;
+  opacity: 1;
+}
+
+/* Firefox scrollbar - Override global hiding */
+.preview-box::-moz-scrollbar,
+.preview-content::-moz-scrollbar {
+  -ms-overflow-style: auto !important;
+  scrollbar-width: 16px !important;
+}
+
+.preview-box::-moz-scrollbar-track,
+.preview-content::-moz-scrollbar-track {
+  background: #dededece;
+  border-radius: 8px;
+}
+
+.preview-box::-moz-scrollbar-thumb,
+.preview-content::-moz-scrollbar-thumb {
+  background: #f1f1f1;
+  border-radius: 4px;
+  opacity: 0.05;
+}
+
+.preview-box::-moz-scrollbar-thumb:hover,
+.preview-content::-moz-scrollbar-thumb:hover {
+  background: #f6f8f7;
+  opacity: 5%;
+}
+
+/* IE scrollbar - Override global hiding */
+.preview-box::-ms-scrollbar,
+.preview-content::-ms-scrollbar {
+  -ms-overflow-style: auto !important;
+  scrollbar-width: 16px !important;
+}
+
+.preview-box::-ms-scrollbar-track,
+.preview-content::-ms-scrollbar-track {
+  background: #f6f9f8;
+  border-radius: 8px;
+}
+
+.preview-box::-ms-scrollbar-thumb,
+.preview-content::-ms-scrollbar-thumb {
+  background: #000000;
+  border-radius: 4px;
+  opacity: 0.05;
+}
+
+.preview-box::-ms-scrollbar-thumb:hover,
+.preview-content::-ms-scrollbar-thumb:hover {
+  background: #000000;
+  opacity: 5%;
+}
+
+/* Preview content layout - Fixed for proper scrolling */
+.preview-content {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0; /* Ensure content can shrink */
+}
+
+/* Article content section */
 .preview-article-info {
   margin-bottom: 20px;
 }
 
 .preview-article-title {
-  font-family: Inter, sans-serif;
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 600;
-  color: #000000;
-  margin-bottom: 12px;
-  line-height: 1.4;
+  color: #333;
+  margin-bottom: 16px;
+  line-height: 1.3;
 }
 
 .preview-article-excerpt {
-  font-family: Inter, sans-serif;
-  font-size: 14px;
-  color: #666666;
+  font-size: 16px;
   line-height: 1.6;
+  color: #555;
+  margin-bottom: 20px;
   white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
+/* Footer section - Fixed at bottom inside preview box */
 .preview-footer {
-  padding: 16px 20px;
-  border-top: 1px solid #e5e5e5;
-  background-color: #fafafa;
+  border-top: 1px solid #E8E8E8;
+  padding: 16px 24px;
+  background-color: #F9F9F9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 40px; /* Fixed height */
+  flex-shrink: 0; /* Prevent footer from shrinking */
 }
 
 .preview-word-count {
-  font-family: Inter, sans-serif;
   font-size: 12px;
-  color: #999999;
+  color: #888;
+  font-weight: 500;
 }
 
-.preview-close-circle {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.1);
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #E8E8E8;
+  background-color: #F9F9F9;
+  height: 60px;
+}
+
+.preview-title-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.preview-copy-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: #1abc9c 0.2s ease;
+  width: 80px;  /* Fixed width to maintain layout */
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-left:6px;
+}
+
+.preview-copy-icon:hover {
+  background-color: rgba(26, 188, 156, 0.1);
+}
+
+.preview-copied-message {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #1ABC9C;
+  white-space: nowrap;
+}
+
+.preview-save-icon {
+  background: none;
+  border: none;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  margin-left: 390px;
+}
+
+.preview-save-icon:hover {
+  background-color: rgba(26, 188, 156, 0.1);
+}
+
+.preview-save-text {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  color: #1ABC9C;
+}
+
+.preview-edit-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  width: 64px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #1ABC9C;
+  transition: 0.2s ease;
+  margin-left:10px;
+}
+
+.preview-edit-button:hover {
+  background-color:#1ABC9C;
+}
+
+.preview-edit-text {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #FFFFFF;
+}
+
+
+/* Close Button Circle - Positioned outside preview box */
+.preview-close-circle {
+  position: absolute;
+  top: 20px;
+  right: 20px; /* Correct position outside preview box */
+  width: 32px;
+  height: 32px;
+  background-color: #6B6B6B;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
 }
 
 .preview-close-button-circle {
   background: none;
   border: none;
-  padding: 0;
   cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
+.preview-close-button-circle:hover {
+  background-color: #5A5A5A;
+  transform: scale(1.1);
+}
+
+.preview-close-button-circle svg {
+  transition: transform 0.2s ease;
+}
+
+.preview-close-button-circle:hover svg {
+  transform: scale(1.1);
+}
+
+.preview-content {
+  padding: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;  /* Added for footer positioning */
+}
+
+.preview-article-info {
+  flex: 1;
+}
+
+.preview-article-title {
+  font-family: Georgia, serif;
+  font-weight: bold;
+  font-size: 20px;
+  color: #000000;
+  margin: 0 0 1px 0;
+  text-align: center;
+}
+
+.preview-article-excerpt {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  color: #333333;
+  line-height: 1.6;
+  margin: 0;
+  background-color: #F3F5F5;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.preview-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: left;
+  justify-content: left;
+  border-top: 1px solid #E8E8E8;
+  background-color: #f9f9f9;
+}
+
+.preview-word-count {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #6B6B6B;
+  margin-left:35px;
+  margin-top:5px;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+.preview-action-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #A9A9A9;
+  transition: color 0.2s ease;
+}
+
+.preview-action-button:hover {
+  color: #1ABC9C;
+}
 /* User input section */
 .user-input-section {
   margin-bottom: 40px;
