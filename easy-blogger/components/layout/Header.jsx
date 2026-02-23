@@ -1,5 +1,6 @@
 "use client";
 
+import NotificationPanel from "../notifications/NotificationPanel";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,7 +24,8 @@ export default function Header({ onToggleSidebar }) {
   const { isPremium } = useSubscription();
   const { user, logout } = useAuth(); // get user + logout from backend/auth
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false); //for avata dropdown
+  const [notiOpen, setNotiOpen]= useState(false); //for notification panel
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef(null);
 
@@ -106,7 +108,7 @@ export default function Header({ onToggleSidebar }) {
       </div>
 
       {/* Right */}
-      <div className="flex items-center gap-3">
+      <div className=" relative flex items-center gap-3">
         <Link
           href="/write/choose-method"
           className="bg-[#1ABC9C] text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 hover:bg-[#17a589]"
@@ -116,12 +118,14 @@ export default function Header({ onToggleSidebar }) {
         </Link>
 
         <button
-          className="relative p-2 text-gray-500 hover:bg-gray-50 rounded-full"
-          aria-label="Notifications"
-        >
-          <Bell size={22} />
-          <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
-        </button>
+  onClick={() => setNotiOpen((p) => !p)}
+  className="relative p-2 text-gray-500 hover:bg-gray-50 rounded-full"
+  aria-label="Notifications"
+>
+  <Bell size={22} />
+  <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+</button>
+{notiOpen && <NotificationPanel onClose={() => setNotiOpen(false)} />}
 
         {/* Avatar + Dropdown */}
         <div className="relative" ref={menuRef}>
@@ -147,7 +151,7 @@ export default function Header({ onToggleSidebar }) {
             )}
           </div>
 
-          {/* optional: keep dropdown hidden until mounted to avoid hydration weirdness */}
+          {/*  keep dropdown hidden until mounted to avoid hydration weirdness */}
           {mounted && open && (
             <div className="absolute right-0 mt-2 w-56 bg-white border border-[#e5e7eb] rounded-xl shadow-xl py-2 animate-in fade-in zoom-in-95 duration-100">
               <div

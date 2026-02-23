@@ -1,0 +1,6 @@
+[
+  { "id": "n1", "type": "New article", "sourceUser": "Alison Dilaurentis", "sourceArticle": "Best ways to text" },
+  { "id": "n2", "type": "New Rating", "sourceUser": "", "sourceArticle": "Why Green is the best colour" },
+  { "id": "n3", "type": "Posted scheduled article", "sourceUser": "", "sourceArticle": "Why Green is the best colour" },
+  { "id": "n4", "type": "New Comment", "sourceUser": "Lea Dilalio", "sourceArticle": "Barns and Nobles?" }
+]
