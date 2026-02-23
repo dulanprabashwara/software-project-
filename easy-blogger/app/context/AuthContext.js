@@ -24,6 +24,7 @@ export function AuthProvider({ children }) {
   // loading = true only until Firebase confirms auth state (fast, ~50ms from cache).
   // userProfile fills in separately after the backend syncUser call completes.
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   const updateProfile = useCallback((data) => {
     setUserProfile((prev) => (prev ? { ...prev, ...data } : prev));
@@ -54,6 +55,7 @@ export function AuthProvider({ children }) {
         setUserProfile(null);
         setIsAdmin(false);
         setLoading(false);
+        setProfileLoading(false);
         return;
       }
 
@@ -61,7 +63,10 @@ export function AuthProvider({ children }) {
       // Pages can render as soon as loading = false.
       setLoading(false);
 
-      // Sync with backend in the background (non-blocking for the UI).
+      // Mark profile as loading so login redirect waits for role from backend.
+      setProfileLoading(true);
+
+      // Sync with backend to get role and profile.
       try {
         const token = await firebaseUser.getIdToken();
         const res = await api.syncUser(
@@ -79,6 +84,8 @@ export function AuthProvider({ children }) {
         }
       } catch (error) {
         console.error("Failed to sync user with backend database:", error);
+      } finally {
+        setProfileLoading(false);
       }
     });
 
@@ -96,6 +103,7 @@ export function AuthProvider({ children }) {
         userProfile,
         isAdmin,
         loading,
+        profileLoading,
         logout,
         updateProfile,
         refreshProfile,
