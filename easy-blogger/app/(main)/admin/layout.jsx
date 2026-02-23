@@ -8,8 +8,9 @@ export default function AdminLayout({ children }) {
 
       {/* Main Content */}
       <main className="ml-64 min-h-screen">
+        
         {/* Top Bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 sticky top-0 z-30">
+        {/*<header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">
             <div>
               <h2
@@ -22,7 +23,7 @@ export default function AdminLayout({ children }) {
             </div>
             <div className="flex items-center gap-4">
               {/* Notifications */}
-              <button className="relative p-2 text-gray-500 hover:text-[#1ABC9C] hover:bg-gray-100 rounded-full transition-colors">
+              {/*<button className="relative p-2 text-gray-500 hover:text-[#1ABC9C] hover:bg-gray-100 rounded-full transition-colors">
                 <svg
                   className="w-6 h-6"
                   fill="none"
@@ -40,7 +41,7 @@ export default function AdminLayout({ children }) {
               </button>
 
               {/* Admin Profile */}
-              <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
+              {/*<div className="flex items-center gap-3 pl-4 border-l border-gray-200">
                 <div className="w-9 h-9 bg-[#1ABC9C] rounded-full flex items-center justify-center">
                   <span className="text-white font-semibold text-sm">AD</span>
                 </div>
@@ -54,6 +55,7 @@ export default function AdminLayout({ children }) {
             </div>
           </div>
         </header>
+        */}
 
         {/* Page Content */}
         <div className="p-6">{children}</div>
