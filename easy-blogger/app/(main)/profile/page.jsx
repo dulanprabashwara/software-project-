@@ -211,34 +211,83 @@ export default function ProfilePage() {
   const stats = {
     followers: userProfile?._count?.followers || 0,
     following: userProfile?._count?.following || 0,
-    reads: userProfile?.stats?.totalReads || 0,
     shares: userProfile?.stats?.totalShares || 0,
   };
 
   const followers = [
-    { id: 1, name: "Sarah Chen", title: "AI Researcher & Tech Writer", avatar: "https://i.pravatar.cc/150?img=1", isFollowing: false },
-    { id: 2, name: "David Miller", title: "Frontend Developer", avatar: "https://i.pravatar.cc/150?img=2", isFollowing: true },
-    { id: 3, name: "James Wilson", title: "Product Manager", avatar: "https://i.pravatar.cc/150?img=3", isFollowing: false },
-    { id: 4, name: "Emily Davis", title: "UX Designer", avatar: "https://i.pravatar.cc/150?img=4", isFollowing: true },
-    { id: 5, name: "Michael Brown", title: "Data Scientist", avatar: "https://i.pravatar.cc/150?img=5", isFollowing: false },
+    {
+      id: 1,
+      name: "Sarah Chen",
+      title: "AI Researcher & Tech Writer",
+      avatar: "https://i.pravatar.cc/150?img=1",
+      isFollowing: false,
+    },
+    {
+      id: 2,
+      name: "David Miller",
+      title: "Frontend Developer",
+      avatar: "https://i.pravatar.cc/150?img=2",
+      isFollowing: true,
+    },
+    {
+      id: 3,
+      name: "James Wilson",
+      title: "Product Manager",
+      avatar: "https://i.pravatar.cc/150?img=3",
+      isFollowing: false,
+    },
+    {
+      id: 4,
+      name: "Emily Davis",
+      title: "UX Designer",
+      avatar: "https://i.pravatar.cc/150?img=4",
+      isFollowing: true,
+    },
+    {
+      id: 5,
+      name: "Michael Brown",
+      title: "Data Scientist",
+      avatar: "https://i.pravatar.cc/150?img=5",
+      isFollowing: false,
+    },
   ];
 
   const following = [
-    { id: 1, name: "David Miller", title: "Frontend Developer", avatar: "https://i.pravatar.cc/150?img=2" },
-    { id: 2, name: "Emily Davis", title: "UX Designer", avatar: "https://i.pravatar.cc/150?img=4" },
-    { id: 3, name: "Jessica Taylor", title: "Digital Nomad", avatar: "https://i.pravatar.cc/150?img=6" },
-  ];
-
-  const reads = [
-    { id: 1, title: "The Future of AI in 2026", author: "Sarah Chen", date: "Jan 2, 2026", readTime: "5 min read" },
-    { id: 2, title: "Mastering React Patterns", author: "David Miller", date: "Jan 1, 2026", readTime: "8 min read" },
-    { id: 3, title: "Design Systems 101", author: "Emily Davis", date: "Dec 28, 2025", readTime: "6 min read" },
-    { id: 4, title: "Remote Work Culture", author: "Jessica Taylor", date: "Dec 25, 2025", readTime: "4 min read" },
+    {
+      id: 1,
+      name: "David Miller",
+      title: "Frontend Developer",
+      avatar: "https://i.pravatar.cc/150?img=2",
+    },
+    {
+      id: 2,
+      name: "Emily Davis",
+      title: "UX Designer",
+      avatar: "https://i.pravatar.cc/150?img=4",
+    },
+    {
+      id: 3,
+      name: "Jessica Taylor",
+      title: "Digital Nomad",
+      avatar: "https://i.pravatar.cc/150?img=6",
+    },
   ];
 
   const shares = [
-    { id: 1, title: "The Future of AI in 2026", platform: "Twitter", date: "Jan 2, 2026", likes: 12 },
-    { id: 2, title: "Mastering React Patterns", platform: "LinkedIn", date: "Jan 1, 2026", comments: 5 },
+    {
+      id: 1,
+      title: "The Future of AI in 2026",
+      platform: "Twitter",
+      date: "Jan 2, 2026",
+      likes: 12,
+    },
+    {
+      id: 2,
+      title: "Mastering React Patterns",
+      platform: "LinkedIn",
+      date: "Jan 1, 2026",
+      comments: 5,
+    },
   ];
 
   if (loading) {
@@ -492,13 +541,6 @@ export default function ProfilePage() {
             {/* Stats Row 2 */}
             <p className="text-sm text-[#6B7280] mb-4">
               <Link
-                href="/profile?modal=reads"
-                className="hover:underline cursor-pointer"
-              >
-                {userProfile?.stats?.totalReads || 0} Reads
-              </Link>
-              {" · "}
-              <Link
                 href="/profile?modal=shares"
                 className="hover:underline cursor-pointer"
               >
@@ -591,19 +633,30 @@ export default function ProfilePage() {
                 {/* Tabs */}
                 <div className="flex gap-6">
                   {[
-                    { key: "followers", label: "Followers", count: stats.followers },
-                    { key: "following", label: "Following", count: stats.following },
-                    { key: "reads", label: "Reads", count: stats.reads },
+                    {
+                      key: "followers",
+                      label: "Followers",
+                      count: stats.followers,
+                    },
+                    {
+                      key: "following",
+                      label: "Following",
+                      count: stats.following,
+                    },
                     { key: "shares", label: "Shares", count: stats.shares },
                   ].map(({ key, label, count }) => (
                     <button
                       key={key}
                       onClick={() => {
                         setStatsActiveTab(key);
-                        router.replace(`/profile?modal=${key}`, { scroll: false });
+                        router.replace(`/profile?modal=${key}`, {
+                          scroll: false,
+                        });
                       }}
                       className={`pb-3 text-sm font-medium transition-colors relative ${
-                        statsActiveTab === key ? "text-[#111827]" : "text-[#6B7280]"
+                        statsActiveTab === key
+                          ? "text-[#111827]"
+                          : "text-[#6B7280]"
                       }`}
                     >
                       <span className="mr-1">{label}</span>
@@ -622,12 +675,23 @@ export default function ProfilePage() {
                 {statsActiveTab === "followers" && (
                   <div className="space-y-4">
                     {followers.map((user) => (
-                      <div key={user.id} className="flex items-center justify-between">
+                      <div
+                        key={user.id}
+                        className="flex items-center justify-between"
+                      >
                         <div className="flex items-center gap-3">
-                          <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full" />
+                          <img
+                            src={user.avatar}
+                            alt={user.name}
+                            className="w-12 h-12 rounded-full"
+                          />
                           <div>
-                            <p className="font-semibold text-[#111827] text-sm">{user.name}</p>
-                            <p className="text-xs text-[#6B7280]">{user.title}</p>
+                            <p className="font-semibold text-[#111827] text-sm">
+                              {user.name}
+                            </p>
+                            <p className="text-xs text-[#6B7280]">
+                              {user.title}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -650,12 +714,23 @@ export default function ProfilePage() {
                 {statsActiveTab === "following" && (
                   <div className="space-y-4">
                     {following.map((user) => (
-                      <div key={user.id} className="flex items-center justify-between">
+                      <div
+                        key={user.id}
+                        className="flex items-center justify-between"
+                      >
                         <div className="flex items-center gap-3">
-                          <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full" />
+                          <img
+                            src={user.avatar}
+                            alt={user.name}
+                            className="w-12 h-12 rounded-full"
+                          />
                           <div>
-                            <p className="font-semibold text-[#111827] text-sm">{user.name}</p>
-                            <p className="text-xs text-[#6B7280]">{user.title}</p>
+                            <p className="font-semibold text-[#111827] text-sm">
+                              {user.name}
+                            </p>
+                            <p className="text-xs text-[#6B7280]">
+                              {user.title}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -671,26 +746,17 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                {/* Reads Tab */}
-                {statsActiveTab === "reads" && (
-                  <div className="space-y-5">
-                    {reads.map((article) => (
-                      <div key={article.id} className="border-b border-[#E5E7EB] pb-4 last:border-0">
-                        <h3 className="font-semibold text-[#111827] mb-2">{article.title}</h3>
-                        <p className="text-sm text-[#6B7280]">
-                          {article.author} · {article.date} · {article.readTime}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
                 {/* Shares Tab */}
                 {statsActiveTab === "shares" && (
                   <div className="space-y-5">
                     {shares.map((share) => (
-                      <div key={share.id} className="border-b border-[#E5E7EB] pb-4 last:border-0">
-                        <h3 className="font-semibold text-[#111827] mb-2">{share.title}</h3>
+                      <div
+                        key={share.id}
+                        className="border-b border-[#E5E7EB] pb-4 last:border-0"
+                      >
+                        <h3 className="font-semibold text-[#111827] mb-2">
+                          {share.title}
+                        </h3>
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-[#6B7280]">
                             Shared to {share.platform} · {share.date}
