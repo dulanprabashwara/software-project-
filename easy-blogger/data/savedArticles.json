@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": 8,
+    "authorName": "Liam Carter",
+    "authorAvatar": "https://i.pravatar.cc/150?img=12",
+    "verified": false,
+    "date": "Nov 5, 2025",
+    "title": "Minimalism in the Digital Age",
+    "content": "In a world overwhelmed by notifications and endless feeds, digital minimalism offers a refreshing alternative. By focusing only on tools that truly add value, we can reclaim time, clarity, and focus...",
+    "thumbnail": "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=400&h=300&fit=crop",
+    "comments": 19,
+    "likes": 4.3
+  }
+]
