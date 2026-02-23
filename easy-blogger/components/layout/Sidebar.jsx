@@ -14,7 +14,7 @@ export default function Sidebar({ isOpen }) {
     { label: "Home", href: "/home", icon: Home },
     { label: "Library", href: "/library/saved", icon: Library },
     { label: "Profile", href: "/profile", icon: User },
-    { label: "Stories", href: "/stories/unpublished", icon: FileText },
+    { label: "Stories", href: "/stories/published", icon: FileText },
     { label: "Stats", href: "/stats", icon: BarChart },
     { label: "AI Generate", href: isPremium ? "/ai-generate" : "/subscription/upgrade", icon: Sparkles },
     { label: "Following", href: "/profile/user_stats?tab=following", icon: Users },

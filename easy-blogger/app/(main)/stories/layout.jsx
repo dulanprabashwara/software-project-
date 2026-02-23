@@ -9,7 +9,7 @@ export default function Layout({ children }) {
   const pathname = usePathname();
 
   const tabs = [
-    { name: "unpublished", href: "/stories/unpublished" },
+    { name: "unpublished", href: "/write/unpublished" },
     { name:  "published", href: "/stories/published" },
     { name: "scheduled", href: "/stories/scheduled" },
   ];
