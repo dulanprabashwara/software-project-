@@ -1,13 +1,20 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 export default function RightFeed({ trending, topics, usersToFollow }) {
+  const router = useRouter();
+
   return (
-    <aside className="hidden lg:block w-[320px] min-h-0 p-8 overflow-y-auto space-y-10">
+    <aside
+      onClick={() => router.push("/stats/public")}
+      className="hidden border-l border-[#e5e7eb] lg:block w-80 z-0 shrink-0 p-8 cursor-pointer"
+    >
       {/* Trending */}
       <div>
         <h3 className="font-bold mb-4 font-serif">Trending</h3>
         {trending.map((item, i) => (
-          <div key={i} className="flex gap-3 mb-4 group cursor-pointer">
+          <div key={i} className="flex gap-3 mb-4 group">
             <span className="text-xl font-bold text-gray-200 group-hover:text-teal-500">
               {i + 1}
             </span>
@@ -15,7 +22,7 @@ export default function RightFeed({ trending, topics, usersToFollow }) {
               <h4 className="text-sm font-semibold line-clamp-2 group-hover:text-teal-500">
                 {item.title}
               </h4>
-              <p className="text-xs text-gray-500">{item.author}</p>
+              <p className="text-xs text-gray-500">{item.authorName}</p>
             </div>
           </div>
         ))}
@@ -37,18 +44,25 @@ export default function RightFeed({ trending, topics, usersToFollow }) {
       </div>
 
       {/* Who to follow */}
-      <div>
+      <div className="mt-3">
         <h3 className="font-bold mb-4 font-serif">Who to follow</h3>
         {usersToFollow.map((user, i) => (
           <div key={i} className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 overflow-hidden">
-              <img src={user.avatar} className="w-8 h-8 rounded-full" alt={user.name} />
+              <img
+                src={user.avatar}
+                className="w-8 h-8 rounded-full"
+                alt={user.name}
+              />
               <div className="truncate">
                 <p className="text-sm font-bold truncate">{user.name}</p>
                 <p className="text-xs text-gray-500 truncate">{user.bio}</p>
               </div>
             </div>
-            <button className="text-xs border border-teal-500 text-teal-500 px-3 py-1 rounded-full hover:bg-teal-500 hover:text-white">
+            <button
+              onClick={(e) => e.stopPropagation()} 
+              className="text-xs border border-teal-500 text-teal-500 px-3 py-1 rounded-full hover:bg-teal-500 hover:text-white"
+            >
               Follow
             </button>
           </div>

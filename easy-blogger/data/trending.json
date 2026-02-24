@@ -1,0 +1,67 @@
+[
+  {
+    "id": 21,
+    "authorName": "Sarah Chen",
+    "authorAvatar": "https://i.pravatar.cc/150?img=31",
+    "verified": true,
+    "date": "Jan 2, 2026",
+    "title": "The Future of Remote Work: What 2025 Holds",
+    "content": "Remote work continues to evolve as companies adopt hybrid structures and flexible policies. Advances in collaboration tools and AI-powered productivity systems are reshaping how teams communicate and deliver results across borders...",
+    "thumbnail": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&h=300&fit=crop",
+    "comments": 48,
+    "likes": 4.6,
+    "read": "Jan 5, 2026"
+  },
+  {
+    "id": 22,
+    "authorName": "Marcus Rivera",
+    "authorAvatar": "https://i.pravatar.cc/150?img=32",
+    "verified": false,
+    "date": "Jan 4, 2026",
+    "title": "Building Better Products with AI",
+    "content": "Artificial intelligence is becoming a strategic layer in product development. From predictive analytics to automated personalization, AI enables teams to build smarter systems that anticipate user needs and improve engagement...",
+    "thumbnail": "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?w=400&h=300&fit=crop",
+    "comments": 36,
+    "likes": 4.7,
+    "read": "Jan 6, 2026"
+  },
+  {
+    "id": 23,
+    "authorName": "Lexi Hernes",
+    "authorAvatar": "https://i.pravatar.cc/150?img=33",
+    "verified": true,
+    "date": "Jan 6, 2026",
+    "title": "Places to Visit This Spring",
+    "content": "Spring opens the door to vibrant destinations filled with blooming landscapes and comfortable weather. From coastal escapes to mountain retreats, seasonal travel offers opportunities for renewal and exploration...",
+    "thumbnail": "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=400&h=300&fit=crop",
+    "comments": 27,
+    "likes": 4.4,
+    "read": "Jan 8, 2026"
+  },
+  {
+    "id": 24,
+    "authorName": "Silvester Wilde",
+    "authorAvatar": "https://i.pravatar.cc/150?img=34",
+    "verified": false,
+    "date": "Jan 8, 2026",
+    "title": "Magic Eyes",
+    "content": "Perception shapes reality more than we often realize. By understanding cognitive biases and visual illusions, we gain insight into how the mind interprets the world around us...",
+    "thumbnail": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400&h=300&fit=crop",
+    "comments": 19,
+    "likes": 4.2,
+    "read": "Jan 10, 2026"
+  },
+  {
+    "id": 25,
+    "authorName": "Chester Abernathy",
+    "authorAvatar": "https://i.pravatar.cc/150?img=35",
+    "verified": true,
+    "date": "Jan 10, 2026",
+    "title": "Trees of York",
+    "content": "York’s historic landscapes are defined by centuries-old trees that tell stories of resilience and quiet growth. Exploring these green spaces reveals how urban planning and nature can coexist beautifully...",
+    "thumbnail": "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=400&h=300&fit=crop",
+    "comments": 33,
+    "likes": 4.5,
+    "read": "Jan 12, 2026"
+  }
+]

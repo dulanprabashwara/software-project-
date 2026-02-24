@@ -6,6 +6,7 @@ import { Image as ImageIcon, X } from "lucide-react";
 import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
 import { Editor } from "@tinymce/tinymce-react";
+import { createDraft, updateDraft, deleteDraft } from "../../../../lib/articles/api";
 
 export default function Page() {
   
@@ -20,7 +21,11 @@ export default function Page() {
   const [mounted, setMounted] = useState(false);
   const [history, setHistory] = useState([{ title: "", content: "" }]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [sourceId, setSourceId] = useState(null);
 
+  const [draftId, setDraftId] = useState(null);
+  const savingRef = useRef(false);
+  const initRef = useRef(false);
   const router = useRouter();
   const fileInputRef = useRef(null);
   const toggleSidebar = () => setSidebarOpen((p) => !p);
@@ -29,48 +34,143 @@ export default function Page() {
 
   // Auto-save functionality
   useEffect(() => {
-    const saveTimer = setTimeout(() => {
-      if (coverImage || content) {
-        setIsSaving(true);
-        setTimeout(() => {
-          setIsSaving(false);
-          setLastSaved(new Date());
+    const saveTimer = setTimeout(async () => {
+      if (!draftId) return; // only autosave after the copy is created
+      if (!coverImage && !content) return;
+      if (savingRef.current) return;
 
-          localStorage.setItem(
-            "draft_edit_as_new",
-            JSON.stringify({
-              content,
-              coverImage,
-              lastSaved: new Date().toISOString(),
-            }),
-          );
-        }, 500);
+      try {
+        savingRef.current = true;
+        setIsSaving(true);
+
+        const payload = {
+          title, // readOnly but stored
+          content,
+          coverImage,
+          writerName: "Emma Richardson",
+          status: "editing",
+          sourceId,
+        };
+
+        await updateDraft(draftId, payload);
+
+        const now = new Date();
+        setLastSaved(now);
+
+        localStorage.setItem(
+          "draft_edit_as_new",
+          JSON.stringify({
+            draftId,
+            sourceId,
+            title,
+            content,
+            coverImage,
+            lastSaved: now.toISOString(),
+          })
+        );
+      } catch (err) {
+        console.error("Autosave failed:", err);
+      } finally {
+        setIsSaving(false);
+        savingRef.current = false;
       }
     }, 2000);
 
     return () => clearTimeout(saveTimer);
-  }, [content, coverImage]);
+  }, [draftId, title, content, coverImage, sourceId]);
 
   useEffect(() => {
+    // Prevent double run (React strict mode / refresh)
+    if (initRef.current) return;
+    initRef.current = true;
+
     const seedRaw = sessionStorage.getItem("edit_as_new_seed");
     if (!seedRaw) {
-      router.replace("/write/unpublished"); // change if your route differs
+      router.replace("/write/unpublished");
       return;
     }
-    const seed = JSON.parse(seedRaw);
-    setTitle(seed.title || "");
-  }, [router]);
 
-
-  // Load draft on mount
-  useEffect(() => {
-    const draft = localStorage.getItem("draft_edit_as_new");
-    if (draft) {
-      const parsed = JSON.parse(draft);
-      setContent(parsed.content || "");
-      setCoverImage(parsed.coverImage || null);
+    let seed;
+    try {
+      seed = JSON.parse(seedRaw);
+    } catch (e) {
+      console.error("Invalid seed:", e);
+      sessionStorage.removeItem("edit_as_new_seed");
+      router.replace("/write/unpublished");
+      return;
     }
-  }, []);
+
+    const seededSourceId = seed.sourceId ? String(seed.sourceId) : null;
+    const seededTitle = seed.title || "";
+    const seededContent = seed.content || "";
+    const seededCover = seed.coverImage || null;
+    const seededWriter = seed.writerName || "Unknown Writer";
+
+    setTitle(seededTitle);
+    setContent(seededContent);
+    setCoverImage(seededCover);
+    setSourceId(seededSourceId);
+    setArticleMode("draft");
+
+    // If a previous editing copy exists for the same source, reuse it (refresh safety)
+    const local = localStorage.getItem("draft_edit_as_new");
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        if (String(parsed.sourceId || "") === String(seededSourceId || "") && parsed.draftId) {
+          setDraftId(parsed.draftId);
+          if (parsed.lastSaved) setLastSaved(new Date(parsed.lastSaved));
+          return;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // Create a brand new copy with status "editing" in articles.json
+    (async () => {
+      try {
+        setIsSaving(true);
+
+        const payload = {
+          title: seededTitle,
+          content: seededContent,
+          coverImage: seededCover,
+          writerName: seededWriter,
+          status: "editing",
+          sourceId: seededSourceId,
+        };
+
+        const data = await createDraft(payload);
+        const newId = data?.article?.id;
+
+        if (!newId) throw new Error("createDraft did not return article.id");
+
+        setDraftId(newId);
+
+        const now = new Date();
+        setLastSaved(now);
+
+        localStorage.setItem(
+          "draft_edit_as_new",
+          JSON.stringify({
+            draftId: newId,
+            sourceId: seededSourceId,
+            title: seededTitle,
+            content: seededContent,
+            coverImage: seededCover,
+            lastSaved: now.toISOString(),
+          })
+        );
+      } catch (err) {
+        console.error(err);
+        alert("Failed to create editing copy");
+        router.replace("/write/unpublished");
+      } finally {
+        setIsSaving(false);
+      }
+    })();
+  }, [router]);
 
   //Add “mounted” state (fix refresh hydration)
   useEffect(() => {
@@ -98,6 +198,7 @@ export default function Page() {
       fileInputRef.current.value = "";
     }
   };
+
   const plainText = editorRef.current
   ? editorRef.current.getContent({ format: "text" })
   : "";
@@ -105,19 +206,36 @@ export default function Page() {
   const charCount = plainText.length;
 
   //Add handlePreview and handleDiscard functions
-  const handleDiscard = () => {
+  const handleDiscard = async () => {
     if (
-      confirm(
-        "Are you sure you want to discard this article? All unsaved changes will be lost.",
+      !confirm(
+        "Are you sure you want to discard this article? The editing copy will be deleted."
       )
     ) {
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+
+      if (draftId) {
+        await deleteDraft(draftId);
+      }
+    } catch (e) {
+      console.error("Failed to delete draft:", e);
+    } finally {
       localStorage.removeItem("draft_edit_as_new");
+      sessionStorage.removeItem("edit_as_new_seed");
+
       setContent("");
       setCoverImage(null);
       setHistory([{ title: "", content: "" }]);
       setHistoryIndex(0);
       setLastSaved(null);
-      router.push("/home");
+      setDraftId(null);
+
+      setIsSaving(false);
+      router.push("/write/unpublished");
     }
   };
 
@@ -153,6 +271,45 @@ export default function Page() {
     router.push("/write/preview");
   };
 
+  const handleSaveAsDraft = async () => {
+    if (!draftId) {
+      alert("Please wait, preparing your article...");
+      return;
+    }
+
+    const plainTextNow = editorRef.current
+      ? editorRef.current.getContent({ format: "text" }).trim()
+      : "";
+
+    if (!plainTextNow) {
+      alert("Content is required");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+
+      await updateDraft(draftId, {
+        title,
+        content,
+        coverImage,
+        writerName: "Emma Richardson",
+        status: "draft",
+        sourceId,
+      });
+
+      localStorage.removeItem("draft_edit_as_new");
+      sessionStorage.removeItem("edit_as_new_seed");
+
+      alert("Saved as Draft!");
+      router.push("/write/unpublished");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to save as draft");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -187,7 +344,14 @@ export default function Page() {
                 </p>
               </div>
 
-              <div className="justify-self-end">
+              <div className="justify-self-end flex items-center gap-3">
+                <button
+                  onClick={handleSaveAsDraft}
+                  className="px-8 py-3 bg-[#111827] hover:bg-[#1f2937] text-white rounded-full text-sm font-medium transition-colors"
+                >
+                  Save as Draft
+                </button>
+
                 <span className="inline-flex items-center px-6 py-2.5 bg-[#1ABC9C] text-white rounded-full text-sm font-medium">
                   {articleMode === "draft" ? "Draft Article" : "New Article"}
                 </span>
@@ -201,25 +365,25 @@ export default function Page() {
           className="px-8 py-8 overflow-y-auto"
           style={{ height: "calc(100vh - 260px)" }}
         >
-        <div
-          className="max-w-5xl mx-auto space-y-6"
-          style={{
-            transform: `scale(${zoom / 100})`,
-            transformOrigin: "top center",
-          }}
-        >
-        {/* Blog Title */}
-        <div className="bg-[#F8FAFC] rounded-lg p-6">
-          <label className="block text-sm font-semibold text-[#111827] mb-3">
-            Blog Title
-          </label>
-          <input
-            type="text"
-            value={title}
-            readOnly
-            className="w-full px-4 py-3 bg-gray-100 border border-[#E5E7EB] rounded-lg text-[#111827] cursor-not-allowed"
-          />
-        </div>
+          <div
+            className="max-w-5xl mx-auto space-y-6"
+            style={{
+              transform: `scale(${zoom / 100})`,
+              transformOrigin: "top center",
+            }}
+          >
+          {/* Blog Title */}
+          <div className="bg-[#F8FAFC] rounded-lg p-6">
+            <label className="block text-sm font-semibold text-[#111827] mb-3">
+              Blog Title
+            </label>
+            <input
+              type="text"
+              value={title}
+              readOnly
+              className="w-full px-4 py-3 bg-gray-100 border border-[#E5E7EB] rounded-lg text-[#111827] cursor-not-allowed"
+            />
+          </div>
 
         {/* Add Cover image */}
         <div className="bg-[#F8FAFC] rounded-lg p-6">

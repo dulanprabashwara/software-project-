@@ -1,0 +1,38 @@
+[
+  {
+    "id": 8,
+    "authorName": "Liam Carter",
+    "authorAvatar": "https://i.pravatar.cc/150?img=12",
+    "verified": false,
+    "date": "Nov 5, 2025",
+    "title": "Minimalism in the Digital Age",
+    "content": "In a world overwhelmed by notifications and endless feeds, digital minimalism offers a refreshing alternative. By focusing only on tools that truly add value, we can reclaim time, clarity, and focus...",
+    "thumbnail": "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=400&h=300&fit=crop",
+    "comments": 19,
+    "likes": 4.3
+  },
+  {
+    "id": 9,
+    "authorName": "Ava Thompson",
+    "authorAvatar": "https://i.pravatar.cc/150?img=14",
+    "verified": true,
+    "date": "Nov 22, 2025",
+    "title": "Mastering Async JavaScript Patterns",
+    "content": "Asynchronous programming is at the heart of modern web applications. From callbacks to promises and async/await, understanding these patterns is crucial for building fast and scalable apps...",
+    "thumbnail": "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=400&h=300&fit=crop",
+    "comments": 42,
+    "likes": 4.8
+  },
+  {
+    "id": 10,
+    "authorName": "Ethan Reynolds",
+    "authorAvatar": "https://i.pravatar.cc/150?img=18",
+    "verified": false,
+    "date": "Dec 10, 2025",
+    "title": "The Psychology Behind Habit Formation",
+    "content": "Habits shape the majority of our daily behavior. By understanding cue, routine, and reward loops, we can intentionally design habits that align with long-term goals and personal growth...",
+    "thumbnail": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=400&h=300&fit=crop",
+    "comments": 31,
+    "likes": 4.5
+  }
+]

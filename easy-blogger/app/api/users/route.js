@@ -24,6 +24,28 @@ let auditLogs = [
   { id: 2, admin: "Admin Mike", action: "Deleted Article", target: "article_2254", details: "Spam content- Confirmed violations", endpoint: "DELETE /api/articles/{id}", timestamp: "2026-01-05 13:21:08" }
 ];
 
+// NEW: Server-side offers storage
+let offers = [
+  { 
+    id: 1, name: "Free Community", price: "0.00", duration: "Lifetime", status: "active", stripeId: "price_free", visibility: true,
+    features: [
+      { name: "3 AI Topic Suggestions / day", enabled: true },
+      { name: "Basic SEO Check", enabled: true },
+      { name: "Community Support", enabled: true },
+      { name: "Full AI Article Generator", enabled: false }
+    ]
+  },
+  { 
+    id: 2, name: "Starter Writer", price: "4.99", duration: "Monthly", status: "active", stripeId: "price_starter", visibility: true,
+    features: [
+      { name: "Unlimited AI Topic Suggestions", enabled: true },
+      { name: "Advanced SEO Tools", enabled: true },
+      { name: "Ad-Free Reading", enabled: true },
+      { name: "Full AI Article Generator", enabled: false }
+    ]
+  }
+];
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type');
@@ -33,6 +55,7 @@ export async function GET(request) {
     return NextResponse.json(filtered);
   }
   if (type === 'posts') return NextResponse.json(posts);
+  if (type === 'offers') return NextResponse.json(offers); // Support for fetching offers
   return NextResponse.json(users);
 }
 
@@ -41,6 +64,7 @@ export async function POST(request) {
     const body = await request.json();
     const { searchParams } = new URL(request.url);
     const actionType = searchParams.get('action');
+    
     if (actionType === 'updateUser') {
       users = users.map(u => u.id === body.userId ? { ...u, status: body.newStatus } : u);
     } 
@@ -51,11 +75,29 @@ export async function POST(request) {
       posts = posts.filter(p => String(p.id) !== String(body.postId));
     }
     if (actionType === 'updateProfile') {
-      // In a real app, we'd update an 'admins' table. 
-      // For now, we just trigger the audit log entry creation below.
+      // Logic for profile updates handled by the universal log below
     }
-    const newLog = { id: Date.now(), admin: body.admin || "Admin Dulsi", action: body.action, target: body.target, details: body.details || body.reason, endpoint: body.endpoint, timestamp: body.timestamp || new Date().toLocaleString() };
-    auditLogs.unshift(newLog);
+    
+    // NEW: Logic to handle creating/updating offers
+    if (actionType === 'upsertOffer') {
+      if (body.isNew) {
+        offers = [{ ...body.offer, id: Date.now() }, ...offers];
+      } else {
+        offers = offers.map(o => o.id === body.offer.id ? body.offer : o);
+      }
+    }
+
+    const newLog = { 
+      id: Date.now(), 
+      admin: body.admin || "Admin Dulsi", 
+      action: body.action, 
+      target: body.target, 
+      details: body.details || body.reason, 
+      endpoint: body.endpoint, 
+      timestamp: body.timestamp || new Date().toLocaleString() 
+    };
+    auditLogs.unshift(newLog); // Push to the top of logs
+    
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("❌ Backend Error:", error);

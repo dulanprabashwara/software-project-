@@ -106,11 +106,23 @@ export default function Page() {
 
   const handleEditAsNew = () => {
     if (!selectedId) return showError("Select an article before edit", "new");
-    const selected = displayedArticles.find((a) => a.id === selectedId);
+
+    //use the real draftArticles list (full content + coverImage)
+    const original = draftArticles.find((a) => a.id === selectedId);
+    if (!original) return showError("Selected article not found", "new");
+
+    localStorage.removeItem("draft_edit_as_new");
     sessionStorage.setItem(
-    "edit_as_new_seed",
-    JSON.stringify({ id: selected.id, title: selected.title })
-  );
+      "edit_as_new_seed",
+      JSON.stringify({
+        sourceId: original.id,
+        title: original.title || "",
+        content: original.content || "",
+        coverImage: original.coverImage || null,
+        writerName: original.writerName || "Unknown Writer",
+      })
+    );
+
     router.push("/write/edit-as-new");
   };
 
@@ -127,15 +139,15 @@ export default function Page() {
     }
   };
 
-const hasMore =
-  activeTab === "regular"
-    ? regularVisibleCount < draftArticles.length
-    : aiVisibleCount < AI_ALL.length;
-  const loadDrafts = async () => {
-    const res = await fetch("/api/articles?status=draft");
-    const data = await res.json();
-    setDraftArticles(data.articles || []);
-  };
+  const hasMore =
+    activeTab === "regular"
+      ? regularVisibleCount < draftArticles.length
+      : aiVisibleCount < AI_ALL.length;
+    const loadDrafts = async () => {
+      const res = await fetch("/api/articles?status=draft");
+      const data = await res.json();
+      setDraftArticles(data.articles || []);
+    };
 
   useEffect(() => {
     loadDrafts();
@@ -147,7 +159,6 @@ const hasMore =
     }
   }, [draftArticles, activeTab]);
 
-  //Decide which list to show in the UI
   // Decide which list to show in the UI
   const displayedArticles =
   activeTab === "regular"
@@ -169,9 +180,18 @@ const hasMore =
 
   return (
     <div className="min-h-screen bg-linear-to-br from-[#E8F5F1] via-[#F0F9FF] to-[#FDF4FF] flex items-center justify-center p-6">
+       
         
       <div className="w-full max-w-6xl">
         <div className="bg-white rounded-2xl shadow-2xl p-12">
+                <div className="mb-6 flex justify-start">
+                  <button
+                    onClick={() => router.push("/stories")}
+                    className="rounded-full bg-[#10B981] px-6 py-2 text-white shadow-md hover:bg-[#0EA371] transition"
+                  >
+                    Go to Stories
+                  </button>
+                </div>
           <div className="text-center mb-8">
             <h1 className="text-4xl font-serif font-bold text-[#111827] mb-3">
               Unpublished Articles
@@ -352,14 +372,14 @@ const hasMore =
           {hasMore && (
             <>
             <div className="mt-10 flex justify-center">
-            <button
-            type="button"
-            className="see-more-btn"
-            onClick={handleSeeMore}
-            >
-              See more
-            </button>
-          </div>
+              <button
+              type="button"
+              className="see-more-btn"
+              onClick={handleSeeMore}
+              >
+                See more
+              </button>
+            </div>
             </>
           )}
 

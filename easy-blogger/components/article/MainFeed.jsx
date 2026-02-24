@@ -1,16 +1,22 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import ArticleCard from "./ArticleCard";
 
-export default function MainFeed({ articles, sidebarOpen }) {
+export default function MainFeed({ articles }) {
+  const router = useRouter();
+
   return (
-    <section
-      className={`flex-1 min-h-0 overflow-y-auto px-6   border-r border-[#e5e7eb] transition-all n ? "ml-64" : "ml-0"
-      }`}
-    >
-      <div className="max-w-full mx-auto">
+    <section className="flex-1 relative px-8 min-w-0 z-0">
+      <div className="max-w-3xl mx-auto w-full">
         {articles.map((article) => (
-          <ArticleCard key={article.id} article={article} />
+          <div
+            key={article.id}
+           
+            
+          >
+            <ArticleCard article={article} />
+          </div>
         ))}
       </div>
     </section>

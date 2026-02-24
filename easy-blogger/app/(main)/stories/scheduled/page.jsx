@@ -1,33 +1,16 @@
-/**
- * Scheduled Stories Page
- *
- * Route: /stories/scheduled
- *
-<<<<<<< HEAD
- * Purpose: Shows all articles scheduled to be published at a future date
- *
- * Features:
- * - List of scheduled articles
- * - Scheduled date/time display
- * - Edit schedule option
- * - Cancel schedule option
- * - Edit article option
- * - Publish now option
- * - Article preview with title, excerpt, scheduled date
-=======
- * Purpose: Shows all articles scheduled for future publication
->>>>>>> main
- */
+"use client";
 
-export default function ScheduledStoriesPage() {
+import ScheduledArticleCard from "../../../../components/article/ScheduledArticleCard";
+import { DATA } from "../../../../components/article/ArticleList";
+
+export default function Scheduled() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">Scheduled Stories</h1>
-        <p className="text-gray-500">
-          Articles scheduled to be published at a future date.
-        </p>
+    <section className="px-8 min-w-0">
+      <div className="max-w-3xl   w-full">
+        {DATA.scheduledArticles.map((article) => (
+          <ScheduledArticleCard key={article.id} article={article} />
+        ))}
       </div>
-    </div>
+    </section>
   );
 }

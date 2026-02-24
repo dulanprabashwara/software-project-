@@ -26,7 +26,7 @@ export default function ConversationList({
           Messages
         </h2>
         <Link
-          href="/profile/user_stats?tab=following"
+          href="/profile?modal=following"
           className="text-gray-500 hover:text-gray-700"
         >
           <Edit className="w-5 h-5" />
