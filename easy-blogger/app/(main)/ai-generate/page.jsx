@@ -761,6 +761,7 @@ export default function AIArticleGeneratorPage() {
                          
                           {/* Action icons row */}
                           <br></br>
+                          <br></br>
                           <div className="article-actions">
                             {/* ← Back button (from original page.jsx) */}
                             <button className="back-button" title="Back" onClick={() => { setGeneratedArticle(null); setCurrentView("input"); }}>

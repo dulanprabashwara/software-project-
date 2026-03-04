@@ -389,19 +389,15 @@ export default function ArticleDetailsPage() {
                   )}
                 </button>
                 
-                <button className="preview-save-icon" title="save to unpublished articles">
-                  <img 
-                    src="/icons/Save.png" 
-                    alt="Save"
-                    width="16" 
-                    height="16"
-                  />
-                  <span className="preview-save-text">save draft</span>
+                  <button className="preview-save-icon" title="save to unpublished articles">
+                  <img src="/icons/Save.png" alt="Save" width="16" height="16" />
+                  <span className="preview-save-text">save</span>
                 </button>
-                
-                <button className="preview-edit-button" title="Edit">
+                <button className="preview-edit-button" title="Edit" onClick={() => console.log('Edit article:', articleData.title)}>
                   <span className="preview-edit-text">edit</span>
                 </button>
+                
+                <button className="preview-action-button"></button>
               </div>
             </div>
             
