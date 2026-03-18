@@ -1,8 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, Filter, X, AlertCircle, Download } from "lucide-react";
 
 export default function UserListPage() {
+  const searchParams = useSearchParams();
+  const initialFilter = searchParams.get('filter'); // Catches "?filter=Premium" from the URL
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -11,6 +15,17 @@ export default function UserListPage() {
   const [banReason, setBanReason] = useState("");
   const [validationError, setValidationError] = useState("");
   const [activeFilters, setActiveFilters] = useState({ regular: false, premium: false, banned: false, active: false });
+
+  // --- NEW: Automatically apply filters from the URL Dashboard Link ---
+  useEffect(() => {
+    if (initialFilter) {
+      const filterKey = initialFilter.toLowerCase();
+      // If the URL passes "Premium", "Active", etc., it automatically sets that filter to true
+      if (['regular', 'premium', 'banned', 'active'].includes(filterKey)) {
+        setActiveFilters(prev => ({ ...prev, [filterKey]: true }));
+      }
+    }
+  }, [initialFilter]);
 
   useEffect(() => {
     fetch('/api/users')
