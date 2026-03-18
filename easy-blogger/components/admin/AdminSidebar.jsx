@@ -137,30 +137,17 @@ export default function AdminSidebar() {
   };
 
   return (
-    <aside className="w-64 bg-gray-900 min-h-screen fixed left-0 top-0 z-40">
+    <aside className="w-64 bg-gray-900 h-full flex flex-col z-40 border-none">
       {/* Admin Header */}
-      <div className="p-4 border-b border-gray-700">
+      <div className="p-4 border-b border-gray-700 shrink-0">
         <Link href="/admin" className="flex items-center gap-3">
           <div className="w-10 h-10 bg-[#1ABC9C] rounded-lg flex items-center justify-center">
-            <svg
-              className="w-6 h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
           <div>
-            <h1
-              className="text-white font-semibold text-lg"
-              style={{ fontFamily: "Georgia, serif" }}
-            >
+            <h1 className="text-white font-semibold text-lg" style={{ fontFamily: "Georgia, serif" }}>
               Easy Blogger
             </h1>
             <span className="text-gray-400 text-xs">Admin Panel</span>
@@ -168,17 +155,15 @@ export default function AdminSidebar() {
         </Link>
       </div>
 
-      {/* Navigation */}
-      <nav className="p-4">
+      {/* Navigation - flex-1 pushes everything below it to the bottom */}
+      <nav className="p-4 flex-1 overflow-y-auto">
         <ul className="space-y-1">
           {navItems.map((item) => (
             <li key={item.name}>
               <Link
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                  isActive(item.href)
-                    ? "bg-[#1ABC9C] text-white"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                  isActive(item.href) ? "bg-[#1ABC9C] text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"
                 }`}
               >
                 {item.icon}
@@ -189,24 +174,14 @@ export default function AdminSidebar() {
         </ul>
       </nav>
 
-      {/* Back to Main Site */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
+      {/* Back to Main Site - Removed 'absolute' to prevent layout glitches */}
+      <div className="p-4 border-t border-gray-700 shrink-0">
         <Link
           href="/"
-          className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-200"
+          className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-all duration-200"
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11 17l-5-5m0 0l5-5m-5 5h12"
-            />
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
           </svg>
           <span className="font-medium">Back to Main Site</span>
         </Link>
