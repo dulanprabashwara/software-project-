@@ -201,7 +201,7 @@ export async function POST(request) {
       topicsFound: 0,
       lastScraped: "Pending..."
     };
-    scrapingSources.push(newSource);
+    scrapingSources.unshift(newSource);
   }
 
   if (actionType === 'deleteSource') {
