@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, Filter, X, AlertCircle, Download } from "lucide-react";
 
+import { auth } from "../../../../lib/firebase"; 
+import { api } from "../../../../lib/api";
+
 export default function UserListPage() {
   const searchParams = useSearchParams();
   const initialFilter = searchParams.get('filter'); // Catches "?filter=Premium" from the URL
@@ -27,13 +30,46 @@ export default function UserListPage() {
     }
   }, [initialFilter]);
 
+  // --- REAL BACKEND FETCH ---
+  const fetchRealUsers = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+      const token = await user.getIdToken();
+      
+      // Call the real backend
+      const response = await api.getAdminUsers("", token);
+      
+      // MAP Prisma Database fields to your UI's expected format
+      const mappedUsers = response.data.map(u => ({
+        id: u.id,
+        name: u.displayName || u.username || "Unknown User",
+        email: u.email,
+        type: u.isPremium ? "Premium" : "Regular",
+        status: u.bannedRecord ? "Banned" : "Active", // Assuming backend returns bannedRecord if banned
+        // Placeholder data for UI elements not yet in schema
+        startDate: "01/02/2026", 
+        endDate: "02/01/2026",
+        paymentMethod: "Credit Card"
+      }));
+
+      setUsers(mappedUsers);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch('/api/users')
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        fetchRealUsers();
+      } else {
         setLoading(false);
-      });
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   // --- CSV EXPORT LOGIC ---
@@ -72,32 +108,29 @@ export default function UserListPage() {
       return; 
     }
 
-    const userObj = users.find(u => u.id === id);
-    const auditEntry = {
-      userId: id,
-      admin: "Admin Dulsi",
-      action: newStatus === "Banned" ? "Banned User" : "Unbanned User",
-      target: `user_${userObj?.name.toLowerCase().replace(/\s+/g, '_') || id}`,
-      details: reason || banReason,
-      endpoint: newStatus === "Banned" ? "POST /api/users/{id}/ban" : "POST /api/users/{id}/unban",
-      newStatus: newStatus
-    };
-
     try {
-      const response = await fetch('/api/users?action=updateUser', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(auditEntry),
-      });
+      const user = auth.currentUser;
+      const token = await user.getIdToken();
 
-      if (response.ok) {
-        setUsers(prev => prev.map(u => u.id === id ? { ...u, status: newStatus } : u));
-        setBanningUser(null);
-        setBanReason("");
-        setValidationError("");
-        if (selectedUser?.id === id) setSelectedUser({...selectedUser, status: newStatus});
+      if (newStatus === "Banned") {
+        // Hit the real ban endpoint
+        await api.banUser(id, reason || banReason, token);
+      } else {
+        // Hit the real unban endpoint
+        await api.unbanUser(id, token);
       }
-    } catch (error) { console.error(error); }
+
+      // Update UI Optimistically
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, status: newStatus } : u));
+      setBanningUser(null);
+      setBanReason("");
+      setValidationError("");
+      if (selectedUser?.id === id) setSelectedUser({...selectedUser, status: newStatus});
+
+    } catch (error) { 
+      console.error("Failed to update user status:", error); 
+      setValidationError("Backend error. Check console.");
+    }
   };
 
   const filteredUsers = users.filter(user => {
