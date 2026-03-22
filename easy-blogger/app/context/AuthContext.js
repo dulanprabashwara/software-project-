@@ -94,6 +94,31 @@ export function AuthProvider({ children }) {
         }
       } catch (error) {
         console.error("Failed to sync user with backend database:", error);
+        // Fallback 1: try fetching the existing profile via getMe
+        try {
+          const token = await firebaseUser.getIdToken();
+          const res = await api.getMe(token);
+          if (res.success && res.data) {
+            setUserProfile(res.data);
+            setIsAdmin(res.data.role === "ADMIN");
+            hasSynced.current = true;
+            return;
+          }
+        } catch (getmeError) {
+          console.error("getMe fallback also failed:", getmeError);
+        }
+        // Fallback 2: build a minimal profile from Firebase so the UI is never stuck
+        setUserProfile({
+          id: null,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
+          avatarUrl: firebaseUser.photoURL || null,
+          username: firebaseUser.email?.split("@")[0] || "",
+          bio: "",
+          role: "USER",
+          isPremium: false,
+        });
+        hasSynced.current = true;
       } finally {
         setProfileLoading(false);
       }
