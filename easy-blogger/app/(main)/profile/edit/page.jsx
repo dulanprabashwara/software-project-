@@ -59,15 +59,9 @@ export default function EditProfilePage() {
   // overwrite user edits if the context updates.
   const [hasInitializedForm, setHasInitializedForm] = useState(false);
 
-  useEffect(() => {
-    console.log("[ProfileEdit] Mounted at", performance.now());
-  }, []);
-
   // Populate form fields as soon as userProfile arrives (handles cold start).
   useEffect(() => {
-    console.log("[ProfileEdit] Effect run. userProfile exists:", !!userProfile, "hasInitializedForm:", hasInitializedForm, "time:", performance.now());
     if (userProfile && !hasInitializedForm) {
-      console.log("[ProfileEdit] Populating form data from userProfile!");
       setDisplayName(userProfile.displayName || firebaseUser?.displayName || "");
       setUsername(userProfile.username || "");
       setAbout(userProfile.bio || "");
@@ -342,6 +336,7 @@ export default function EditProfilePage() {
                   <img
                     src={profilePhoto}
                     alt="Profile"
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover"
                   />
                 )}

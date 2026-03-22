@@ -1,129 +1,138 @@
-/**
- * Other User Stats Page - Modal-Style Statistics View
- *
- * Route: /profile/[username]/stats
- *
- * Purpose: Displays another user's Followers, Following, Reads, and Shares
- * in a centered modal-style card with horizontal tabs.
- * The outside of the modal appears blurred.
- *
- * Used for: Viewing another user's profile stats
- * isOwnProfile is always false here
- */
-
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useAuth } from "../../../../context/AuthContext";
+import { api } from "../../../../../lib/api";
 
 export default function OtherUserStatsPage({ params }) {
   const unwrappedParams = use(params);
+  const { username } = unwrappedParams;
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Get tab from URL parameter, default to "followers"
-  const urlTab = searchParams.get("tab") || "followers";
+  const { user: firebaseUser, loading: authLoading } = useAuth();
 
-  // Track which tab/section is currently active
+  const urlTab = searchParams.get("tab") || "followers";
   const [activeTab, setActiveTab] = useState(urlTab);
 
-  // Update active tab when URL changes
+  // Profile info (for the header name & counts)
+  const [profile, setProfile] = useState(null);
+
+  // Lists
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
+
+  // Track which users the logged-in user is following (in this list)
+  const [followingSet, setFollowingSet] = useState(new Set());
+  const [togglingIds, setTogglingIds] = useState(new Set());
+
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    if (urlTab) {
-      setActiveTab(urlTab);
-    }
+    if (urlTab) setActiveTab(urlTab);
   }, [urlTab]);
 
-  // This page is for OTHER users, not the current user
-  const isOwnProfile = false;
+  // Fetch profile + lists once auth is resolved
+  useEffect(() => {
+    if (!username || authLoading) return;
 
-  // Mock user data - would come from API based on params.username
-  const stats = {
-    name: "Phil Jackson",
-    followers: "1,245",
-    following: 89,
-  };
+    const load = async () => {
+      setLoading(true);
+      try {
+        // 1. Fetch the profile to get the user's DB id and counts
+        let profileRes;
+        if (firebaseUser) {
+          const token = await firebaseUser.getIdToken();
+          profileRes = await api.getUserProfileAuth(username, token);
+        } else {
+          profileRes = await api.getUserProfile(username);
+        }
 
-  // Mock data for lists
-  const followers = [
-    {
-      id: 1,
-      name: "Sarah Chen",
-      title: "AI Researcher & Tech Writer",
-      avatar: "https://i.pravatar.cc/150?img=1",
-      isFollowing: false,
-    },
-    {
-      id: 2,
-      name: "David Miller",
-      title: "Frontend Developer",
-      avatar: "https://i.pravatar.cc/150?img=2",
-      isFollowing: true,
-    },
-    {
-      id: 3,
-      name: "James Wilson",
-      title: "Product Manager",
-      avatar: "https://i.pravatar.cc/150?img=3",
-      isFollowing: false,
-    },
-    {
-      id: 4,
-      name: "Emily Davis",
-      title: "UX Designer",
-      avatar: "https://i.pravatar.cc/150?img=4",
-      isFollowing: true,
-    },
-    {
-      id: 5,
-      name: "Michael Brown",
-      title: "Data Scientist",
-      avatar: "https://i.pravatar.cc/150?img=5",
-      isFollowing: false,
-    },
-  ];
+        if (!profileRes.success) return;
+        const profileData = profileRes.data;
+        setProfile(profileData);
 
-  const following = [
-    {
-      id: 1,
-      name: "Alex Thompson",
-      title: "Software Engineer",
-      avatar: "https://i.pravatar.cc/150?img=7",
+        // 2. Fetch followers & following in parallel using the DB id
+        const [followersRes, followingRes] = await Promise.all([
+          api.getFollowers(profileData.id),
+          api.getFollowing(profileData.id),
+        ]);
+
+        const followersList = followersRes.success ? followersRes.data : [];
+        const followingList = followingRes.success ? followingRes.data : [];
+
+        setFollowers(followersList);
+        setFollowing(followingList);
+
+        // 3. If we are logged in, we already know who WE follow from  
+        //    the [username]/page.jsx — but simpler here: mark profileData.isFollowing
+        //    and also check the following list for mutual follows
+        //    (Backend doesn't return isFollowing per person in these lists yet, 
+        //     so we'll just pass an empty set for now — the toggle will work regardless)
+      } catch (err) {
+        console.error("Failed to load stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [username, firebaseUser, authLoading]);
+
+  const handleToggleFollow = useCallback(
+    async (userId, isCurrentlyFollowing) => {
+      if (!firebaseUser) return;
+      setTogglingIds((prev) => new Set(prev).add(userId));
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res = await api.toggleFollow(userId, token);
+        if (res.success) {
+          setFollowingSet((prev) => {
+            const next = new Set(prev);
+            if (res.data.followed) next.add(userId);
+            else next.delete(userId);
+            return next;
+          });
+        }
+      } catch (err) {
+        console.error("Toggle follow failed:", err);
+      } finally {
+        setTogglingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(userId);
+          return next;
+        });
+      }
     },
-    {
-      id: 2,
-      name: "Lisa Anderson",
-      title: "Content Strategist",
-      avatar: "https://i.pravatar.cc/150?img=8",
-    },
-    {
-      id: 3,
-      name: "Mark Johnson",
-      title: "Digital Marketing Expert",
-      avatar: "https://i.pravatar.cc/150?img=9",
-    },
-  ];
+    [firebaseUser]
+  );
+
+  const displayName = profile?.displayName || username;
+  const fallbackAvatar = (name) =>
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "?")}&background=1ABC9C&color=fff`;
 
   return (
     <>
-      {/* Backdrop with blur */}
+      {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-100"
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50"
         onClick={() => router.back()}
-      ></div>
+      />
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-101 p-4 pointer-events-none">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-150 flex flex-col pointer-events-auto">
-          {/* Modal Header */}
-          <div className="p-6 border-b border-[#E5E7EB]">
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[600px] flex flex-col pointer-events-auto">
+          {/* Header */}
+          <div className="p-6 border-b border-[#E5E7EB] shrink-0">
             <div className="flex items-center justify-between mb-4">
               <h2
                 className="text-2xl font-bold text-[#111827]"
                 style={{ fontFamily: "Georgia, serif" }}
               >
-                {stats.name}
+                {displayName}
               </h2>
               <button
                 onClick={() => router.back()}
@@ -138,103 +147,168 @@ export default function OtherUserStatsPage({ params }) {
               <button
                 onClick={() => setActiveTab("followers")}
                 className={`pb-3 text-sm font-medium transition-colors relative ${
-                  activeTab === "followers"
-                    ? "text-[#111827]"
-                    : "text-[#6B7280]"
+                  activeTab === "followers" ? "text-[#111827]" : "text-[#6B7280]"
                 }`}
               >
                 <span className="mr-1">Followers</span>
-                <span className="text-[#6B7280]">{stats.followers}</span>
+                <span className="text-[#6B7280]">
+                  {profile?._count?.followers ?? ""}
+                </span>
                 {activeTab === "followers" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]" />
                 )}
               </button>
-
               <button
                 onClick={() => setActiveTab("following")}
                 className={`pb-3 text-sm font-medium transition-colors relative ${
-                  activeTab === "following"
-                    ? "text-[#111827]"
-                    : "text-[#6B7280]"
+                  activeTab === "following" ? "text-[#111827]" : "text-[#6B7280]"
                 }`}
               >
                 <span className="mr-1">Following</span>
-                <span className="text-[#6B7280]">{stats.following}</span>
+                <span className="text-[#6B7280]">
+                  {profile?._count?.following ?? ""}
+                </span>
                 {activeTab === "following" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]" />
                 )}
               </button>
             </div>
           </div>
 
-          {/* Modal Content */}
-          <div className="overflow-y-auto p-6 h-112.5">
-            {/* Followers Tab */}
-            {activeTab === "followers" && (
-              <div className="space-y-4">
-                {followers.map((user) => (
-                  <div
-                    key={user.id}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="w-12 h-12 rounded-full"
-                      />
-                      <div>
-                        <p className="font-semibold text-[#111827] text-sm">
-                          {user.name}
-                        </p>
-                        <p className="text-xs text-[#6B7280]">{user.title}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {user.isFollowing ? (
-                        <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
-                          Following
-                        </button>
-                      ) : (
-                        <button className="px-4 py-1.5 text-sm text-white bg-[#1ABC9C] rounded-full hover:bg-[#17a589] transition-colors">
-                          Follow
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+          {/* Content */}
+          <div className="overflow-y-auto p-6 flex-1">
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
               </div>
-            )}
+            ) : (
+              <>
+                {/* Followers list */}
+                {activeTab === "followers" && (
+                  <div className="space-y-4">
+                    {followers.length === 0 ? (
+                      <p className="text-center text-gray-400 py-8 text-sm">
+                        No followers yet.
+                      </p>
+                    ) : (
+                      followers.map((person) => {
+                        const isFollowing = followingSet.has(person.id);
+                        const isToggling = togglingIds.has(person.id);
+                        return (
+                          <div
+                            key={person.id}
+                            className="flex items-center justify-between"
+                          >
+                            <Link
+                              href={`/profile/${person.username}`}
+                              className="flex items-center gap-3 min-w-0"
+                            >
+                              <img
+                                src={person.avatarUrl || fallbackAvatar(person.displayName)}
+                                alt={person.displayName}
+                                referrerPolicy="no-referrer"
+                                className="w-12 h-12 rounded-full object-cover shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <p className="font-semibold text-[#111827] text-sm truncate">
+                                  {person.displayName || person.username}
+                                </p>
+                                <p className="text-xs text-[#6B7280] truncate">
+                                  @{person.username}
+                                </p>
+                              </div>
+                            </Link>
+                            {firebaseUser && (
+                              <button
+                                onClick={() =>
+                                  handleToggleFollow(person.id, isFollowing)
+                                }
+                                disabled={isToggling}
+                                className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
+                                  isFollowing
+                                    ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
+                                    : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                                }`}
+                              >
+                                {isToggling ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : isFollowing ? (
+                                  "Following"
+                                ) : (
+                                  "Follow"
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
 
-            {/* Following Tab */}
-            {activeTab === "following" && (
-              <div className="space-y-4">
-                {following.map((user) => (
-                  <div
-                    key={user.id}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="w-12 h-12 rounded-full"
-                      />
-                      <div>
-                        <p className="font-semibold text-[#111827] text-sm">
-                          {user.name}
-                        </p>
-                        <p className="text-xs text-[#6B7280]">{user.title}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button className="px-4 py-1.5 text-sm text-white bg-[#1ABC9C] rounded-full hover:bg-[#17a589] transition-colors">
-                        Follow
-                      </button>
-                    </div>
+                {/* Following list */}
+                {activeTab === "following" && (
+                  <div className="space-y-4">
+                    {following.length === 0 ? (
+                      <p className="text-center text-gray-400 py-8 text-sm">
+                        Not following anyone yet.
+                      </p>
+                    ) : (
+                      following.map((person) => {
+                        const isFollowing = followingSet.has(person.id);
+                        const isToggling = togglingIds.has(person.id);
+                        return (
+                          <div
+                            key={person.id}
+                            className="flex items-center justify-between"
+                          >
+                            <Link
+                              href={`/profile/${person.username}`}
+                              className="flex items-center gap-3 min-w-0"
+                            >
+                              <img
+                                src={person.avatarUrl || fallbackAvatar(person.displayName)}
+                                alt={person.displayName}
+                                referrerPolicy="no-referrer"
+                                className="w-12 h-12 rounded-full object-cover shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <p className="font-semibold text-[#111827] text-sm truncate">
+                                  {person.displayName || person.username}
+                                </p>
+                                <p className="text-xs text-[#6B7280] truncate">
+                                  @{person.username}
+                                </p>
+                              </div>
+                            </Link>
+                            {firebaseUser && (
+                              <button
+                                onClick={() =>
+                                  handleToggleFollow(person.id, isFollowing)
+                                }
+                                disabled={isToggling}
+                                className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
+                                  isFollowing
+                                    ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
+                                    : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                                }`}
+                              >
+                                {isToggling ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : isFollowing ? (
+                                  "Following"
+                                ) : (
+                                  "Follow"
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </div>
         </div>
