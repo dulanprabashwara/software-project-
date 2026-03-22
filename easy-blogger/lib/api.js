@@ -68,5 +68,8 @@ export const api = {
     fetchAPI("/api/users/profile", { method: "PUT", body: data, token }),
   getUserProfile: (identifier) => fetchAPI(`/api/users/${identifier}`),
 
+  getAdminDashboard: (token) => 
+    fetchAPI("/api/admin/dashboard", { token }),
+
   // Add more as needed...
 };
