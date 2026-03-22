@@ -12,8 +12,7 @@ export default function OtherUserStatsPage({ params }) {
   const { username } = unwrappedParams;
   const searchParams = useSearchParams();
   const router = useRouter();
-
-  const { user: firebaseUser, loading: authLoading } = useAuth();
+  const { user: firebaseUser, userProfile: loggedInProfile, loading: authLoading } = useAuth();
 
   const urlTab = searchParams.get("tab") || "followers";
   const [activeTab, setActiveTab] = useState(urlTab);
@@ -110,7 +109,6 @@ export default function OtherUserStatsPage({ params }) {
     [firebaseUser]
   );
 
-  const displayName = profile?.displayName || username;
   const fallbackAvatar = (name) =>
     `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "?")}&background=1ABC9C&color=fff`;
 
@@ -118,21 +116,25 @@ export default function OtherUserStatsPage({ params }) {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50"
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[1001]"
         onClick={() => router.back()}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[600px] flex flex-col pointer-events-auto">
+      <div className="fixed inset-0 flex items-center justify-center z-[1002] p-4 pointer-events-none">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col pointer-events-auto overflow-hidden">
           {/* Header */}
           <div className="p-6 border-b border-[#E5E7EB] shrink-0">
             <div className="flex items-center justify-between mb-4">
               <h2
-                className="text-2xl font-bold text-[#111827]"
+                className="text-2xl font-bold text-[#111827] flex items-center h-8"
                 style={{ fontFamily: "Georgia, serif" }}
               >
-                {displayName}
+                {loading ? (
+                  <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+                ) : (
+                  profile?.displayName || profile?.username || username
+                )}
               </h2>
               <button
                 onClick={() => router.back()}
@@ -178,8 +180,19 @@ export default function OtherUserStatsPage({ params }) {
           {/* Content */}
           <div className="overflow-y-auto p-6 flex-1">
             {loading ? (
-              <div className="flex items-center justify-center py-16">
-                <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
+              <div className="space-y-6">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center justify-between animate-pulse">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                        <div className="h-3 w-20 bg-gray-100 rounded"></div>
+                      </div>
+                    </div>
+                    <div className="w-24 h-8 bg-gray-200 rounded-full"></div>
+                  </div>
+                ))}
               </div>
             ) : (
               <>
@@ -194,13 +207,14 @@ export default function OtherUserStatsPage({ params }) {
                       followers.map((person) => {
                         const isFollowing = followingSet.has(person.id);
                         const isToggling = togglingIds.has(person.id);
+                        const isSelf = loggedInProfile?.id === person.id;
                         return (
                           <div
                             key={person.id}
                             className="flex items-center justify-between"
                           >
                             <Link
-                              href={`/profile/${person.username}`}
+                              href={isSelf ? "/profile" : `/profile/${person.username}`}
                               className="flex items-center gap-3 min-w-0"
                             >
                               <img
@@ -218,7 +232,7 @@ export default function OtherUserStatsPage({ params }) {
                                 </p>
                               </div>
                             </Link>
-                            {firebaseUser && (
+                            {!isSelf && firebaseUser && (
                               <button
                                 onClick={() =>
                                   handleToggleFollow(person.id, isFollowing)
@@ -257,13 +271,14 @@ export default function OtherUserStatsPage({ params }) {
                       following.map((person) => {
                         const isFollowing = followingSet.has(person.id);
                         const isToggling = togglingIds.has(person.id);
+                        const isSelf = loggedInProfile?.id === person.id;
                         return (
                           <div
                             key={person.id}
                             className="flex items-center justify-between"
                           >
                             <Link
-                              href={`/profile/${person.username}`}
+                              href={isSelf ? "/profile" : `/profile/${person.username}`}
                               className="flex items-center gap-3 min-w-0"
                             >
                               <img
@@ -281,7 +296,7 @@ export default function OtherUserStatsPage({ params }) {
                                 </p>
                               </div>
                             </Link>
-                            {firebaseUser && (
+                            {!isSelf && firebaseUser && (
                               <button
                                 onClick={() =>
                                   handleToggleFollow(person.id, isFollowing)

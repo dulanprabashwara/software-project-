@@ -300,7 +300,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center w-full h-full pt-20">
+      <div className="flex items-center justify-center w-full h-[calc(100vh-64px)] pt-20 bg-gray-50">
         <Loader2 className="w-8 h-8 animate-spin text-[#1ABC9C] opacity-50" />
       </div>
     );
@@ -629,8 +629,19 @@ export default function ProfilePage() {
 
               <div className="overflow-y-auto p-6 flex-1">
                 {statsLoading ? (
-                  <div className="flex items-center justify-center py-16">
-                    <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
+                  <div className="space-y-6">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="flex items-center justify-between animate-pulse">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                          <div className="space-y-2">
+                            <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                            <div className="h-3 w-20 bg-gray-100 rounded"></div>
+                          </div>
+                        </div>
+                        <div className="w-24 h-8 bg-gray-200 rounded-full"></div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <>
@@ -645,13 +656,14 @@ export default function ProfilePage() {
                           followers.map((person) => {
                             const isFollowingPerson = followingSet.has(person.id);
                             const isToggling = togglingIds.has(person.id);
+                            const isSelf = userProfile?.id === person.id;
                             return (
                               <div
                                 key={person.id}
                                 className="flex items-center justify-between"
                               >
                                 <Link
-                                  href={`/profile/${person.username}`}
+                                  href={isSelf ? "/profile" : `/profile/${person.username}`}
                                   className="flex items-center gap-3 min-w-0"
                                 >
                                   <img
@@ -669,23 +681,25 @@ export default function ProfilePage() {
                                     </p>
                                   </div>
                                 </Link>
-                                <button
-                                  onClick={() => handleToggleFollow(person.id)}
-                                  disabled={isToggling}
-                                  className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
-                                    isFollowingPerson
-                                      ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
-                                      : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
-                                  }`}
-                                >
-                                  {isToggling ? (
-                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                  ) : isFollowingPerson ? (
-                                    "Following"
-                                  ) : (
-                                    "Follow Back"
-                                  )}
-                                </button>
+                                {!isSelf && (
+                                  <button
+                                    onClick={() => handleToggleFollow(person.id)}
+                                    disabled={isToggling}
+                                    className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
+                                      isFollowingPerson
+                                        ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
+                                        : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                                    }`}
+                                  >
+                                    {isToggling ? (
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                    ) : isFollowingPerson ? (
+                                      "Following"
+                                    ) : (
+                                      "Follow Back"
+                                    )}
+                                  </button>
+                                )}
                               </div>
                             );
                           })
@@ -704,13 +718,14 @@ export default function ProfilePage() {
                           following.map((person) => {
                             const stillFollowing = followingSet.has(person.id);
                             const isToggling = togglingIds.has(person.id);
+                            const isSelf = userProfile?.id === person.id;
                             return (
                               <div
                                 key={person.id}
                                 className="flex items-center justify-between"
                               >
                                 <Link
-                                  href={`/profile/${person.username}`}
+                                  href={isSelf ? "/profile" : `/profile/${person.username}`}
                                   className="flex items-center gap-3 min-w-0"
                                 >
                                   <img
@@ -728,23 +743,25 @@ export default function ProfilePage() {
                                     </p>
                                   </div>
                                 </Link>
-                                <button
-                                  onClick={() => handleToggleFollow(person.id)}
-                                  disabled={isToggling}
-                                  className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
-                                    stillFollowing
-                                      ? "text-[#6B7280] border border-[#E5E7EB] hover:border-red-300 hover:text-red-500 hover:bg-red-50"
-                                      : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
-                                  }`}
-                                >
-                                  {isToggling ? (
-                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                  ) : stillFollowing ? (
-                                    "Following"
-                                  ) : (
-                                    "Follow"
-                                  )}
-                                </button>
+                                {!isSelf && (
+                                  <button
+                                    onClick={() => handleToggleFollow(person.id)}
+                                    disabled={isToggling}
+                                    className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
+                                      stillFollowing
+                                        ? "text-[#6B7280] border border-[#E5E7EB] hover:border-red-300 hover:text-red-500 hover:bg-red-50"
+                                        : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                                    }`}
+                                  >
+                                    {isToggling ? (
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                    ) : stillFollowing ? (
+                                      "Following"
+                                    ) : (
+                                      "Follow"
+                                    )}
+                                  </button>
+                                )}
                               </div>
                             );
                           })

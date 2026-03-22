@@ -180,11 +180,45 @@ export default function UserProfilePage({ params }) {
   // ── Loading state ──
   if (profileLoading) {
     return (
-      <div className="flex h-[calc(100vh-64px)] w-full items-center justify-center bg-white">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-[#1ABC9C]" />
-          <p className="text-sm text-gray-500">Loading profile...</p>
+      <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden bg-white">
+        {/* Main Content Area Skeleton */}
+        <div className="flex-1 overflow-y-auto border-r border-[#E5E7EB] p-8">
+          <div className="max-w-3xl mx-auto space-y-8 animate-pulse">
+            <div className="h-8 w-48 bg-gray-200 rounded mb-8"></div>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="border border-[#E5E7EB] rounded-xl p-6">
+                <div className="flex gap-4 mb-4">
+                  <div className="w-10 h-10 bg-gray-200 rounded-full shrink-0"></div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                    <div className="h-3 w-24 bg-gray-100 rounded"></div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-6 w-3/4 bg-gray-200 rounded"></div>
+                  <div className="h-4 w-full bg-gray-100 rounded"></div>
+                  <div className="h-4 w-5/6 bg-gray-100 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Right Sidebar Skeleton */}
+        <aside className="w-80 shrink-0 bg-[#F9FAFB] px-6 py-8 border-l border-[#E5E7EB]">
+          <div className="animate-pulse flex flex-col pt-4">
+            <div className="w-24 h-24 bg-gray-200 rounded-full mb-4"></div>
+            <div className="h-6 w-32 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 w-24 bg-gray-200 rounded mb-6"></div>
+            <div className="h-10 w-full bg-gray-200 rounded-full mb-8"></div>
+
+            <div className="space-y-3 w-full">
+              <div className="h-4 w-full bg-gray-200 rounded"></div>
+              <div className="h-4 w-5/6 bg-gray-200 rounded"></div>
+              <div className="h-4 w-4/6 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </aside>
       </div>
     );
   }
