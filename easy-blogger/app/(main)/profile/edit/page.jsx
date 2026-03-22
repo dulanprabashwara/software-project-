@@ -70,6 +70,7 @@ export default function EditProfilePage() {
     }
   }, [loading, firebaseUser, router]);
 
+  // All hooks MUST be declared before any early returns (React rules of hooks)
   const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -78,8 +79,35 @@ export default function EditProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [linkedInConnected, setLinkedInConnected] = useState(false);
   const [wordpressConnected, setWordpressConnected] = useState(false);
-
   const fileInputRef = useRef(null);
+
+  // Show a loading skeleton ONLY on the very first load (when profile has never been fetched).
+  // Do NOT include `loading` here — that flips on every navigation causing the skeleton to repeat.
+  if (!userProfile) {
+    return (
+      <div className="max-w-4xl mx-auto px-8 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div className="h-9 w-40 bg-gray-200 rounded-lg animate-pulse" />
+          <div className="flex gap-3">
+            <div className="h-10 w-20 bg-gray-200 rounded-full animate-pulse" />
+            <div className="h-10 w-32 bg-gray-200 rounded-full animate-pulse" />
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 mb-6">
+          <div className="flex gap-8">
+            <div className="w-32 h-32 rounded-full bg-gray-200 animate-pulse shrink-0" />
+            <div className="flex-1 space-y-6">
+              <div className="h-12 bg-gray-200 rounded-lg animate-pulse" />
+              <div className="h-12 bg-gray-200 rounded-lg animate-pulse" />
+              <div className="h-28 bg-gray-200 rounded-lg animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
