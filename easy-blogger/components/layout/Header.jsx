@@ -140,6 +140,7 @@ export default function Header({ onToggleSidebar }) {
               <img
                 src={avatarUrl}
                 alt="User"
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
             </button>
@@ -162,6 +163,7 @@ export default function Header({ onToggleSidebar }) {
                 <img
                   src={avatarUrl}
                   alt="User"
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
                 />
               </div>

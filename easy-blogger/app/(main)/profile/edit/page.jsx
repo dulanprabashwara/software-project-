@@ -11,6 +11,9 @@ import {
   AlertTriangle,
   Linkedin,
   Globe,
+  Eye,
+  EyeOff,
+  CheckCircle,
 } from "lucide-react";
 
 /**
@@ -32,6 +35,7 @@ export default function EditProfilePage() {
     user: firebaseUser,
     userProfile,
     loading,
+    profileLoading,
     updateProfile: updateContextProfile,
   } = useAuth();
 
@@ -51,17 +55,20 @@ export default function EditProfilePage() {
     userProfile?.avatarUrl || firebaseUser?.photoURL || "/api/placeholder/120/120",
   );
 
-  const backendFieldsPopulated = useRef(false);
+  // Track if we've populated the form from the backend yet so we don't
+  // overwrite user edits if the context updates.
+  const [hasInitializedForm, setHasInitializedForm] = useState(false);
 
-  // Populate backend-only fields once userProfile arrives (handles cold start).
+  // Populate form fields as soon as userProfile arrives (handles cold start).
   useEffect(() => {
-    if (!userProfile || backendFieldsPopulated.current) return;
-    backendFieldsPopulated.current = true;
-    setDisplayName((prev) => prev || userProfile.displayName || "");
-    setUsername(userProfile.username || "");
-    setAbout(userProfile.bio || "");
-    if (userProfile.avatarUrl) setProfilePhoto(userProfile.avatarUrl);
-  }, [userProfile]);
+    if (userProfile && !hasInitializedForm) {
+      setDisplayName(userProfile.displayName || firebaseUser?.displayName || "");
+      setUsername(userProfile.username || "");
+      setAbout(userProfile.bio || "");
+      if (userProfile.avatarUrl) setProfilePhoto(userProfile.avatarUrl);
+      setHasInitializedForm(true);
+    }
+  }, [userProfile, hasInitializedForm, firebaseUser]);
 
   // Redirect to login if user is definitively not authenticated.
   useEffect(() => {
@@ -70,6 +77,7 @@ export default function EditProfilePage() {
     }
   }, [loading, firebaseUser, router]);
 
+  // All hooks MUST be declared before any early returns (React rules of hooks)
   const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -78,8 +86,24 @@ export default function EditProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [linkedInConnected, setLinkedInConnected] = useState(false);
   const [wordpressConnected, setWordpressConnected] = useState(false);
-
   const fileInputRef = useRef(null);
+
+  // Password change state
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+
+  // Detect if the user signed in via Google (no email/password to change)
+  const isGoogleUser = firebaseUser?.providerData?.some(
+    (p) => p.providerId === "google.com",
+  ) && !firebaseUser?.providerData?.some(
+    (p) => p.providerId === "password",
+  );
+
+
 
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
@@ -144,69 +168,84 @@ export default function EditProfilePage() {
 
   const handleChangePassword = () => {
     setShowPasswordChange(!showPasswordChange);
+    // Clear state when toggling
+    setPasswordError("");
+    setPasswordSuccess(false);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
   };
 
   const handleUpdatePassword = async () => {
+    setPasswordError("");
+    setPasswordSuccess(false);
+
+    // Validation
     if (!currentPassword || !newPassword || !confirmPassword) {
-      alert("Please fill in all password fields");
+      setPasswordError("Please fill in all password fields.");
       return;
     }
     if (newPassword !== confirmPassword) {
-      alert("New passwords do not match");
+      setPasswordError("New passwords do not match.");
       return;
     }
     if (newPassword.length < 8) {
-      alert("Password must be at least 8 characters");
+      setPasswordError("New password must be at least 8 characters.");
+      return;
+    }
+    if (newPassword === currentPassword) {
+      setPasswordError("New password must be different from your current password.");
       return;
     }
 
     if (!firebaseUser || !firebaseUser.email) return;
 
+    setIsUpdatingPassword(true);
     try {
-      // 1. Dyanmically import Firebase Auth functions
       const {
         EmailAuthProvider,
         reauthenticateWithCredential,
         updatePassword,
       } = await import("firebase/auth");
 
-      // 2. Create the credential for re-authentication
+      // Re-authenticate first (required by Firebase for sensitive operations)
       const credential = EmailAuthProvider.credential(
         firebaseUser.email,
         currentPassword,
       );
-
-      // 3. Re-authenticate user
       await reauthenticateWithCredential(firebaseUser, credential);
 
-      // 4. Safely update to the new password
+      // Now update the password
       await updatePassword(firebaseUser, newPassword);
 
-      alert("Password updated successfully!");
+      setPasswordSuccess(true);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setShowPasswordChange(false);
+      // Auto-collapse the form after 2 seconds
+      setTimeout(() => {
+        setShowPasswordChange(false);
+        setPasswordSuccess(false);
+      }, 2000);
     } catch (err) {
       console.error("Failed to update password:", err);
-      // Firebase specific error handling
       if (
         err.code === "auth/invalid-credential" ||
         err.code === "auth/wrong-password" ||
         err.code === "auth/user-mismatch"
       ) {
-        alert("The current password you entered is incorrect.");
+        setPasswordError("The current password you entered is incorrect.");
       } else if (err.code === "auth/weak-password") {
-        alert(
-          "The new password is too weak. Please choose a stronger password.",
-        );
+        setPasswordError("The new password is too weak. Please choose a stronger one.");
       } else if (err.code === "auth/requires-recent-login") {
-        alert(
-          "This operation is sensitive and requires recent authentication. Please log out and log back in.",
-        );
+        setPasswordError("Session expired. Please log out and log back in, then try again.");
+      } else if (err.code === "auth/too-many-requests") {
+        setPasswordError("Too many attempts. Please wait a few minutes and try again.");
       } else {
-        alert(err.message || "An error occurred while updating the password.");
+        setPasswordError(err.message || "An error occurred. Please try again.");
       }
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -289,19 +328,23 @@ export default function EditProfilePage() {
           <div className="shrink-0">
             <div className="relative">
               <div
-                className={`w-32 h-32 rounded-full overflow-hidden bg-[#F3F4F6] border-4 shadow-lg ${
+                className={`w-32 h-32 rounded-full overflow-hidden border-4 shadow-lg ${
                   isPremium ? "border-[#F59E0B]" : "border-white"
-                }`}
+                } ${profileLoading && !userProfile ? "bg-gray-200 animate-pulse" : "bg-[#F3F4F6]"}`}
               >
-                <img
-                  src={profilePhoto}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
+                {!(profileLoading && !userProfile) && (
+                  <img
+                    src={profilePhoto}
+                    alt="Profile"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 w-10 h-10 bg-[#1ABC9C] hover:bg-[#17a589] rounded-full flex items-center justify-center shadow-lg transition-colors"
+                disabled={profileLoading && !userProfile}
+                className="absolute bottom-0 right-0 w-10 h-10 bg-[#1ABC9C] hover:bg-[#17a589] rounded-full flex items-center justify-center shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Camera className="w-5 h-5 text-white" />
               </button>
@@ -344,50 +387,70 @@ export default function EditProfilePage() {
 
           {/* Profile Fields */}
           <div className="flex-1 space-y-6">
-            {/* Display Name */}
-            <div>
-              <label className="text-sm font-semibold text-[#374151] mb-2 flex items-center gap-2">
-                Display Name
-              </label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
-                placeholder="Enter your name"
-              />
-            </div>
+            {profileLoading && !userProfile ? (
+              // Inline Form Skeletons for a smooth loading experience
+              <div className="space-y-6 animate-pulse">
+                <div>
+                  <div className="h-4 w-24 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-12 w-full bg-gray-100 rounded-lg"></div>
+                </div>
+                <div>
+                  <div className="h-4 w-20 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-12 w-full bg-gray-100 rounded-lg"></div>
+                </div>
+                <div>
+                  <div className="h-4 w-16 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-24 w-full bg-gray-100 rounded-lg"></div>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Display Name */}
+                <div>
+                  <label className="text-sm font-semibold text-[#374151] mb-2 flex items-center gap-2">
+                    Display Name
+                  </label>
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
+                    placeholder="Enter your name"
+                  />
+                </div>
 
-            {/* Username (Read-only) */}
-            <div>
-              <label className="block text-sm font-semibold text-[#374151] mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                value={username}
-                readOnly
-                className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB] cursor-not-allowed"
-              />
-            </div>
+                {/* Username (Read-only) */}
+                <div>
+                  <label className="block text-sm font-semibold text-[#374151] mb-2">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={username}
+                    readOnly
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB] cursor-not-allowed"
+                  />
+                </div>
 
-            {/* About/Bio */}
-            <div>
-              <label className="block text-sm font-semibold text-[#374151] mb-2">
-                About
-              </label>
-              <textarea
-                value={about}
-                onChange={(e) => setAbout(e.target.value)}
-                rows={4}
-                maxLength={200}
-                className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent resize-none"
-                placeholder="Tell us about yourself..."
-              />
-              <p className="text-xs text-[#6B7280] mt-1 text-right">
-                {about.length}/200
-              </p>
-            </div>
+                {/* About/Bio */}
+                <div>
+                  <label className="block text-sm font-semibold text-[#374151] mb-2">
+                    About
+                  </label>
+                  <textarea
+                    value={about}
+                    onChange={(e) => setAbout(e.target.value)}
+                    rows={4}
+                    maxLength={200}
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent resize-none"
+                    placeholder="Tell us about yourself..."
+                  />
+                  <p className="text-xs text-[#6B7280] mt-1 text-right">
+                    {about.length}/200
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -489,60 +552,124 @@ export default function EditProfilePage() {
           {/* Expandable Password Change Form */}
           {showPasswordChange && (
             <div className="mt-6 bg-[#F9FAFB] rounded-xl p-6 space-y-4 animate-in slide-in-from-top duration-200">
-              {/* Current Password */}
-              <div>
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Current password"
-                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
-                />
-              </div>
+              {isGoogleUser ? (
+                /* Google-only users cannot set a password */
+                <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="w-5 h-5 text-blue-500 mt-0.5 shrink-0">ℹ️</div>
+                  <div>
+                    <p className="text-sm font-medium text-blue-800">Google Account</p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      Your account uses Google Sign-In. To change your password, please visit your{" "}
+                      <a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+                        Google Account settings
+                      </a>.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Success Banner */}
+                  {passwordSuccess && (
+                    <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
+                      <p className="text-sm text-green-700 font-medium">Password updated successfully!</p>
+                    </div>
+                  )}
 
-              {/* New Password */}
-              <div>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="New password"
-                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
-                />
-              </div>
+                  {/* Error Banner */}
+                  {passwordError && (
+                    <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                      <p className="text-sm text-red-700">{passwordError}</p>
+                    </div>
+                  )}
 
-              {/* Confirm New Password */}
-              <div>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
-                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
-                />
-              </div>
+                  {/* Current Password */}
+                  <div className="relative">
+                    <input
+                      type={showCurrentPw ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={(e) => { setCurrentPassword(e.target.value); setPasswordError(""); }}
+                      placeholder="Current password"
+                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPw(!showCurrentPw)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]"
+                    >
+                      {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  onClick={handleUpdatePassword}
-                  className="px-6 py-2.5 bg-[#111827] hover:bg-[#1F2937] text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                  Update Password
-                </button>
-                <button
-                  onClick={handleCancelPasswordChange}
-                  className="px-6 py-2.5 text-[#6B7280] hover:text-[#111827] text-sm font-medium transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
+                  {/* New Password */}
+                  <div className="relative">
+                    <input
+                      type={showNewPw ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => { setNewPassword(e.target.value); setPasswordError(""); }}
+                      placeholder="New password (min. 8 characters)"
+                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPw(!showNewPw)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]"
+                    >
+                      {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  {/* Confirm New Password */}
+                  <div className="relative">
+                    <input
+                      type={showConfirmPw ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(""); }}
+                      placeholder="Confirm new password"
+                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPw(!showConfirmPw)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]"
+                    >
+                      {showConfirmPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-3 pt-2">
+                    <button
+                      onClick={handleUpdatePassword}
+                      disabled={isUpdatingPassword}
+                      className="px-6 py-2.5 bg-[#111827] hover:bg-[#1F2937] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {isUpdatingPassword ? (
+                        <>
+                          <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                          </svg>
+                          Updating...
+                        </>
+                      ) : "Update Password"}
+                    </button>
+                    <button
+                      onClick={handleCancelPasswordChange}
+                      disabled={isUpdatingPassword}
+                      className="px-6 py-2.5 text-[#6B7280] hover:text-[#111827] text-sm font-medium transition-colors disabled:opacity-60"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
-        </div>
 
-        {/* Email Settings */}
-        <div>
+      {/* Email Settings */}
+      <div>
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 bg-[#F3F4F6] rounded-lg flex items-center justify-center">
               <Mail className="w-5 h-5 text-[#6B7280]" />
@@ -708,6 +835,7 @@ export default function EditProfilePage() {
               Delete Account
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>

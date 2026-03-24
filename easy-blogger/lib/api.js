@@ -67,6 +67,14 @@ export const api = {
   updateProfile: (data, token) =>
     fetchAPI("/api/users/profile", { method: "PUT", body: data, token }),
   getUserProfile: (identifier) => fetchAPI(`/api/users/${identifier}`),
+  getUserProfileAuth: (identifier, token) =>
+    fetchAPI(`/api/users/${identifier}`, { token }),
+
+  // Follow System
+  toggleFollow: (userId, token) =>
+    fetchAPI(`/api/users/${userId}/follow`, { method: "POST", token }),
+  getFollowers: (userId) => fetchAPI(`/api/users/${userId}/followers`),
+  getFollowing: (userId) => fetchAPI(`/api/users/${userId}/following`),
 
   getAdminDashboard: (token) => 
     fetchAPI("/api/admin/dashboard", { token }),

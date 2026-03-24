@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase";
@@ -47,26 +48,34 @@ export function AuthProvider({ children }) {
     return null;
   }, []);
 
+  const hasSynced = useRef(false);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser ?? null);
 
       if (!firebaseUser) {
+        // User logged out — clear everything and reset the sync flag
         setUserProfile(null);
         setIsAdmin(false);
         setLoading(false);
         setProfileLoading(false);
+        hasSynced.current = false;
         return;
       }
 
       // Firebase confirmed the user — unlock the UI immediately.
-      // Pages can render as soon as loading = false.
       setLoading(false);
 
-      // Mark profile as loading so login redirect waits for role from backend.
-      setProfileLoading(true);
+      // If we already synced this session, skip backend call to avoid rate limits.
+      // hasSynced is a ref — always up-to-date inside closures, no stale value issue.
+      if (hasSynced.current) {
+        setProfileLoading(false);
+        return;
+      }
 
-      // Sync with backend to get role and profile.
+      // First time login: sync with backend to get role and full profile.
+      setProfileLoading(true);
       try {
         const token = await firebaseUser.getIdToken();
         const res = await api.syncUser(
@@ -81,9 +90,35 @@ export function AuthProvider({ children }) {
         if (res.success && res.data) {
           setUserProfile(res.data);
           setIsAdmin(res.data.role === "ADMIN");
+          hasSynced.current = true;
         }
       } catch (error) {
         console.error("Failed to sync user with backend database:", error);
+        // Fallback 1: try fetching the existing profile via getMe
+        try {
+          const token = await firebaseUser.getIdToken();
+          const res = await api.getMe(token);
+          if (res.success && res.data) {
+            setUserProfile(res.data);
+            setIsAdmin(res.data.role === "ADMIN");
+            hasSynced.current = true;
+            return;
+          }
+        } catch (getmeError) {
+          console.error("getMe fallback also failed:", getmeError);
+        }
+        // Fallback 2: build a minimal profile from Firebase so the UI is never stuck
+        setUserProfile({
+          id: null,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
+          avatarUrl: firebaseUser.photoURL || null,
+          username: firebaseUser.email?.split("@")[0] || "",
+          bio: "",
+          role: "USER",
+          isPremium: false,
+        });
+        hasSynced.current = true;
       } finally {
         setProfileLoading(false);
       }
