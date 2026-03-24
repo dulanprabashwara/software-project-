@@ -13,18 +13,42 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
+import { auth } from "../../../lib/firebase"; 
+import { api } from "../../../lib/api";
+
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('/api/users?type=dashboardStats')
-      .then(res => res.json())
-      .then(data => setStats(data));
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        try {
+          // 2. Grab the secure ID Token
+          const token = await user.getIdToken();
+          
+          // 3. Fetch from the real Node.js backend on Port 5000
+          const response = await api.getAdminDashboard(token);
+          
+          // 4. Set the data (your backend wraps the payload in response.data)
+          setStats(response.data);
+        } catch (err) {
+          console.error("Failed to load dashboard data:", err);
+          setError("Could not load analytics. Make sure the backend server is running!");
+        }
+      } else {
+        setError("You must be logged in to view this page.");
+      }
+    });
+
+    // Cleanup the listener when the component unmounts
+    return () => unsubscribe();
   }, []);
 
+  if (error) return <div className="p-8 text-red-500 font-bold">{error}</div>;
   if (!stats) return <div className="p-8 text-gray-500">Loading Dashboard Analytics...</div>;
 
   // Chart Configuration

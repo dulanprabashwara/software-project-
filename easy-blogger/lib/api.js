@@ -76,5 +76,8 @@ export const api = {
   getFollowers: (userId) => fetchAPI(`/api/users/${userId}/followers`),
   getFollowing: (userId) => fetchAPI(`/api/users/${userId}/following`),
 
+  getAdminDashboard: (token) => 
+    fetchAPI("/api/admin/dashboard", { token }),
+
   // Add more as needed...
 };

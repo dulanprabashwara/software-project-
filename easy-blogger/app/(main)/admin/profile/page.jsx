@@ -3,28 +3,77 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MoreHorizontal, Shield, Activity, Clock, Laptop, ShieldAlert, Monitor } from "lucide-react";
 
+// 1. IMPORT YOUR HELPERS
+import { auth } from "../../../../lib/firebase"; 
+import { api } from "../../../../lib/api";
+
 export default function AdminProfilePage() {
   const [adminData, setAdminData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const fetchProfile = () => {
-    fetch('/api/users?type=adminProfile').then(res => res.json()).then(data => setAdminData(data));
+  const fetchProfile = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+      const token = await user.getIdToken();
+
+      // Hit the real backend endpoint for the logged-in user
+      const response = await api.getMe(token);
+      
+      // Depending on how api.js unwraps, data might be directly returned or inside response.data
+      const userData = response.data || response; 
+
+      // Map the Prisma User object to your UI's expected format
+      setAdminData({
+        name: userData.displayName || userData.username || "Admin User",
+        email: userData.email,
+        role: userData.role === "ADMIN" ? "Super Admin" : "User",
+        bio: userData.bio || "No administrative bio provided yet.",
+        avatar: userData.avatarUrl || null,
+        lastLogin: userData.lastSeen ? new Date(userData.lastSeen).toLocaleString() : "Just now",
+        stats: { 
+          // Pulling from Prisma's UserStats relation if it exists
+          followers: userData.stats?.totalFollowers || "0", 
+          following: userData.stats?.totalFollowing || "0",
+          actions: "...", // Would require an Audit Log count query
+          resolved: "..." // Would require a resolved Reports count query
+        },
+        // Fallbacks for UI elements not currently tracked in the database schema
+        permissions: ["Full Content Moderation", "User Data Access", "System API Management"],
+        sessions: [
+          { id: 1, device: "Current Device", location: "Active Session", status: "Online Now" }
+        ]
+      });
+
+    } catch (error) {
+      console.error("Failed to fetch admin profile:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { fetchProfile(); }, []);
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        fetchProfile();
+      } else {
+        setLoading(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // --- REAL WORLD: Session Revocation ---
   const handleRevokeSession = async (sessionId, deviceName) => {
     const confirm = window.confirm(`Are you sure you want to terminate the session on ${deviceName}?`);
     if (!confirm) return;
 
-    await fetch('/api/users?action=securityAction', {
-      method: 'POST',
-      body: JSON.stringify({ action: "Revoked Session", target: "Session Management", details: `Killed active session on ${deviceName}`, securityType: 'revokeSession', sessionId })
-    });
-    fetchProfile(); // Refresh the list to remove it from UI
+    // In the future, this would hit an endpoint like api.revokeSession(sessionId, token)
+    alert("Session revocation endpoint needs to be added to backend.");
   };
 
-  if (!adminData) return <div className="p-8">Loading System Governance Data...</div>;
+  if (loading) return <div className="p-8 text-gray-500 font-bold">Loading System Governance Data...</div>;
+  if (!adminData) return <div className="p-8 text-red-500 font-bold">Failed to load profile. Are you logged in?</div>;
 
   return (
     <div className="flex gap-12 p-8 bg-white max-w-7xl mx-auto">
@@ -32,8 +81,6 @@ export default function AdminProfilePage() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-gray-900" style={{ fontFamily: "serif" }}>{adminData.name}</h1>
         </div>
-
-        {/* ... Governance tabs & Bio section ... */}
 
         <div className="space-y-10 mt-8">
            <section>
@@ -64,7 +111,11 @@ export default function AdminProfilePage() {
                 <h4 className="text-2xl font-black text-gray-900">{adminData.stats.actions}</h4>
                 <p className="text-[10px] font-bold text-gray-500 uppercase">System Actions Logged</p>
               </div>
-              {/* ... Resolved Reports Box ... */}
+              <div className="p-6 bg-[#EFF6FF] rounded-3xl border border-[#DBEAFE]">
+                <Shield className="text-[#3B82F6] mb-4" size={24} />
+                <h4 className="text-2xl font-black text-gray-900">{adminData.stats.resolved}</h4>
+                <p className="text-[10px] font-bold text-gray-500 uppercase">Reports Resolved</p>
+              </div>
             </div>
           </section>
 
