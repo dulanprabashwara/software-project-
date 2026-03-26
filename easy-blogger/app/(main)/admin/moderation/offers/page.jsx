@@ -1,10 +1,14 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Search, ChevronDown, Plus, Check, Save, AlertCircle, X, MousePointer2 } from "lucide-react";
+import { Search, ChevronDown, Plus, Check, Save, AlertCircle, X, MousePointer2, Percent } from "lucide-react";
+
+// 1. IMPORT REAL BACKEND HELPERS
+import { auth } from "../../../../../lib/firebase"; 
+import { api } from "../../../../../lib/api";
 
 export default function OffersPage() {
-  const [offers, setOffers] = useState([]); // Empty initial state, populated by fetch
+  const [offers, setOffers] = useState([]); 
   const [filterStatus, setFilterStatus] = useState(null); 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null); 
@@ -14,31 +18,50 @@ export default function OffersPage() {
   const [errors, setErrors] = useState({});
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [newFeatureName, setNewFeatureName] = useState("");
+  
+  // 2. UPDATED STATE TO MATCH PRISMA SCHEMA
   const [formData, setFormData] = useState({
-    name: "", price: "", duration: "Monthly", stripeId: "", visibility: true,
+    name: "", discount_percent: "", duration: "Monthly", stripe_coupon_id: "", is_active: true,
     features: []
   });
 
-  // Fetch data on mount to ensure persistence
   useEffect(() => {
-    fetchOffers();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        fetchRealOffers();
+      }
+    });
+
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) setIsDropdownOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    
+    return () => {
+      unsubscribe();
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
   }, []);
 
-  const fetchOffers = async () => {
-    const res = await fetch('/api/users?type=offers');
-    const data = await res.json();
-    setOffers(data);
+  // --- REAL BACKEND FETCH ---
+  const fetchRealOffers = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+      const token = await user.getIdToken();
+
+      const response = await api.getOffers(token);
+      const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+      setOffers(data);
+    } catch (error) {
+      console.error("Failed to fetch offers:", error);
+    }
   };
 
   const handleSelectOffer = (offer) => {
     setIsAddingNew(false);
     setSelectedId(offer.id);
-    setFormData({ ...offer });
+    setFormData({ ...offer, features: offer.features || [] });
     setErrors({});
   };
 
@@ -46,7 +69,7 @@ export default function OffersPage() {
     setSelectedId(null);
     setIsAddingNew(true);
     setFormData({
-      name: "", price: "", duration: "Monthly", stripeId: "", visibility: true,
+      name: "", discount_percent: "", duration: "Monthly", stripe_coupon_id: "", is_active: true,
       features: [
         { name: "Unlimited AI Access", enabled: true },
         { name: "Custom Branding", enabled: false }
@@ -56,90 +79,71 @@ export default function OffersPage() {
   };
 
   const toggleVisibility = async () => {
-    const newVisibility = !formData.visibility;
-    const newStatus = newVisibility ? 'active' : 'inactive';
+    const newActiveState = !formData.is_active;
     
-    // 1. Update the local editor state immediately for speed
-    setFormData({ ...formData, visibility: newVisibility, status: newStatus });
+    // Update local editor state immediately
+    setFormData({ ...formData, is_active: newActiveState });
 
-    // 2. Prepare the payload for server persistence and auditing
-    const payload = {
-      action: "Toggled Visibility",
-      target: formData.name,
-      details: `Changed visibility to ${newVisibility ? 'ON' : 'OFF'} (Status: ${newStatus})`,
-      endpoint: "POST /api/offers?action=upsertOffer",
-      admin: "Admin Dulsi",
-      isNew: false,
-      offer: { ...formData, visibility: newVisibility, status: newStatus }
-    };
-
-    try {
-      // 3. Send to route.js to save in server memory
-      const response = await fetch('/api/users?action=upsertOffer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        // 4. Refresh the list so the color bar stays updated after navigation
-        const res = await fetch('/api/users?type=offers');
-        const data = await res.json();
-        setOffers(data);
-      }
-    } catch (err) {
-      console.error("Toggle Sync Error:", err);
-    }
+    // If it's an existing offer, you would hit an update endpoint here.
+    // e.g., await api.updateOffer(selectedId, { is_active: newActiveState }, token);
+    // For now, we update local state and let the user click Save.
   };
 
   const validateAndTriggerVerify = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Offer Name is required.";
-    const priceNum = parseFloat(formData.price);
-    if (isNaN(priceNum) || priceNum < 0) newErrors.price = "Valid price required.";
-    if (!formData.stripeId || !formData.stripeId.startsWith('price_')) {
-      newErrors.stripeId = "Must start with 'price_'.";
+    
+    const discount = parseInt(formData.discount_percent);
+    if (isNaN(discount) || discount < 1 || discount > 100) {
+      newErrors.discount_percent = "Valid percentage (1-100) required.";
     }
+    
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     setShowVerifyModal(true); 
   };
 
-  // PERSISTENCE LOGIC: Send to route.js
+  // --- REAL BACKEND SAVE ---
   const confirmFinalSave = async () => {
-    const payload = {
-      action: isAddingNew ? "Created New Offer" : "Updated Offer",
-      target: formData.name,
-      details: `Price: $${formData.price} | Stripe: ${formData.stripeId}`,
-      endpoint: "POST /api/offers?action=upsertOffer",
-      admin: "Admin Dulsi",
-      isNew: isAddingNew,
-      offer: { ...formData, status: formData.visibility ? 'active' : 'inactive' }
-    };
-
     try {
-      const response = await fetch('/api/users?action=upsertOffer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const user = auth.currentUser;
+      const token = await user.getIdToken();
 
-      if (response.ok) {
-        await fetchOffers(); // Sync local state with server memory
-        setShowVerifyModal(false);
-        setIsAddingNew(false);
-        setSelectedId(null);
-        alert("Changes saved and audit logged.");
+      // Match the payload to the Prisma schema
+      const payload = {
+        name: formData.name,
+        discount_percent: parseInt(formData.discount_percent),
+        stripe_coupon_id: formData.stripe_coupon_id,
+        is_active: formData.is_active,
+        features: formData.features
+      };
+
+      if (isAddingNew) {
+        await api.createOffer(payload, token);
+      } else {
+        // Assuming your teammate adds a PUT /api/admin/offers/:id endpoint later
+        alert("Update endpoint needed in backend to modify existing offers!");
+        // await api.updateOffer(selectedId, payload, token); 
       }
-    } catch (err) { console.error(err); }
+
+      await fetchRealOffers(); 
+      setShowVerifyModal(false);
+      setIsAddingNew(false);
+      setSelectedId(null);
+      
+    } catch (err) { 
+      console.error("Save Error:", err); 
+      alert("Failed to save offer. Check console.");
+    }
   };
 
   const filteredOffers = offers.filter(o => 
-    (filterStatus ? o.status === filterStatus : true) && 
+    (filterStatus ? (filterStatus === 'active' ? o.is_active : !o.is_active) : true) && 
     o.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="flex h-[calc(100vh-100px)] gap-6 p-6 bg-white">
+    <div className="flex h-[calc(100vh-100px)] gap-6 p-6 bg-[#F9FAFB]">
+      {/* LEFT COLUMN */}
       <div className="w-1/3 flex flex-col gap-4">
         <h1 className="text-2xl font-bold text-[#111827]" style={{ fontFamily: "Georgia, serif" }}>Moderation</h1>
         <div className="flex gap-2 relative z-20"> 
@@ -158,7 +162,7 @@ export default function OffersPage() {
           </div>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 w-4 h-4 text-[#9CA3AF]" />
-            <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-10 h-10 bg-[#F9FAFB] border border-[#E5E7EB] rounded-lg text-sm" />
+            <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-10 h-10 bg-white border border-[#E5E7EB] rounded-lg text-sm" />
           </div>
         </div>
 
@@ -167,20 +171,21 @@ export default function OffersPage() {
           <div className="flex-1 py-1.5 text-center bg-white text-[#111827] shadow-sm rounded-full">Offers</div>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-3 pr-1 mt-2">
-          <button onClick={handlePlusClick} className="w-10 h-10 bg-[#D1D5DB] rounded-lg flex items-center justify-center text-gray-600 hover:bg-[#1ABC9C] hover:text-white transition-all shadow-sm"><Plus size={20} /></button>
+        <div className="flex-1 overflow-y-auto space-y-3 pr-1 mt-2 custom-scrollbar">
+          <button onClick={handlePlusClick} className="w-full h-12 border-2 border-dashed border-[#1ABC9C] bg-[#E6F8F3] rounded-xl flex items-center justify-center text-[#1ABC9C] font-bold hover:bg-[#1ABC9C] hover:text-white transition-all shadow-sm"><Plus size={20} className="mr-2" /> Create New Offer</button>
           {filteredOffers.map((offer) => (
             <div key={offer.id} onClick={() => handleSelectOffer(offer)} className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedId === offer.id ? "border-[#1ABC9C] bg-white shadow-md ring-1 ring-[#1ABC9C]" : "bg-white border-[#E5E7EB]"}`}>
               <div className="flex justify-between items-start">
                 <h3 className="font-bold text-[#111827] text-sm leading-tight">{offer.name}</h3>
-                <div className={`w-8 h-2.5 rounded-full ${offer.status === 'active' ? 'bg-[#22C55E]' : 'bg-[#EF4444]'}`}></div>
+                <div className={`w-8 h-2.5 rounded-full ${offer.is_active ? 'bg-[#22C55E]' : 'bg-[#EF4444]'}`}></div>
               </div>
-              <p className="text-[13px] font-black text-gray-900 mt-1">${offer.price} / {offer.duration}</p>
+              <p className="text-[13px] font-black text-[#1ABC9C] mt-1">{offer.discount_percent}% OFF</p>
             </div>
           ))}
         </div>
       </div>
 
+      {/* RIGHT COLUMN */}
       <div className="w-2/3 bg-white rounded-2xl shadow-sm border border-[#E5E7EB] flex flex-col overflow-hidden relative">
         {(selectedId || isAddingNew) ? (
           <div className="p-10 flex-1 overflow-y-auto">
@@ -191,11 +196,14 @@ export default function OffersPage() {
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Offer Name:</label>
-                  <input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className={`w-full p-3 border rounded-xl text-sm ${errors.name ? 'border-red-500' : 'border-gray-200'}`} />
+                  <input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Early Bird" className={`w-full p-3 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.name ? 'border-red-500' : 'border-gray-200'}`} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Price (USD):</label>
-                  <input value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className={`w-full p-3 border rounded-xl text-sm ${errors.price ? 'border-red-500' : 'border-gray-200'}`} />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Discount Percentage (%):</label>
+                  <div className="relative">
+                    <input type="number" min="1" max="100" value={formData.discount_percent} onChange={(e) => setFormData({...formData, discount_percent: e.target.value})} placeholder="20" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.discount_percent ? 'border-red-500' : 'border-gray-200'}`} />
+                    <Percent className="absolute left-3 top-3.5 text-gray-400" size={16} />
+                  </div>
                 </div>
               </div>
 
@@ -207,7 +215,7 @@ export default function OffersPage() {
                     <button onClick={() => {const f = [...formData.features, {name: newFeatureName, enabled: true}]; setFormData({...formData, features: f}); setNewFeatureName("");}} className="w-6 h-6 bg-[#1ABC9C] text-white rounded-md flex items-center justify-center"><Plus size={14}/></button>
                   </div>
                 </div>
-                {formData.features.map((f, i) => (
+                {formData.features?.map((f, i) => (
                   <div key={i} className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-gray-50">
                     <span className="text-sm font-semibold text-gray-700">{f.name}</span>
                     <button onClick={() => {const updated = [...formData.features]; updated[i].enabled = !updated[i].enabled; setFormData({...formData, features: updated});}} className={`w-6 h-6 rounded-md flex items-center justify-center ${f.enabled ? 'bg-[#22C55E] text-white' : 'bg-red-50 text-red-500 border border-red-100'}`}>
@@ -218,9 +226,9 @@ export default function OffersPage() {
               </div>
 
               <div className="pt-4 border-t border-gray-100">
-                <label className="text-[10px] font-bold text-gray-400 uppercase">Stripe Price ID:</label>
-                <input value={formData.stripeId} onChange={(e) => setFormData({...formData, stripeId: e.target.value})} placeholder="e.g. price_H5k2..." className={`w-full p-3 border rounded-xl text-sm ${errors.stripeId ? 'border-red-500' : 'border-gray-200'}`} />
-                <p className="text-[9px] text-gray-400 mt-1 italic">*Must begin with <b>'price_'</b> to link with Stripe.</p>
+                <label className="text-[10px] font-bold text-gray-400 uppercase">Stripe Coupon ID:</label>
+                <input value={formData.stripe_coupon_id} onChange={(e) => setFormData({...formData, stripe_coupon_id: e.target.value})} placeholder="e.g. SUMMER_20 (Leave blank to auto-generate)" className="w-full p-3 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] border-gray-200" />
+                <p className="text-[9px] text-gray-400 mt-1 italic">*This is the code users will enter, or Stripe will use via API.</p>
               </div>
 
               <div className="flex items-center justify-between pt-6">
@@ -231,7 +239,7 @@ export default function OffersPage() {
                 <div className="flex items-center gap-4">
                    <span className="text-xl font-black text-[#111827]">Visibility</span>
                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" checked={formData.visibility} onChange={toggleVisibility} />
+                      <input type="checkbox" className="sr-only peer" checked={formData.is_active} onChange={toggleVisibility} />
                       <div className="w-14 h-7 bg-gray-300 rounded-full peer peer-checked:bg-[#1ABC9C] after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-7 shadow-inner"></div>
                    </label>
                 </div>
@@ -240,23 +248,24 @@ export default function OffersPage() {
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-[#9CA3AF] select-none">
-            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100">
                <MousePointer2 size={32} className="text-gray-300" />
             </div>
             <h3 className="text-lg font-semibold text-gray-700">No Offer Selected</h3>
+            <p className="text-sm mt-2">Click an offer on the left to edit, or create a new one.</p>
           </div>
         )}
       </div>
 
       {showVerifyModal && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white p-8 rounded-[40px] shadow-2xl max-w-sm w-full text-center">
-            <AlertCircle size={32} className="text-yellow-500 mx-auto mb-4" />
+            <AlertCircle size={32} className="text-[#1ABC9C] mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Verify Changes</h2>
-            <p className="text-sm text-gray-500 mb-6">Updating <b>{formData.name}</b> to <span className="text-green-600 font-bold">${formData.price}</span>. Action is logged for audit.</p>
+            <p className="text-sm text-gray-500 mb-6">Updating <b>{formData.name}</b> to a <span className="text-[#1ABC9C] font-bold">{formData.discount_percent}%</span> discount.</p>
             <div className="flex gap-4">
-              <button onClick={() => setShowVerifyModal(false)} className="flex-1 font-bold text-gray-400">Back</button>
-              <button onClick={confirmFinalSave} className="flex-1 bg-[#114A3F] text-white rounded-2xl py-3 font-bold">Confirm</button>
+              <button onClick={() => setShowVerifyModal(false)} className="flex-1 font-bold text-gray-400 hover:text-gray-600 transition-colors">Back</button>
+              <button onClick={confirmFinalSave} className="flex-1 bg-[#114A3F] hover:bg-[#0a2e27] text-white rounded-2xl py-3 font-bold transition-colors">Confirm</button>
             </div>
           </div>
         </div>
