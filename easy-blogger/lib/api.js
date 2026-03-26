@@ -79,5 +79,11 @@ export const api = {
   getAdminDashboard: (token) => 
     fetchAPI("/api/admin/dashboard", { token }),
 
+  getOffers: (token) => 
+    fetchAPI("/api/admin/offers", { token }),
+
+  createOffer: (data, token) => 
+    fetchAPI("/api/admin/offers", { method: "POST", body: data, token }),
+  
   // Add more as needed...
 };
