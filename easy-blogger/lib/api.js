@@ -84,6 +84,9 @@ export const api = {
 
   createOffer: (data, token) => 
     fetchAPI("/api/admin/offers", { method: "POST", body: data, token }),
-  
+
+  updateOffer: (id, data, token) =>  
+    fetchAPI(`/api/admin/offers/${id}`, { method: "PUT", body: data, token }),
+
   // Add more as needed...
 };

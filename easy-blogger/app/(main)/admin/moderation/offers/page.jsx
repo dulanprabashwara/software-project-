@@ -120,9 +120,7 @@ export default function OffersPage() {
       if (isAddingNew) {
         await api.createOffer(payload, token);
       } else {
-        // Assuming your teammate adds a PUT /api/admin/offers/:id endpoint later
-        alert("Update endpoint needed in backend to modify existing offers!");
-        // await api.updateOffer(selectedId, payload, token); 
+       await api.updateOffer(selectedId, payload, token);
       }
 
       await fetchRealOffers(); 
