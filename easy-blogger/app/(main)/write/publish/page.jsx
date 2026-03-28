@@ -611,11 +611,24 @@ export default function PublishArticlePage() {
             Back
           </button>
           <button
+            onClick={() => {
+              const publishData = {
+                title: articleTitle,
+                tags,
+                platforms: getSelectedPlatforms(),
+                timing,
+                scheduledDate,
+                scheduledTime,
+                linkedinCaption,
+              };
+              sessionStorage.setItem("published_article_data", JSON.stringify(publishData));
+              router.push("/write/articlepublished");
+            }}
             disabled={timing === "schedule" && isPastDateTime()}
             className={`px-8 py-3 rounded-full text-white transition ${
-            timing === "schedule" && isPastDateTime()
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-emerald-500 hover:bg-emerald-600"
+              timing === "schedule" && isPastDateTime()
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-emerald-500 hover:bg-emerald-600"
             }`}
           >
             {timing === "schedule" ? "Schedule post" : "Publish now"}
