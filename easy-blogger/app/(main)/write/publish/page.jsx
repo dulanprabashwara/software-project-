@@ -52,6 +52,8 @@ function Radio({ checked }) {
 export default function PublishArticlePage() {
   
   const router = useRouter();
+  const [articleTitle, setArticleTitle] = useState("");
+
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState(["Technology", "Design", "Blogging"]);
   const MAX_TAGS = 5;
@@ -215,6 +217,14 @@ export default function PublishArticlePage() {
 
     return () => clearInterval(id);
   }, [timing]);
+
+  // Reads the title that came from preview
+  useEffect(() => {
+    const storedTitle = sessionStorage.getItem("publish_article_title");
+    if (storedTitle) {
+      setArticleTitle(storedTitle);
+    }
+  }, []);
 
   const isPastDateTime = () => {
     if (!scheduledDate || !scheduledTime) return false;
