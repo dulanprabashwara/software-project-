@@ -143,7 +143,10 @@ return (
             </div>
 
             <div className="space-y-5 bg-[#f7f8f8] p-8">
-                <div className="rounded-3xl border border-gray-200 bg-white px-5 py-5 shadow-md">
+                <motion.div 
+                    variants={itemVariants}
+                    className="rounded-3xl border border-gray-200 bg-white px-5 py-5 shadow-md"
+                >
                     <div className="flex items-start gap-4">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
                             <BookOpen size={20} />
@@ -153,9 +156,12 @@ return (
                             <p className="mt-1 text-2xl text-gray-700">{title}</p>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
-                <div className="rounded-3xl border border-gray-200 bg-white px-5 py-5 shadow-md">
+                <motion.div 
+                    variants={itemVariants}
+                    className="rounded-3xl border border-gray-200 bg-white px-5 py-5 shadow-md"
+                >
                     <div className="flex items-start gap-4">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
                             <Tag size={20} />
@@ -174,9 +180,12 @@ return (
                             </div>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
-                <div className="rounded-3xl border border-gray-200 bg-white px-5 py-5 shadow-md">
+                <motion.div 
+                    variants={itemVariants}
+                    className="rounded-3xl border border-gray-200 bg-white px-5 py-5 shadow-md"
+                >
                     <div className="flex items-start gap-4">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
                             <Share2 size={20} />
@@ -190,14 +199,17 @@ return (
                             </div>
                         </div>
                      </div>
-                </div>
+                </motion.div>
 
-                <button
+                <motion.button
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => router.push("/home")}
                     className="w-full rounded-3xl bg-[#21c4a7] py-4 text-xl font-semibold text-white shadow-md hover:bg-[#1ab89d]"
                 >
                     View Your Article →
-                </button>
+                </motion.button>
             </div>
         </motion.div>
     </motion.div>
