@@ -112,20 +112,34 @@ return (
                     <X size={18} />
                 </button>
 
-                <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border-2 border-white/60 text-white">
+                <motion.div
+                    variants={checkVariants}
+                    className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border-2 border-white/60 text-white"
+                > 
                     <Check size={40} />
-                </div>
+                </motion.div>
 
-                <h1 className="font-serif text-5xl text-white">Article Published</h1>
+                <motion.h1
+                    variants={itemVariants}
+                    className="font-serif text-5xl text-white"
+                >
+                    Article Published
+                </motion.h1>
 
-                <p className="mt-4 text-lg text-[#17352f]">
+                <motion.p
+                    variants={itemVariants}
+                    className="mt-4 text-lg text-[#17352f]"
+                >
                     Your article is now live and reaching readers
-                </p>
+                </motion.p>
 
-                <div className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-2 text-sm font-semibold text-white">
+                <motion.div
+                    variants={itemVariants}
+                    className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-2 text-sm font-semibold text-white"
+                >
                     <CalendarDays size={16} />
                     {formatPublishDate()}
-                </div>
+                </motion.div>
             </div>
 
             <div className="space-y-5 bg-[#f7f8f8] p-8">
