@@ -5,6 +5,49 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { BookOpen, Tag, Share2, CalendarDays, X, Check } from "lucide-react";
 
+function FloatingConfetti() {
+  const COUNT = 25; // 🔥 increase for more confetti
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
+      {Array.from({ length: COUNT }).map((_, index) => {
+        const left = Math.random() * 100;
+        const delay = Math.random() * 2;
+        const duration = 6 + Math.random() * 3;
+        const sizeOptions = ["text-3xl", "text-4xl", "text-5xl"];
+        const size = sizeOptions[Math.floor(Math.random() * sizeOptions.length)];
+
+        return (
+          <motion.div
+            key={index}
+            initial={{
+              y: -100,
+              opacity: 0,
+              rotate: Math.random() * 60 - 30,
+            }}
+            animate={{
+              y: ["-10vh", "110vh"],
+              x: [0, 20, -20, 10, -10],
+              opacity: [0, 1, 1, 0],
+              rotate: [-30, 30, -15, 10],
+            }}
+            transition={{
+              duration,
+              delay,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+            className={`absolute ${size}`}
+            style={{ left: `${left}%` }}
+          >
+            🎉
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ArticlePublishedPage() {
     const router = useRouter();
     const [publishedData, setPublishedData] = useState(null);
@@ -98,6 +141,7 @@ return (
         transition={{ duration: 0.35 }}
         className="min-h-screen bg-gradient-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6 overflow-hidden"
     >
+        <FloatingConfetti />
         <motion.div
             variants={containerVariants}
             initial="hidden"
