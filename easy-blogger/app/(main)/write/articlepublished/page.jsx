@@ -6,54 +6,94 @@ import { motion } from "framer-motion";
 import { BookOpen, Tag, Share2, CalendarDays, X, Check } from "lucide-react";
 
 export default function ArticlePublishedPage() {
-  const router = useRouter();
-  const [publishedData, setPublishedData] = useState(null);
+    const router = useRouter();
+    const [publishedData, setPublishedData] = useState(null);
 
-  useEffect(() => {
-    const raw = sessionStorage.getItem("published_article_data");
+    useEffect(() => {
+        const raw = sessionStorage.getItem("published_article_data");
 
-    if (!raw) {
-      router.replace("/write/publish");
-      return;
-    }
+        if (!raw) {
+            router.replace("/write/publish");
+            return;
+        }
 
-    try {
-      const parsed = JSON.parse(raw);
-      setPublishedData(parsed);
-    } catch {
-      router.replace("/write/publish");
-    }
-  }, [router]);
+        try {
+            const parsed = JSON.parse(raw);
+            setPublishedData(parsed);
+        } catch {
+            router.replace("/write/publish");
+        }
+    }, [router]);
 
-  if (!publishedData) return null;
+    if (!publishedData) return null;
 
-  const { title, tags, platforms, timing, scheduledDate, scheduledTime } = publishedData;
+    const { title, tags, platforms, timing, scheduledDate, scheduledTime } = publishedData;
 
-  const formatPublishDate = () => {
-    if (timing === "now") {
-      return new Date().toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      });
-    }
+    const formatPublishDate = () => {
+        if (timing === "now") {
+            return new Date().toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+            });
+        }
 
-    if (scheduledDate && scheduledTime) {
-      const date = new Date(`${scheduledDate}T${scheduledTime}`);
-      return date.toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      });
-    }
+        if (scheduledDate && scheduledTime) {
+            const date = new Date(`${scheduledDate}T${scheduledTime}`);
+            return date.toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+            });
+        }
+        return "";
+    };
+    const containerVariants = {
 
-    return "";
-  };
+        hidden: { opacity: 0, y: 24, scale: 0.96 },
+        visible: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+            duration: 0.5,
+            ease: [0.22, 1, 0.36, 1],
+            when: "beforeChildren",
+            staggerChildren: 0.12,
+        },
+        },
+    };
 
-  return (
+    const itemVariants = {
+        hidden: { opacity: 0, y: 18 },
+        visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: 0.4,
+            ease: [0.22, 1, 0.36, 1],
+        },
+        },
+    };
+
+    const checkVariants = {
+        hidden: { opacity: 0, scale: 0.6 },
+        visible: {
+        opacity: 1,
+        scale: [0.6, 1.12, 1],
+        transition: {
+            duration: 0.7,
+            ease: [0.34, 1.56, 0.64, 1],
+        },
+        },
+    };
+
+
+return (
     <div className="min-h-screen bg-gradient-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6">
+
       <div className="w-full max-w-[570px] overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-xl">
         <div className="relative bg-gradient-to-br from-[#21c4a7] to-[#18af98] px-8 py-10 text-center">
           <button
