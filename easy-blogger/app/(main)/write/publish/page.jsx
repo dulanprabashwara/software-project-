@@ -66,7 +66,8 @@ export default function PublishArticlePage() {
   const [shareLinkedIn, setShareLinkedIn] = useState(true);
   const [shareWordPress, setShareWordPress] = useState(true);
   const [shareText, setShareText] = useState("");
-  const [showShareText, setShowShareText] = useState(false);  
+  const [showShareText, setShowShareText] = useState(false);
+  const [linkedinCaption, setLinkedinCaption] = useState("");  
 
   const addTag = (raw) => {
     const t = raw.trim();
@@ -538,6 +539,43 @@ export default function PublishArticlePage() {
 
         </Section>
 
+        <div className="flex justify-center">
+          <div className="w-[90%] border-t border-gray-400" />
+        </div>
+
+        <Section title="LinkedIn Caption (Optional)">
+          <div className="space-y-3">
+    
+            {/* Show only if LinkedIn sharing is ON */}
+              {shareLinkedIn && (
+                <>
+                <input
+                  type="text"
+                  value={linkedinCaption}
+                  onChange={(e) => setLinkedinCaption(e.target.value)}
+                  placeholder="Write a caption for LinkedIn..."
+                  className="w-full h-11 rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
+                />
+
+                <div className="flex items-center gap-6 text-sm">
+                  <button className="text-gray-600 hover:text-gray-900">
+                    Change account
+                  </button>
+
+                  <button className="text-red-500 hover:text-red-600">
+                    Disconnect
+                  </button>
+                </div>
+                </>
+              )}
+
+              {!shareLinkedIn && (
+                <p className="text-sm text-gray-400">
+                  Enable LinkedIn sharing to add a caption.
+                </p>
+              )}
+          </div>
+        </Section>
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
