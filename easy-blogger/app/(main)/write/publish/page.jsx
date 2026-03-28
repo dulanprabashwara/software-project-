@@ -1,7 +1,9 @@
+//article publish page
 "use client";
 
 import { useState } from "react";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Calendar, Clock} from "lucide-react";
 import Image from "next/image";
 
@@ -49,6 +51,7 @@ function Radio({ checked }) {
 
 export default function PublishArticlePage() {
   
+  const router = useRouter();
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState(["Technology", "Design", "Blogging"]);
   const MAX_TAGS = 5;
@@ -581,7 +584,12 @@ export default function PublishArticlePage() {
         </div>
         
         <div className="p-8 flex items-center justify-center gap-40">
-          <button className="px-8 py-3 rounded-full bg-black text-white">Back</button>
+          <button
+            onClick={() => router.push("/write/preview")}
+            className="px-8 py-3 rounded-full bg-black text-white"
+          >
+            Back
+          </button>
           <button
             disabled={timing === "schedule" && isPastDateTime()}
             className={`px-8 py-3 rounded-full text-white transition ${
