@@ -104,7 +104,10 @@ export default function Page() {
             <div className="text-center">
               <p className="mb-2 italic text-[#6B7280]">Publish Now ?</p>
               <button
-                onClick={() => router.push("/write/publish")}
+                onClick={() => {
+                  sessionStorage.setItem("publish_article_title", article.title || "");
+                  router.push("/write/publish")
+                }}
                 className="rounded-full bg-[#1ABC9C] px-8 py-2 text-white"
               >
                 Publish
