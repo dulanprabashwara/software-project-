@@ -235,6 +235,16 @@ export default function PublishArticlePage() {
     return selected < now;
   };
 
+  // Determine the platforms where the article will be published based on user selections
+  const getSelectedPlatforms = () => {
+    const platforms = ["Easy Blogger"];
+
+    if (shareLinkedIn) platforms.push("LinkedIn");
+    if (shareWordPress) platforms.push("WordPress");
+
+    return platforms;
+  } ;
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
