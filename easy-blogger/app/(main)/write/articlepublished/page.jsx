@@ -4,6 +4,44 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { BookOpen, Tag, Share2, CalendarDays, X, Check } from "lucide-react";
+import Image from "next/image";
+
+const PLATFORM_CONFIG = {
+
+    "Easy Blogger": {
+        label: "Easy Blogger",
+        iconSrc: "/icons/logo.jpeg",
+        iconAlt: "Easy Blogger",
+    },
+    LinkedIn: {
+        label: "LinkedIn",
+        iconSrc: "/icons/linkedin.png",
+        iconAlt: "LinkedIn",
+    },
+    WordPress: {
+        label: "WordPress",
+        iconSrc: "/icons/wordpress.png",
+        iconAlt: "WordPress",
+    },
+};
+
+function PlatformItem({ platform }) {
+  const config = PLATFORM_CONFIG[platform];
+
+  if (!config) return null;
+
+  return (
+    <div className="flex items-center gap-2">
+      <Image
+        src={config.iconSrc}
+        alt={config.iconAlt}
+        width={22}
+        height={22}
+      />
+      <span>{config.label}</span>
+    </div>
+  );
+}
 
 function FloatingConfetti() {
   const COUNT = 25; // 🔥 increase for more confetti
@@ -133,7 +171,7 @@ export default function ArticlePublishedPage() {
         },
     };
 
-
+    
 return (
     <motion.div
         initial={{ opacity: 0 }}
@@ -238,8 +276,9 @@ return (
                             <p className="text-sm text-gray-500">Published to</p>
                             <div className="mt-3 flex flex-wrap items-center gap-5 text-lg text-gray-600">
                                 {platforms?.map((platform) => (
-                                <span key={platform}>{platform}</span>
-                                    ))}
+                                <PlatformItem key={platform} platform={platform} />
+                                ))}
+
                             </div>
                         </div>
                      </div>
