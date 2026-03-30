@@ -88,5 +88,20 @@ export const api = {
   updateOffer: (id, data, token) =>  
     fetchAPI(`/api/admin/offers/${id}`, { method: "PUT", body: data, token }),
 
+  getScrapingSources: (token) => 
+    fetchAPI("/api/admin/scraping-sources", { token }),
+
+  createScrapingSource: (data, token) => 
+    fetchAPI("/api/admin/scraping-sources", { method: "POST", body: data, token }),
+  
+  validateUrl: (data, token) => 
+    fetchAPI("/api/admin/validate-url", { method: "POST", body: data, token }),
+
+  updateScrapingSource: (id, data, token) => 
+    fetchAPI(`/api/admin/scraping-sources/${id}`, { method: "PUT", body: data, token }),
+
+  deleteScrapingSource: (id, token) => 
+    fetchAPI(`/api/admin/scraping-sources/${id}`, { method: "DELETE", token }),
+
   // Add more as needed...
 };

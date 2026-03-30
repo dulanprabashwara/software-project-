@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react";
 import { Plus, Trash2, CheckCircle2, XCircle, X, Check, Edit2, Loader2 } from "lucide-react";
 
+import { auth } from "../../../../lib/firebase"; 
+import { api } from "../../../../lib/api";
+
 export default function AdminAIConfig() {
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,66 +17,91 @@ export default function AdminAIConfig() {
     name: "",
     url: "",
     category: "Technology",
-    frequency: "Standard",
+    scrapeWindow: "Last 7 Days",
     minWordCount: 300,
     excludedKeywords: [],
     currentKeywordInput: ""
   });
 
-  // --- MOCK API FETCHING ---
-  const fetchSources = () => {
-    fetch('/api/users?type=scrapingSources')
-      .then(res => res.json())
-      .then(data => {
-        setSources(data);
-        setLoading(false);
-      });
+  // --- REAL BACKEND FETCH ---
+  const fetchRealSources = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+      const token = await user.getIdToken();
+
+      const response = await api.getScrapingSources(token);
+      const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+      
+      setSources(data);
+    } catch (error) {
+      console.error("Failed to fetch sources:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchSources();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        fetchRealSources();
+      } else {
+        setLoading(false);
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
-  // --- URL VALIDATION: Real-World Link Check ---
+ // --- REAL URL VALIDATION ---
   const handleUrlChange = async (e) => {
     const val = e.target.value;
     setModalData({ ...modalData, url: val });
   
-  // Basic format check first to avoid unnecessary API calls
-  const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+    //If empty, reset the icon
+    if (!val) {
+      setUrlStatus("idle");
+      return;
+    }
   
-  if (!urlPattern.test(val)) {
-    setUrlStatus("invalid");
-    return;
-  }
-  
-  setUrlStatus("validating");
-
-  try {
-    // We ask our backend to check if the site actually exists
-    const res = await fetch(`/api/users?type=validateUrl&url=${encodeURIComponent(val)}`);
-    const data = await res.json();
-    
-    if (data.valid) {
-      setUrlStatus("valid");
-    } else {
+    // Basic format check (Fail Fast to save backend calls)
+    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+    if (!urlPattern.test(val)) {
       setUrlStatus("invalid");
+      return;
+    }
+  
+    //Show the spinner and ask the backend to ping it
+    setUrlStatus("validating"); 
+  
+    try {
+      const user = auth.currentUser;
+      const token = await user?.getIdToken();
+      
+      // Call new backend route
+      const response = await api.validateUrl({ url: val }, token);
+      
+      // If the backend successfully reached the website
+      if (response.data?.valid) {
+        setUrlStatus("valid");
+      } else {
+        setUrlStatus("invalid");
       }
     } catch (err) {
-    setUrlStatus("invalid");
+      console.error("Validation error:", err);
+      setUrlStatus("invalid");
     }
   };
 
   // --- MODAL CONTROLS ---
   const handleOpenNew = () => {
-    setModalData({ id: null, name: "", url: "", category: "Technology", frequency: "Standard", minWordCount: 300, excludedKeywords: [], currentKeywordInput: "" });
+    setModalData({ id: null, name: "", url: "", category: "Technology", scrapeWindow: "Last 7 Days", minWordCount: 300, excludedKeywords: [], currentKeywordInput: "" });
     setUrlStatus("idle");
     setIsModalOpen(true);
   };
 
   const handleEdit = (source) => {
     setModalData({ ...source, currentKeywordInput: "" });
-    setUrlStatus("valid"); // Assume existing URLs in DB are valid
+    setUrlStatus("valid"); 
     setIsModalOpen(true);
   };
 
@@ -97,57 +125,72 @@ export default function AdminAIConfig() {
   };
 
   // --- CRUD OPERATIONS ---
-  const handleSaveSource = async () => {
+const handleSaveSource = async () => {
     if (urlStatus === "invalid") {
       alert("Please enter a valid working URL before saving.");
       return;
     }
 
-    const payload = {
-      action: modalData.id ? "editSource" : "addSource",
-      source: { ...modalData, status: modalData.id ? modalData.status : "active" }
-    };
+    try {
+      const user = auth.currentUser;
+      const token = await user.getIdToken();
 
-    await fetch('/api/users?action=' + payload.action, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+      const payload = {
+        name: modalData.name,
+        url: modalData.url,
+        category: modalData.category,
+        scrapeWindow: modalData.scrapeWindow,
+        minWordCount: parseInt(modalData.minWordCount),
+        excludedKeywords: modalData.excludedKeywords,
+        status: modalData.id ? modalData.status : "active"
+      };
 
-    setIsModalOpen(false);
-    fetchSources();
+      if (modalData.id) {
+        // UPDATE EXISTING
+        await api.updateScrapingSource(modalData.id, payload, token);
+      } else {
+        // CREATE NEW
+        await api.createScrapingSource(payload, token);
+      }
+
+      setIsModalOpen(false);
+      await fetchRealSources(); // Refresh the table
+
+    } catch (error) {
+      console.error("Failed to save source:", error);
+      alert("Failed to save. Check the console.");
+    }
   };
 
   const handleDelete = async (id) => {
     if(window.confirm("Remove this scraping source? It will stop fetching new topics.")) {
-      await fetch('/api/users?action=deleteSource', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      });
-      fetchSources();
+      try {
+        const user = auth.currentUser;
+        const token = await user.getIdToken();
+        
+        await api.deleteScrapingSource(id, token);
+        await fetchRealSources(); // Refresh the table
+      } catch (error) {
+        console.error("Failed to delete", error);
+      }
     }
   };
 
   const handleToggleStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    // Optimistic UI update
+    
+    // Optimistic UI update so it feels instant
     setSources(sources.map(s => s.id === id ? { ...s, status: newStatus } : s));
     
-    await fetch('/api/users?action=toggleSourceStatus', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status: newStatus })
-    });
-  };
-
-  // Helper for UI Subtexts
-  const getFrequencySubtext = (freq) => {
-    switch(freq) {
-      case "Real-time": return "Every Hour";
-      case "Standard": return "Every 6 Hours";
-      case "Daily": return "Every 24 Hours";
-      default: return "Every 7 Days";
+    try {
+      const user = auth.currentUser;
+      const token = await user.getIdToken();
+      
+      await api.updateScrapingSource(id, { status: newStatus }, token);
+    } catch (error) {
+      console.error("Failed to toggle status", error);
+      // Revert if it fails
+      setSources(sources.map(s => s.id === id ? { ...s, status: currentStatus } : s));
     }
   };
 
@@ -219,16 +262,19 @@ export default function AdminAIConfig() {
                 </select>
               </div>
 
+              {/* Scrape Window replaces Frequency */}
               <div className="flex items-center">
-                <label className="w-2/3 text-gray-600 text-lg">How often should we check for updates?</label>
+                <label className="w-2/3 text-gray-600 text-lg">Article Age Limit (Only scrape articles published within):</label>
                 <select 
                   className="w-1/3 bg-transparent border-none font-bold text-gray-800 outline-none cursor-pointer text-right"
-                  value={modalData.frequency} onChange={e => setModalData({...modalData, frequency: e.target.value})}
+                  value={modalData.scrapeWindow} onChange={e => setModalData({...modalData, scrapeWindow: e.target.value})}
                 >
-                  <option value="Real-time">Real-time</option>
-                  <option value="Standard">Standard</option>
-                  <option value="Daily">Daily</option>
-                  <option value="Weekly">Weekly</option>
+                  <option value="Last 24 Hours">Last 24 Hours</option>
+                  <option value="Last 7 Days">Last 7 Days</option>
+                  <option value="Last 30 Days">Last 30 Days</option>
+                  <option value="3 months">3 months</option>
+                  <option value="6 months">6 months</option>
+                  <option value="1 year">1 year</option>
                 </select>
               </div>
 
@@ -282,7 +328,7 @@ export default function AdminAIConfig() {
             <tr className="border-b border-gray-800 text-sm font-serif text-gray-800 bg-gray-50">
               <th className="p-5 font-medium">Source</th>
               <th className="p-5 font-medium text-center">Category</th>
-              <th className="p-5 font-medium text-center">Frequency</th>
+              <th className="p-5 font-medium text-center">Article Age Limit</th>
               <th className="p-5 font-medium text-center">Safety Rules</th>
               <th className="p-5 font-medium text-center">Status</th>
               <th className="p-5 font-medium text-center">Actions</th>
@@ -291,7 +337,9 @@ export default function AdminAIConfig() {
           <tbody className="divide-y divide-gray-300">
             {loading ? (
               <tr><td colSpan="6" className="p-8 text-center text-gray-500">Loading sources...</td></tr>
-            ) : (
+            ) : sources.length === 0 ? (
+              <tr><td colSpan="6" className="p-8 text-center text-gray-500 font-bold">No sources added yet.</td></tr>
+            ): (
               sources.map((source) => (
                 <tr key={source.id} className="hover:bg-gray-50">
                   {/* Name and URL */}
@@ -304,20 +352,21 @@ export default function AdminAIConfig() {
                   <td className="p-5 text-center">
                     <span className="inline-block bg-[#E6F8F3] text-[#1ABC9C] px-4 py-1.5 rounded-full text-xs font-bold tracking-wide">
                       <Check size={12} className="inline mr-1 -mt-0.5" strokeWidth={3}/> 
-                      {source.category || 'active'}
+                      {source.category}
                     </span>
                   </td>
 
-                  {/* Frequency */}
+                  {/* Article age limit */}
                   <td className="p-5 text-center">
-                    <p className="font-bold text-gray-900 text-sm">{source.frequency}</p>
-                    <p className="text-xs text-gray-500 underline decoration-gray-300 underline-offset-2">{getFrequencySubtext(source.frequency)}</p>
+                    <span className="font-bold text-gray-900 text-sm bg-gray-100 px-3 py-1 rounded-lg">
+                      {source.scrapeWindow}
+                    </span>
                   </td>
 
                   {/* Safety Rules */}
                   <td className="p-5 text-center text-xs text-gray-600">
-                    <p>Min: {source.minWordCount} words</p>
-                    <p>Block: {source.excludedKeywords?.length || 0} keywords</p>
+                    <p className="font-semibold text-gray-800">Min: <span className="text-[#1ABC9C]">{source.minWordCount}</span> words</p>
+                    <p className="font-semibold text-gray-800 mt-1">Block: <span className="text-red-500">{source.excludedKeywords?.length || 0}</span> keywords</p>
                   </td>
 
                   {/* Status Toggle */}
