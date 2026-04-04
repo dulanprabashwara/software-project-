@@ -1,305 +1,79 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../../components/layout/Header";
 import Sidebar from "../../../components/layout/Sidebar";
-import { ArrowLeft, CreditCard, Lock, Check } from "lucide-react";
+import { ArrowLeft, Loader2, Lock, Check, Zap, Tag } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { api } from "../../../lib/api";
 
 /**
- * Upgrade to Premium Confirmation Page
- *
- * Purpose: Payment form for upgrading to Premium
- * Features: Account info, payment details, plan summary
+ * Upgrade to Premium Page
+ * Redirects user to Stripe Hosted Checkout
  */
-
 export default function UpgradeToPremiumPage() {
   const router = useRouter();
+  const { user, userProfile } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [cardholderName, setCardholderName] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [cvc, setCvc] = useState("");
-  const [billingCountry, setBillingCountry] = useState("United States");
-  const [promoCode, setPromoCode] = useState("");
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [offers, setOffers] = useState([]);
+  const [selectedOffer, setSelectedOffer] = useState(null);
+  const [offersLoading, setOffersLoading] = useState(true);
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+  const MONTHLY_PRICE = 9.99;
 
-  const handleBackToPlans = () => {
-    router.push("/subscription/upgrade");
-  };
+  useEffect(() => {
+    fetchOffers();
+  }, []);
 
-  // Format card number with spaces (XXXX XXXX XXXX XXXX)
-  const handleCardNumberChange = (e) => {
-    const value = e.target.value.replace(/\s/g, "");
-    const numericValue = value.replace(/\D/g, "");
-    if (numericValue.length <= 16) {
-      const formatted =
-        numericValue.match(/.{1,4}/g)?.join(" ") || numericValue;
-      setCardNumber(formatted);
+  const fetchOffers = async () => {
+    try {
+      const res = await api.getActiveOffers();
+      const data = res.data || res;
+      setOffers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch offers:", err);
+    } finally {
+      setOffersLoading(false);
     }
   };
 
-  // Format expiry date (MM/YY)
-  const handleExpiryChange = (e) => {
-    const value = e.target.value.replace(/\D/g, "");
-    if (value.length <= 4) {
-      if (value.length >= 2) {
-        setExpiryDate(value.slice(0, 2) + " / " + value.slice(2));
+  const handleCheckout = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = await user.getIdToken();
+      const res = await api.createCheckoutSession(
+        selectedOffer?.id || null,
+        token
+      );
+      const data = res.data || res;
+
+      if (data.url) {
+        window.location.href = data.url;
       } else {
-        setExpiryDate(value);
+        alert("Failed to create checkout session.");
+        setLoading(false);
       }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      alert(err.message || "Something went wrong. Please try again.");
+      setLoading(false);
     }
   };
 
-  // Format CVC (3 digits only)
-  const handleCvcChange = (e) => {
-    const value = e.target.value.replace(/\D/g, "");
-    if (value.length <= 3) {
-      setCvc(value);
-    }
-  };
-
-  // Cardholder name (letters and spaces only)
-  const handleNameChange = (e) => {
-    const value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
-    setCardholderName(value);
-  };
-
-  const handleConfirmPayment = () => {
-    if (!agreeToTerms) {
-      alert("Please agree to the Terms of Service and Privacy Policy");
-      return;
-    }
-    if (!cardholderName || !cardNumber || !expiryDate || !cvc) {
-      alert("Please fill in all payment details");
-      return;
-    }
-    if (cardNumber.replace(/\s/g, "").length !== 16) {
-      alert("Please enter a valid 16-digit card number");
-      return;
-    }
-    if (cvc.length !== 3) {
-      alert("Please enter a valid 3-digit CVC");
-      return;
-    }
-    // Process payment
-    alert("Payment processing... (Demo)");
-  };
-
-  // Comprehensive country list
-  const countries = [
-    "Afghanistan",
-    "Albania",
-    "Algeria",
-    "Andorra",
-    "Angola",
-    "Antigua and Barbuda",
-    "Argentina",
-    "Armenia",
-    "Australia",
-    "Austria",
-    "Azerbaijan",
-    "Bahamas",
-    "Bahrain",
-    "Bangladesh",
-    "Barbados",
-    "Belarus",
-    "Belgium",
-    "Belize",
-    "Benin",
-    "Bhutan",
-    "Bolivia",
-    "Bosnia and Herzegovina",
-    "Botswana",
-    "Brazil",
-    "Brunei",
-    "Bulgaria",
-    "Burkina Faso",
-    "Burundi",
-    "Cabo Verde",
-    "Cambodia",
-    "Cameroon",
-    "Canada",
-    "Central African Republic",
-    "Chad",
-    "Chile",
-    "China",
-    "Colombia",
-    "Comoros",
-    "Congo",
-    "Costa Rica",
-    "Croatia",
-    "Cuba",
-    "Cyprus",
-    "Czech Republic",
-    "Denmark",
-    "Djibouti",
-    "Dominica",
-    "Dominican Republic",
-    "Ecuador",
-    "Egypt",
-    "El Salvador",
-    "Equatorial Guinea",
-    "Eritrea",
-    "Estonia",
-    "Eswatini",
-    "Ethiopia",
-    "Fiji",
-    "Finland",
-    "France",
-    "Gabon",
-    "Gambia",
-    "Georgia",
-    "Germany",
-    "Ghana",
-    "Greece",
-    "Grenada",
-    "Guatemala",
-    "Guinea",
-    "Guinea-Bissau",
-    "Guyana",
-    "Haiti",
-    "Honduras",
-    "Hungary",
-    "Iceland",
-    "India",
-    "Indonesia",
-    "Iran",
-    "Iraq",
-    "Ireland",
-    "Israel",
-    "Italy",
-    "Jamaica",
-    "Japan",
-    "Jordan",
-    "Kazakhstan",
-    "Kenya",
-    "Kiribati",
-    "Kosovo",
-    "Kuwait",
-    "Kyrgyzstan",
-    "Laos",
-    "Latvia",
-    "Lebanon",
-    "Lesotho",
-    "Liberia",
-    "Libya",
-    "Liechtenstein",
-    "Lithuania",
-    "Luxembourg",
-    "Madagascar",
-    "Malawi",
-    "Malaysia",
-    "Maldives",
-    "Mali",
-    "Malta",
-    "Marshall Islands",
-    "Mauritania",
-    "Mauritius",
-    "Mexico",
-    "Micronesia",
-    "Moldova",
-    "Monaco",
-    "Mongolia",
-    "Montenegro",
-    "Morocco",
-    "Mozambique",
-    "Myanmar",
-    "Namibia",
-    "Nauru",
-    "Nepal",
-    "Netherlands",
-    "New Zealand",
-    "Nicaragua",
-    "Niger",
-    "Nigeria",
-    "North Korea",
-    "North Macedonia",
-    "Norway",
-    "Oman",
-    "Pakistan",
-    "Palau",
-    "Palestine",
-    "Panama",
-    "Papua New Guinea",
-    "Paraguay",
-    "Peru",
-    "Philippines",
-    "Poland",
-    "Portugal",
-    "Qatar",
-    "Romania",
-    "Russia",
-    "Rwanda",
-    "Saint Kitts and Nevis",
-    "Saint Lucia",
-    "Saint Vincent and the Grenadines",
-    "Samoa",
-    "San Marino",
-    "Sao Tome and Principe",
-    "Saudi Arabia",
-    "Senegal",
-    "Serbia",
-    "Seychelles",
-    "Sierra Leone",
-    "Singapore",
-    "Slovakia",
-    "Slovenia",
-    "Solomon Islands",
-    "Somalia",
-    "South Africa",
-    "South Korea",
-    "South Sudan",
-    "Spain",
-    "Sri Lanka",
-    "Sudan",
-    "Suriname",
-    "Sweden",
-    "Switzerland",
-    "Syria",
-    "Taiwan",
-    "Tajikistan",
-    "Tanzania",
-    "Thailand",
-    "Timor-Leste",
-    "Togo",
-    "Tonga",
-    "Trinidad and Tobago",
-    "Tunisia",
-    "Turkey",
-    "Turkmenistan",
-    "Tuvalu",
-    "Uganda",
-    "Ukraine",
-    "United Arab Emirates",
-    "United Kingdom",
-    "United States",
-    "Uruguay",
-    "Uzbekistan",
-    "Vanuatu",
-    "Vatican City",
-    "Venezuela",
-    "Vietnam",
-    "Yemen",
-    "Zambia",
-    "Zimbabwe",
-  ];
-
-  // Mock user data
-  const user = {
-    name: "Emma Richardson",
-    email: "emma.richardson@example.com",
-    avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face",
-  };
+  const discountedPrice = selectedOffer
+    ? MONTHLY_PRICE * (1 - selectedOffer.discount_percent / 100)
+    : MONTHLY_PRICE;
 
   return (
     <div className="min-h-screen bg-white">
-      <Header onToggleSidebar={toggleSidebar} />
+      <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       <Sidebar isOpen={sidebarOpen} />
 
       <main
@@ -307,17 +81,17 @@ export default function UpgradeToPremiumPage() {
           sidebarOpen ? "ml-60" : "ml-0"
         }`}
       >
-        <div className="max-w-6xl mx-auto px-8 py-8">
-          {/* Back to Plans Link */}
+        <div className="max-w-5xl mx-auto px-8 py-8">
+          {/* Back Button */}
           <button
-            onClick={handleBackToPlans}
+            onClick={() => router.push("/subscription/upgrade")}
             className="flex items-center gap-2 text-[#6B7280] hover:text-[#111827] mb-6 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="text-sm">Back to plans</span>
           </button>
 
-          {/* Page Header */}
+          {/* Header */}
           <h1
             className="text-3xl font-bold text-[#111827] mb-2"
             style={{ fontFamily: "Georgia, serif" }}
@@ -325,149 +99,112 @@ export default function UpgradeToPremiumPage() {
             Upgrade to Premium
           </h1>
           <p className="text-[#6B7280] text-sm mb-8">
-            Unlock powerful tools and grow your audience.
+            You will be redirected to Stripe's secure checkout page.
           </p>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Left Column - Account & Payment */}
+            {/* Left Column — Offers */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Account Section */}
-              <div className="bg-white border border-[#E5E7EB] rounded-xl p-6">
-                <h2 className="text-lg font-semibold text-[#111827] mb-4">
-                  account
-                </h2>
-                <div className="flex items-center gap-4">
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-[#111827]">{user.name}</p>
-                      <span className="px-2 py-0.5 bg-[#1ABC9C] text-white text-xs rounded">
-                        Upgrading
-                      </span>
-                    </div>
-                    <p className="text-sm text-[#6B7280]">{user.email}</p>
-                  </div>
+              {/* Active Offers */}
+              {offersLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
                 </div>
-              </div>
-
-              {/* Payment Details Section */}
-              <div className="bg-white border border-[#E5E7EB] rounded-xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold text-[#111827]">
-                    Payment Details
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-6 bg-red-500 rounded"></div>
-                    <div className="w-8 h-6 bg-blue-500 rounded"></div>
-                  </div>
-                </div>
-
+              ) : offers.length > 0 ? (
                 <div className="space-y-4">
-                  {/* Cardholder Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-[#374151] mb-2">
-                      Cardholder Name
-                    </label>
-                    <input
-                      type="text"
-                      value={cardholderName}
-                      onChange={handleNameChange}
-                      placeholder="e.g. Emma Richardson"
-                      className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
-                    />
-                  </div>
-
-                  {/* Card Information */}
-                  <div>
-                    <label className="block text-sm font-medium text-[#374151] mb-2">
-                      Card Information
-                    </label>
-                    <div className="relative">
-                      <CreditCard className="absolute left-3 top-3.5 w-5 h-5 text-[#9CA3AF]" />
-                      <input
-                        type="text"
-                        value={cardNumber}
-                        onChange={handleCardNumberChange}
-                        placeholder="0000 0000 0000 0000"
-                        maxLength="19"
-                        className="w-full pl-11 pr-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Expiry Date and CVC */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[#374151] mb-2">
-                        Expiry Date
-                      </label>
-                      <input
-                        type="text"
-                        value={expiryDate}
-                        onChange={handleExpiryChange}
-                        placeholder="MM / YY"
-                        maxLength="7"
-                        className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-[#374151] mb-2">
-                        CVC
-                      </label>
-                      <input
-                        type="text"
-                        value={cvc}
-                        onChange={handleCvcChange}
-                        placeholder="123"
-                        maxLength="3"
-                        className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Billing Country */}
-                  <div>
-                    <label className="block text-sm font-medium text-[#374151] mb-2">
-                      Billing Country
-                    </label>
-                    <select
-                      value={billingCountry}
-                      onChange={(e) => setBillingCountry(e.target.value)}
-                      className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
+                  <h2 className="text-lg font-semibold text-[#111827] flex items-center gap-2">
+                    <Tag className="w-5 h-5 text-[#1ABC9C]" />
+                    Available Offers
+                  </h2>
+                  {offers.map((offer) => (
+                    <button
+                      key={offer.id}
+                      onClick={() =>
+                        setSelectedOffer(
+                          selectedOffer?.id === offer.id ? null : offer
+                        )
+                      }
+                      className={`w-full text-left p-5 rounded-xl border-2 transition-all ${
+                        selectedOffer?.id === offer.id
+                          ? "border-[#1ABC9C] bg-[#F0FDFA] shadow-md"
+                          : "border-[#E5E7EB] bg-white hover:border-[#D1D5DB]"
+                      }`}
                     >
-                      {countries.map((country) => (
-                        <option key={country} value={country}>
-                          {country}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-[#111827]">
+                            {offer.name}
+                          </p>
+                          <p className="text-sm text-[#6B7280] mt-1">
+                            {offer.discount_percent}% off your subscription
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-[#1ABC9C]">
+                            -{offer.discount_percent}%
+                          </span>
+                          <div
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                              selectedOffer?.id === offer.id
+                                ? "border-[#1ABC9C] bg-[#1ABC9C]"
+                                : "border-[#D1D5DB]"
+                            }`}
+                          >
+                            {selectedOffer?.id === offer.id && (
+                              <Check className="w-3 h-3 text-white" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                  {selectedOffer && (
+                    <p className="text-xs text-[#6B7280] italic">
+                      Coupon will be applied automatically at checkout.
+                    </p>
+                  )}
+                </div>
+              ) : null}
 
-                  {/* Secure Payment Notice */}
-                  <div className="flex items-center gap-2 text-xs text-[#6B7280] pt-2">
-                    <Lock className="w-4 h-4" />
-                    <span>
-                      Secure payment powered by Stripe. Your info is encrypted.
-                    </span>
+              {/* Secure Checkout Notice */}
+              <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-6">
+                <div className="flex items-start gap-3">
+                  <Lock className="w-5 h-5 text-[#6B7280] mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-medium text-[#111827] text-sm">
+                      Secure Payment via Stripe
+                    </p>
+                    <p className="text-[#6B7280] text-xs mt-1">
+                      Your payment details are handled entirely by Stripe. We
+                      never see or store your card information. You can cancel
+                      anytime.
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Confirm & Pay Button */}
+              {/* Checkout Button */}
               <button
-                onClick={handleConfirmPayment}
-                disabled={!agreeToTerms}
-                className="w-full py-4 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-xl text-base font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleCheckout}
+                disabled={loading}
+                className="w-full py-4 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-xl text-base font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Confirm & Pay $9.99
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Redirecting to Stripe...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-5 h-5" />
+                    Proceed to Checkout — $
+                    {discountedPrice.toFixed(2)}/mo
+                  </>
+                )}
               </button>
             </div>
 
-            {/* Right Column - Premium Plan Summary */}
+            {/* Right Column — Plan Summary */}
             <div className="lg:col-span-1">
               <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-6 sticky top-24">
                 <div className="flex items-center justify-between mb-6">
@@ -475,7 +212,20 @@ export default function UpgradeToPremiumPage() {
                     Premium Plan
                   </h2>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-[#111827]">$9.99</p>
+                    {selectedOffer ? (
+                      <>
+                        <p className="text-sm text-[#9CA3AF] line-through">
+                          ${MONTHLY_PRICE}
+                        </p>
+                        <p className="text-2xl font-bold text-[#1ABC9C]">
+                          ${discountedPrice.toFixed(2)}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-2xl font-bold text-[#111827]">
+                        ${MONTHLY_PRICE}
+                      </p>
+                    )}
                     <p className="text-xs text-[#6B7280]">/month</p>
                   </div>
                 </div>
@@ -484,77 +234,30 @@ export default function UpgradeToPremiumPage() {
                   Billed monthly. Cancel anytime.
                 </p>
 
-                {/* Features List */}
                 <ul className="space-y-3 mb-6">
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-[#1ABC9C] shrink-0 mt-0.5" />
-                    <span className="text-sm text-[#374151]">
-                      Access to AI Writer
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-[#1ABC9C] shrink-0 mt-0.5" />
-                    <span className="text-sm text-[#374151]">
-                      Detailed Analytics & Insights
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-[#1ABC9C] shrink-0 mt-0.5" />
-                    <span className="text-sm text-[#374151]">
-                      Unlimited Posts
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-[#1ABC9C] shrink-0 mt-0.5" />
-                    <span className="text-sm text-[#374151]">
-                      Verified profile badge
-                    </span>
-                  </li>
+                  {[
+                    "Access to AI Writer",
+                    "Detailed Analytics & Insights",
+                    "Unlimited Posts",
+                    "Verified profile badge",
+                    "Priority support",
+                  ].map((feature) => (
+                    <li key={feature} className="flex items-start gap-2">
+                      <Check className="w-5 h-5 text-[#1ABC9C] shrink-0 mt-0.5" />
+                      <span className="text-sm text-[#374151]">{feature}</span>
+                    </li>
+                  ))}
                 </ul>
 
-                <div className="border-t border-[#E5E7EB] pt-4 mb-4">
-                  <div className="flex items-center justify-between mb-3">
+                <div className="border-t border-[#E5E7EB] pt-4">
+                  <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-[#374151]">
                       Total due today
                     </p>
-                    <p className="text-lg font-bold text-[#111827]">$9.99</p>
+                    <p className="text-lg font-bold text-[#111827]">
+                      ${discountedPrice.toFixed(2)}
+                    </p>
                   </div>
-
-                  {/* Promo Code */}
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
-                      placeholder="Promo code"
-                      className="flex-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
-                    />
-                    <button className="px-4 py-2 bg-[#111827] hover:bg-[#1F2937] text-white rounded-lg text-sm font-medium transition-colors">
-                      Apply
-                    </button>
-                  </div>
-                </div>
-
-                {/* Terms Agreement */}
-                <div className="flex items-start gap-2">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    checked={agreeToTerms}
-                    onChange={(e) => setAgreeToTerms(e.target.checked)}
-                    className="mt-1 w-4 h-4 text-[#1ABC9C] border-[#E5E7EB] rounded focus:ring-[#1ABC9C]"
-                  />
-                  <label htmlFor="terms" className="text-xs text-[#6B7280]">
-                    I agree to the{" "}
-                    <a href="#" className="text-[#1ABC9C] hover:underline">
-                      Terms of Service
-                    </a>{" "}
-                    and{" "}
-                    <a href="#" className="text-[#1ABC9C] hover:underline">
-                      Privacy Policy
-                    </a>
-                    .
-                  </label>
                 </div>
               </div>
             </div>
