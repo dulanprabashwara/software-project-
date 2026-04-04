@@ -297,14 +297,6 @@ export default function EditProfilePage() {
           Edit Profile
         </h1>
         <div className="flex items-center gap-3">
-          {/* Dev Toggle for testing */}
-          <button
-            onClick={togglePremium}
-            className="px-3 py-1 text-xs bg-gray-200 rounded mr-2 hover:bg-gray-300 transition-colors"
-          >
-            Toggle Premium ({isPremium ? "ON" : "OFF"})
-          </button>
-
           <button
             onClick={() => router.push("/profile")}
             className="px-6 py-2.5 bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] text-[#374151] rounded-full text-sm font-medium transition-colors"
