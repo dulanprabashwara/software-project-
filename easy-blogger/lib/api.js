@@ -103,6 +103,12 @@ export const api = {
   deleteScrapingSource: (id, token) => 
     fetchAPI(`/api/admin/scraping-sources/${id}`, { method: "DELETE", token }),
 
+  // ─── Messages / Chat ──────────────────────
+  getConversations: (token) => fetchAPI("/api/messages/conversations", { token }),
+  getMessages: (userId, token) => fetchAPI(`/api/messages/${userId}`, { token }),
+  markMessagesAsRead: (userId, token) => fetchAPI(`/api/messages/${userId}/read`, { method: "PUT", token }),
+  getUnreadMessageCount: (token) => fetchAPI("/api/messages/unread/count", { token }),
+
   // ─── Payment / Subscription ───────────────
   getActiveOffers: () =>
     fetchAPI("/api/payments/offers"),
