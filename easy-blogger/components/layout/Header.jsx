@@ -23,7 +23,7 @@ import { api } from "../../lib/api";
 export default function Header({ onToggleSidebar }) {
   const router = useRouter();
   const { isPremium } = useSubscription();
-  const { user, logout } = useAuth(); // get user + logout from backend/auth
+  const { user, userProfile, logout } = useAuth(); // get user + logout from backend/auth
 
   const [open, setOpen] = useState(false); //for avata dropdown
   const [notiOpen, setNotiOpen]= useState(false); //for notification panel
@@ -36,9 +36,10 @@ export default function Header({ onToggleSidebar }) {
   }, []);
 
   // derive user display values 
-  const displayName = user?.displayName || user?.email?.split("@")[0] || "User";
+  const displayName = userProfile?.displayName || user?.displayName || user?.email?.split("@")[0] || "User";
   const displayEmail = user?.email || "";
   const avatarUrl =
+    userProfile?.avatarUrl ||
     user?.photoURL ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(
       displayName
