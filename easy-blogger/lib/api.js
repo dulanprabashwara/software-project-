@@ -103,5 +103,23 @@ export const api = {
   deleteScrapingSource: (id, token) => 
     fetchAPI(`/api/admin/scraping-sources/${id}`, { method: "DELETE", token }),
 
-  // Add more as needed...
+  // ─── Payment / Subscription ───────────────
+  getActiveOffers: () =>
+    fetchAPI("/api/payments/offers"),
+
+  createCheckoutSession: (offerId, token) =>
+    fetchAPI("/api/payments/create-checkout-session", { method: "POST", body: { offerId }, token }),
+
+  getSubscriptionStatus: (token) =>
+    fetchAPI("/api/payments/subscription", { token }),
+
+  cancelSubscription: (token) =>
+    fetchAPI("/api/payments/cancel", { method: "POST", token }),
+
+  createPortalSession: (token) =>
+    fetchAPI("/api/payments/portal", { method: "POST", token }),
+
+  // Stripe Customer Portal (dedicated endpoint)
+  createStripePortalSession: (token) =>
+    fetchAPI("/api/stripe/create-portal-session", { method: "POST", token }),
 };

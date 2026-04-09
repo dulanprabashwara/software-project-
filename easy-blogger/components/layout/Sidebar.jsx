@@ -12,12 +12,40 @@ import {
   Users,
   CreditCard,
   Plus,
+  Loader2,
 } from "lucide-react";
 import { useSubscription } from "../../app/subscription/SubscriptionContext";
+import { useAuth } from "../../app/context/AuthContext";
+import { api } from "../../lib/api";
+import { useState } from "react";
 
 export default function Sidebar({ isOpen }) {
   const pathname = usePathname();
   const { isPremium } = useSubscription();
+  const { user } = useAuth();
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  const handleMembershipClick = async (e) => {
+    if (!isPremium) return; // Let the link navigate normally to /subscription/upgrade
+    
+    e.preventDefault();
+    if (!user) return;
+
+    setPortalLoading(true);
+    try {
+      const token = await user.getIdToken();
+      const res = await api.createStripePortalSession(token);
+      const data = res.data || res;
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error("Portal error:", err);
+      alert("Failed to open billing portal.");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
 
   // list for links in the sidebar
   const links = [
@@ -34,8 +62,9 @@ export default function Sidebar({ isOpen }) {
     { label: "Following", href: "/profile?modal=following", icon: Users },
     {
       label: "Membership",
-      href: isPremium ? "/subscription/manage" : "/subscription/upgrade",
+      href: isPremium ? "#" : "/subscription/upgrade",
       icon: CreditCard,
+      onClick: handleMembershipClick,
     },
   ];
 
@@ -50,9 +79,14 @@ export default function Sidebar({ isOpen }) {
             <Link
               key={link.label}
               href={link.href}
+              onClick={link.onClick}
               className={`flex items-center gap-3 p-3 rounded-lg text-sm ${pathname === link.href ? "bg-teal-50 text-teal-600" : "text-gray-500"}`}
             >
-              <link.icon size={20} />
+              {link.label === "Membership" && portalLoading ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                <link.icon size={20} />
+              )}
               {link.label}
             </Link>
           ))}
