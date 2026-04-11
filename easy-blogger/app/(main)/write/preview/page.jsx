@@ -6,6 +6,12 @@ import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
 
 // Article preview page
+const STORAGE_KEYS = {
+  publishArticleTitle: "publish_article_title",
+  publishSourceArticleId: "publish_source_article_id",
+  publishDraft: "publish_article_draft",
+};
+
 export default function Page() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -105,8 +111,24 @@ export default function Page() {
               <p className="mb-2 italic text-[#6B7280]">Publish Now ?</p>
               <button
                 onClick={() => {
-                  sessionStorage.setItem("publish_article_title", article.title || "");
-                  router.push("/write/publish")
+                  const currentArticleId = article.id || "";
+                  const previousArticleId =
+                    sessionStorage.getItem(STORAGE_KEYS.publishSourceArticleId) || "";
+
+                  if (previousArticleId && previousArticleId !== currentArticleId) {
+                    sessionStorage.removeItem(STORAGE_KEYS.publishDraft);
+                  }
+
+                  sessionStorage.setItem(
+                    STORAGE_KEYS.publishArticleTitle,
+                    article.title || ""
+                  );
+                  sessionStorage.setItem(
+                    STORAGE_KEYS.publishSourceArticleId,
+                    currentArticleId
+                  );
+
+                  router.push("/write/publish");
                 }}
                 className="rounded-full bg-[#1ABC9C] px-8 py-2 text-white"
               >
