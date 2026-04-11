@@ -730,6 +730,7 @@ export default function PublishArticlePage() {
 
           <button
             onClick={() => {
+              console.log("Timing value:", timing); //This is to verify the timing value before saving the draft and navigating
               savePublishDraft();
 
               const publishData = {
@@ -750,7 +751,12 @@ export default function PublishArticlePage() {
                 JSON.stringify(publishData)
               );
 
-              router.push("/write/articlepublished");
+              const routeMap = {
+                now: "/write/articlepublished",
+                schedule: "/write/articlescheduled",
+              };
+
+              router.push(routeMap[timing] || "/write/publish");
             }}
             disabled={timing === "schedule" && isPastDateTime()}
             className={`px-8 py-3 rounded-full text-white transition ${
