@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 
 import { useSubscription } from "../../app/subscription/SubscriptionContext";
-import { useAuth } from "../../app/context/AuthContext";  
+import { useAuth } from "../../app/context/AuthContext";
+import { api } from "../../lib/api";
 
 export default function Header({ onToggleSidebar }) {
   const router = useRouter();
@@ -55,8 +56,32 @@ export default function Header({ onToggleSidebar }) {
     return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
 
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  const handleMembershipClick = async (e) => {
+    setOpen(false);
+    if (!isPremium) return; // let Link navigate to /subscription/upgrade
+
+    e.preventDefault();
+    if (!user) return;
+
+    setPortalLoading(true);
+    try {
+      const token = await user.getIdToken();
+      const res = await api.createStripePortalSession(token);
+      const data = res.data || res;
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error("Portal error:", err);
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
   const membership = isPremium
-    ? { label: "Manage Membership", href: "/subscription/manage" }
+    ? { label: "Manage Membership", href: "#" }
     : { label: "Become a Member", href: "/subscription/upgrade" };
 
   
@@ -140,6 +165,7 @@ export default function Header({ onToggleSidebar }) {
               <img
                 src={avatarUrl}
                 alt="User"
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
             </button>
@@ -162,6 +188,7 @@ export default function Header({ onToggleSidebar }) {
                 <img
                   src={avatarUrl}
                   alt="User"
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -200,7 +227,7 @@ export default function Header({ onToggleSidebar }) {
 
               <Link
                 href={membership.href}
-                onClick={() => setOpen(false)}
+                onClick={handleMembershipClick}
                 className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-amber-600"
               >
                 <Sparkles size={16} /> {membership.label}

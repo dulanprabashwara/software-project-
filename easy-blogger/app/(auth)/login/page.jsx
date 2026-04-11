@@ -77,20 +77,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, isAdmin, loading: authLoading, profileLoading } = useAuth();
 
-  // Watch for auth changes. Once the user is fully fetched from the database, redirect them.
+  // Watch for auth changes. Wait for profileLoading to finish so isAdmin is accurate.
   React.useEffect(() => {
     // Only redirect if we actively triggered a login request (to prevent auto-redirects
     // when just sitting on the page if they happen to have an old token resolving)
-    if (!authLoading && user && isAuthenticating) {
+    if (!authLoading && !profileLoading && user && isAuthenticating) {
       if (isAdmin) {
         router.push("/admin");
       } else {
         router.push("/home");
       }
     }
-  }, [user, isAdmin, authLoading, isAuthenticating, router]);
+  }, [user, isAdmin, authLoading, profileLoading, isAuthenticating, router]);
 
   const emailInputRef = React.useRef(null);
 

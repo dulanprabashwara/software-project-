@@ -1,146 +1,118 @@
-/**
- * Current User Stats Page - Modal-Style Statistics View
- *
- * Route: /profile/user_stats
- *
- * Purpose: Displays YOUR OWN Followers, Following, Reads, and Shares
- * in a centered modal-style card with horizontal tabs.
- * The outside of the modal appears blurred.
- *
- * Used for: Logged-in user viewing their own stats only
- * isOwnProfile is always true here
- */
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useAuth } from "../../../context/AuthContext";
+import { api } from "../../../../lib/api";
 
 export default function UserStatsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Get tab from URL parameter, default to "followers"
-  const urlTab = searchParams.get("tab") || "followers";
+  const { user: firebaseUser, userProfile, loading: authLoading } = useAuth();
 
-  // Track which tab/section is currently active
+  const urlTab = searchParams.get("tab") || "followers";
   const [activeTab, setActiveTab] = useState(urlTab);
 
-  // Update active tab when URL changes
+  // Lists
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
+
+  // Track live follow state for users in the list
+  const [followingSet, setFollowingSet] = useState(new Set());
+  const [togglingIds, setTogglingIds] = useState(new Set());
+
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    if (urlTab) {
-      setActiveTab(urlTab);
-    }
+    if (urlTab) setActiveTab(urlTab);
   }, [urlTab]);
 
-  // This page is ALWAYS for the current user's own profile
-  const isOwnProfile = true;
+  // Fetch lists once auth is resolved and we have the userProfile (own id)
+  useEffect(() => {
+    if (authLoading || !userProfile?.id) return;
 
-  // Mock user data - would come from auth/session
-  const stats = {
-    name: "Emma Richardson",
-    followers: "2,400",
-    following: 142,
-    shares: 892,
-  };
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [followersRes, followingRes] = await Promise.all([
+          api.getFollowers(userProfile.id),
+          api.getFollowing(userProfile.id),
+        ]);
 
-  // Mock data for lists
-  const followers = [
-    {
-      id: 1,
-      name: "Sarah Chen",
-      title: "AI Researcher & Tech Writer",
-      avatar: "https://i.pravatar.cc/150?img=1",
-      isFollowing: false,
-    },
-    {
-      id: 2,
-      name: "David Miller",
-      title: "Frontend Developer",
-      avatar: "https://i.pravatar.cc/150?img=2",
-      isFollowing: true,
-    },
-    {
-      id: 3,
-      name: "James Wilson",
-      title: "Product Manager",
-      avatar: "https://i.pravatar.cc/150?img=3",
-      isFollowing: false,
-    },
-    {
-      id: 4,
-      name: "Emily Davis",
-      title: "UX Designer",
-      avatar: "https://i.pravatar.cc/150?img=4",
-      isFollowing: true,
-    },
-    {
-      id: 5,
-      name: "Michael Brown",
-      title: "Data Scientist",
-      avatar: "https://i.pravatar.cc/150?img=5",
-      isFollowing: false,
-    },
-  ];
+        const followersList = followersRes.success ? followersRes.data : [];
+        const followingList = followingRes.success ? followingRes.data : [];
 
-  const following = [
-    {
-      id: 1,
-      name: "David Miller",
-      title: "Frontend Developer",
-      avatar: "https://i.pravatar.cc/150?img=2",
-    },
-    {
-      id: 2,
-      name: "Emily Davis",
-      title: "UX Designer",
-      avatar: "https://i.pravatar.cc/150?img=4",
-    },
-    {
-      id: 3,
-      name: "Jessica Taylor",
-      title: "Digital Nomad",
-      avatar: "https://i.pravatar.cc/150?img=6",
-    },
-  ];
+        setFollowers(followersList);
+        setFollowing(followingList);
 
-  const shares = [
-    {
-      id: 1,
-      title: "The Future of AI in 2026",
-      platform: "Twitter",
-      date: "Jan 2, 2026",
-      likes: 12,
+        // Pre-populate the followingSet with people we already follow
+        // (the "following" list contains users that the logged-in user follows)
+        const alreadyFollowing = new Set(followingList.map((u) => u.id));
+        setFollowingSet(alreadyFollowing);
+      } catch (err) {
+        console.error("Failed to load stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [userProfile?.id, authLoading]);
+
+  const handleToggleFollow = useCallback(
+    async (userId) => {
+      if (!firebaseUser) return;
+      setTogglingIds((prev) => new Set(prev).add(userId));
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res = await api.toggleFollow(userId, token);
+        if (res.success) {
+          setFollowingSet((prev) => {
+            const next = new Set(prev);
+            if (res.data.followed) next.add(userId);
+            else next.delete(userId);
+            return next;
+          });
+        }
+      } catch (err) {
+        console.error("Toggle follow failed:", err);
+      } finally {
+        setTogglingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(userId);
+          return next;
+        });
+      }
     },
-    {
-      id: 2,
-      title: "Mastering React Patterns",
-      platform: "LinkedIn",
-      date: "Jan 1, 2026",
-      comments: 5,
-    },
-  ];
+    [firebaseUser]
+  );
+
+  const displayName = userProfile?.displayName || "My Profile";
+  const fallbackAvatar = (name) =>
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "?")}&background=1ABC9C&color=fff`;
 
   return (
     <>
-      {/* Backdrop with blur */}
+      {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-100"
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50"
         onClick={() => router.back()}
-      ></div>
+      />
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-101 p-4 pointer-events-none">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-150 flex flex-col pointer-events-auto">
-          {/* Modal Header */}
-          <div className="p-6 border-b border-[#E5E7EB]">
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[600px] flex flex-col pointer-events-auto">
+          {/* Header */}
+          <div className="p-6 border-b border-[#E5E7EB] shrink-0">
             <div className="flex items-center justify-between mb-4">
               <h2
                 className="text-2xl font-bold text-[#111827]"
                 style={{ fontFamily: "Georgia, serif" }}
               >
-                {stats.name}
+                {displayName}
               </h2>
               <button
                 onClick={() => router.back()}
@@ -155,150 +127,160 @@ export default function UserStatsPage() {
               <button
                 onClick={() => setActiveTab("followers")}
                 className={`pb-3 text-sm font-medium transition-colors relative ${
-                  activeTab === "followers"
-                    ? "text-[#111827]"
-                    : "text-[#6B7280]"
+                  activeTab === "followers" ? "text-[#111827]" : "text-[#6B7280]"
                 }`}
               >
                 <span className="mr-1">Followers</span>
-                <span className="text-[#6B7280]">{stats.followers}</span>
+                <span className="text-[#6B7280]">
+                  {userProfile?._count?.followers ?? followers.length}
+                </span>
                 {activeTab === "followers" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]" />
                 )}
               </button>
-
               <button
                 onClick={() => setActiveTab("following")}
                 className={`pb-3 text-sm font-medium transition-colors relative ${
-                  activeTab === "following"
-                    ? "text-[#111827]"
-                    : "text-[#6B7280]"
+                  activeTab === "following" ? "text-[#111827]" : "text-[#6B7280]"
                 }`}
               >
                 <span className="mr-1">Following</span>
-                <span className="text-[#6B7280]">{stats.following}</span>
+                <span className="text-[#6B7280]">
+                  {userProfile?._count?.following ?? following.length}
+                </span>
                 {activeTab === "following" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
-                )}
-              </button>
-
-              <button
-                onClick={() => setActiveTab("shares")}
-                className={`pb-3 text-sm font-medium transition-colors relative ${
-                  activeTab === "shares" ? "text-[#111827]" : "text-[#6B7280]"
-                }`}
-              >
-                <span className="mr-1">Shares</span>
-                <span className="text-[#6B7280]">{stats.shares}</span>
-                {activeTab === "shares" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]" />
                 )}
               </button>
             </div>
           </div>
 
-          {/* Modal Content */}
-          <div className="overflow-y-auto p-6 h-112.5">
-            {/* Followers Tab */}
-            {activeTab === "followers" && (
-              <div className="space-y-4">
-                {followers.map((user) => (
-                  <div
-                    key={user.id}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="w-12 h-12 rounded-full"
-                      />
-                      <div>
-                        <p className="font-semibold text-[#111827] text-sm">
-                          {user.name}
-                        </p>
-                        <p className="text-xs text-[#6B7280]">{user.title}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {user.isFollowing ? (
-                        <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
-                          Following
-                        </button>
-                      ) : (
-                        <button className="px-4 py-1.5 text-sm text-white bg-[#1ABC9C] rounded-full hover:bg-[#17a589] transition-colors">
-                          Follow
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+          {/* Content */}
+          <div className="overflow-y-auto p-6 flex-1">
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
               </div>
-            )}
-
-            {/* Following Tab */}
-            {activeTab === "following" && (
-              <div className="space-y-4">
-                {following.map((user) => (
-                  <div
-                    key={user.id}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="w-12 h-12 rounded-full"
-                      />
-                      <div>
-                        <p className="font-semibold text-[#111827] text-sm">
-                          {user.name}
-                        </p>
-                        <p className="text-xs text-[#6B7280]">{user.title}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
-                        Message
-                      </button>
-                      <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
-                        Unfollow
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Shares Tab */}
-            {activeTab === "shares" && (
-              <div className="space-y-5">
-                {shares.map((share) => (
-                  <div
-                    key={share.id}
-                    className="border-b border-[#E5E7EB] pb-4 last:border-0"
-                  >
-                    <h3 className="font-semibold text-[#111827] mb-2">
-                      {share.title}
-                    </h3>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-[#6B7280]">
-                        Shared to {share.platform} · {share.date}
+            ) : (
+              <>
+                {/* Followers Tab */}
+                {activeTab === "followers" && (
+                  <div className="space-y-4">
+                    {followers.length === 0 ? (
+                      <p className="text-center text-gray-400 py-8 text-sm">
+                        You have no followers yet. Share your profile to gain some!
                       </p>
-                      {share.likes && (
-                        <span className="px-2 py-1 bg-[#D1FAE5] text-[#059669] text-xs font-medium rounded">
-                          {share.likes} likes
-                        </span>
-                      )}
-                      {share.comments && (
-                        <span className="px-2 py-1 bg-[#DBEAFE] text-[#2563EB] text-xs font-medium rounded">
-                          {share.comments} comments
-                        </span>
-                      )}
-                    </div>
+                    ) : (
+                      followers.map((person) => {
+                        const isFollowingPerson = followingSet.has(person.id);
+                        const isToggling = togglingIds.has(person.id);
+                        return (
+                          <div
+                            key={person.id}
+                            className="flex items-center justify-between"
+                          >
+                            <Link
+                              href={`/profile/${person.username}`}
+                              className="flex items-center gap-3 min-w-0"
+                            >
+                              <img
+                                src={person.avatarUrl || fallbackAvatar(person.displayName)}
+                                alt={person.displayName}
+                                referrerPolicy="no-referrer"
+                                className="w-12 h-12 rounded-full object-cover shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <p className="font-semibold text-[#111827] text-sm truncate">
+                                  {person.displayName || person.username}
+                                </p>
+                                <p className="text-xs text-[#6B7280] truncate">
+                                  @{person.username}
+                                </p>
+                              </div>
+                            </Link>
+                            <button
+                              onClick={() => handleToggleFollow(person.id)}
+                              disabled={isToggling}
+                              className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
+                                isFollowingPerson
+                                  ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
+                                  : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                              }`}
+                            >
+                              {isToggling ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : isFollowingPerson ? (
+                                "Following"
+                              ) : (
+                                "Follow Back"
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
-                ))}
-              </div>
+                )}
+
+                {/* Following Tab */}
+                {activeTab === "following" && (
+                  <div className="space-y-4">
+                    {following.length === 0 ? (
+                      <p className="text-center text-gray-400 py-8 text-sm">
+                        You are not following anyone yet. Discover writers!
+                      </p>
+                    ) : (
+                      following.map((person) => {
+                        const isToggling = togglingIds.has(person.id);
+                        const stillFollowing = followingSet.has(person.id);
+                        return (
+                          <div
+                            key={person.id}
+                            className="flex items-center justify-between"
+                          >
+                            <Link
+                              href={`/profile/${person.username}`}
+                              className="flex items-center gap-3 min-w-0"
+                            >
+                              <img
+                                src={person.avatarUrl || fallbackAvatar(person.displayName)}
+                                alt={person.displayName}
+                                referrerPolicy="no-referrer"
+                                className="w-12 h-12 rounded-full object-cover shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <p className="font-semibold text-[#111827] text-sm truncate">
+                                  {person.displayName || person.username}
+                                </p>
+                                <p className="text-xs text-[#6B7280] truncate">
+                                  @{person.username}
+                                </p>
+                              </div>
+                            </Link>
+                            <button
+                              onClick={() => handleToggleFollow(person.id)}
+                              disabled={isToggling}
+                              className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
+                                stillFollowing
+                                  ? "text-[#6B7280] border border-[#E5E7EB] hover:border-red-300 hover:text-red-500 hover:bg-red-50"
+                                  : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                              }`}
+                            >
+                              {isToggling ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : stillFollowing ? (
+                                "Following"
+                              ) : (
+                                "Follow"
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

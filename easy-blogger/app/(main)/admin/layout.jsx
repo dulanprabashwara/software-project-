@@ -1,65 +1,38 @@
+"use client";
+import { useState } from "react";
+import Header from "../../../components/layout/Header";
 import AdminSidebar from "../../../components/admin/AdminSidebar";
 
 export default function AdminLayout({ children }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Admin Sidebar */}
-      <AdminSidebar />
+    // We use a grid to force the header to the top and the content to fill the rest
+    <div className="grid grid-rows-[auto,1fr] h-screen w-full bg-gray-100 overflow-hidden">
+      
+      {/*Header*/}
+      <Header onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-      {/* Main Content */}
-      <main className="ml-64 min-h-screen">
+      {/* 2. This container sits in the '1fr' row (the rest of the height) */}
+      <div className="flex overflow-hidden">
         
-        {/* Top Bar */}
-        {/*<header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 sticky top-0 z-30">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2
-                className="text-xl font-semibold text-[#111827]"
-                style={{ fontFamily: "Georgia, serif" }}
-              >
-                Admin Dashboard
-              </h2>
-              <p className="text-sm text-[#6B7280]">Manage your platform</p>
-            </div>
-            <div className="flex items-center gap-4">
-              {/* Notifications */}
-              {/*<button className="relative p-2 text-gray-500 hover:text-[#1ABC9C] hover:bg-gray-100 rounded-full transition-colors">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
-                </svg>
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
+        {/* SIDEBAR WRAPPER */}
+        <div 
+          className={`transition-all duration-300 ease-in-out bg-gray-900 overflow-hidden shrink-0 ${
+            isSidebarOpen ? "w-64" : "w-0"
+          }`}
+        >
+          <AdminSidebar />
+        </div>
 
-              {/* Admin Profile */}
-              {/*<div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-                <div className="w-9 h-9 bg-[#1ABC9C] rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">AD</span>
-                </div>
-                <div className="hidden sm:block">
-                  <p className="text-sm font-medium text-[#111827]">
-                    Admin User
-                  </p>
-                  <p className="text-xs text-[#6B7280]">Super Admin</p>
-                </div>
-              </div>
-            </div>
+        {/* MAIN CONTENT AREA */}
+        <main className="flex-1 overflow-y-auto bg-white transition-all duration-300">
+          {/* 'min-h-full' ensures the white background covers any short pages */}
+          <div className="min-h-full block">
+            {children}
           </div>
-        </header>
-        */}
-
-        {/* Page Content */}
-        <div className="p-6">{children}</div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

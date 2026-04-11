@@ -3,6 +3,10 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Search, CheckCircle, Trash2, Ban, ChevronDown, MousePointer2 } from "lucide-react";
 
+// 1. IMPORT YOUR HELPERS
+import { auth } from "../../../../../lib/firebase"; 
+import { api } from "../../../../../lib/api";       
+
 export default function QueuePage() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,46 +16,93 @@ export default function QueuePage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  useEffect(() => {
-    fetch('/api/users?type=posts').then(res => res.json()).then(data => {
-      setPosts(data);
+  // --- REAL BACKEND FETCH ---
+  const fetchReports = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+      const token = await user.getIdToken();
+      
+      const response = await api.getAdminReports("", token);
+      
+      // MAP Prisma Database relational fields to your UI's expected format
+      const mappedReports = response.data.map(report => ({
+        id: report.id,
+        articleId: report.articleId, // Keep track of the actual article ID
+        reporterId: report.article?.authorId, // The user who wrote the offending article
+        title: report.article?.title || "Untitled Article",
+        reason: report.reason,
+        reporter: report.reporter?.displayName || report.reporter?.username || "Unknown User",
+        timeReported: new Date(report.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        // Map Prisma Enums to your UI statuses
+        status: report.status === 'PENDING' ? 'pending' : 'reviewed',
+        image: report.article?.coverImage || null,
+        content: report.article?.content || "No content available."
+      }));
+
+      setPosts(mappedReports);
+    } catch (error) {
+      console.error("Failed to fetch reports:", error);
+    } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        fetchReports();
+      } else {
+        setLoading(false);
+      }
     });
+
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) setIsDropdownOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    
+    return () => {
+      unsubscribe();
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
+  // --- REAL BACKEND ACTIONS ---
   const handleAction = async (actionType) => {
     const selectedPost = posts.find(p => p.id === selectedId);
     if (!selectedPost || !confirm(`Confirm ${actionType}?`)) return;
 
-    const isReviewOnly = actionType === "Keep";
-    const auditEntry = {
-      admin: "Admin Dulsi",
-      action: isReviewOnly ? "Reviewed Report" : actionType === "Delete" ? "Deleted Article" : "Banned User",
-      target: isReviewOnly || actionType === "Delete" ? `article_${selectedPost.id}` : `user_${selectedPost.reporter.toLowerCase()}`,
-      details: isReviewOnly ? "Content verified as safe" : selectedPost.reason,
-      endpoint: isReviewOnly ? "PUT /api/reports/{id}/status" : actionType === "Delete" ? "DELETE /api/articles/{id}" : "POST /api/users/{id}/ban"
-    };
-
     try {
-      const url = isReviewOnly ? '/api/users?action=reviewPost' : '/api/users?action=deletePost';
-      await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...auditEntry, postId: selectedPost.id }),
-      });
+      const user = auth.currentUser;
+      const token = await user.getIdToken();
 
-      if (isReviewOnly) {
+      if (actionType === "Keep") {
+        // Mark the report as DISMISSED or REVIEWED (Content is safe)
+        await api.resolveReport(selectedPost.id, "DISMISSED", token);
         setPosts(posts.map(p => p.id === selectedId ? { ...p, status: 'reviewed' } : p));
-      } else {
+      } 
+      else if (actionType === "Delete") {
+        // Mark the report as RESOLVED (Triggers content takedown in backend)
+        await api.resolveReport(selectedPost.id, "RESOLVED", token);
         setPosts(posts.filter(p => p.id !== selectedId));
         setSelectedId(null);
+      } 
+      else if (actionType === "Ban User") {
+        // Hit the real ban endpoint for the author of the article
+        await api.banUser(selectedPost.reporterId, selectedPost.reason, token);
+        // Also resolve the report
+        await api.resolveReport(selectedPost.id, "RESOLVED", token);
+        setPosts(posts.filter(p => p.id !== selectedId));
+        setSelectedId(null);
+        alert("User banned and report resolved.");
       }
-    } catch (error) { console.error(error); }
+      
+      // Notice: No manual audit logging! The backend handles it automatically.
+    } catch (error) {
+      console.error(`Failed to execute ${actionType}:`, error);
+      alert("Action failed. Check console.");
+    }
   };
 
   const getDropdownColor = () => {
@@ -95,7 +146,7 @@ export default function QueuePage() {
         </div>
         <div className="flex-1 overflow-y-auto space-y-3 mt-2 pr-1 custom-scrollbar">
           {loading ? <div className="text-center p-10 italic text-gray-400">Loading...</div> : filteredPosts.map((post) => (
-            <div key={post.id} onClick={() => setSelectedId(post.id)} className={`p-4 rounded-xl border transition-all ${selectedId === post.id ? "border-[#1ABC9C] bg-white shadow-md ring-1 ring-[#1ABC9C]" : "bg-white border-[#E5E7EB] hover:border-[#1ABC9C]"}`}>
+            <div key={post.id} onClick={() => setSelectedId(post.id)} className={`p-4 rounded-xl border transition-all cursor-pointer ${selectedId === post.id ? "border-[#1ABC9C] bg-white shadow-md ring-1 ring-[#1ABC9C]" : "bg-white border-[#E5E7EB] hover:border-[#1ABC9C]"}`}>
               <div className="flex justify-between items-start mb-1">
                 <span className="font-semibold text-[#111827] text-sm">{post.reason}</span>
                 <div className={`w-2 h-2 rounded-full ${post.status === 'pending' ? 'bg-[#EAB308]' : 'bg-[#1ABC9C]'}`}></div>
@@ -113,9 +164,9 @@ export default function QueuePage() {
             {/* REPORTER DETAILS HEADER */}
             <div className="p-6 px-8 border-b border-gray-100 text-sm">
               <div className="space-y-0.5">
-                <p className="text-[#111827]"><span className="font-semibold">Reported by</span> {activePost.reporter}</p>
+                <p className="text-[#111827]"><span className="font-semibold">Reported by:</span> {activePost.reporter}</p>
                 <p className="text-[#111827]"><span className="font-semibold">Reason:</span> {activePost.reason}</p>
-                <p className="text-[#111827]"><span className="font-semibold">Time of reported:</span> {activePost.timeReported}</p>
+                <p className="text-[#111827]"><span className="font-semibold">Time of report:</span> {activePost.timeReported}</p>
               </div>
             </div>
 
@@ -132,13 +183,13 @@ export default function QueuePage() {
                   <CheckCircle size={18} /><span className="font-bold text-sm">Verified Content</span>
                 </div>
               ) : (
-                <button onClick={() => handleAction("Keep")} className="group flex items-center gap-3 bg-[#114A3F] text-white pl-6 pr-2 py-2 rounded-full active:scale-95 transition-all shadow-md">
+                <button onClick={() => handleAction("Keep")} className="group flex items-center gap-3 bg-[#114A3F] text-white pl-6 pr-2 py-2 rounded-full active:scale-95 transition-all shadow-md cursor-pointer">
                   <span className="font-bold text-sm">Keep</span>
                   <div className="w-8 h-8 bg-[#4FD1C5] rounded-full flex items-center justify-center text-[#114A3F]"><CheckCircle size={18} /></div>
                 </button>
               )}
-              <button onClick={() => handleAction("Delete")} className="group flex items-center gap-3 bg-[#134E4A] text-white pl-6 pr-2 py-2 rounded-full active:scale-95 transition-all shadow-md"><span className="font-bold text-sm">Delete</span><div className="w-8 h-8 bg-[#99F6E4] rounded-full flex items-center justify-center text-[#134E4A]"><Trash2 size={18} /></div></button>
-              <button onClick={() => handleAction("Ban User")} className="group flex items-center gap-3 bg-[#1F2937] text-white pl-6 pr-2 py-2 rounded-full active:scale-95 transition-all shadow-md"><span className="font-bold text-sm">Ban</span><div className="w-8 h-8 bg-[#F87171] rounded-full flex items-center justify-center text-[#1F2937]"><Ban size={18} /></div></button>
+              <button onClick={() => handleAction("Delete")} className="group flex items-center gap-3 bg-[#134E4A] text-white pl-6 pr-2 py-2 rounded-full active:scale-95 transition-all shadow-md cursor-pointer"><span className="font-bold text-sm">Delete</span><div className="w-8 h-8 bg-[#99F6E4] rounded-full flex items-center justify-center text-[#134E4A]"><Trash2 size={18} /></div></button>
+              <button onClick={() => handleAction("Ban User")} className="group flex items-center gap-3 bg-[#1F2937] text-white pl-6 pr-2 py-2 rounded-full active:scale-95 transition-all shadow-md cursor-pointer"><span className="font-bold text-sm">Ban</span><div className="w-8 h-8 bg-[#F87171] rounded-full flex items-center justify-center text-[#1F2937]"><Ban size={18} /></div></button>
             </div>
           </>
         ) : (

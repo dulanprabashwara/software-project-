@@ -7,16 +7,104 @@ import {
   MessageCircle,
   UserPlus,
   FileText,
+  Loader2,
 } from "lucide-react";
 import ArticleCard from "../../../../components/article/ArticleCard";
+import { useAuth } from "../../../context/AuthContext";
+import { api } from "../../../../lib/api";
 
 export default function UserProfilePage({ params }) {
   const unwrappedParams = use(params);
+  const username = unwrappedParams.username;
+
+  const { user: firebaseUser, loading: authLoading } = useAuth();
+
   const [activeTab, setActiveTab] = useState("home");
-  const [isFollowing, setIsFollowing] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
 
+  // ── Profile data from backend ──
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState(null);
+
+  // ── Follow state ──
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [isTogglingFollow, setIsTogglingFollow] = useState(false);
+
+  // ── Fetch profile from backend ──
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setProfileLoading(true);
+      setProfileError(null);
+      try {
+        let res;
+        // If the user is logged in, send the token so isFollowing is computed
+        if (firebaseUser) {
+          const token = await firebaseUser.getIdToken();
+          res = await api.getUserProfileAuth(username, token);
+        } else {
+          res = await api.getUserProfile(username);
+        }
+
+        if (res.success && res.data) {
+          setProfile(res.data);
+          setIsFollowing(res.data.isFollowing || false);
+          setFollowerCount(res.data._count?.followers || 0);
+          setFollowingCount(res.data._count?.following || 0);
+        }
+      } catch (err) {
+        console.error("Failed to fetch profile:", err);
+        setProfileError(err.message || "User not found.");
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    // Wait for Firebase to finish checking auth state before making the network request
+    // so we don't accidentally fetch as an anonymous user, causing the Follow button to flash.
+    if (username && !authLoading) {
+      fetchProfile();
+    }
+  }, [username, firebaseUser, authLoading]);
+
+  // ── Follow / Unfollow toggle with optimistic UI ──
+  const handleFollowToggle = async () => {
+    if (!firebaseUser || !profile?.id || isTogglingFollow) return;
+
+    // Optimistic update
+    const wasFollowing = isFollowing;
+    setIsFollowing(!wasFollowing);
+    setFollowerCount((prev) => (wasFollowing ? prev - 1 : prev + 1));
+    setIsTogglingFollow(true);
+
+    try {
+      const token = await firebaseUser.getIdToken();
+      const res = await api.toggleFollow(profile.id, token);
+
+      // Reconcile with server response
+      if (res.success && res.data) {
+        setIsFollowing(res.data.followed);
+        // If the server says differently from our optimistic guess, fix the count
+        if (res.data.followed !== !wasFollowing) {
+          setFollowerCount((prev) =>
+            res.data.followed ? prev + 1 : prev - 1,
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Follow toggle failed:", err);
+      // Revert optimistic update
+      setIsFollowing(wasFollowing);
+      setFollowerCount((prev) => (wasFollowing ? prev + 1 : prev - 1));
+    } finally {
+      setIsTogglingFollow(false);
+    }
+  };
+
+  // ── Close dropdown on outside click ──
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -78,22 +166,90 @@ export default function UserProfilePage({ params }) {
     document.body.removeChild(textArea);
   };
 
-  // Mock Data matching Figma
-  const user = {
-    name: "Phil Jackson",
-    username: unwrappedParams.username || "philjackson",
-    avatar: "https://i.pravatar.cc/150?img=11",
-    bio: "Senior Editorial Director, Features The Wall Street Journal Author Kingston by Starlight, Before the Legend, Game World",
-    followers: "2.K",
-    following: "142",
-  };
+  // ── Derived display values ──
+  const displayName = profile?.displayName || username;
+  const avatarUrl =
+    profile?.avatarUrl ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1ABC9C&color=fff`;
+  const bio = profile?.bio || "";
+  const isPremium = profile?.isPremium || false;
 
+  // Check if this is the logged-in user's own profile
+  const isOwnProfile = firebaseUser && profile && profile.id === profile?.id;
+
+  // ── Loading state ──
+  if (profileLoading) {
+    return (
+      <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden bg-white">
+        {/* Main Content Area Skeleton */}
+        <div className="flex-1 overflow-y-auto border-r border-[#E5E7EB] p-8">
+          <div className="max-w-3xl mx-auto space-y-8 animate-pulse">
+            <div className="h-8 w-48 bg-gray-200 rounded mb-8"></div>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="border border-[#E5E7EB] rounded-xl p-6">
+                <div className="flex gap-4 mb-4">
+                  <div className="w-10 h-10 bg-gray-200 rounded-full shrink-0"></div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                    <div className="h-3 w-24 bg-gray-100 rounded"></div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-6 w-3/4 bg-gray-200 rounded"></div>
+                  <div className="h-4 w-full bg-gray-100 rounded"></div>
+                  <div className="h-4 w-5/6 bg-gray-100 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Sidebar Skeleton */}
+        <aside className="w-80 shrink-0 bg-[#F9FAFB] px-6 py-8 border-l border-[#E5E7EB]">
+          <div className="animate-pulse flex flex-col pt-4">
+            <div className="w-24 h-24 bg-gray-200 rounded-full mb-4"></div>
+            <div className="h-6 w-32 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 w-24 bg-gray-200 rounded mb-6"></div>
+            <div className="h-10 w-full bg-gray-200 rounded-full mb-8"></div>
+
+            <div className="space-y-3 w-full">
+              <div className="h-4 w-full bg-gray-200 rounded"></div>
+              <div className="h-4 w-5/6 bg-gray-200 rounded"></div>
+              <div className="h-4 w-4/6 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    );
+  }
+
+  // ── Error state ──
+  if (profileError) {
+    return (
+      <div className="flex h-[calc(100vh-64px)] w-full items-center justify-center bg-white">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            User Not Found
+          </h2>
+          <p className="text-gray-500 mb-4">{profileError}</p>
+          <Link
+            href="/home"
+            className="px-6 py-2 bg-[#1ABC9C] text-white rounded-full text-sm font-medium hover:bg-[#16a085] transition-colors"
+          >
+            Go Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Mock articles for now — these will be replaced when articles are integrated
   const articles = [
     {
       id: 1,
-      authorName: user.name,
-      authorAvatar: user.avatar,
-      verified: true,
+      authorName: displayName,
+      authorAvatar: avatarUrl,
+      verified: isPremium,
       date: "Dec 4, 2025",
       title: "How AI is Transforming Content Creation in 2025",
       description:
@@ -105,9 +261,9 @@ export default function UserProfilePage({ params }) {
     },
     {
       id: 2,
-      authorName: user.name,
-      authorAvatar: user.avatar,
-      verified: true,
+      authorName: displayName,
+      authorAvatar: avatarUrl,
+      verified: isPremium,
       date: "Nov 25, 2025",
       title: "Designing for Accessibility in 2025",
       description:
@@ -127,7 +283,7 @@ export default function UserProfilePage({ params }) {
           {/* Header Name & Options */}
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-[40px] font-bold text-[#111827] font-serif">
-              {user.name}
+              {displayName}
             </h1>
             <div className="relative" ref={menuRef}>
               <button
@@ -205,10 +361,10 @@ export default function UserProfilePage({ params }) {
           ) : (
             <div className="py-8">
               <h3 className="text-lg font-semibold text-[#111827] mb-3">
-                About {user.name}
+                About {displayName}
               </h3>
               <p className="text-gray-600 leading-relaxed text-[15px]">
-                {user.bio}
+                {bio || "This user hasn't added a bio yet."}
               </p>
             </div>
           )}
@@ -220,65 +376,76 @@ export default function UserProfilePage({ params }) {
         <div className="sticky top-10">
           <div className="mb-4">
             <img
-              src={user.avatar}
-              alt={user.name}
-              className="w-22 h-22 rounded-full object-cover"
+              src={avatarUrl}
+              alt={displayName}
+              referrerPolicy="no-referrer"
+              className="w-24 h-24 rounded-full object-cover"
             />
           </div>
 
           <h2 className="text-base font-bold text-[#111827] mb-1 font-serif">
-            {user.name}
+            {displayName}
           </h2>
 
           <div className="flex items-center gap-1 text-[13px] text-gray-500 mb-3">
             <Link
-              href={`/profile/${user.username}/stats?tab=followers`}
+              href={`/profile/${username}/stats?tab=followers`}
               className="hover:text-gray-900 transition-colors"
             >
               <span className="font-medium text-[#111827]">
-                {user.followers}
+                {followerCount}
               </span>{" "}
               Followers
             </Link>
             <span>·</span>
             <Link
-              href={`/profile/${user.username}/stats?tab=following`}
+              href={`/profile/${username}/stats?tab=following`}
               className="hover:text-gray-900 transition-colors"
             >
               <span className="font-medium text-[#111827]">
-                {user.following}
+                {followingCount}
               </span>{" "}
               Following
             </Link>
           </div>
 
           <p className="text-[13px] text-gray-500 leading-relaxed mb-6">
-            {user.bio}
+            {bio || "No bio yet."}
           </p>
 
-          <div className="flex gap-3 mb-8">
-            <button
-              onClick={() => setIsFollowing(!isFollowing)}
-              className={`px-4 py-2 rounded-full text-[14px] font-medium transition-colors ${
-                isFollowing ? "flex-1" : "w-full"
-              } ${
-                isFollowing
-                  ? "border border-gray-300 text-gray-700 hover:border-gray-800"
-                  : "bg-[#1ABC9C] text-white hover:bg-[#16a085]"
-              }`}
-            >
-              {isFollowing ? "Following" : "Follow"}
-            </button>
-            {isFollowing && (
-              <Link
-                href="/chat"
-                className="flex-1 px-4 py-2 rounded-full text-[14px] font-medium bg-[#1ABC9C] text-white hover:bg-[#16a085] transition-colors flex items-center justify-center gap-2"
+          {/* Follow / Message Buttons — Only show if not viewing own profile */}
+          {firebaseUser && (
+            <div className="flex gap-3 mb-8">
+              <button
+                onClick={handleFollowToggle}
+                disabled={isTogglingFollow}
+                className={`px-4 py-2 rounded-full text-[14px] font-medium transition-all duration-200 ${
+                  isFollowing ? "flex-1" : "w-full"
+                } ${
+                  isFollowing
+                    ? "border border-gray-300 text-gray-700 hover:border-red-400 hover:text-red-500 hover:bg-red-50"
+                    : "bg-[#1ABC9C] text-white hover:bg-[#16a085]"
+                } disabled:opacity-50`}
               >
-                <MessageCircle className="w-4 h-4" />
-                Message
-              </Link>
-            )}
-          </div>
+                {isTogglingFollow ? (
+                  <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                ) : isFollowing ? (
+                  "Following"
+                ) : (
+                  "Follow"
+                )}
+              </button>
+              {isFollowing && (
+                <Link
+                  href="/chat"
+                  className="flex-1 px-4 py-2 rounded-full text-[14px] font-medium bg-[#1ABC9C] text-white hover:bg-[#16a085] transition-colors flex items-center justify-center gap-2"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Message
+                </Link>
+              )}
+            </div>
+          )}
 
           {/* Optional: Add section for "More from Medium" or similar if needed */}
         </div>

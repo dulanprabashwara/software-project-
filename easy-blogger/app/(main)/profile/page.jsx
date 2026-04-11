@@ -1,10 +1,10 @@
 // Profile page - Shows user's profile with their articles
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import { useSubscription } from "../../subscription/SubscriptionContext";
 import { useAuth } from "../../context/AuthContext";
 import ArticleCard from "../../../components/article/ArticleCard";
@@ -40,6 +40,9 @@ export default function ProfilePage() {
     firebaseUser?.photoURL ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1ABC9C&color=fff`;
 
+  const fallbackAvatar = (name) =>
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name || "?")}&background=1ABC9C&color=fff`;
+
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
 
@@ -48,8 +51,15 @@ export default function ProfilePage() {
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [hasAbout, setHasAbout] = useState(false);
 
-  // Stats modal tab state — synced from URL
+  // Stats modal state
   const [statsActiveTab, setStatsActiveTab] = useState(modalTab || "followers");
+  
+  // Real stats data
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [followingSet, setFollowingSet] = useState(new Set());
+  const [togglingIds, setTogglingIds] = useState(new Set());
 
   // Sync stats tab when URL changes
   useEffect(() => {
@@ -63,6 +73,37 @@ export default function ProfilePage() {
       setHasAbout(!!userProfile.bio);
     }
   }, [userProfile]);
+
+  // Fetch real followers/following when modal opens
+  useEffect(() => {
+    if (!modalTab || !userProfile?.id) return;
+
+    const loadStats = async () => {
+      setStatsLoading(true);
+      try {
+        const [followersRes, followingRes] = await Promise.all([
+          api.getFollowers(userProfile.id),
+          api.getFollowing(userProfile.id),
+        ]);
+
+        const followersList = followersRes.success ? followersRes.data : [];
+        const followingList = followingRes.success ? followingRes.data : [];
+
+        setFollowers(followersList);
+        setFollowing(followingList);
+
+        // Track who we currently follow
+         const alreadyFollowing = new Set(followingList.map((u) => u.id));
+         setFollowingSet(alreadyFollowing);
+      } catch (err) {
+        console.error("Failed to fetch stats:", err);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    loadStats();
+  }, [modalTab, userProfile?.id]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -101,12 +142,9 @@ export default function ProfilePage() {
   const fallbackCopyTextToClipboard = (text) => {
     const textArea = document.createElement("textarea");
     textArea.value = text;
-
-    // Avoid scrolling to bottom
     textArea.style.top = "0";
     textArea.style.left = "0";
     textArea.style.position = "fixed";
-
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
@@ -173,6 +211,42 @@ export default function ProfilePage() {
     }
   };
 
+  const handleToggleFollow = useCallback(
+    async (userId) => {
+      if (!firebaseUser) return;
+      setTogglingIds((prev) => new Set(prev).add(userId));
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res = await api.toggleFollow(userId, token);
+        if (res.success) {
+          setFollowingSet((prev) => {
+            const next = new Set(prev);
+            if (res.data.followed) next.add(userId);
+            else next.delete(userId);
+            return next;
+          });
+          
+          // Optimistically update counts in profile if we are viewing our own modal
+          updateContextProfile({
+            _count: {
+              ...userProfile?._count,
+              following: (userProfile?._count?.following || 0) + (res.data.followed ? 1 : -1)
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Toggle follow failed:", err);
+      } finally {
+        setTogglingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(userId);
+          return next;
+        });
+      }
+    },
+    [firebaseUser, userProfile, updateContextProfile]
+  );
+
   // Mock articles data
   const articles = [
     {
@@ -207,72 +281,6 @@ export default function ProfilePage() {
     },
   ];
 
-  // Mock stats modal data
-  const stats = {
-    followers: userProfile?._count?.followers || 0,
-    following: userProfile?._count?.following || 0,
-    shares: userProfile?.stats?.totalShares || 0,
-  };
-
-  const followers = [
-    {
-      id: 1,
-      name: "Sarah Chen",
-      title: "AI Researcher & Tech Writer",
-      avatar: "https://i.pravatar.cc/150?img=1",
-      isFollowing: false,
-    },
-    {
-      id: 2,
-      name: "David Miller",
-      title: "Frontend Developer",
-      avatar: "https://i.pravatar.cc/150?img=2",
-      isFollowing: true,
-    },
-    {
-      id: 3,
-      name: "James Wilson",
-      title: "Product Manager",
-      avatar: "https://i.pravatar.cc/150?img=3",
-      isFollowing: false,
-    },
-    {
-      id: 4,
-      name: "Emily Davis",
-      title: "UX Designer",
-      avatar: "https://i.pravatar.cc/150?img=4",
-      isFollowing: true,
-    },
-    {
-      id: 5,
-      name: "Michael Brown",
-      title: "Data Scientist",
-      avatar: "https://i.pravatar.cc/150?img=5",
-      isFollowing: false,
-    },
-  ];
-
-  const following = [
-    {
-      id: 1,
-      name: "David Miller",
-      title: "Frontend Developer",
-      avatar: "https://i.pravatar.cc/150?img=2",
-    },
-    {
-      id: 2,
-      name: "Emily Davis",
-      title: "UX Designer",
-      avatar: "https://i.pravatar.cc/150?img=4",
-    },
-    {
-      id: 3,
-      name: "Jessica Taylor",
-      title: "Digital Nomad",
-      avatar: "https://i.pravatar.cc/150?img=6",
-    },
-  ];
-
   const shares = [
     {
       id: 1,
@@ -292,13 +300,11 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center w-full h-full pt-20">
-        <p className="text-[#6B7280]">Loading profile...</p>
+      <div className="flex items-center justify-center w-full h-[calc(100vh-64px)] pt-20 bg-gray-50">
+        <Loader2 className="w-8 h-8 animate-spin text-[#1ABC9C] opacity-50" />
       </div>
     );
   }
-
-  // displayName and avatarUrl are already derived above from userProfile + firebaseUser fallback
 
   return (
     <div className="flex h-full w-full">
@@ -307,7 +313,6 @@ export default function ProfilePage() {
         className="flex-1 overflow-y-auto h-[calc(100vh-64px)] relative"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
-        {/* Masking Strip for Green Line Artifact */}
         <div className="absolute top-0 right-0 w-3 h-full bg-white z-10 pointer-events-none" />
         <div className="max-w-3xl mx-auto px-8 py-8 pr-12">
           {/* Profile Header */}
@@ -393,9 +398,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="py-8">
-              {/* About Section Logic */}
               {!hasAbout && !isEditingAbout ? (
-                /* Empty State */
                 <div className="border border-[#E5E7EB] rounded-lg p-8 text-center max-w-xl mx-auto bg-[#F9FAFB] relative z-10 overflow-hidden">
                   <h3 className="text-lg font-semibold text-[#111827] mb-3">
                     Tell the world about yourself
@@ -413,7 +416,6 @@ export default function ProfilePage() {
                   </button>
                 </div>
               ) : isEditingAbout ? (
-                /* Edit Mode */
                 <div className="max-w-xl mx-auto relative z-10 overflow-hidden p-1">
                   <label className="block text-sm font-semibold text-[#374151] mb-2">
                     About You
@@ -442,15 +444,12 @@ export default function ProfilePage() {
                   </div>
                 </div>
               ) : (
-                /* View Mode */
                 <div className="max-w-xl mx-auto group relative z-10 overflow-hidden">
                   <div className="border border-[#E5E7EB] rounded-lg p-8 bg-white mb-3">
                     <div className="prose prose-slate max-w-none text-[#374151] leading-relaxed whitespace-pre-wrap">
                       {aboutText}
                     </div>
                   </div>
-
-                  {/* Action Buttons - Below the box */}
                   <div className="flex justify-end gap-3 px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                       onClick={handleDeleteAbout}
@@ -475,20 +474,16 @@ export default function ProfilePage() {
       {/* Right Sidebar */}
       <aside className="w-70 shrink-0 bg-white px-6 py-8 overflow-y-auto h-[calc(100vh-64px)] scrollbar-hide">
         <div className="flex flex-col justify-between h-full">
-          {/* Profile Card */}
           <div>
-            {/* Avatar */}
             <div className="mb-4 relative inline-block">
               <img
                 src={avatarUrl}
                 alt={displayName}
+                referrerPolicy="no-referrer"
                 className={`w-20 h-20 rounded-full object-cover border-2 ${
-                  userProfile?.isPremium
-                    ? "border-[#F59E0B]"
-                    : "border-[#E5E7EB]"
+                  userProfile?.isPremium ? "border-[#F59E0B]" : "border-[#E5E7EB]"
                 }`}
               />
-              {/* Verified Badge for Premium */}
               {userProfile?.isPremium && (
                 <div className="absolute -bottom-1 -right-1 transform translate-x-1/4 translate-y-1/4 drop-shadow-md">
                   <svg
@@ -516,12 +511,10 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Name */}
             <h2 className="text-base font-bold text-[#111827] mb-2 flex items-center gap-2">
               {displayName}
             </h2>
 
-            {/* Stats Row 1 */}
             <p className="text-sm text-[#6B7280] mb-1">
               <Link
                 href="/profile?modal=followers"
@@ -538,7 +531,6 @@ export default function ProfilePage() {
               </Link>
             </p>
 
-            {/* Stats Row 2 */}
             <p className="text-sm text-[#6B7280] mb-4">
               <Link
                 href="/profile?modal=shares"
@@ -552,7 +544,6 @@ export default function ProfilePage() {
               </Link>
             </p>
 
-            {/* Edit Profile Link */}
             <a
               href="/profile/edit"
               className="text-sm text-[#1ABC9C] hover:text-[#17a589] transition-colors"
@@ -561,59 +552,35 @@ export default function ProfilePage() {
             </a>
           </div>
 
-          {/* Footer Links */}
           <div className="pt-4">
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-[#6B7280]">
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Help
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Status
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                About
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Careers
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Press
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Blog
-              </a>
+              <a href="#" className="hover:text-[#111827] transition-colors">Help</a>
+              <a href="#" className="hover:text-[#111827] transition-colors">Status</a>
+              <a href="#" className="hover:text-[#111827] transition-colors">About</a>
+              <a href="#" className="hover:text-[#111827] transition-colors">Careers</a>
+              <a href="#" className="hover:text-[#111827] transition-colors">Press</a>
+              <a href="#" className="hover:text-[#111827] transition-colors">Blog</a>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-[#6B7280] mt-2">
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Privacy
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Terms
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Text to speech
-              </a>
-              <a href="#" className="hover:text-[#111827] transition-colors">
-                Teams
-              </a>
+              <a href="#" className="hover:text-[#111827] transition-colors">Privacy</a>
+              <a href="#" className="hover:text-[#111827] transition-colors">Terms</a>
+              <a href="#" className="hover:text-[#111827] transition-colors">Text to speech</a>
+              <a href="#" className="hover:text-[#111827] transition-colors">Teams</a>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* Stats Modal — renders over the profile page so the blur has content behind it */}
+      {/* Stats Modal */}
       {modalTab && (
         <>
-          {/* Backdrop: blurs everything including the fixed header */}
           <div
             className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[1001]"
             onClick={closeModal}
           />
 
-          {/* Modal */}
           <div className="fixed inset-0 flex items-center justify-center z-[1002] p-4 pointer-events-none">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col pointer-events-auto">
-              {/* Modal Header */}
               <div className="p-6 border-b border-[#E5E7EB]">
                 <div className="flex items-center justify-between mb-4">
                   <h2
@@ -630,20 +597,11 @@ export default function ProfilePage() {
                   </button>
                 </div>
 
-                {/* Tabs */}
                 <div className="flex gap-6">
                   {[
-                    {
-                      key: "followers",
-                      label: "Followers",
-                      count: stats.followers,
-                    },
-                    {
-                      key: "following",
-                      label: "Following",
-                      count: stats.following,
-                    },
-                    { key: "shares", label: "Shares", count: stats.shares },
+                    { key: "followers", label: "Followers", count: userProfile?._count?.followers || followers.length || 0 },
+                    { key: "following", label: "Following", count: userProfile?._count?.following || following.length || 0 },
+                    { key: "shares", label: "Shares", count: userProfile?.stats?.totalShares || 0 },
                   ].map(({ key, label, count }) => (
                     <button
                       key={key}
@@ -669,112 +627,179 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Modal Content */}
               <div className="overflow-y-auto p-6 flex-1">
-                {/* Followers Tab */}
-                {statsActiveTab === "followers" && (
-                  <div className="space-y-4">
-                    {followers.map((user) => (
-                      <div
-                        key={user.id}
-                        className="flex items-center justify-between"
-                      >
+                {statsLoading ? (
+                  <div className="space-y-6">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="flex items-center justify-between animate-pulse">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="w-12 h-12 rounded-full"
-                          />
-                          <div>
-                            <p className="font-semibold text-[#111827] text-sm">
-                              {user.name}
-                            </p>
-                            <p className="text-xs text-[#6B7280]">
-                              {user.title}
-                            </p>
+                          <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                          <div className="space-y-2">
+                            <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                            <div className="h-3 w-20 bg-gray-100 rounded"></div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {user.isFollowing ? (
-                            <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
-                              Following
-                            </button>
-                          ) : (
-                            <button className="px-4 py-1.5 text-sm text-white bg-[#1ABC9C] rounded-full hover:bg-[#17a589] transition-colors">
-                              Follow
-                            </button>
-                          )}
-                        </div>
+                        <div className="w-24 h-8 bg-gray-200 rounded-full"></div>
                       </div>
                     ))}
                   </div>
-                )}
-
-                {/* Following Tab */}
-                {statsActiveTab === "following" && (
-                  <div className="space-y-4">
-                    {following.map((user) => (
-                      <div
-                        key={user.id}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="w-12 h-12 rounded-full"
-                          />
-                          <div>
-                            <p className="font-semibold text-[#111827] text-sm">
-                              {user.name}
-                            </p>
-                            <p className="text-xs text-[#6B7280]">
-                              {user.title}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
-                            Message
-                          </button>
-                          <button className="px-4 py-1.5 text-sm text-[#6B7280] border border-[#E5E7EB] rounded-full hover:bg-[#F9FAFB] transition-colors">
-                            Unfollow
-                          </button>
-                        </div>
+                ) : (
+                  <>
+                    {/* Followers Tab */}
+                    {statsActiveTab === "followers" && (
+                      <div className="space-y-4">
+                        {followers.length === 0 ? (
+                           <p className="text-center text-gray-400 py-8 text-sm">
+                             You have no followers yet. Share your profile to gain some!
+                           </p>
+                        ) : (
+                          followers.map((person) => {
+                            const isFollowingPerson = followingSet.has(person.id);
+                            const isToggling = togglingIds.has(person.id);
+                            const isSelf = userProfile?.id === person.id;
+                            return (
+                              <div
+                                key={person.id}
+                                className="flex items-center justify-between"
+                              >
+                                <Link
+                                  href={isSelf ? "/profile" : `/profile/${person.username}`}
+                                  className="flex items-center gap-3 min-w-0"
+                                >
+                                  <img
+                                    src={person.avatarUrl || fallbackAvatar(person.displayName)}
+                                    alt={person.displayName}
+                                    referrerPolicy="no-referrer"
+                                    className="w-12 h-12 rounded-full object-cover shrink-0"
+                                  />
+                                  <div className="min-w-0">
+                                    <p className="font-semibold text-[#111827] text-sm truncate">
+                                      {person.displayName || person.username}
+                                    </p>
+                                    <p className="text-xs text-[#6B7280] truncate">
+                                      @{person.username}
+                                    </p>
+                                  </div>
+                                </Link>
+                                {!isSelf && (
+                                  <button
+                                    onClick={() => handleToggleFollow(person.id)}
+                                    disabled={isToggling}
+                                    className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
+                                      isFollowingPerson
+                                        ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
+                                        : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                                    }`}
+                                  >
+                                    {isToggling ? (
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                    ) : isFollowingPerson ? (
+                                      "Following"
+                                    ) : (
+                                      "Follow Back"
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })
+                        )}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    )}
 
-                {/* Shares Tab */}
-                {statsActiveTab === "shares" && (
-                  <div className="space-y-5">
-                    {shares.map((share) => (
-                      <div
-                        key={share.id}
-                        className="border-b border-[#E5E7EB] pb-4 last:border-0"
-                      >
-                        <h3 className="font-semibold text-[#111827] mb-2">
-                          {share.title}
-                        </h3>
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm text-[#6B7280]">
-                            Shared to {share.platform} · {share.date}
+                    {/* Following Tab */}
+                    {statsActiveTab === "following" && (
+                      <div className="space-y-4">
+                        {following.length === 0 ? (
+                          <p className="text-center text-gray-400 py-8 text-sm">
+                            You are not following anyone yet. Discover writers!
                           </p>
-                          {share.likes && (
-                            <span className="px-2 py-1 bg-[#D1FAE5] text-[#059669] text-xs font-medium rounded">
-                              {share.likes} likes
-                            </span>
-                          )}
-                          {share.comments && (
-                            <span className="px-2 py-1 bg-[#DBEAFE] text-[#2563EB] text-xs font-medium rounded">
-                              {share.comments} comments
-                            </span>
-                          )}
-                        </div>
+                        ) : (
+                          following.map((person) => {
+                            const stillFollowing = followingSet.has(person.id);
+                            const isToggling = togglingIds.has(person.id);
+                            const isSelf = userProfile?.id === person.id;
+                            return (
+                              <div
+                                key={person.id}
+                                className="flex items-center justify-between"
+                              >
+                                <Link
+                                  href={isSelf ? "/profile" : `/profile/${person.username}`}
+                                  className="flex items-center gap-3 min-w-0"
+                                >
+                                  <img
+                                    src={person.avatarUrl || fallbackAvatar(person.displayName)}
+                                    alt={person.displayName}
+                                    referrerPolicy="no-referrer"
+                                    className="w-12 h-12 rounded-full object-cover shrink-0"
+                                  />
+                                  <div className="min-w-0">
+                                    <p className="font-semibold text-[#111827] text-sm truncate">
+                                      {person.displayName || person.username}
+                                    </p>
+                                    <p className="text-xs text-[#6B7280] truncate">
+                                      @{person.username}
+                                    </p>
+                                  </div>
+                                </Link>
+                                {!isSelf && (
+                                  <button
+                                    onClick={() => handleToggleFollow(person.id)}
+                                    disabled={isToggling}
+                                    className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
+                                      stillFollowing
+                                        ? "text-[#6B7280] border border-[#E5E7EB] hover:border-red-300 hover:text-red-500 hover:bg-red-50"
+                                        : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                                    }`}
+                                  >
+                                    {isToggling ? (
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                    ) : stillFollowing ? (
+                                      "Following"
+                                    ) : (
+                                      "Follow"
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })
+                        )}
                       </div>
-                    ))}
-                  </div>
+                    )}
+
+                    {/* Shares Tab */}
+                    {statsActiveTab === "shares" && (
+                      <div className="space-y-5">
+                        {shares.map((share) => (
+                          <div
+                            key={share.id}
+                            className="border-b border-[#E5E7EB] pb-4 last:border-0"
+                          >
+                            <h3 className="font-semibold text-[#111827] mb-2">
+                              {share.title}
+                            </h3>
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm text-[#6B7280]">
+                                Shared to {share.platform} · {share.date}
+                              </p>
+                              {share.likes && (
+                                <span className="px-2 py-1 bg-[#D1FAE5] text-[#059669] text-xs font-medium rounded">
+                                  {share.likes} likes
+                                </span>
+                              )}
+                              {share.comments && (
+                                <span className="px-2 py-1 bg-[#DBEAFE] text-[#2563EB] text-xs font-medium rounded">
+                                  {share.comments} comments
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

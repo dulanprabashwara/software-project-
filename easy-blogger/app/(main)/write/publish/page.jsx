@@ -1,7 +1,9 @@
+//article publish page
 "use client";
 
 import { useState } from "react";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Calendar, Clock} from "lucide-react";
 import Image from "next/image";
 
@@ -49,6 +51,9 @@ function Radio({ checked }) {
 
 export default function PublishArticlePage() {
   
+  const router = useRouter();
+  const [articleTitle, setArticleTitle] = useState("");
+
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState(["Technology", "Design", "Blogging"]);
   const MAX_TAGS = 5;
@@ -66,7 +71,8 @@ export default function PublishArticlePage() {
   const [shareLinkedIn, setShareLinkedIn] = useState(true);
   const [shareWordPress, setShareWordPress] = useState(true);
   const [shareText, setShareText] = useState("");
-  const [showShareText, setShowShareText] = useState(false);  
+  const [showShareText, setShowShareText] = useState(false);
+  const [linkedinCaption, setLinkedinCaption] = useState("");  
 
   const addTag = (raw) => {
     const t = raw.trim();
@@ -212,6 +218,14 @@ export default function PublishArticlePage() {
     return () => clearInterval(id);
   }, [timing]);
 
+  // Reads the title that came from preview
+  useEffect(() => {
+    const storedTitle = sessionStorage.getItem("publish_article_title");
+    if (storedTitle) {
+      setArticleTitle(storedTitle);
+    }
+  }, []);
+
   const isPastDateTime = () => {
     if (!scheduledDate || !scheduledTime) return false;
 
@@ -220,6 +234,16 @@ export default function PublishArticlePage() {
 
     return selected < now;
   };
+
+  // Determine the platforms where the article will be published based on user selections
+  const getSelectedPlatforms = () => {
+    const platforms = ["Easy Blogger"];
+
+    if (shareLinkedIn) platforms.push("LinkedIn");
+    if (shareWordPress) platforms.push("WordPress");
+
+    return platforms;
+  } ;
 
 
   return (
@@ -541,15 +565,70 @@ export default function PublishArticlePage() {
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
+
+        <Section title="LinkedIn Caption (Optional)">
+          <div className="space-y-3">
+    
+            {/* Show only if LinkedIn sharing is ON */}
+              {shareLinkedIn && (
+                <>
+                <input
+                  type="text"
+                  value={linkedinCaption}
+                  onChange={(e) => setLinkedinCaption(e.target.value)}
+                  placeholder="Write a caption for LinkedIn..."
+                  className="w-full h-11 rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
+                />
+
+                <div className="flex items-center gap-6 text-sm">
+                  <button className="text-gray-600 hover:text-gray-900">
+                    Change account
+                  </button>
+
+                  <button className="text-red-500 hover:text-red-600">
+                    Disconnect
+                  </button>
+                </div>
+                </>
+              )}
+
+              {!shareLinkedIn && (
+                <p className="text-sm text-gray-400">
+                  Enable LinkedIn sharing to add a caption.
+                </p>
+              )}
+          </div>
+        </Section>
+        <div className="flex justify-center">
+          <div className="w-[90%] border-t border-gray-400" />
+        </div>
         
         <div className="p-8 flex items-center justify-center gap-40">
-          <button className="px-8 py-3 rounded-full bg-black text-white">Back</button>
           <button
+            onClick={() => router.push("/write/preview")}
+            className="px-8 py-3 rounded-full bg-black text-white"
+          >
+            Back
+          </button>
+          <button
+            onClick={() => {
+              const publishData = {
+                title: articleTitle,
+                tags,
+                platforms: getSelectedPlatforms(),
+                timing,
+                scheduledDate,
+                scheduledTime,
+                linkedinCaption,
+              };
+              sessionStorage.setItem("published_article_data", JSON.stringify(publishData));
+              router.push("/write/articlepublished");
+            }}
             disabled={timing === "schedule" && isPastDateTime()}
             className={`px-8 py-3 rounded-full text-white transition ${
-            timing === "schedule" && isPastDateTime()
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-emerald-500 hover:bg-emerald-600"
+              timing === "schedule" && isPastDateTime()
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-emerald-500 hover:bg-emerald-600"
             }`}
           >
             {timing === "schedule" ? "Schedule post" : "Publish now"}

@@ -67,6 +67,59 @@ export const api = {
   updateProfile: (data, token) =>
     fetchAPI("/api/users/profile", { method: "PUT", body: data, token }),
   getUserProfile: (identifier) => fetchAPI(`/api/users/${identifier}`),
+  getUserProfileAuth: (identifier, token) =>
+    fetchAPI(`/api/users/${identifier}`, { token }),
 
-  // Add more as needed...
+  // Follow System
+  toggleFollow: (userId, token) =>
+    fetchAPI(`/api/users/${userId}/follow`, { method: "POST", token }),
+  getFollowers: (userId) => fetchAPI(`/api/users/${userId}/followers`),
+  getFollowing: (userId) => fetchAPI(`/api/users/${userId}/following`),
+
+  getAdminDashboard: (token) => 
+    fetchAPI("/api/admin/dashboard", { token }),
+
+  getOffers: (token) => 
+    fetchAPI("/api/admin/offers", { token }),
+
+  createOffer: (data, token) => 
+    fetchAPI("/api/admin/offers", { method: "POST", body: data, token }),
+
+  updateOffer: (id, data, token) =>  
+    fetchAPI(`/api/admin/offers/${id}`, { method: "PUT", body: data, token }),
+
+  getScrapingSources: (token) => 
+    fetchAPI("/api/admin/scraping-sources", { token }),
+
+  createScrapingSource: (data, token) => 
+    fetchAPI("/api/admin/scraping-sources", { method: "POST", body: data, token }),
+  
+  validateUrl: (data, token) => 
+    fetchAPI("/api/admin/validate-url", { method: "POST", body: data, token }),
+
+  updateScrapingSource: (id, data, token) => 
+    fetchAPI(`/api/admin/scraping-sources/${id}`, { method: "PUT", body: data, token }),
+
+  deleteScrapingSource: (id, token) => 
+    fetchAPI(`/api/admin/scraping-sources/${id}`, { method: "DELETE", token }),
+
+  // ─── Payment / Subscription ───────────────
+  getActiveOffers: () =>
+    fetchAPI("/api/payments/offers"),
+
+  createCheckoutSession: (offerId, token) =>
+    fetchAPI("/api/payments/create-checkout-session", { method: "POST", body: { offerId }, token }),
+
+  getSubscriptionStatus: (token) =>
+    fetchAPI("/api/payments/subscription", { token }),
+
+  cancelSubscription: (token) =>
+    fetchAPI("/api/payments/cancel", { method: "POST", token }),
+
+  createPortalSession: (token) =>
+    fetchAPI("/api/payments/portal", { method: "POST", token }),
+
+  // Stripe Customer Portal (dedicated endpoint)
+  createStripePortalSession: (token) =>
+    fetchAPI("/api/stripe/create-portal-session", { method: "POST", token }),
 };
