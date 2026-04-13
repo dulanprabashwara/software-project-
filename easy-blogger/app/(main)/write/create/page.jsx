@@ -13,10 +13,10 @@ import {
   createDraft,
   updateDraft,
   deleteDraft,
+  getDraftById,
+  getCurrentEditingDraft,
 } from "../../../../lib/articles/api";
 
-const LOCAL_DRAFT_STORAGE_KEY = "draft_article";
-const PREVIEW_ARTICLE_STORAGE_KEY = "preview_article";
 const PREVIEW_CONTEXT_STORAGE_KEY = "preview_context";
 const AUTOSAVE_DELAY_MS = 2000;
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -25,34 +25,8 @@ function getArticleIdFromResponse(response) {
   return response?.data?.id ?? response?.article?.id ?? null;
 }
 
-function readLocalDraft() {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const raw = window.localStorage.getItem(LOCAL_DRAFT_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (error) {
-    console.error("Failed to read local draft:", error);
-    return null;
-  }
-}
-
-function writeLocalDraft(draft) {
-  if (typeof window === "undefined") return;
-
-  try {
-    window.localStorage.setItem(
-      LOCAL_DRAFT_STORAGE_KEY,
-      JSON.stringify(draft),
-    );
-  } catch (error) {
-    console.error("Failed to persist local draft:", error);
-  }
-}
-
-function clearLocalDraft() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(LOCAL_DRAFT_STORAGE_KEY);
+function getArticleFromResponse(response) {
+  return response?.data ?? response?.article ?? response ?? null;
 }
 
 function buildArticlePayload({ title, content, coverImage, status }) {
@@ -78,6 +52,7 @@ export default function CreateArticlePage() {
   const [zoom, setZoom] = useState(100);
   const [fontSize, setFontSize] = useState(16);
   const [mounted, setMounted] = useState(false);
+  const [isHydrating, setIsHydrating] = useState(true);
 
   const fileInputRef = useRef(null);
   const editorRef = useRef(null);
@@ -93,18 +68,55 @@ export default function CreateArticlePage() {
 
   const charCount = plainText.length;
 
-  const persistEditorSnapshot = useCallback(
-    (nextDraftId = draftId) => {
-      writeLocalDraft({
-        draftId: nextDraftId,
-        title,
-        content,
-        coverImage,
-        lastSavedAt: new Date().toISOString(),
-      });
-    },
-    [draftId, title, content, coverImage],
-  );
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const hydrateEditor = async () => {
+      try {
+        const rawPreviewContext = sessionStorage.getItem(
+          PREVIEW_CONTEXT_STORAGE_KEY,
+        );
+
+        if (rawPreviewContext) {
+          const previewContext = JSON.parse(rawPreviewContext);
+
+          if (previewContext?.mode === "create" && previewContext?.id) {
+            const response = await getDraftById(previewContext.id);
+            const article = getArticleFromResponse(response);
+
+            if (article) {
+              setDraftId(article.id);
+              setTitle(article.title || "");
+              setContent(article.content || "");
+              setCoverImage(article.coverImage || null);
+              setLastSavedAt(article.updatedAt ? new Date(article.updatedAt) : null);
+              setIsHydrating(false);
+              return;
+            }
+          }
+        }
+
+        const response = await getCurrentEditingDraft();
+        const article = getArticleFromResponse(response);
+
+        if (article) {
+          setDraftId(article.id);
+          setTitle(article.title || "");
+          setContent(article.content || "");
+          setCoverImage(article.coverImage || null);
+          setLastSavedAt(article.updatedAt ? new Date(article.updatedAt) : null);
+        }
+      } catch (error) {
+        console.error("Failed to hydrate create editor from database:", error);
+      } finally {
+        setIsHydrating(false);
+      }
+    };
+
+    void hydrateEditor();
+  }, []);
 
   const saveArticle = useCallback(
     async (status) => {
@@ -139,48 +151,29 @@ export default function CreateArticlePage() {
         }
 
         setLastSavedAt(new Date());
-        persistEditorSnapshot(currentDraftId);
-
         return currentDraftId;
       } finally {
         setIsSaving(false);
         isSavingRef.current = false;
       }
     },
-    [coverImage, content, draftId, hasContent, persistEditorSnapshot, title],
+    [coverImage, content, draftId, hasContent, title],
   );
 
   useEffect(() => {
-    const savedDraft = readLocalDraft();
-
-    if (!savedDraft) return;
-
-    setDraftId(savedDraft.draftId || null);
-    setTitle(savedDraft.title || "");
-    setContent(savedDraft.content || "");
-    setCoverImage(savedDraft.coverImage || null);
-
-    if (savedDraft.lastSavedAt) {
-      setLastSavedAt(new Date(savedDraft.lastSavedAt));
-    }
-  }, []);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!hasContent) return;
+    if (isHydrating)
+      return;
+    if (!hasContent) 
+      return;
 
     const timer = setTimeout(() => {
       void saveArticle("editing");
     }, AUTOSAVE_DELAY_MS);
 
     return () => clearTimeout(timer);
-  }, [hasContent, saveArticle]);
+  }, [hasContent, isHydrating, saveArticle]);
 
   const resetEditorState = useCallback(() => {
-    clearLocalDraft();
     setDraftId(null);
     setTitle("");
     setContent("");
@@ -191,11 +184,14 @@ export default function CreateArticlePage() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+
+    sessionStorage.removeItem(PREVIEW_CONTEXT_STORAGE_KEY);
   }, []);
 
   const handleImageUpload = useCallback((event) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) 
+      return;
 
     if (!file.type.startsWith("image/")) {
       window.alert("Please upload a valid image file.");
@@ -238,7 +234,7 @@ export default function CreateArticlePage() {
     try {
       setArticleMode("draft");
       await saveArticle("draft");
-      clearLocalDraft();
+      sessionStorage.removeItem(PREVIEW_CONTEXT_STORAGE_KEY);
       router.push("/write/unpublished");
     } catch (error) {
       console.error("Failed to save article as draft:", error);
@@ -251,7 +247,8 @@ export default function CreateArticlePage() {
       "Are you sure you want to discard this article? All unsaved changes will be lost.",
     );
 
-    if (!confirmed) return;
+    if (!confirmed)
+      return;
 
     try {
       if (draftId) {
@@ -265,32 +262,29 @@ export default function CreateArticlePage() {
     }
   }, [draftId, resetEditorState, router]);
 
-  const handlePreview = useCallback(() => {
+  const handlePreview = useCallback(async () => {
     if (!title.trim() || !content.trim()) {
       window.alert("Please enter both title and content before previewing.");
       return;
     }
 
-    sessionStorage.removeItem(PREVIEW_ARTICLE_STORAGE_KEY);
-    sessionStorage.removeItem(PREVIEW_CONTEXT_STORAGE_KEY);
+    try {
+      const currentDraftId = await saveArticle("editing");
 
-    sessionStorage.setItem(
-      PREVIEW_ARTICLE_STORAGE_KEY,
-      JSON.stringify({ title, content, coverImage }),
-    );
+      sessionStorage.setItem(
+        PREVIEW_CONTEXT_STORAGE_KEY,
+        JSON.stringify({
+          id: currentDraftId,
+          mode: "create",
+        }),
+      );
 
-    sessionStorage.setItem(
-      PREVIEW_CONTEXT_STORAGE_KEY,
-      JSON.stringify({
-        title,
-        content,
-        coverImage,
-        mode: "create",
-      }),
-    );
-
-    router.push("/write/preview");
-  }, [content, coverImage, router, title]);
+      router.push("/write/preview");
+    } catch (error) {
+      console.error("Failed to prepare article preview:", error);
+      window.alert("Failed to open preview.");
+    }
+  }, [content, router, saveArticle, title]);
 
   const handleDropImage = useCallback(
     (event) => {
@@ -308,10 +302,6 @@ export default function CreateArticlePage() {
     setZoom((prev) => Math.max(50, Math.min(200, prev + delta)));
   }, []);
 
-  const handleFontSizeChange = useCallback((delta) => {
-    setFontSize((prev) => Math.max(8, Math.min(72, prev + delta)));
-  }, []);
-
   return (
     <div className="min-h-screen bg-white">
       <Header onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
@@ -326,11 +316,13 @@ export default function CreateArticlePage() {
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-3 items-center">
               <div className="text-sm text-[#6B7280] justify-self-start">
-                {isSaving
-                  ? "Saving..."
-                  : lastSavedAt
-                    ? `Saved at ${lastSavedAt.toLocaleTimeString()}`
-                    : "Not saved yet"}
+                {isHydrating
+                  ? "Loading..."
+                  : isSaving
+                    ? "Saving..."
+                    : lastSavedAt
+                      ? `Saved at ${lastSavedAt.toLocaleTimeString()}`
+                      : "Not saved yet"}
               </div>
 
               <div className="text-center">
@@ -345,7 +337,7 @@ export default function CreateArticlePage() {
               <div className="justify-self-end flex items-center gap-3">
                 <button
                   onClick={handleSaveAsDraft}
-                  disabled={!title.trim() || !content.trim() || isSaving}
+                  disabled={!title.trim() || !content.trim() || isSaving || isHydrating}
                   className="inline-flex items-center px-6 py-2.5 bg-[#111827] text-white rounded-full text-sm font-medium hover:bg-[#1f2937] disabled:opacity-50"
                 >
                   Save as Draft
@@ -383,6 +375,7 @@ export default function CreateArticlePage() {
                   placeholder="Enter your blog title..."
                   className="w-full px-4 py-3 bg-white border border-[#E5E7EB] rounded-lg text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                   maxLength={100}
+                  disabled={isHydrating}
                 />
 
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -525,9 +518,11 @@ export default function CreateArticlePage() {
                   <span className="text-xs text-[#6B7280]">
                     {charCount}/20,000
                   </span>
+
                   {content.length === 0 && (
                     <span className="text-xs text-[#DC2626]">*Required</span>
                   )}
+
                 </div>
               </div>
             </div>
@@ -545,7 +540,7 @@ export default function CreateArticlePage() {
 
             <button
               onClick={handlePreview}
-              disabled={!title.trim() || !content.trim()}
+              disabled={!title.trim() || !content.trim() || isHydrating}
               className="px-8 py-3 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Preview
