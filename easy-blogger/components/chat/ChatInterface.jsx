@@ -11,7 +11,7 @@ import { api } from "../../lib/api";
 
 export default function ChatInterface() {
   const { user, userProfile } = useAuth();
-  const { socket, isConnected } = useSocket();
+  const { socket } = useSocket();
   const searchParams = useSearchParams();
   const queryUserId = searchParams.get("userId");
 
@@ -20,6 +20,7 @@ export default function ChatInterface() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [typingUserId, setTypingUserId] = useState(null);
 
   // Expose current user format that MessageList expects
   const currentUser = userProfile ? {
@@ -107,6 +108,8 @@ export default function ChatInterface() {
           id: m.id,
           text: m.content,
           timestamp: new Date(m.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          sentAt: m.sentAt,
+          isRead: Boolean(m.isRead),
           sender: {
             id: m.sender.id,
             name: m.sender.displayName || m.sender.username,
@@ -119,7 +122,17 @@ export default function ChatInterface() {
         setConversations(prev => {
           const c = prev.find(conv => conv.id === activeConversationId);
           if (c && c.unreadCount > 0) {
+            const unreadFromActive = rawMessages
+              .filter((m) => m.sender.id === activeConversationId && !m.isRead)
+              .map((m) => m.id);
+
             api.markMessagesAsRead(activeConversationId, token).catch(console.error);
+            if (unreadFromActive.length > 0) {
+              socket?.emit("message:read", {
+                senderId: activeConversationId,
+                messageIds: unreadFromActive,
+              });
+            }
             return prev.map(conv => conv.id === activeConversationId ? { ...conv, unreadCount: 0 } : conv);
           }
           return prev;
@@ -132,7 +145,7 @@ export default function ChatInterface() {
       }
     };
     fetchMessages();
-  }, [activeConversationId, user]);
+  }, [activeConversationId, user, socket]);
 
   // 3. Socket Event Listeners
   useEffect(() => {
@@ -148,17 +161,23 @@ export default function ChatInterface() {
           id: message.sender.id,
           name: message.sender.displayName || message.sender.username,
           avatar: message.sender.avatarUrl || `https://ui-avatars.com/api/?name=${message.sender.username}`,
-        }
+        },
+        sentAt: message.sentAt,
+        isRead: Boolean(message.isRead),
       };
 
       if (isSenderActiveConv) {
          setMessages(prev => [...prev, formattedMsg]);
-         if (user) {
-            user.getIdToken().then(token => {
-               api.markMessagesAsRead(activeConversationId, token).catch(console.error);
-            });
-         }
-      }
+          if (user) {
+             user.getIdToken().then(token => {
+                api.markMessagesAsRead(activeConversationId, token).catch(console.error);
+             });
+          }
+          socket.emit("message:read", {
+            senderId: message.senderId,
+            messageIds: [message.id],
+          });
+       }
 
       setConversations(prev => {
         let exists = prev.find(c => c.id === message.senderId);
@@ -230,16 +249,41 @@ export default function ChatInterface() {
        setConversations(prev => prev.map(c => c.id === userId ? { ...c, user: { ...c.user, isOnline: false } } : c));
     };
 
+    const onTypingStart = ({ userId }) => {
+      if (userId === activeConversationId) {
+        setTypingUserId(userId);
+      }
+    };
+
+    const onTypingStop = ({ userId }) => {
+      if (userId === activeConversationId) {
+        setTypingUserId(null);
+      }
+    };
+
+    const onMessagesRead = ({ messageIds }) => {
+      if (!Array.isArray(messageIds) || messageIds.length === 0) return;
+      setMessages((prev) =>
+        prev.map((m) => (messageIds.includes(m.id) ? { ...m, isRead: true } : m)),
+      );
+    };
+
     socket.on("message:receive", onMessageReceive);
     socket.on("message:deleted", onMessageDeleted);
     socket.on("user:online", onUserOnline);
     socket.on("user:offline", onUserOffline);
+    socket.on("typing:start", onTypingStart);
+    socket.on("typing:stop", onTypingStop);
+    socket.on("message:read", onMessagesRead);
 
     return () => {
       socket.off("message:receive", onMessageReceive);
       socket.off("message:deleted", onMessageDeleted);
       socket.off("user:online", onUserOnline);
       socket.off("user:offline", onUserOffline);
+      socket.off("typing:start", onTypingStart);
+      socket.off("typing:stop", onTypingStop);
+      socket.off("message:read", onMessagesRead);
     };
   }, [socket, activeConversationId, userProfile, user]);
 
@@ -253,7 +297,9 @@ export default function ChatInterface() {
       id: tempId,
       text: text,
       timestamp: optimisticDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      sender: currentUser
+      sender: currentUser,
+      sentAt: optimisticDate.toISOString(),
+      isRead: false,
     };
 
     setMessages(prev => [...prev, optimisticMsg]);
@@ -289,7 +335,9 @@ export default function ChatInterface() {
         id: msg.id,
         text: msg.content,
         timestamp: new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        sender: currentUser
+        sender: currentUser,
+        sentAt: msg.sentAt,
+        isRead: Boolean(msg.isRead),
       } : m));
       
       // Quietly update conversation timestamp to canonical server timestamp
@@ -366,6 +414,16 @@ export default function ChatInterface() {
     });
   };
 
+  const handleTypingStart = () => {
+    if (!socket || !activeConversationId) return;
+    socket.emit("typing:start", { receiverId: activeConversationId });
+  };
+
+  const handleTypingStop = () => {
+    if (!socket || !activeConversationId) return;
+    socket.emit("typing:stop", { receiverId: activeConversationId });
+  };
+
   if (loading || !currentUser) {
      return <div className="flex h-full items-center justify-center bg-white border rounded-2xl shadow-sm text-gray-400">Loading chats...</div>;
   }
@@ -404,13 +462,15 @@ export default function ChatInterface() {
                   <h3 className="font-bold text-gray-900 leading-tight">
                     {activeConversation.user.name}
                   </h3>
-                  <span className="text-xs text-gray-500">
-                    {activeConversation.user.isOnline
-                      ? "Active now"
-                      : "Offline"}
-                  </span>
-                </div>
-              </div>
+                   <span className="text-xs text-gray-500">
+                     {typingUserId === activeConversationId
+                       ? "Typing..."
+                       : activeConversation.user.isOnline
+                         ? "Active now"
+                         : "Offline"}
+                   </span>
+                 </div>
+               </div>
             </div>
 
             {/* Messages */}
@@ -425,7 +485,11 @@ export default function ChatInterface() {
             )}
 
             {/* Input */}
-            <ChatInput onSendMessage={handleSendMessage} />
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              onTypingStart={handleTypingStart}
+              onTypingStop={handleTypingStop}
+            />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-400">

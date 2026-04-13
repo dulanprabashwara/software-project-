@@ -27,6 +27,7 @@ export default function MessageList({
           text={message.text}
           sender={message.sender}
           timestamp={message.timestamp}
+          isRead={Boolean(message.isRead)}
           isOwnMessage={message.sender.id === currentUser.id}
           onDelete={() => onDeleteMessage && onDeleteMessage(message.id)}
         />
