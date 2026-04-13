@@ -1,4 +1,6 @@
 // components/search/SearchResults.jsx
+// ─────────────────────────────────────────────────────────────────────────────
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -10,11 +12,10 @@ import RightFeed from "../article/RightFeed";
 import { DATA } from "../article/ArticleList";
 import { Loader2, SearchX } from "lucide-react";
 
-export default function SearchResults({ query }) {
-  const [activeTab, setActiveTab] = useState("articles");
-
-  // Auth context — token is passed to searchUsers so the backend can resolve
-  // isFollowing for each returned user from the database (not a frontend guess)
+export default function SearchResults({ query, initialTab = "articles" }) {
+  // initialTab is "profiles" when the URL has ?tab=profiles (set by Header
+  // when the user clicks a person suggestion from the autocomplete dropdown).
+  const [activeTab, setActiveTab] = useState(initialTab);
   const { user: firebaseUser } = useAuth();
 
   // ── Articles state ────────────────────────────────────────────────────────
@@ -29,12 +30,13 @@ export default function SearchResults({ query }) {
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersLoaded,  setUsersLoaded]  = useState(false);
 
-  // ── Load articles (no auth needed — articles are public) ──────────────────
+  // ── Load articles ─────────────────────────────────────────────────────────
   const loadArticles = useCallback(async (q) => {
     setArticlesLoading(true);
     setArticlesLoaded(false);
     try {
-      const data = await searchArticles(q);
+      const token = firebaseUser ? await firebaseUser.getIdToken() : null;
+      const data  = await searchArticles(q, 1, token);
       setArticles(data?.articles || []);
       setArticlesTotal(data?.total || 0);
     } catch (err) {
@@ -44,16 +46,13 @@ export default function SearchResults({ query }) {
       setArticlesLoading(false);
       setArticlesLoaded(true);
     }
-  }, []);
+  }, [firebaseUser]);
 
-  // ── Load users (passes token so backend resolves isFollowing from DB) ─────
+  // ── Load users ────────────────────────────────────────────────────────────
   const loadUsers = useCallback(async (q) => {
     setUsersLoading(true);
     setUsersLoaded(false);
     try {
-      // Get a fresh Firebase token if the user is logged in
-      // Token is forwarded to the backend optionalAuth middleware which stamps
-      // isFollowing: true/false on each user using a single DB query
       const token = firebaseUser ? await firebaseUser.getIdToken() : null;
       const data  = await searchUsers(q, 1, token);
       setUsers(data?.users || []);
@@ -67,27 +66,42 @@ export default function SearchResults({ query }) {
     }
   }, [firebaseUser]);
 
+  // ── On query or initialTab change — kick off the right first load ─────────
   useEffect(() => {
     if (!query) return;
-    setActiveTab("articles");
+
+    // Reset everything
     setArticles([]);
     setUsers([]);
     setArticlesLoaded(false);
     setUsersLoaded(false);
-    loadArticles(query);
-  }, [query, loadArticles]);
+    setActiveTab(initialTab); // honour the tab the URL specifies
 
+    if (initialTab === "profiles") {
+      // User clicked a person suggestion → load profiles first, articles lazily
+      loadUsers(query);
+    } else {
+      // Normal search or article suggestion clicked → load articles first
+      loadArticles(query);
+    }
+  }, [query, initialTab, loadArticles, loadUsers]);
+
+  // ── Manual tab click ──────────────────────────────────────────────────────
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    // Lazy-load the other tab on first open
     if (tab === "profiles" && !usersLoaded && !usersLoading) {
       loadUsers(query);
+    }
+    if (tab === "articles" && !articlesLoaded && !articlesLoading) {
+      loadArticles(query);
     }
   };
 
   return (
     <div className="flex h-full overflow-hidden">
 
-      {/* ── Left column: results ──────────────────────────────────────────── */}
+      {/* Left column */}
       <div className="p-8 mx-auto h-full overflow-y-auto flex-1">
 
         <p className="text-sm text-[#6B7280] mb-5">
@@ -111,14 +125,14 @@ export default function SearchResults({ query }) {
           />
         </div>
 
-        {/* Articles */}
+        {/* Articles tab */}
         {activeTab === "articles" && (
           <>
             {articlesLoading && <Spinner />}
             {!articlesLoading && articlesLoaded && articles.length === 0 && (
               <EmptyState
                 message={`No articles found for "${query}"`}
-                hint='Try a different keyword or check the Profiles tab.'
+                hint="Try a different keyword or check the Profiles tab."
               />
             )}
             {articles.map((article) => (
@@ -127,7 +141,7 @@ export default function SearchResults({ query }) {
           </>
         )}
 
-        {/* Profiles */}
+        {/* Profiles tab */}
         {activeTab === "profiles" && (
           <>
             {usersLoading && <Spinner />}
@@ -144,7 +158,7 @@ export default function SearchResults({ query }) {
         )}
       </div>
 
-      {/* ── Right column: RightFeed ───────────────────────────────────────── */}
+      {/* Right column: RightFeed */}
       <div className="hidden lg:block w-80 flex-none h-full overflow-y-auto">
         <RightFeed
           trending={DATA.trending}
@@ -163,7 +177,6 @@ function TabButton({ label, count, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      // CHANGED: text-sm (14px) → text-[15px] — was barely readable before
       className={`pb-3 text-[15px] font-medium transition-colors duration-150 border-b-2 -mb-px ${
         active
           ? "border-[#1ABC9C] text-[#1ABC9C]"
@@ -174,9 +187,7 @@ function TabButton({ label, count, active, onClick }) {
       {count !== null && (
         <span
           className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
-            active
-              ? "bg-[#E8F8F5] text-[#1ABC9C]"
-              : "bg-gray-100 text-[#6B7280]"
+            active ? "bg-[#E8F8F5] text-[#1ABC9C]" : "bg-gray-100 text-[#6B7280]"
           }`}
         >
           {count}
