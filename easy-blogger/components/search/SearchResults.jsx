@@ -1,23 +1,9 @@
 // components/search/SearchResults.jsx
-// ─────────────────────────────────────────────────────────────────────────────
-// Orchestrates the search results view when ?q= is present on the home page.
-//
-// Layout (matches home/page.jsx and the Figma mockup):
-//   ┌─────────────────────────────┬──────────────────┐
-//   │  Tabs: Articles | Profiles  │   RightFeed      │
-//   │  (scrollable result list)   │   (same as home) │
-//   └─────────────────────────────┴──────────────────┘
-//
-// Changes from previous version:
-//   - RightFeed added to the right column (same DATA source as home page)
-//   - Articles tab loads immediately; Profiles tab loads on first click
-//   - Each tab preserves data while user switches (no re-fetching)
-// ─────────────────────────────────────────────────────────────────────────────
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { searchArticles, searchUsers } from "../../lib/searchApi";
+import { useAuth } from "../../app/context/AuthContext";
 import SearchArticleCard from "./SearchArticleCard";
 import UserCard from "./UserCard";
 import RightFeed from "../article/RightFeed";
@@ -26,6 +12,10 @@ import { Loader2, SearchX } from "lucide-react";
 
 export default function SearchResults({ query }) {
   const [activeTab, setActiveTab] = useState("articles");
+
+  // Auth context — token is passed to searchUsers so the backend can resolve
+  // isFollowing for each returned user from the database (not a frontend guess)
+  const { user: firebaseUser } = useAuth();
 
   // ── Articles state ────────────────────────────────────────────────────────
   const [articles,        setArticles]        = useState([]);
@@ -39,7 +29,7 @@ export default function SearchResults({ query }) {
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersLoaded,  setUsersLoaded]  = useState(false);
 
-  // ── Load articles whenever the query changes ──────────────────────────────
+  // ── Load articles (no auth needed — articles are public) ──────────────────
   const loadArticles = useCallback(async (q) => {
     setArticlesLoading(true);
     setArticlesLoaded(false);
@@ -56,12 +46,16 @@ export default function SearchResults({ query }) {
     }
   }, []);
 
-  // ── Load users (only when Profiles tab is first opened) ──────────────────
+  // ── Load users (passes token so backend resolves isFollowing from DB) ─────
   const loadUsers = useCallback(async (q) => {
     setUsersLoading(true);
     setUsersLoaded(false);
     try {
-      const data = await searchUsers(q);
+      // Get a fresh Firebase token if the user is logged in
+      // Token is forwarded to the backend optionalAuth middleware which stamps
+      // isFollowing: true/false on each user using a single DB query
+      const token = firebaseUser ? await firebaseUser.getIdToken() : null;
+      const data  = await searchUsers(q, 1, token);
       setUsers(data?.users || []);
       setUsersTotal(data?.total || 0);
     } catch (err) {
@@ -71,11 +65,10 @@ export default function SearchResults({ query }) {
       setUsersLoading(false);
       setUsersLoaded(true);
     }
-  }, []);
+  }, [firebaseUser]);
 
   useEffect(() => {
     if (!query) return;
-    // Reset both tabs whenever the search query changes
     setActiveTab("articles");
     setArticles([]);
     setUsers([]);
@@ -84,7 +77,6 @@ export default function SearchResults({ query }) {
     loadArticles(query);
   }, [query, loadArticles]);
 
-  // ── Tab click ─────────────────────────────────────────────────────────────
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     if (tab === "profiles" && !usersLoaded && !usersLoading) {
@@ -93,13 +85,11 @@ export default function SearchResults({ query }) {
   };
 
   return (
-    // Mirrors the exact same outer wrapper as home/page.jsx
     <div className="flex h-full overflow-hidden">
 
-      {/* ── Left column: search results ────────────────────────────────────── */}
+      {/* ── Left column: results ──────────────────────────────────────────── */}
       <div className="p-8 mx-auto h-full overflow-y-auto flex-1">
 
-        {/* Search context label */}
         <p className="text-sm text-[#6B7280] mb-5">
           Results for{" "}
           <span className="font-semibold text-[#111827]">"{query}"</span>
@@ -121,36 +111,32 @@ export default function SearchResults({ query }) {
           />
         </div>
 
-        {/* ── Articles tab ─────────────────────────────────────────────────── */}
+        {/* Articles */}
         {activeTab === "articles" && (
           <>
             {articlesLoading && <Spinner />}
-
             {!articlesLoading && articlesLoaded && articles.length === 0 && (
               <EmptyState
                 message={`No articles found for "${query}"`}
-                hint="Try a different keyword or check the Profiles tab."
+                hint='Try a different keyword or check the Profiles tab.'
               />
             )}
-
             {articles.map((article) => (
               <SearchArticleCard key={article.id} article={article} />
             ))}
           </>
         )}
 
-        {/* ── Profiles tab ─────────────────────────────────────────────────── */}
+        {/* Profiles */}
         {activeTab === "profiles" && (
           <>
             {usersLoading && <Spinner />}
-
             {!usersLoading && usersLoaded && users.length === 0 && (
               <EmptyState
                 message={`No profiles found for "${query}"`}
                 hint="Try searching by username or display name."
               />
             )}
-
             {users.map((user) => (
               <UserCard key={user.id} user={user} />
             ))}
@@ -158,8 +144,7 @@ export default function SearchResults({ query }) {
         )}
       </div>
 
-      {/* ── Right column: RightFeed (identical to home page) ───────────────── */}
-      {/* hidden on smaller screens, same as home/page.jsx */}
+      {/* ── Right column: RightFeed ───────────────────────────────────────── */}
       <div className="hidden lg:block w-80 flex-none h-full overflow-y-auto">
         <RightFeed
           trending={DATA.trending}
@@ -178,7 +163,8 @@ function TabButton({ label, count, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`pb-3 text-sm font-medium transition-colors duration-150 border-b-2 -mb-px ${
+      // CHANGED: text-sm (14px) → text-[15px] — was barely readable before
+      className={`pb-3 text-[15px] font-medium transition-colors duration-150 border-b-2 -mb-px ${
         active
           ? "border-[#1ABC9C] text-[#1ABC9C]"
           : "border-transparent text-[#6B7280] hover:text-[#111827]"
