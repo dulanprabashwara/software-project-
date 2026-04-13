@@ -21,6 +21,7 @@ export default function ChatInterface() {
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [typingUserId, setTypingUserId] = useState(null);
+  const [activeConversationOnline, setActiveConversationOnline] = useState(false);
 
   // Expose current user format that MessageList expects
   const currentUser = userProfile ? {
@@ -84,6 +85,10 @@ export default function ChatInterface() {
         }
 
         setConversations(formatted);
+        const activeConv = formatted.find((c) => c.id === activeConversationId);
+        if (activeConv) {
+          setActiveConversationOnline(Boolean(activeConv.user.isOnline));
+        }
       } catch (err) {
         console.error("Failed to load conversations:", err);
       } finally {
@@ -91,7 +96,12 @@ export default function ChatInterface() {
       }
     };
     fetchConversations();
-  }, [user, queryUserId]); // Re-run if query param changes
+  }, [user, queryUserId, activeConversationId]); // Re-run if query param changes
+
+  useEffect(() => {
+    const activeConv = conversations.find((c) => c.id === activeConversationId);
+    setActiveConversationOnline(Boolean(activeConv?.user?.isOnline));
+  }, [conversations, activeConversationId]);
 
   // 2. Fetch messages when active conversation changes
   useEffect(() => {
@@ -243,10 +253,17 @@ export default function ChatInterface() {
 
     const onUserOnline = ({ userId }) => {
        setConversations(prev => prev.map(c => c.id === userId ? { ...c, user: { ...c.user, isOnline: true } } : c));
+       if (userId === activeConversationId) {
+         setActiveConversationOnline(true);
+       }
     };
 
     const onUserOffline = ({ userId }) => {
-       setConversations(prev => prev.map(c => c.id === userId ? { ...c, user: { ...c.user, isOnline: false } } : c));
+        setConversations(prev => prev.map(c => c.id === userId ? { ...c, user: { ...c.user, isOnline: false } } : c));
+        if (userId === activeConversationId) {
+          setActiveConversationOnline(false);
+          setTypingUserId(null);
+        }
     };
 
     const onTypingStart = ({ userId }) => {
@@ -464,10 +481,10 @@ export default function ChatInterface() {
                   </h3>
                    <span className="text-xs text-gray-500">
                      {typingUserId === activeConversationId
-                       ? "Typing..."
-                       : activeConversation.user.isOnline
-                         ? "Active now"
-                         : "Offline"}
+                        ? "Typing..."
+                        : activeConversationOnline
+                          ? "Active now"
+                          : "Offline"}
                    </span>
                  </div>
                </div>
