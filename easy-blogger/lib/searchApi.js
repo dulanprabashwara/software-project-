@@ -1,16 +1,12 @@
 // lib/searchApi.js
-
-// Search-specific API calls for the Easy Blogger search feature.
-// Uses the existing fetchAPI helper from lib/api.js 
-
-
 import { fetchAPI } from "./api";
 
 /**
  * Search published articles, ranked by relevance then engagement.
+ * Pass the Firebase token so the backend resolves isSaved per article.
  * @param {string}      query  Search term
  * @param {number}      page   Page number (default 1)
- * @param {string|null} token  Optional Firebase auth token
+ * @param {string|null} token  Firebase auth token (pass when user is logged in)
  */
 export const searchArticles = async (query, page = 1, token = null) => {
   const params = new URLSearchParams({ q: query, page: String(page) });
@@ -23,7 +19,7 @@ export const searchArticles = async (query, page = 1, token = null) => {
 
 /**
  * Search user profiles by username or display name, ranked by followers.
- * Pass the Firebase token so the backend can resolve isFollowing per user.
+ * Pass the Firebase token so the backend resolves isFollowing per user.
  * @param {string}      query  Search term
  * @param {number}      page   Page number (default 1)
  * @param {string|null} token  Firebase auth token (pass when user is logged in)
