@@ -35,22 +35,24 @@ export default function ChatInterface() {
       try {
         const token = await user.getIdToken();
         const res = await api.getConversations(token);
-        
-        let formatted = res.data.map(c => ({
-          id: c.user.id,
-          user: {
+        let formatted = res.data
+          .filter(c => c.user.id !== userProfile?.id)
+          .map(c => ({
             id: c.user.id,
-            name: c.user.displayName || c.user.username,
+            user: {
+              id: c.user.id,
+              name: c.user.displayName || c.user.username,
             avatar: c.user.avatarUrl || `https://ui-avatars.com/api/?name=${c.user.username}`,
             isOnline: c.user.isOnline,
           },
           lastMessage: c.lastMessage ? c.lastMessage.content : "",
           lastMessageTime: c.lastMessage ? new Date(c.lastMessage.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "",
+          lastMessageDate: c.lastMessage ? new Date(c.lastMessage.sentAt).getTime() : 0,
           unreadCount: c.unreadCount,
-        }));
+        })).sort((a, b) => b.lastMessageDate - a.lastMessageDate);
 
         // Handle profile direct message routing
-        if (queryUserId) {
+        if (queryUserId && queryUserId !== userProfile?.id) {
           const exists = formatted.find(c => c.id === queryUserId);
           if (!exists) {
             // Fetch target user profile to create a temporary conversation block
@@ -98,8 +100,10 @@ export default function ChatInterface() {
       try {
         const token = await user.getIdToken();
         const res = await api.getMessages(activeConversationId, token);
-        
-        const formattedMsgs = res.data.messages.map(m => ({
+
+        // Backend sendPaginated sends the array directly in res.data
+        const rawMessages = Array.isArray(res?.data) ? res.data : (res?.data?.messages || []);
+        const formattedMsgs = rawMessages.map(m => ({
           id: m.id,
           text: m.content,
           timestamp: new Date(m.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -164,11 +168,12 @@ export default function ChatInterface() {
               {
                  ...exists,
                  lastMessage: formattedMsg.text,
-                 lastMessageTime: formattedMsg.timestamp,
+                  lastMessageTime: formattedMsg.timestamp,
+                 lastMessageDate: new Date(message.sentAt).getTime(),
                  unreadCount: isSenderActiveConv ? 0 : exists.unreadCount + 1,
               },
               ...others
-           ];
+           ].sort((a, b) => b.lastMessageDate - a.lastMessageDate);
         } else {
            const newConv = {
              id: message.senderId,
@@ -180,15 +185,41 @@ export default function ChatInterface() {
              },
              lastMessage: formattedMsg.text,
              lastMessageTime: formattedMsg.timestamp,
+             lastMessageDate: new Date(message.sentAt).getTime(),
              unreadCount: isSenderActiveConv ? 0 : 1,
            };
-           return [newConv, ...others];
+           return [newConv, ...others].sort((a, b) => b.lastMessageDate - a.lastMessageDate);
         }
       });
     };
 
     const onMessageDeleted = ({ messageId }) => {
        setMessages(prev => prev.filter(m => m.id !== messageId));
+
+       // Refresh conversations list to update sidebar (last message snippet, re-sorting, edge cases)
+       if (user) {
+          user.getIdToken().then(token => {
+             api.getConversations(token).then(res => {
+                const formatted = res.data
+                  .filter(c => c.user.id !== userProfile?.id)
+                  .map(c => ({
+                     id: c.user.id,
+                     user: {
+                       id: c.user.id,
+                       name: c.user.displayName || c.user.username,
+                       avatar: c.user.avatarUrl || `https://ui-avatars.com/api/?name=${c.user.username}`,
+                       isOnline: c.user.isOnline,
+                     },
+                     lastMessage: c.lastMessage ? c.lastMessage.content : "",
+                     lastMessageTime: c.lastMessage ? new Date(c.lastMessage.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "",
+                     lastMessageDate: c.lastMessage ? new Date(c.lastMessage.sentAt).getTime() : 0,
+                     unreadCount: c.unreadCount,
+                  }))
+                  .sort((a, b) => b.lastMessageDate - a.lastMessageDate);
+                setConversations(formatted);
+             }).catch(console.error);
+          });
+       }
     };
 
     const onUserOnline = ({ userId }) => {
@@ -215,20 +246,53 @@ export default function ChatInterface() {
   const handleSendMessage = (text) => {
     if (!socket || !activeConversationId || !userProfile) return;
 
+    // OPTIMISTIC UI: Show message instantly before backend confirms
+    const tempId = `temp-${Date.now()}`;
+    const optimisticDate = new Date();
+    const optimisticMsg = {
+      id: tempId,
+      text: text,
+      timestamp: optimisticDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      sender: currentUser
+    };
+
+    setMessages(prev => [...prev, optimisticMsg]);
+
+    setConversations(prev => {
+      let exists = prev.find(c => c.id === activeConversationId);
+      const others = prev.filter(c => c.id !== activeConversationId);
+      if (exists) {
+         return [
+            {
+               ...exists,
+               lastMessage: text,
+               lastMessageTime: optimisticMsg.timestamp,
+               lastMessageDate: optimisticDate.getTime(),
+            },
+            ...others
+         ].sort((a, b) => b.lastMessageDate - a.lastMessageDate);
+      }
+      return prev;
+    });
+
     socket.emit("message:send", { receiverId: activeConversationId, content: text }, (res) => {
       if (res.error) {
          alert(res.error);
+         // Filter out optimistic message if failed
+         setMessages(prev => prev.filter(m => m.id !== tempId));
          return;
       }
       const msg = res.message;
-      const newMsg = {
+      
+      // Replace optimistic message with confirmed backend message
+      setMessages(prev => prev.map(m => m.id === tempId ? {
         id: msg.id,
         text: msg.content,
         timestamp: new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         sender: currentUser
-      };
-      setMessages(prev => [...prev, newMsg]);
-
+      } : m));
+      
+      // Quietly update conversation timestamp to canonical server timestamp
       setConversations(prev => {
         let exists = prev.find(c => c.id === activeConversationId);
         const others = prev.filter(c => c.id !== activeConversationId);
@@ -236,11 +300,10 @@ export default function ChatInterface() {
            return [
               {
                  ...exists,
-                 lastMessage: msg.content,
-                 lastMessageTime: newMsg.timestamp,
+                 lastMessageDate: new Date(msg.sentAt).getTime(),
               },
               ...others
-           ];
+           ].sort((a, b) => b.lastMessageDate - a.lastMessageDate);
         }
         return prev;
       });
@@ -248,10 +311,57 @@ export default function ChatInterface() {
   };
 
   const handleDeleteMessage = (messageId) => {
-    if (!socket) return;
+    if (!socket || !activeConversationId) return;
+
+    // OPTIMISTIC UI: Instantly remove message from main view
+    setMessages(prev => {
+       const filteredMsgs = prev.filter(m => m.id !== messageId);
+       
+       // OPTIMISTIC UI: Immediately update sidebar if we deleted the latest message
+       if (filteredMsgs.length > 0) {
+          const newLastMsg = filteredMsgs[filteredMsgs.length - 1];
+          setConversations(convPrev => {
+             let exists = convPrev.find(c => c.id === activeConversationId);
+             const others = convPrev.filter(c => c.id !== activeConversationId);
+             if (exists) {
+                return [
+                   {
+                      ...exists,
+                      lastMessage: newLastMsg.text,
+                      lastMessageTime: newLastMsg.timestamp,
+                      lastMessageDate: newLastMsg.lastMessageDate || new Date(newLastMsg.timestamp).getTime(),
+                   },
+                   ...others
+                ].sort((a, b) => b.lastMessageDate - a.lastMessageDate);
+             }
+             return convPrev;
+          });
+       } else {
+          // If all messages were deleted, clear the snippet temporarily
+          setConversations(convPrev => {
+             let exists = convPrev.find(c => c.id === activeConversationId);
+             const others = convPrev.filter(c => c.id !== activeConversationId);
+             if (exists) {
+                return [
+                   {
+                      ...exists,
+                      lastMessage: "",
+                      lastMessageTime: "",
+                   },
+                   ...others
+                ].sort((a, b) => b.lastMessageDate - a.lastMessageDate);
+             }
+             return convPrev;
+          });
+       }
+       return filteredMsgs;
+    });
+
     socket.emit("message:delete", { messageId }, (res) => {
       if (res.error) {
          alert(res.error);
+         // If error, the user would need to refresh to get the message back, 
+         // or we'd have to store the deleted message to restore it (edge case)
       }
     });
   };

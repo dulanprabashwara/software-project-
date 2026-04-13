@@ -74,7 +74,7 @@ export const api = {
   toggleFollow: (userId, token) =>
     fetchAPI(`/api/users/${userId}/follow`, { method: "POST", token }),
   getFollowers: (userId) => fetchAPI(`/api/users/${userId}/followers`),
-  getFollowing: (userId) => fetchAPI(`/api/users/${userId}/following`),
+  getFollowing: (userId, token) => fetchAPI(`/api/users/${userId}/following`, token ? { token } : {}),
 
   getAdminDashboard: (token) => 
     fetchAPI("/api/admin/dashboard", { token }),

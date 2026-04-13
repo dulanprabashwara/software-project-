@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, MessageCircle } from "lucide-react";
 import { useSubscription } from "../../subscription/SubscriptionContext";
 import { useAuth } from "../../context/AuthContext";
 import ArticleCard from "../../../components/article/ArticleCard";
@@ -682,23 +682,33 @@ export default function ProfilePage() {
                                   </div>
                                 </Link>
                                 {!isSelf && (
-                                  <button
-                                    onClick={() => handleToggleFollow(person.id)}
-                                    disabled={isToggling}
-                                    className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
-                                      isFollowingPerson
-                                        ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
-                                        : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
-                                    }`}
-                                  >
-                                    {isToggling ? (
-                                      <Loader2 className="w-3 h-3 animate-spin" />
-                                    ) : isFollowingPerson ? (
-                                      "Following"
-                                    ) : (
-                                      "Follow Back"
+                                  <div className="flex items-center gap-2 ml-4 shrink-0">
+                                    <button
+                                      onClick={() => handleToggleFollow(person.id)}
+                                      disabled={isToggling}
+                                      className={`shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
+                                        isFollowingPerson
+                                          ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
+                                          : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                                      }`}
+                                    >
+                                      {isToggling ? (
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                      ) : isFollowingPerson ? (
+                                        "Following"
+                                      ) : (
+                                        "Follow Back"
+                                      )}
+                                    </button>
+                                    {isFollowingPerson && (
+                                      <Link
+                                        href={`/chat?userId=${person.id}`}
+                                        className="shrink-0 px-4 py-1.5 text-sm rounded-full border border-[#1ABC9C] text-[#1ABC9C] hover:bg-[#1ABC9C] hover:text-white transition-colors"
+                                      >
+                                        Message
+                                      </Link>
                                     )}
-                                  </button>
+                                  </div>
                                 )}
                               </div>
                             );
@@ -744,23 +754,31 @@ export default function ProfilePage() {
                                   </div>
                                 </Link>
                                 {!isSelf && (
-                                  <button
-                                    onClick={() => handleToggleFollow(person.id)}
-                                    disabled={isToggling}
-                                    className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
-                                      stillFollowing
-                                        ? "text-[#6B7280] border border-[#E5E7EB] hover:border-red-300 hover:text-red-500 hover:bg-red-50"
-                                        : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
-                                    }`}
-                                  >
-                                    {isToggling ? (
-                                      <Loader2 className="w-3 h-3 animate-spin" />
-                                    ) : stillFollowing ? (
-                                      "Following"
-                                    ) : (
-                                      "Follow"
-                                    )}
-                                  </button>
+                                  <div className="flex items-center gap-2 ml-4 shrink-0">
+                                    <button
+                                      onClick={() => handleToggleFollow(person.id)}
+                                      disabled={isToggling}
+                                      className={`shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
+                                        stillFollowing
+                                          ? "text-[#6B7280] border border-[#E5E7EB] hover:border-red-300 hover:text-red-500 hover:bg-red-50"
+                                          : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                                      }`}
+                                    >
+                                      {isToggling ? (
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                      ) : stillFollowing ? (
+                                        "Following"
+                                      ) : (
+                                        "Follow"
+                                      )}
+                                    </button>
+                                    <Link
+                                      href={`/chat?userId=${person.id}`}
+                                      className="shrink-0 px-4 py-1.5 text-sm rounded-full border border-[#1ABC9C] text-[#1ABC9C] hover:bg-[#1ABC9C] hover:text-white transition-colors"
+                                    >
+                                      Message
+                                    </Link>
+                                  </div>
                                 )}
                               </div>
                             );

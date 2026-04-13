@@ -12,7 +12,11 @@ export default function OtherUserStatsPage({ params }) {
   const { username } = unwrappedParams;
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user: firebaseUser, userProfile: loggedInProfile, loading: authLoading } = useAuth();
+  const {
+    user: firebaseUser,
+    userProfile: loggedInProfile,
+    loading: authLoading,
+  } = useAuth();
 
   const urlTab = searchParams.get("tab") || "followers";
   const [activeTab, setActiveTab] = useState(urlTab);
@@ -66,11 +70,14 @@ export default function OtherUserStatsPage({ params }) {
         setFollowers(followersList);
         setFollowing(followingList);
 
-        // 3. If we are logged in, we already know who WE follow from  
-        //    the [username]/page.jsx — but simpler here: mark profileData.isFollowing
-        //    and also check the following list for mutual follows
-        //    (Backend doesn't return isFollowing per person in these lists yet, 
-        //     so we'll just pass an empty set for now — the toggle will work regardless)
+        // 3. Fetch who the LOGGED-IN user follows so we can show Message buttons
+        if (loggedInProfile?.id && firebaseUser) {
+          const myToken = await firebaseUser.getIdToken();
+          const myFollowingRes = await api.getFollowing(loggedInProfile.id, myToken);
+          if (myFollowingRes.success) {
+            setFollowingSet(new Set(myFollowingRes.data.map((u) => u.id)));
+          }
+        }
       } catch (err) {
         console.error("Failed to load stats:", err);
       } finally {
@@ -106,7 +113,7 @@ export default function OtherUserStatsPage({ params }) {
         });
       }
     },
-    [firebaseUser]
+    [firebaseUser],
   );
 
   const fallbackAvatar = (name) =>
@@ -149,7 +156,9 @@ export default function OtherUserStatsPage({ params }) {
               <button
                 onClick={() => setActiveTab("followers")}
                 className={`pb-3 text-sm font-medium transition-colors relative ${
-                  activeTab === "followers" ? "text-[#111827]" : "text-[#6B7280]"
+                  activeTab === "followers"
+                    ? "text-[#111827]"
+                    : "text-[#6B7280]"
                 }`}
               >
                 <span className="mr-1">Followers</span>
@@ -163,7 +172,9 @@ export default function OtherUserStatsPage({ params }) {
               <button
                 onClick={() => setActiveTab("following")}
                 className={`pb-3 text-sm font-medium transition-colors relative ${
-                  activeTab === "following" ? "text-[#111827]" : "text-[#6B7280]"
+                  activeTab === "following"
+                    ? "text-[#111827]"
+                    : "text-[#6B7280]"
                 }`}
               >
                 <span className="mr-1">Following</span>
@@ -182,7 +193,10 @@ export default function OtherUserStatsPage({ params }) {
             {loading ? (
               <div className="space-y-6">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-center justify-between animate-pulse">
+                  <div
+                    key={i}
+                    className="flex items-center justify-between animate-pulse"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
                       <div className="space-y-2">
@@ -214,11 +228,18 @@ export default function OtherUserStatsPage({ params }) {
                             className="flex items-center justify-between"
                           >
                             <Link
-                              href={isSelf ? "/profile" : `/profile/${person.username}`}
+                              href={
+                                isSelf
+                                  ? "/profile"
+                                  : `/profile/${person.username}`
+                              }
                               className="flex items-center gap-3 min-w-0"
                             >
                               <img
-                                src={person.avatarUrl || fallbackAvatar(person.displayName)}
+                                src={
+                                  person.avatarUrl ||
+                                  fallbackAvatar(person.displayName)
+                                }
                                 alt={person.displayName}
                                 referrerPolicy="no-referrer"
                                 className="w-12 h-12 rounded-full object-cover shrink-0"
@@ -233,25 +254,35 @@ export default function OtherUserStatsPage({ params }) {
                               </div>
                             </Link>
                             {!isSelf && firebaseUser && (
-                              <button
-                                onClick={() =>
-                                  handleToggleFollow(person.id, isFollowing)
-                                }
-                                disabled={isToggling}
-                                className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
-                                  isFollowing
-                                    ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
-                                    : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
-                                }`}
-                              >
-                                {isToggling ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                ) : isFollowing ? (
-                                  "Following"
-                                ) : (
-                                  "Follow"
+                              <div className="flex items-center gap-2 ml-4 shrink-0">
+                                <button
+                                  onClick={() =>
+                                    handleToggleFollow(person.id, isFollowing)
+                                  }
+                                  disabled={isToggling}
+                                  className={`shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
+                                    isFollowing
+                                      ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
+                                      : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                                  }`}
+                                >
+                                  {isToggling ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : isFollowing ? (
+                                    "Following"
+                                  ) : (
+                                    "Follow"
+                                  )}
+                                </button>
+                                {isFollowing && (
+                                  <Link
+                                    href={`/chat?userId=${person.id}`}
+                                    className="shrink-0 px-4 py-1.5 text-sm rounded-full border border-[#1ABC9C] text-[#1ABC9C] hover:bg-[#1ABC9C] hover:text-white transition-colors"
+                                  >
+                                    Message
+                                  </Link>
                                 )}
-                              </button>
+                              </div>
                             )}
                           </div>
                         );
@@ -278,11 +309,18 @@ export default function OtherUserStatsPage({ params }) {
                             className="flex items-center justify-between"
                           >
                             <Link
-                              href={isSelf ? "/profile" : `/profile/${person.username}`}
+                              href={
+                                isSelf
+                                  ? "/profile"
+                                  : `/profile/${person.username}`
+                              }
                               className="flex items-center gap-3 min-w-0"
                             >
                               <img
-                                src={person.avatarUrl || fallbackAvatar(person.displayName)}
+                                src={
+                                  person.avatarUrl ||
+                                  fallbackAvatar(person.displayName)
+                                }
                                 alt={person.displayName}
                                 referrerPolicy="no-referrer"
                                 className="w-12 h-12 rounded-full object-cover shrink-0"
@@ -297,25 +335,35 @@ export default function OtherUserStatsPage({ params }) {
                               </div>
                             </Link>
                             {!isSelf && firebaseUser && (
-                              <button
-                                onClick={() =>
-                                  handleToggleFollow(person.id, isFollowing)
-                                }
-                                disabled={isToggling}
-                                className={`ml-4 shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
-                                  isFollowing
-                                    ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
-                                    : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
-                                }`}
-                              >
-                                {isToggling ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                ) : isFollowing ? (
-                                  "Following"
-                                ) : (
-                                  "Follow"
+                              <div className="flex items-center gap-2 ml-4 shrink-0">
+                                <button
+                                  onClick={() =>
+                                    handleToggleFollow(person.id, isFollowing)
+                                  }
+                                  disabled={isToggling}
+                                  className={`shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
+                                    isFollowing
+                                      ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
+                                      : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                                  }`}
+                                >
+                                  {isToggling ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : isFollowing ? (
+                                    "Following"
+                                  ) : (
+                                    "Follow"
+                                  )}
+                                </button>
+                                {isFollowing && (
+                                  <Link
+                                    href={`/chat?userId=${person.id}`}
+                                    className="shrink-0 px-4 py-1.5 text-sm rounded-full border border-[#1ABC9C] text-[#1ABC9C] hover:bg-[#1ABC9C] hover:text-white transition-colors"
+                                  >
+                                    Message
+                                  </Link>
                                 )}
-                              </button>
+                              </div>
                             )}
                           </div>
                         );
