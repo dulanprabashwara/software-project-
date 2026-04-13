@@ -1,5 +1,40 @@
 [
   {
+    "id": "cmlt02lny0009v3o0irxur8yb",
+    "title": "Welcome to Easy Blogger",
+    "slug": "welcome-to-easy-blogger",
+    "content": "<p>Welcome to the platform! This is a seeded article.</p>",
+    "summary": "This is the very first article on the platform.",
+    "coverImage": null,
+    "status": "PUBLISHED",
+    "isAiGenerated": false,
+    "scheduledAt": null,
+    "publishedAt": "2026-02-19T05:07:59.655Z",
+    "readCount": 0,
+    "likeCount": 0,
+    "shareCount": 0,
+    "commentCount": 0,
+    "tags": [
+      "Welcome",
+      "Platform"
+    ],
+    "readingTime": 1,
+    "createdAt": "2026-02-19T05:07:59.661Z",
+    "updatedAt": "2026-02-19T05:07:59.661Z",
+    "authorId": "cmlt02ewy0000v3o0h7rrmpan",
+    "author": {
+      "id": "cmlt02ewy0000v3o0h7rrmpan",
+      "username": "superadmin",
+      "displayName": "Super Admin",
+      "avatarUrl": "https://api.dicebear.com/7.x/avataaars/svg?seed=admin",
+      "isPremium": false
+    },
+    "_count": {
+      "comments": 0
+    },
+    "isSaved": false
+  },
+  {
     "id": 3,
     "authorName": "Sophia Martinez",
     "authorAvatar": "https://i.pravatar.cc/150?img=9",
