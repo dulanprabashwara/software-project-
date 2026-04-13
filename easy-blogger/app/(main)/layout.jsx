@@ -16,13 +16,13 @@ export default function MainLayout({ children }) {
 
   return (
     <SocketProvider>
-      <div className=" h-screen bg-white  ">
+      <div className="h-screen overflow-hidden bg-white">
         <Header onToggleSidebar={toggleSidebar} />
         <Sidebar isOpen={sidebarOpen} />
 
         {/* Main content with sidebar offset */}
         <main
-          className={` h-[calc(100vh-64px)] mt-16 transition-all duration-600 ease-in-out ${
+          className={`h-[calc(100vh-64px)] overflow-hidden mt-16 transition-all duration-600 ease-in-out ${
             sidebarOpen ? "lg:ml-64" : "lg:ml-0"
           }`}
         >

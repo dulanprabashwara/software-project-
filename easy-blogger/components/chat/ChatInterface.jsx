@@ -450,7 +450,7 @@ export default function ChatInterface() {
   );
 
   return (
-    <div className="flex h-full bg-white border rounded-2xl overflow-hidden shadow-sm">
+    <div className="flex h-full min-h-0 bg-white border rounded-2xl overflow-hidden shadow-sm">
       {/* Sidebar */}
       <ConversationList
         conversations={conversations}
@@ -459,7 +459,7 @@ export default function ChatInterface() {
       />
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-white">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-white">
         {activeConversation ? (
           <>
             {/* Chat Header */}
@@ -494,11 +494,11 @@ export default function ChatInterface() {
             {messagesLoading ? (
                <div className="flex-1 flex items-center justify-center text-gray-400">Loading messages...</div>
             ) : (
-               <MessageList
-                 messages={messages}
-                 currentUser={currentUser}
-                 onDeleteMessage={handleDeleteMessage}
-               />
+                <MessageList
+                  messages={messages}
+                  currentUser={currentUser}
+                  onDeleteMessage={handleDeleteMessage}
+                />
             )}
 
             {/* Input */}
