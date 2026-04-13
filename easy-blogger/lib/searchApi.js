@@ -1,15 +1,8 @@
 // lib/searchApi.js
-// ─────────────────────────────────────────────────────────────────────────────
+
 // Search-specific API calls for the Easy Blogger search feature.
-// Uses the existing fetchAPI helper from lib/api.js — api.js is NOT modified.
-//
-// Response shape from backend (after sendSuccess convention fix):
-//   { success: true, data: { articles/users: [...], total, page, ... }, message: "..." }
-//
-// fetchAPI returns the full parsed JSON object, so:
-//   res = { success: true, data: { articles: [...], ... }, message: "..." }
-//   res.data = { articles: [...], ... }
-// ─────────────────────────────────────────────────────────────────────────────
+// Uses the existing fetchAPI helper from lib/api.js 
+
 
 import { fetchAPI } from "./api";
 
@@ -25,16 +18,15 @@ export const searchArticles = async (query, page = 1, token = null) => {
     `/api/search/articles?${params}`,
     token ? { token } : {}
   );
-  // res.data is { articles: [...], total, page, limit, totalPages }
-  // Fall back to res itself if data wrapper is absent (defensive)
   return res?.data ?? res;
 };
 
 /**
  * Search user profiles by username or display name, ranked by followers.
+ * Pass the Firebase token so the backend can resolve isFollowing per user.
  * @param {string}      query  Search term
  * @param {number}      page   Page number (default 1)
- * @param {string|null} token  Optional Firebase auth token
+ * @param {string|null} token  Firebase auth token (pass when user is logged in)
  */
 export const searchUsers = async (query, page = 1, token = null) => {
   const params = new URLSearchParams({ q: query, page: String(page) });
@@ -47,7 +39,7 @@ export const searchUsers = async (query, page = 1, token = null) => {
 
 /**
  * Autocomplete suggestions — top 5 article titles + top 3 users.
- * Debounce at 300 ms before calling. Minimum query length: 2 characters.
+ * Debounce at 300 ms. Minimum query length: 2 characters.
  * @param {string} query Partial search term
  */
 export const getSearchSuggestions = async (query) => {
