@@ -1,16 +1,5 @@
 // components/search/UserCard.jsx
-// ─────────────────────────────────────────────────────────────────────────────
-// Profile card for user search results.
-// Matches Search_Profiles.png mockup design.
-//
-// Changes from previous version:
-//  - Follow button wired to real backend via api.toggleFollow() + useAuth
-//  - Optimistic UI update (same pattern as profile/[username]/page.jsx)
-//  - Following state : teal filled bg, white text/icon
-//  - Not following   : teal outlined border, teal text + UserPlus icon
-//  - Clicking name/avatar navigates to /profile/[username]
-//  - Follower + article counts read from real DB data passed via props
-// ─────────────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────────────────
 
 "use client";
 
@@ -29,8 +18,6 @@ function formatCount(n = 0) {
 
 export default function UserCard({ user }) {
   const router = useRouter();
-
-  // Auth context — same pattern used in profile/[username]/page.jsx
   const { user: firebaseUser } = useAuth();
 
   const {
@@ -45,11 +32,22 @@ export default function UserCard({ user }) {
   } = user;
 
   // ── Follow state ──────────────────────────────────────────────────────────
-  const [isFollowing,      setIsFollowing]      = useState(user.isFollowing || false);
+  // isFollowing comes from backend (search.service.js bulk-checks on load).
+  // Falls back to false if backend didn't send it (anonymous visitor).
+  const [isFollowing,      setIsFollowing]      = useState(user.isFollowing ?? false);
+
+  // Follower count — always sourced from DB. Starts from whatever the search
+  // endpoint returned. Refreshed from DB after every follow/unfollow toggle.
   const [followerCount,    setFollowerCount]     = useState(
     stats?.totalFollowers ?? _count?.followers ?? 0
   );
+
+  // True while api.toggleFollow() is in-flight — shows spinner in button
   const [isTogglingFollow, setIsTogglingFollow] = useState(false);
+
+  // True while api.getUserProfile() re-fetch is in-flight — shows spinner
+  // next to the follower count instead of the stale number
+  const [isRefetchingCount, setIsRefetchingCount] = useState(false);
 
   const articleCount = stats?.articleCount ?? _count?.articles ?? 0;
 
@@ -64,38 +62,57 @@ export default function UserCard({ user }) {
     if (username) router.push(`/profile/${username}`);
   };
 
+  // ── Refetch the real follower count from DB ───────────────────────────────
+  // Called after every successful follow/unfollow so the count always reflects
+  // the database value — no client-side arithmetic.
+  const refetchFollowerCount = async () => {
+    if (!username) return;
+    setIsRefetchingCount(true);
+    try {
+      const res = await api.getUserProfile(username);
+      if (res?.data?._count?.followers !== undefined) {
+        setFollowerCount(res.data._count.followers);
+      } else if (res?._count?.followers !== undefined) {
+        // Handle response without wrapper
+        setFollowerCount(res._count.followers);
+      }
+    } catch (err) {
+      // Non-critical — silently ignore, stale count is still shown
+      console.error("UserCard: failed to refetch follower count:", err);
+    } finally {
+      setIsRefetchingCount(false);
+    }
+  };
+
   // ── Follow / Unfollow ─────────────────────────────────────────────────────
-  // Mirrors the exact same pattern in profile/[username]/page.jsx so the
-  // behaviour is consistent across the whole app.
   const handleFollow = async (e) => {
     e.stopPropagation();
     if (!firebaseUser || !id || isTogglingFollow) return;
 
-    const wasFollowing = isFollowing;
-
-    // Optimistic update
-    setIsFollowing(!wasFollowing);
-    setFollowerCount((prev) => (wasFollowing ? prev - 1 : prev + 1));
     setIsTogglingFollow(true);
+
+    // Flip the follow button state immediately so the UI feels responsive,
+    // but DO NOT touch the follower count — that waits for the DB refetch.
+    const wasFollowing = isFollowing;
+    setIsFollowing(!wasFollowing);
 
     try {
       const token = await firebaseUser.getIdToken();
       const res   = await api.toggleFollow(id, token);
 
+      // Reconcile button state with what the server actually did
       if (res?.success && res?.data) {
         setIsFollowing(res.data.followed);
-        // If server result differs from optimistic guess, fix the count
-        if (res.data.followed !== !wasFollowing) {
-          setFollowerCount((prev) =>
-            res.data.followed ? prev + 1 : prev - 1
-          );
-        }
       }
+
+      // Now fetch the real count from the DB — this is the only place the
+      // follower count number changes. No ±1 arithmetic anywhere.
+      await refetchFollowerCount();
+
     } catch (err) {
       console.error("Follow toggle failed:", err);
-      // Revert to previous state
+      // Revert the button state on error
       setIsFollowing(wasFollowing);
-      setFollowerCount((prev) => (wasFollowing ? prev + 1 : prev - 1));
     } finally {
       setIsTogglingFollow(false);
     }
@@ -104,7 +121,7 @@ export default function UserCard({ user }) {
   return (
     <div className="flex items-center gap-4 py-5 border-b border-[#E5E7EB] last:border-0">
 
-      {/* Avatar ── clickable → profile page */}
+      {/* Avatar */}
       <button
         onClick={handleProfileClick}
         className="flex-shrink-0 focus:outline-none"
@@ -125,8 +142,9 @@ export default function UserCard({ user }) {
         </div>
       </button>
 
-      {/* Info ── name clickable → profile page */}
+      {/* Info */}
       <div className="flex-1 min-w-0">
+        {/* Name */}
         <button
           onClick={handleProfileClick}
           className="flex items-center gap-1.5 text-left focus:outline-none"
@@ -139,19 +157,19 @@ export default function UserCard({ user }) {
           )}
         </button>
 
-        {/* @username — only shown when displayName is also set */}
+        {/* @username */}
         {displayName && username && (
           <p className="text-xs text-[#6B7280] mt-0.5">@{username}</p>
         )}
 
         {/* Bio */}
         {bio && (
-          <p className="text-sm text-[#6B7280] mt-2 line-clamp-2 leading-snug">
+          <p className="text-sm text-[#6B7280] mt-1 line-clamp-2 leading-snug">
             {bio}
           </p>
         )}
 
-        {/* Article + follower counts from DB */}
+        {/* Stats — follower count shows a spinner while re-fetching from DB */}
         <div className="flex items-center gap-4 mt-2 text-xs text-[#6B7280]">
           <span>
             <span className="font-semibold text-[#111827]">
@@ -159,11 +177,17 @@ export default function UserCard({ user }) {
             </span>{" "}
             {articleCount === 1 ? "Article" : "Articles"}
           </span>
-          <span>
-            <span className="font-semibold text-[#111827]">
-              {formatCount(followerCount)}
-            </span>{" "}
-            {followerCount === 1 ? "follower" : "followers"}
+
+          <span className="flex items-center gap-1">
+            {isRefetchingCount ? (
+              // Spinner replaces the number while the DB call is in-flight
+              <Loader2 className="w-3 h-3 animate-spin text-[#1ABC9C]" />
+            ) : (
+              <span className="font-semibold text-[#111827]">
+                {formatCount(followerCount)}
+              </span>
+            )}
+            {" "}{followerCount === 1 && !isRefetchingCount ? "follower" : "followers"}
           </span>
         </div>
       </div>
@@ -172,17 +196,16 @@ export default function UserCard({ user }) {
       <button
         onClick={handleFollow}
         disabled={isTogglingFollow || !firebaseUser}
-        className={`flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 flex-shrink-0 min-w-[90px] disabled:opacity-50 disabled:cursor-not-allowed ${
+        className={`flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 flex-shrink-0 min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed ${
           isFollowing
-            ? // Following: solid teal fill, white text
-              "bg-[#1ABC9C] text-white border-[#1ABC9C] hover:bg-[#17a589] hover:border-[#17a589]"
-            : // Not following: white bg, teal border + text
-              "bg-white text-[#1ABC9C] border-[#1ABC9C] hover:bg-[#E8F8F5]"
+            ? "bg-[#1ABC9C] text-white border-[#1ABC9C] hover:bg-[#17a589] hover:border-[#17a589]"
+            : "bg-white text-[#1ABC9C] border-[#1ABC9C] hover:bg-[#E8F8F5]"
         }`}
         aria-pressed={isFollowing}
         title={!firebaseUser ? "Sign in to follow" : undefined}
       >
         {isTogglingFollow ? (
+          // Spinner while the follow API call is in-flight
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
         ) : (
           <>
