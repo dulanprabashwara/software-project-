@@ -570,7 +570,7 @@ export default function EditProfilePage() {
                   </span>
                 </div>
                 <p className="text-sm text-[#6B7280]">
-                  Your subscription renews on Jan 22, 2026
+                  Your subscription is currently active.
                 </p>
               </div>
             </div>
@@ -758,6 +758,7 @@ export default function EditProfilePage() {
               )}
             </div>
           )}
+        </div>
 
       {/* Email Settings */}
       <div>
@@ -782,7 +783,7 @@ export default function EditProfilePage() {
                   type="email"
                   value={email}
                   className="w-full px-4 py-2.5 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB]"
-                  placeholder="emma.richardson@example.com"
+                  placeholder="your.email@example.com"
                   readOnly
                 />
               </div>
@@ -937,7 +938,6 @@ export default function EditProfilePage() {
               Delete Account
             </button>
           </div>
-        </div>
         </div>
       </div>
     </div>

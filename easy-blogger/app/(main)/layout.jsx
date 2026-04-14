@@ -22,7 +22,7 @@ export default function MainLayout({ children }) {
 
         {/* Main content with sidebar offset */}
         <main
-          className={`h-[calc(100vh-64px)] overflow-hidden mt-16 transition-all duration-600 ease-in-out ${
+          className={`h-[calc(100vh-64px)] overflow-y-auto mt-16 transition-all duration-600 ease-in-out ${
             sidebarOpen ? "lg:ml-64" : "lg:ml-0"
           }`}
         >
