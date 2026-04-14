@@ -165,11 +165,15 @@ export async function deleteDraft(articleId) {
   });
 }
 
-export async function getMyDrafts(page = 1, limit = 10) {
+export async function getMyDrafts(page = 1, limit = 10, options = {}) {
   const query = new URLSearchParams({
     page: String(page),
     limit: String(limit),
   });
+
+  if (typeof options.isAiGenerated === "boolean") {
+    query.set("isAiGenerated", String(options.isAiGenerated));
+  }
 
   return apiRequest(`/articles/user/drafts?${query.toString()}`, {
     method: "GET",
