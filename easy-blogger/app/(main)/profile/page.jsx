@@ -540,7 +540,7 @@ export default function ProfilePage() {
               </Link>
               {" · "}
               <Link href="/chat" className="hover:underline cursor-pointer">
-                {userProfile?.messages || 10} Messages
+                {userProfile?.messages ?? 0} Messages
               </Link>
             </p>
 
