@@ -159,6 +159,43 @@ export default function ArticleDetailsPage() {
     }
   };
 
+  // ── Edit in editor state ─────────────────────────────────────────────────────
+  const [isLoadingEditor, setIsLoadingEditor] = useState(false);
+
+  // ═════════════════════════════════════════════════════════════════════════════
+  // EDIT IN EDITOR
+  // Called when user clicks "Edit" on the preview overlay of a previous article.
+  // Uses params.id as the logId — each AiArticleLog id is the log identifier.
+  //
+  // Calls POST /api/ai/load-to-editor.
+  // Backend creates (or reuses) an Article row with status EDITING and
+  // isAiGenerated: true, then returns the article id.
+  //
+  // Navigating to /write/create causes that page to call
+  // GET /articles/user/editing and load the most recently updated EDITING
+  // article (ours) into TinyMCE. Manual workflow handles everything from there.
+  // ═════════════════════════════════════════════════════════════════════════════
+  const handleEditInEditor = async () => {
+    if (!articleData) return;
+    setIsLoadingEditor(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res     = await fetch(`${BACKEND_URL}/api/ai/load-to-editor`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ logId: params.id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || "Failed to open in editor");
+      router.push("/write/create");
+    } catch (err) {
+      console.error("[EditInEditor] Failed:", err);
+      alert("Could not open in editor. Please try again.");
+    } finally {
+      setIsLoadingEditor(false);
+    }
+  };
+
   // ── Screen states ────────────────────────────────────────────────────────────
 
   if (isLoading || loading) {
@@ -449,9 +486,14 @@ export default function ArticleDetailsPage() {
                   <img src="/icons/Save.png" alt="Save" width="16" height="16" />
                   <span className="preview-save-text">{saveDraftLabel()}</span>
                 </button>
-
-                <button className="preview-edit-button" title="Edit">
-                  <span className="preview-edit-text">edit</span>
+                <button
+                  className="preview-edit-button"
+                  title="Edit in editor"
+                  onClick={handleEditInEditor}
+                  disabled={isLoadingEditor}
+                  style={{ opacity: isLoadingEditor ? 0.6 : 1, cursor: isLoadingEditor ? "default" : "pointer" }}
+                >
+                  <span className="preview-edit-text">{isLoadingEditor ? "opening..." : "edit"}</span>
                 </button>
 
               </div>
