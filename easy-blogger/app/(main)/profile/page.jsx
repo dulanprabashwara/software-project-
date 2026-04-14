@@ -60,6 +60,7 @@ export default function ProfilePage() {
   const [statsLoading, setStatsLoading] = useState(false);
   const [followingSet, setFollowingSet] = useState(new Set());
   const [togglingIds, setTogglingIds] = useState(new Set());
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
   // Sync stats tab when URL changes
   useEffect(() => {
@@ -73,6 +74,21 @@ export default function ProfilePage() {
       setHasAbout(!!userProfile.bio);
     }
   }, [userProfile]);
+
+  // Fetch live unread message count on mount
+  useEffect(() => {
+    if (!firebaseUser) return;
+    const fetchUnread = async () => {
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res = await api.getUnreadMessageCount(token);
+        setUnreadMessageCount(res?.data?.unreadCount ?? 0);
+      } catch (err) {
+        console.error("Failed to fetch unread count:", err);
+      }
+    };
+    fetchUnread();
+  }, [firebaseUser]);
 
   // Fetch real followers/following when modal opens
   useEffect(() => {
@@ -540,7 +556,7 @@ export default function ProfilePage() {
               </Link>
               {" · "}
               <Link href="/chat" className="hover:underline cursor-pointer">
-                {userProfile?.messages ?? 0} Messages
+                {unreadMessageCount} Messages
               </Link>
             </p>
 

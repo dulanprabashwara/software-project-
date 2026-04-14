@@ -71,6 +71,7 @@ export default function ChatInterface() {
                   },
                   lastMessage: "Start a conversation!",
                   lastMessageTime: "",
+                  lastMessageDate: 0,
                   unreadCount: 0,
                 };
                 formatted = [newConv, ...formatted];
@@ -96,7 +97,7 @@ export default function ChatInterface() {
       }
     };
     fetchConversations();
-  }, [user, queryUserId, activeConversationId]); // Re-run if query param changes
+  }, [user, queryUserId]); // Re-run if query param changes (NOT activeConversationId)
 
   useEffect(() => {
     const activeConv = conversations.find((c) => c.id === activeConversationId);
@@ -223,32 +224,32 @@ export default function ChatInterface() {
     };
 
     const onMessageDeleted = ({ messageId }) => {
-       setMessages(prev => prev.filter(m => m.id !== messageId));
+       // Optimistically update messages and sidebar for ANY user who receives this event
+       setMessages(prev => {
+          const filtered = prev.filter(m => m.id !== messageId);
 
-       // Refresh conversations list to update sidebar (last message snippet, re-sorting, edge cases)
-       if (user) {
-          user.getIdToken().then(token => {
-             api.getConversations(token).then(res => {
-                const formatted = res.data
-                  .filter(c => c.user.id !== userProfile?.id)
-                  .map(c => ({
-                     id: c.user.id,
-                     user: {
-                       id: c.user.id,
-                       name: c.user.displayName || c.user.username,
-                       avatar: c.user.avatarUrl || `https://ui-avatars.com/api/?name=${c.user.username}`,
-                       isOnline: c.user.isOnline,
-                     },
-                     lastMessage: c.lastMessage ? c.lastMessage.content : "",
-                     lastMessageTime: c.lastMessage ? new Date(c.lastMessage.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "",
-                     lastMessageDate: c.lastMessage ? new Date(c.lastMessage.sentAt).getTime() : 0,
-                     unreadCount: c.unreadCount,
-                  }))
-                  .sort((a, b) => b.lastMessageDate - a.lastMessageDate);
-                setConversations(formatted);
-             }).catch(console.error);
+          // Update sidebar snippet based on remaining messages
+          setConversations(convPrev => {
+             // Find which conversation this deleted message belonged to
+             // by checking all conversations for matching sidebar text
+             return convPrev.map(conv => {
+                // We only need to update if this was the last message shown
+                const lastMsg = filtered.length > 0 ? filtered[filtered.length - 1] : null;
+                // Check if the active conversation matches
+                if (conv.id === activeConversationId) {
+                   return {
+                      ...conv,
+                      lastMessage: lastMsg ? lastMsg.text : "",
+                      lastMessageTime: lastMsg ? lastMsg.timestamp : "",
+                      lastMessageDate: lastMsg?.sentAt ? new Date(lastMsg.sentAt).getTime() : (conv.lastMessageDate || 0),
+                   };
+                }
+                return conv;
+             }).sort((a, b) => (b.lastMessageDate || 0) - (a.lastMessageDate || 0));
           });
-       }
+
+          return filtered;
+       });
     };
 
     const onUserOnline = ({ userId }) => {
@@ -394,7 +395,7 @@ export default function ChatInterface() {
                       ...exists,
                       lastMessage: newLastMsg.text,
                       lastMessageTime: newLastMsg.timestamp,
-                      lastMessageDate: newLastMsg.lastMessageDate || new Date(newLastMsg.timestamp).getTime(),
+                      lastMessageDate: newLastMsg.sentAt ? new Date(newLastMsg.sentAt).getTime() : (exists.lastMessageDate || 0),
                    },
                    ...others
                 ].sort((a, b) => b.lastMessageDate - a.lastMessageDate);
@@ -441,6 +442,21 @@ export default function ChatInterface() {
     socket.emit("typing:stop", { receiverId: activeConversationId });
   };
 
+  // Immediately clear unread badge when clicking a conversation, BEFORE any async work
+  const handleSelectConversation = (convId) => {
+    setActiveConversationId(convId);
+    // Immediately zero out the badge in the sidebar  
+    setConversations(prev =>
+      prev.map(c => c.id === convId ? { ...c, unreadCount: 0 } : c)
+    );
+    // Fire-and-forget API call to mark messages as read in DB
+    if (user) {
+      user.getIdToken().then(token => {
+        api.markMessagesAsRead(convId, token).catch(console.error);
+      });
+    }
+  };
+
   if (loading || !currentUser) {
      return <div className="flex h-full items-center justify-center bg-white border rounded-2xl shadow-sm text-gray-400">Loading chats...</div>;
   }
@@ -455,7 +471,7 @@ export default function ChatInterface() {
       <ConversationList
         conversations={conversations}
         activeConversationId={activeConversationId}
-        onSelectConversation={setActiveConversationId}
+        onSelectConversation={handleSelectConversation}
       />
 
       {/* Main Chat Area */}
