@@ -35,7 +35,7 @@ export default function ChatInterface() {
     if (!user) return;
     const fetchConversations = async () => {
       try {
-        const token = await user.getIdToken();
+        const token = await user.getIdToken(true); // force-refresh to avoid stale token 500 errors
         const res = await api.getConversations(token);
         let formatted = res.data
           .filter(c => c.user.id !== userProfile?.id)
@@ -110,7 +110,7 @@ export default function ChatInterface() {
     const fetchMessages = async () => {
       setMessagesLoading(true);
       try {
-        const token = await user.getIdToken();
+        const token = await user.getIdToken(true); // force-refresh to avoid stale token 500 errors
         const res = await api.getMessages(activeConversationId, token);
 
         // Backend sendPaginated sends the array directly in res.data
@@ -180,7 +180,7 @@ export default function ChatInterface() {
       if (isSenderActiveConv) {
          setMessages(prev => [...prev, formattedMsg]);
           if (user) {
-             user.getIdToken().then(token => {
+             user.getIdToken(true).then(token => {
                 api.markMessagesAsRead(activeConversationId, token).catch(console.error);
              });
           }
@@ -451,7 +451,7 @@ export default function ChatInterface() {
     );
     // Fire-and-forget API call to mark messages as read in DB
     if (user) {
-      user.getIdToken().then(token => {
+      user.getIdToken(true).then(token => {
         api.markMessagesAsRead(convId, token).catch(console.error);
       });
     }
