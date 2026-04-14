@@ -2,28 +2,80 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Bot, FileText } from "lucide-react";
 import { getMyDrafts } from "../../../../lib/articles/api";
 
 const PAGE_SIZE = 6;
+
+const FILTERS = {
+  REGULAR: "regular",
+  AI: "ai",
+};
 
 function stripHtml(value) {
   return String(value || "").replace(/<[^>]*>/g, "").trim();
 }
 
 function formatDraftDate(value) {
-  if (!value) 
-    return "Recently updated";
+  if (!value) return "Recently updated";
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) 
-    return "Recently updated";
+  if (Number.isNaN(date.getTime())) return "Recently updated";
 
   return date.toLocaleDateString();
+}
+
+function buildFilterOptions(activeFilter) {
+  return {
+    isAiGenerated:
+      activeFilter === FILTERS.AI
+        ? true
+        : activeFilter === FILTERS.REGULAR
+          ? false
+          : undefined,
+  };
+}
+
+function EmptyState({ type, onCreate }) {
+  const isAi = type === FILTERS.AI;
+
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#D1D5DB] bg-[#F9FAFB] px-6 py-16 text-center animate-pulse">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm">
+        {isAi ? (
+          <Bot className="h-8 w-8 text-[#6B7280]" />
+        ) : (
+          <FileText className="h-8 w-8 text-[#6B7280]" />
+        )}
+      </div>
+
+      <h2 className="text-2xl font-semibold text-[#111827]">
+        {isAi
+          ? "You haven't created AI Generated articles yet"
+          : "You haven't created Regular articles yet"}
+      </h2>
+
+      <p className="mt-3 max-w-xl text-[#6B7280]">
+        {isAi
+          ? "Start with AI and save your generated work as a draft to view it here."
+          : "Start writing and save your article as a draft to view it here."}
+      </p>
+
+      <button
+        type="button"
+        onClick={onCreate}
+        className="mt-8 rounded-full bg-[#10B981] px-8 py-3 text-white font-medium shadow-md transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[#0EA371]"
+      >
+        Let&apos;s Create your Article now
+      </button>
+    </div>
+  );
 }
 
 export default function UnpublishedArticlesPage() {
   const router = useRouter();
 
+  const [activeFilter, setActiveFilter] = useState(FILTERS.REGULAR);
   const [selectedId, setSelectedId] = useState(null);
   const [draftArticles, setDraftArticles] = useState([]);
   const [page, setPage] = useState(1);
@@ -44,46 +96,55 @@ export default function UnpublishedArticlesPage() {
     }, 2500);
   }, []);
 
-  const loadDrafts = useCallback(async (nextPage = 1) => {
-    const isFirstPage = nextPage === 1;
+  const loadDrafts = useCallback(
+    async (nextPage = 1, filter = activeFilter) => {
+      const isFirstPage = nextPage === 1;
 
-    try {
-      if (isFirstPage) {
-        setIsLoading(true);
-      } else {
-        setIsLoadingMore(true);
+      try {
+        if (isFirstPage) {
+          setIsLoading(true);
+        } else {
+          setIsLoadingMore(true);
+        }
+
+        const response = await getMyDrafts(
+          nextPage,
+          PAGE_SIZE,
+          buildFilterOptions(filter),
+        );
+
+        const drafts = Array.isArray(response?.data)
+          ? response.data
+          : Array.isArray(response?.articles)
+            ? response.articles
+            : [];
+
+        const total =
+          response?.pagination?.total ??
+          response?.meta?.total ??
+          response?.total ??
+          0;
+
+        setDraftArticles((prev) =>
+          isFirstPage ? drafts : [...prev, ...drafts],
+        );
+        setTotalDrafts(total);
+        setPage(nextPage);
+      } catch (error) {
+        console.error("Failed to load draft articles:", error);
+        showError(error?.message || "Failed to load drafts.");
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
       }
-
-      const response = await getMyDrafts(nextPage, PAGE_SIZE);
-      const drafts = Array.isArray(response?.data)
-        ? response.data
-        : Array.isArray(response?.articles)
-          ? response.articles
-          : [];
-
-      const total =
-        response?.pagination?.total ??
-        response?.meta?.total ??
-        response?.total ??
-        0;
-
-      setDraftArticles((prev) =>
-        isFirstPage ? drafts : [...prev, ...drafts],
-      );
-      setTotalDrafts(total);
-      setPage(nextPage);
-    } catch (error) {
-      console.error("Failed to load draft articles:", error);
-      showError(error?.message || "Failed to load drafts.");
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  }, [showError]);
+    },
+    [activeFilter, showError],
+  );
 
   useEffect(() => {
-    void loadDrafts(1);
-  }, [loadDrafts]);
+    setSelectedId(null);
+    void loadDrafts(1, activeFilter);
+  }, [activeFilter, loadDrafts]);
 
   const displayedArticles = useMemo(() => {
     return draftArticles.map((article) => ({
@@ -105,10 +166,9 @@ export default function UnpublishedArticlesPage() {
   const hasMore = totalDrafts > draftArticles.length;
 
   const handleSeeMore = useCallback(() => {
-    if (!hasMore || isLoadingMore) 
-      return;
-    void loadDrafts(page + 1);
-  }, [hasMore, isLoadingMore, loadDrafts, page]);
+    if (!hasMore || isLoadingMore) return;
+    void loadDrafts(page + 1, activeFilter);
+  }, [activeFilter, hasMore, isLoadingMore, loadDrafts, page]);
 
   const handleEditAsNew = useCallback(() => {
     if (!selectedId) {
@@ -128,6 +188,10 @@ export default function UnpublishedArticlesPage() {
     router.push(`/write/edit-existing/${selectedId}`);
   }, [router, selectedId, showError]);
 
+  const handleCreateArticle = useCallback(() => {
+    router.push("/write/choose-method");
+  }, [router]);
+
   return (
     <div className="min-h-screen bg-linear-to-br from-[#E8F5F1] via-[#F0F9FF] to-[#FDF4FF] flex items-center justify-center p-6">
       <div className="w-full max-w-6xl">
@@ -145,9 +209,41 @@ export default function UnpublishedArticlesPage() {
             <h1 className="text-4xl font-serif font-bold text-[#111827] mb-3">
               Unpublished Articles
             </h1>
-            <p className="text-[#6B7280] text-base">
-              You can edit your unpublished articles here.
+            <p className="text-[#9CA3AF] text-base">
+              You can edit your Unpublished Articles
             </p>
+
+            <div className="mt-10 flex justify-center">
+              <div className="w-full max-w-4xl">
+                <div className="flex items-end justify-between px-16">
+                  <button
+                    type="button"
+                    onClick={() => setActiveFilter(FILTERS.REGULAR)}
+                    className={`px-12 py-3 rounded-t-xl text-base font-medium transition ${
+                      activeFilter === FILTERS.REGULAR
+                        ? "bg-[#E9FFF7] text-[#10B981]"
+                        : "text-[#10B981]/70 hover:text-[#10B981]"
+                    }`}
+                  >
+                    Regular Articles
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveFilter(FILTERS.AI)}
+                    className={`px-12 py-3 rounded-t-xl text-base font-medium transition ${
+                      activeFilter === FILTERS.AI
+                        ? "bg-[#E9FFF7] text-[#10B981]"
+                        : "text-[#10B981]/70 hover:text-[#10B981]"
+                    }`}
+                  >
+                    AI Generated Articles
+                  </button>
+                </div>
+
+                <div className="mt-1 border-t-2 border-[#99F6E4]" />
+              </div>
+            </div>
           </div>
 
           {errorMsg ? (
@@ -161,9 +257,7 @@ export default function UnpublishedArticlesPage() {
               Loading drafts...
             </div>
           ) : displayedArticles.length === 0 ? (
-            <div className="py-16 text-center text-[#6B7280]">
-              No unpublished articles found.
-            </div>
+            <EmptyState type={activeFilter} onCreate={handleCreateArticle} />
           ) : (
             <>
               <div className="mt-10 space-y-10">
@@ -295,7 +389,7 @@ export default function UnpublishedArticlesPage() {
                     type="button"
                     onClick={handleSeeMore}
                     disabled={isLoadingMore}
-                    className="rounded-full bg-black px-8 py-3 text-white shadow-lg hover:opacity-90 disabled:opacity-60"
+                    className="rounded-full bg-[#6B7280] px-8 py-3 text-white shadow-md transition hover:bg-[#4B5563] disabled:opacity-60"
                   >
                     {isLoadingMore ? "Loading..." : "See more"}
                   </button>
