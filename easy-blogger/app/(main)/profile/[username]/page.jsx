@@ -437,7 +437,7 @@ export default function UserProfilePage({ params }) {
               </button>
               {isFollowing && (
                 <Link
-                  href="/chat"
+                  href={`/chat?userId=${profile.id}`}
                   className="flex-1 px-4 py-2 rounded-full text-[14px] font-medium bg-[#1ABC9C] text-white hover:bg-[#16a085] transition-colors flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-4 h-4" />

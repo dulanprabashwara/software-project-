@@ -19,7 +19,7 @@ export default function MessageList({
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-2">
+    <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-2">
       {messages.map((message) => (
         <MessageBubble
           key={message.id}
@@ -27,6 +27,7 @@ export default function MessageList({
           text={message.text}
           sender={message.sender}
           timestamp={message.timestamp}
+          isRead={Boolean(message.isRead)}
           isOwnMessage={message.sender.id === currentUser.id}
           onDelete={() => onDeleteMessage && onDeleteMessage(message.id)}
         />

@@ -10,6 +10,7 @@ export default function MessageBubble({
   timestamp,
   isOwnMessage,
   onDelete,
+  isRead = false,
 }) {
   const bubbleClasses = useMemo(() => {
     return isOwnMessage
@@ -40,6 +41,9 @@ export default function MessageBubble({
           } text-right`}
         >
           {timestamp}
+          {isOwnMessage && (
+            <span className="ml-2">{isRead ? "Seen" : "Sent"}</span>
+          )}
         </div>
         {isOwnMessage && (
           <button

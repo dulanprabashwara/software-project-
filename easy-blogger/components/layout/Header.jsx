@@ -27,7 +27,7 @@ import { getSearchSuggestions } from "../../lib/searchApi";
 export default function Header({ onToggleSidebar }) {
   const router = useRouter();
   const { isPremium } = useSubscription();
-  const { user, logout } = useAuth();
+  const { user, userProfile, logout } = useAuth(); // get user + logout from backend/auth
 
   const [open,     setOpen]     = useState(false);
   const [notiOpen, setNotiOpen] = useState(false);
@@ -43,9 +43,11 @@ export default function Header({ onToggleSidebar }) {
 
   useEffect(() => { setMounted(true); }, []);
 
-  const displayName  = user?.displayName || user?.email?.split("@")[0] || "User";
+  // derive user display values 
+  const displayName = userProfile?.displayName || user?.displayName || user?.email?.split("@")[0] || "User";
   const displayEmail = user?.email || "";
-  const avatarUrl    =
+  const avatarUrl =
+    userProfile?.avatarUrl ||
     user?.photoURL ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(
       displayName

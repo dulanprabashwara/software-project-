@@ -313,13 +313,34 @@ export default function EditProfilePage() {
     setShowPasswordChange(false);
   };
 
-  const handleDeleteAccount = () => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
     if (
-      confirm(
-        "Are you sure you want to delete your account? This action cannot be undone.",
+      !confirm(
+        "Are you sure you want to delete your account? This action cannot be undone. All your articles, comments, and data will be permanently removed.",
       )
     ) {
-      alert("Account deletion - to be implemented");
+      return;
+    }
+
+    if (!firebaseUser) return;
+    setIsDeleting(true);
+
+    try {
+      const token = await firebaseUser.getIdToken();
+
+      // Call backend — deletes DB rows + Firebase Auth account via Admin SDK
+      await api.deleteAccount(token);
+
+      // Redirect to landing page (Firebase onAuthStateChanged will
+      // automatically clear the AuthContext since the account no longer exists)
+      router.push("/");
+    } catch (err) {
+      console.error("Failed to delete account:", err);
+      alert("Failed to delete account. Please try again or contact support.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -394,14 +415,6 @@ export default function EditProfilePage() {
           Edit Profile
         </h1>
         <div className="flex items-center gap-3">
-          {/* Dev Toggle for testing */}
-          <button
-            onClick={togglePremium}
-            className="px-3 py-1 text-xs bg-gray-200 rounded mr-2 hover:bg-gray-300 transition-colors"
-          >
-            Toggle Premium ({isPremium ? "ON" : "OFF"})
-          </button>
-
           <button
             onClick={() => router.push("/profile")}
             className="px-6 py-2.5 bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] text-[#374151] rounded-full text-sm font-medium transition-colors"
@@ -553,7 +566,9 @@ export default function EditProfilePage() {
       </div>
 
       {/* Subscription Card - Conditional */}
-      {isPremium ? (
+      {profileLoading && !userProfile ? (
+        <div className="bg-[#F9FAFB] rounded-xl border border-[#E5E7EB] p-6 mb-6 animate-pulse h-[100px]"></div>
+      ) : isPremium ? (
         /* Premium Member Card */
         <div className="bg-white rounded-xl border border-[#1ABC9C] p-6 mb-6 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-[#1ABC9C] to-transparent opacity-10 rounded-bl-full pointer-events-none"></div>
@@ -576,7 +591,7 @@ export default function EditProfilePage() {
                   </span>
                 </div>
                 <p className="text-sm text-[#6B7280]">
-                  Your subscription renews on Jan 22, 2026
+                  Your subscription is currently active.
                 </p>
               </div>
             </div>
@@ -764,6 +779,7 @@ export default function EditProfilePage() {
               )}
             </div>
           )}
+        </div>
 
       {/* Email Settings */}
       <div>
@@ -788,7 +804,7 @@ export default function EditProfilePage() {
                   type="email"
                   value={email}
                   className="w-full px-4 py-2.5 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB]"
-                  placeholder="emma.richardson@example.com"
+                  placeholder="your.email@example.com"
                   readOnly
                 />
               </div>
@@ -938,12 +954,12 @@ export default function EditProfilePage() {
             </p>
             <button
               onClick={handleDeleteAccount}
-              className="px-5 py-2 border-2 border-[#DC2626] hover:bg-[#DC2626] text-[#DC2626] hover:text-white rounded-lg text-sm font-medium transition-colors"
+              disabled={isDeleting}
+              className="px-5 py-2 border-2 border-[#DC2626] hover:bg-[#DC2626] text-[#DC2626] hover:text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Delete Account
+              {isDeleting ? "Deleting..." : "Delete Account"}
             </button>
           </div>
-        </div>
         </div>
       </div>
     </div>
