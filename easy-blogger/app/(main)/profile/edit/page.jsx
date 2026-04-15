@@ -313,13 +313,34 @@ export default function EditProfilePage() {
     setShowPasswordChange(false);
   };
 
-  const handleDeleteAccount = () => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
     if (
-      confirm(
-        "Are you sure you want to delete your account? This action cannot be undone.",
+      !confirm(
+        "Are you sure you want to delete your account? This action cannot be undone. All your articles, comments, and data will be permanently removed.",
       )
     ) {
-      alert("Account deletion - to be implemented");
+      return;
+    }
+
+    if (!firebaseUser) return;
+    setIsDeleting(true);
+
+    try {
+      const token = await firebaseUser.getIdToken();
+
+      // Call backend — deletes DB rows + Firebase Auth account via Admin SDK
+      await api.deleteAccount(token);
+
+      // Redirect to landing page (Firebase onAuthStateChanged will
+      // automatically clear the AuthContext since the account no longer exists)
+      router.push("/");
+    } catch (err) {
+      console.error("Failed to delete account:", err);
+      alert("Failed to delete account. Please try again or contact support.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -933,9 +954,10 @@ export default function EditProfilePage() {
             </p>
             <button
               onClick={handleDeleteAccount}
-              className="px-5 py-2 border-2 border-[#DC2626] hover:bg-[#DC2626] text-[#DC2626] hover:text-white rounded-lg text-sm font-medium transition-colors"
+              disabled={isDeleting}
+              className="px-5 py-2 border-2 border-[#DC2626] hover:bg-[#DC2626] text-[#DC2626] hover:text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Delete Account
+              {isDeleting ? "Deleting..." : "Delete Account"}
             </button>
           </div>
         </div>

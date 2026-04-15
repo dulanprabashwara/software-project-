@@ -128,4 +128,8 @@ export const api = {
   // Stripe Customer Portal (dedicated endpoint)
   createStripePortalSession: (token) =>
     fetchAPI("/api/stripe/create-portal-session", { method: "POST", token }),
+
+  // Account Management
+  deleteAccount: (token) =>
+    fetchAPI("/api/users/me", { method: "DELETE", token }),
 };
