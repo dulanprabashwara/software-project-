@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 // Landing page for Easy Blogger
 export default function LandingPage() {
   return (
@@ -15,18 +17,18 @@ export default function LandingPage() {
 
         {/* Navigation */}
         <nav className="flex items-center gap-6">
-          <a
-            href="#"
+          <Link
+            href="/our-story"
             className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
           >
             Our story
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            href="/membership"
             className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
           >
             Membership
-          </a>
+          </Link>
           <a
             href="/signup"
             className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
@@ -40,7 +42,7 @@ export default function LandingPage() {
             Sign in
           </a>
           <a
-            href="/home"
+            href="/signup"
             className="px-4 py-2 bg-[#111827] text-white text-sm rounded-full hover:bg-[#1f2937] transition-colors"
           >
             Get started
@@ -137,74 +139,7 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* Divider line */}
-      <div className="w-full border-t border-[#E5E7EB]"></div>
 
-      {/* Footer */}
-      <footer className="w-full py-6">
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-[#6B7280]">
-          <a
-            href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
-          >
-            Help
-          </a>
-          <a
-            href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
-          >
-            Status
-          </a>
-          <a
-            href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
-          >
-            About
-          </a>
-          <a
-            href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
-          >
-            Careers
-          </a>
-          <a
-            href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
-          >
-            Press
-          </a>
-          <a
-            href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
-          >
-            Blog
-          </a>
-          <a
-            href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
-          >
-            Privacy
-          </a>
-          <a
-            href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
-          >
-            Terms
-          </a>
-          <a
-            href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
-          >
-            Text to speech
-          </a>
-          <a
-            href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
-          >
-            Teams
-          </a>
-        </div>
-      </footer>
     </div>
   );
 }

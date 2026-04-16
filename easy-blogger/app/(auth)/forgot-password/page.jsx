@@ -23,9 +23,8 @@ export default function ForgotPasswordPage() {
 
     try {
       await sendPasswordResetEmail(auth, email);
-      setMessage("Password reset email sent! Check your inbox.");
-      // Optional: Wait a few seconds then push to verify-email or login
-      setTimeout(() => router.push("/login"), 5000);
+      // Redirect to the verify email page immediately with query params
+      router.push(`/verify-email?email=${encodeURIComponent(email)}&type=reset`);
     } catch (err) {
       console.error("Error sending password reset email", err);
       setError(
