@@ -109,6 +109,27 @@ export const api = {
   markMessagesAsRead: (userId, token) => fetchAPI(`/api/messages/${userId}/read`, { method: "PUT", token }),
   getUnreadMessageCount: (token) => fetchAPI("/api/messages/unread/count", { token }),
 
+  getAuditLogs: (query = "", token) => 
+    fetchAPI(`/api/admin/audit-logs${query}`, { token }),
+
+  // --- Admin Moderation Queue ---
+  getAdminReports: (query = "", token) => 
+    fetchAPI(`/api/admin/reports${query}`, { token }),
+  
+  resolveReport: (reportId, status, token) => 
+    fetchAPI(`/api/admin/reports/${reportId}`, { 
+      method: 'PUT', 
+      body: JSON.stringify({ status }), 
+      token 
+    }),
+  
+  banUser: (userId, reason, token) => 
+    fetchAPI(`/api/admin/users/${userId}/ban`, { 
+      method: 'POST', 
+      body: JSON.stringify({ reason }), 
+      token 
+    }),
+  
   // ─── Payment / Subscription ───────────────
   getActiveOffers: () =>
     fetchAPI("/api/payments/offers"),
@@ -132,4 +153,13 @@ export const api = {
   // Account Management
   deleteAccount: (token) =>
     fetchAPI("/api/users/me", { method: "DELETE", token }),
+  // --- Admin User Management ---
+  getAdminUsers: (query = "", token) => 
+    fetchAPI(`/api/admin/users${query}`, { token }),
+  
+  updateUserRole: (userId, role, token) => 
+    fetchAPI(`/api/admin/users/${userId}/role`, { method: 'PUT', body: JSON.stringify({ role }), token }),
+  
+  togglePremiumStatus: (userId, token) => 
+    fetchAPI(`/api/admin/users/${userId}/premium`, { method: 'PUT', token }),
 };
