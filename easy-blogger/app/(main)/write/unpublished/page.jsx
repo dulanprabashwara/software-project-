@@ -158,6 +158,7 @@ export default function UnpublishedArticlesPage() {
       desc: stripHtml(article.content).slice(0, 160) || "No content yet.",
       image: article.coverImage || null,
       hasCover: Boolean(article.coverImage),
+      isEdited: Boolean(article.isEdited),
       profileImage:
         article.author?.avatarUrl || "/images/Unpublished_IMG/profile.jpg",
     }));
@@ -311,9 +312,17 @@ export default function UnpublishedArticlesPage() {
                                 <span>{article.date}</span>
                               </div>
 
-                              <h2 className="mt-4 text-3xl font-serif font-bold text-[#111827]">
-                                {article.title}
-                              </h2>
+                              <div className="mt-4 flex items-center gap-3">
+                                <h2 className="text-3xl font-serif font-bold text-[#111827]">
+                                  {article.title}
+                                </h2>
+
+                                {article.isEdited ? (
+                                  <span className="rounded-full bg-[#FEF3C7] px-3 py-1 text-xs font-medium text-[#92400E]">
+                                    Edited
+                                  </span>
+                                ) : null}
+                              </div>
 
                               <p className="mt-3 text-[#6B7280] leading-relaxed max-w-2xl">
                                 {article.desc}
