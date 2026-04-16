@@ -568,22 +568,6 @@ export default function ProfilePage() {
             </a>
           </div>
 
-          <div className="pt-4">
-            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-[#6B7280]">
-              <a href="#" className="hover:text-[#111827] transition-colors">Help</a>
-              <a href="#" className="hover:text-[#111827] transition-colors">Status</a>
-              <a href="#" className="hover:text-[#111827] transition-colors">About</a>
-              <a href="#" className="hover:text-[#111827] transition-colors">Careers</a>
-              <a href="#" className="hover:text-[#111827] transition-colors">Press</a>
-              <a href="#" className="hover:text-[#111827] transition-colors">Blog</a>
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-[#6B7280] mt-2">
-              <a href="#" className="hover:text-[#111827] transition-colors">Privacy</a>
-              <a href="#" className="hover:text-[#111827] transition-colors">Terms</a>
-              <a href="#" className="hover:text-[#111827] transition-colors">Text to speech</a>
-              <a href="#" className="hover:text-[#111827] transition-colors">Teams</a>
-            </div>
-          </div>
         </div>
       </aside>
 
