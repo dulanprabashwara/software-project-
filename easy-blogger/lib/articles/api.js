@@ -179,3 +179,57 @@ export async function getMyDrafts(page = 1, limit = 10, options = {}) {
     method: "GET",
   });
 }
+
+export async function startEditExisting(articleId) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-existing/start`,
+    {
+      method: "POST",
+    },
+  );
+}
+
+export async function autosaveEditExisting(articleId, payload) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-existing/autosave`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function saveEditExistingAsDraft(articleId, payload) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-existing/save-draft`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function discardEditExisting(articleId) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-existing/discard`,
+    {
+      method: "POST",
+    },
+  );
+}
