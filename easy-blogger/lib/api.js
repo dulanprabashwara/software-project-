@@ -74,7 +74,7 @@ export const api = {
   toggleFollow: (userId, token) =>
     fetchAPI(`/api/users/${userId}/follow`, { method: "POST", token }),
   getFollowers: (userId) => fetchAPI(`/api/users/${userId}/followers`),
-  getFollowing: (userId) => fetchAPI(`/api/users/${userId}/following`),
+  getFollowing: (userId, token) => fetchAPI(`/api/users/${userId}/following`, token ? { token } : {}),
 
   getAdminDashboard: (token) => 
     fetchAPI("/api/admin/dashboard", { token }),
@@ -103,6 +103,12 @@ export const api = {
   deleteScrapingSource: (id, token) => 
     fetchAPI(`/api/admin/scraping-sources/${id}`, { method: "DELETE", token }),
 
+  // ─── Messages / Chat ──────────────────────
+  getConversations: (token) => fetchAPI("/api/messages/conversations", { token }),
+  getMessages: (userId, token) => fetchAPI(`/api/messages/${userId}`, { token }),
+  markMessagesAsRead: (userId, token) => fetchAPI(`/api/messages/${userId}/read`, { method: "PUT", token }),
+  getUnreadMessageCount: (token) => fetchAPI("/api/messages/unread/count", { token }),
+
   // ─── Payment / Subscription ───────────────
   getActiveOffers: () =>
     fetchAPI("/api/payments/offers"),
@@ -122,4 +128,8 @@ export const api = {
   // Stripe Customer Portal (dedicated endpoint)
   createStripePortalSession: (token) =>
     fetchAPI("/api/stripe/create-portal-session", { method: "POST", token }),
+
+  // Account Management
+  deleteAccount: (token) =>
+    fetchAPI("/api/users/me", { method: "DELETE", token }),
 };

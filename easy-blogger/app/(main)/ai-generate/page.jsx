@@ -275,6 +275,43 @@ export default function AIArticleGeneratorPage() {
     }
   };
 
+  // ── Edit in editor state ─────────────────────────────────────────────────────
+  const [isLoadingEditor, setIsLoadingEditor] = useState(false);
+
+  // ═════════════════════════════════════════════════════════════════════════════
+  // EDIT IN EDITOR
+  // Called when user clicks "Edit" on the AI article preview overlay.
+  //
+  // Calls POST /api/ai/load-to-editor with the logId.
+  // Backend creates an Article row (status: EDITING, isAiGenerated: true)
+  // populated from the AiArticleLog data, then returns the article id.
+  //
+  // We then navigate to /write/create. The write/create page calls
+  // GET /articles/user/editing on mount, finds our freshly created EDITING
+  // article (most recently updated), and loads its title + content into TinyMCE.
+  // From that point the manual article workflow handles everything identically.
+  // ═════════════════════════════════════════════════════════════════════════════
+  const handleEditInEditor = async () => {
+    if (!generatedArticle?.logId) return;
+    setIsLoadingEditor(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res     = await fetch(`${BACKEND_URL}/api/ai/load-to-editor`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ logId: generatedArticle.logId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || "Failed to open in editor");
+      router.push("/write/create");
+    } catch (err) {
+      console.error("[EditInEditor] Failed:", err);
+      alert("Could not open in editor. Please try again.");
+    } finally {
+      setIsLoadingEditor(false);
+    }
+  };
+
   const handleContinueToKeywords = async () => {
     if (!userInput.trim() || !validateUserInput(userInput)) return;
     setIsLoadingTransition(true);
@@ -867,8 +904,14 @@ export default function AIArticleGeneratorPage() {
                   <img src="/icons/Save.png" alt="Save" width="16" height="16" />
                   <span className="preview-save-text">{saveDraftLabel()}</span>
                 </button>
-                <button className="preview-edit-button" title="Edit">
-                  <span className="preview-edit-text">edit</span>
+                <button
+                  className="preview-edit-button"
+                  title="Edit in editor"
+                  onClick={handleEditInEditor}
+                  disabled={isLoadingEditor}
+                  style={{ opacity: isLoadingEditor ? 0.6 : 1, cursor: isLoadingEditor ? "default" : "pointer" }}
+                >
+                  <span className="preview-edit-text">{isLoadingEditor ? "opening..." : "edit"}</span>
                 </button>
               </div>
             </div>

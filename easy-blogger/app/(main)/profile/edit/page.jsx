@@ -25,7 +25,7 @@ import {
 
 import { useSubscription } from "../../../subscription/SubscriptionContext";
 import { useAuth } from "../../../context/AuthContext";
-import { api } from "../../../../lib/api";
+import { api, API_BASE_URL } from "../../../../lib/api"; // WordPress OAuth needs API_BASE_URL
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -59,6 +59,30 @@ export default function EditProfilePage() {
   // overwrite user edits if the context updates.
   const [hasInitializedForm, setHasInitializedForm] = useState(false);
 
+  // All hooks MUST be declared before any early returns (React rules of hooks)
+  const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [linkedInConnected, setLinkedInConnected] = useState(false);
+  const [wordpressConnected, setWordpressConnected] = useState(false);
+  // WordPress connection state
+  const [wpUsername, setWpUsername] = useState("");
+  const [wpSiteUrl,  setWpSiteUrl]  = useState("");
+  const [wpError,    setWpError]    = useState("");
+  const [wpLoading,  setWpLoading]  = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Password change state
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+
   // Populate form fields as soon as userProfile arrives (handles cold start).
   useEffect(() => {
     if (userProfile && !hasInitializedForm) {
@@ -77,24 +101,57 @@ export default function EditProfilePage() {
     }
   }, [loading, firebaseUser, router]);
 
-  // All hooks MUST be declared before any early returns (React rules of hooks)
-  const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showPasswordChange, setShowPasswordChange] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [linkedInConnected, setLinkedInConnected] = useState(false);
-  const [wordpressConnected, setWordpressConnected] = useState(false);
-  const fileInputRef = useRef(null);
+  // Fetch WordPress connection status on load
+  useEffect(() => {
+    if (!firebaseUser) return;
 
-  // Password change state
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState(false);
-  const [showCurrentPw, setShowCurrentPw] = useState(false);
-  const [showNewPw, setShowNewPw] = useState(false);
-  const [showConfirmPw, setShowConfirmPw] = useState(false);
+    const checkWpConnection = async () => {
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res   = await fetch(`${API_BASE_URL}/api/wordpress/status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data?.data?.connected) {
+          setWordpressConnected(true);
+          setWpUsername(data.data.wpUsername || "");
+          setWpSiteUrl(data.data.siteUrl     || "");
+        }
+      } catch {
+        // non-critical: silently ignore, UI defaults to disconnected
+      }
+    };
+
+    checkWpConnection();
+  }, [firebaseUser]);
+
+  // Reads ?wp_status query param set by the OAuth callback redirect
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params   = new URLSearchParams(window.location.search);
+    const wpStatus = params.get("wp_status");
+    if (!wpStatus) return;
+
+    if (wpStatus === "connected") {
+      setWordpressConnected(true);
+      setWpUsername(params.get("wp_username") || "");
+      setWpSiteUrl(params.get("wp_site")     || "");
+      setWpError("");
+    } else if (wpStatus === "error") {
+      setWpError(
+        params.get("wp_message") || "WordPress connection failed. Please try again."
+      );
+    }
+
+    // clean wp_* params from the URL bar without reloading
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("wp_status");
+    cleanUrl.searchParams.delete("wp_username");
+    cleanUrl.searchParams.delete("wp_site");
+    cleanUrl.searchParams.delete("wp_message");
+    window.history.replaceState({}, "", cleanUrl.toString());
+  }, []);
 
   // Detect if the user signed in via Google (no email/password to change)
   const isGoogleUser = firebaseUser?.providerData?.some(
@@ -256,13 +313,34 @@ export default function EditProfilePage() {
     setShowPasswordChange(false);
   };
 
-  const handleDeleteAccount = () => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
     if (
-      confirm(
-        "Are you sure you want to delete your account? This action cannot be undone.",
+      !confirm(
+        "Are you sure you want to delete your account? This action cannot be undone. All your articles, comments, and data will be permanently removed.",
       )
     ) {
-      alert("Account deletion - to be implemented");
+      return;
+    }
+
+    if (!firebaseUser) return;
+    setIsDeleting(true);
+
+    try {
+      const token = await firebaseUser.getIdToken();
+
+      // Call backend — deletes DB rows + Firebase Auth account via Admin SDK
+      await api.deleteAccount(token);
+
+      // Redirect to landing page (Firebase onAuthStateChanged will
+      // automatically clear the AuthContext since the account no longer exists)
+      router.push("/");
+    } catch (err) {
+      console.error("Failed to delete account:", err);
+      alert("Failed to delete account. Please try again or contact support.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -276,13 +354,53 @@ export default function EditProfilePage() {
     }
   };
 
-  const handleWordPressToggle = () => {
+  // Connects or disconnects WordPress via OAuth
+  const handleWordPressToggle = async () => {
+    if (!firebaseUser) return;
+
     if (wordpressConnected) {
-      if (confirm("Do you want to disconnect from WordPress?")) {
+      // disconnect
+      if (!confirm("Do you want to disconnect from WordPress?")) return;
+      setWpLoading(true);
+      setWpError("");
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res   = await fetch(`${API_BASE_URL}/api/wordpress/disconnect`, {
+          method:  "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.message || "Disconnect request failed.");
+        }
         setWordpressConnected(false);
+        setWpUsername("");
+        setWpSiteUrl("");
+      } catch (err) {
+        setWpError(err.message || "Failed to disconnect WordPress. Please try again.");
+      } finally {
+        setWpLoading(false);
       }
+
     } else {
-      setWordpressConnected(true);
+      // redirect to WordPress.com; callback handles the response
+      setWpLoading(true);
+      setWpError("");
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res   = await fetch(`${API_BASE_URL}/api/wordpress/auth`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok || !data?.data?.authUrl) {
+          throw new Error(data?.message || "Could not get WordPress authorization URL.");
+        }
+        window.location.href = data.data.authUrl;
+        // page navigates away; state resets on remount if user cancels
+      } catch (err) {
+        setWpError(err.message || "Failed to initiate WordPress connection. Please try again.");
+        setWpLoading(false);
+      }
     }
   };
 
@@ -297,14 +415,6 @@ export default function EditProfilePage() {
           Edit Profile
         </h1>
         <div className="flex items-center gap-3">
-          {/* Dev Toggle for testing */}
-          <button
-            onClick={togglePremium}
-            className="px-3 py-1 text-xs bg-gray-200 rounded mr-2 hover:bg-gray-300 transition-colors"
-          >
-            Toggle Premium ({isPremium ? "ON" : "OFF"})
-          </button>
-
           <button
             onClick={() => router.push("/profile")}
             className="px-6 py-2.5 bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] text-[#374151] rounded-full text-sm font-medium transition-colors"
@@ -456,7 +566,9 @@ export default function EditProfilePage() {
       </div>
 
       {/* Subscription Card - Conditional */}
-      {isPremium ? (
+      {profileLoading && !userProfile ? (
+        <div className="bg-[#F9FAFB] rounded-xl border border-[#E5E7EB] p-6 mb-6 animate-pulse h-[100px]"></div>
+      ) : isPremium ? (
         /* Premium Member Card */
         <div className="bg-white rounded-xl border border-[#1ABC9C] p-6 mb-6 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-[#1ABC9C] to-transparent opacity-10 rounded-bl-full pointer-events-none"></div>
@@ -479,7 +591,7 @@ export default function EditProfilePage() {
                   </span>
                 </div>
                 <p className="text-sm text-[#6B7280]">
-                  Your subscription renews on Jan 22, 2026
+                  Your subscription is currently active.
                 </p>
               </div>
             </div>
@@ -667,6 +779,7 @@ export default function EditProfilePage() {
               )}
             </div>
           )}
+        </div>
 
       {/* Email Settings */}
       <div>
@@ -691,7 +804,7 @@ export default function EditProfilePage() {
                   type="email"
                   value={email}
                   className="w-full px-4 py-2.5 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB]"
-                  placeholder="emma.richardson@example.com"
+                  placeholder="your.email@example.com"
                   readOnly
                 />
               </div>
@@ -784,6 +897,13 @@ export default function EditProfilePage() {
             </div>
           </div>
 
+          {/* Error banner — shown on connect/disconnect failure */}
+          {wpError && (
+            <div className="mb-3 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
+              {wpError}
+            </div>
+          )}
+
           <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#21759B] rounded-lg flex items-center justify-center">
@@ -791,26 +911,30 @@ export default function EditProfilePage() {
               </div>
               <div>
                 <p className="font-medium text-[#111827]">
-                  {wordpressConnected
-                    ? "WordPress Connected"
-                    : "WordPress Disconnected"}
+                  {wordpressConnected ? "WordPress Connected" : "WordPress Disconnected"}
                 </p>
                 <p className="text-sm text-[#6B7280]">
                   {wordpressConnected
-                    ? "Publish articles directly to your WordPress site"
+                    ? `Connected as ${wpUsername || "WordPress User"}`
                     : "Connect to publish articles"}
                 </p>
+                {wordpressConnected && wpSiteUrl && (
+                  <p className="text-xs text-[#9CA3AF] mt-0.5">{wpSiteUrl}</p>
+                )}
               </div>
             </div>
             <button
               onClick={handleWordPressToggle}
-              className={`text-sm font-medium transition-colors ${
+              disabled={wpLoading}
+              className={`text-sm font-medium transition-colors disabled:opacity-50 ${
                 wordpressConnected
                   ? "text-red-500 hover:text-red-600"
                   : "text-[#21759B] hover:text-[#1A5F7A]"
               }`}
             >
-              {wordpressConnected ? "Disconnect" : "Connect"}
+              {wpLoading
+                ? wordpressConnected ? "Disconnecting..." : "Connecting..."
+                : wordpressConnected ? "Disconnect" : "Connect"}
             </button>
           </div>
         </div>
@@ -830,12 +954,12 @@ export default function EditProfilePage() {
             </p>
             <button
               onClick={handleDeleteAccount}
-              className="px-5 py-2 border-2 border-[#DC2626] hover:bg-[#DC2626] text-[#DC2626] hover:text-white rounded-lg text-sm font-medium transition-colors"
+              disabled={isDeleting}
+              className="px-5 py-2 border-2 border-[#DC2626] hover:bg-[#DC2626] text-[#DC2626] hover:text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Delete Account
+              {isDeleting ? "Deleting..." : "Delete Account"}
             </button>
           </div>
-        </div>
         </div>
       </div>
     </div>
