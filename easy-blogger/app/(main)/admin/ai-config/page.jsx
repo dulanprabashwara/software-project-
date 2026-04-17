@@ -8,7 +8,7 @@ import { api } from "../../../../lib/api";
 export default function AdminAIConfig() {
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+  const [defaultKeywordsMap, setDefaultKeywordsMap] = useState({});
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [urlStatus, setUrlStatus] = useState("idle"); // idle, validating, valid, invalid
@@ -23,19 +23,25 @@ export default function AdminAIConfig() {
     currentKeywordInput: ""
   });
 
-  // --- REAL BACKEND FETCH ---
   const fetchRealSources = async () => {
     try {
       const user = auth.currentUser;
       if (!user) return;
       const token = await user.getIdToken();
 
-      const response = await api.getScrapingSources(token);
-      const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+      // Fetch BOTH sources and keywords at the same time
+      const [sourcesRes, keywordsRes] = await Promise.all([
+        api.getScrapingSources(token),
+        api.getDefaultKeywords(token).catch(() => ({ data: { data: {} } })) // Fallback if backend route fails
+      ]);
+
+      const sourcesData = Array.isArray(sourcesRes.data) ? sourcesRes.data : (sourcesRes.data?.data || []);
+      setSources(sourcesData);
       
-      setSources(data);
+      // Store the dictionary (handling Axios/Express nested data objects)
+      setDefaultKeywordsMap(keywordsRes.data?.data || keywordsRes.data || {});
     } catch (error) {
-      console.error("Failed to fetch sources:", error);
+      console.error("Failed to fetch data:", error);
     } finally {
       setLoading(false);
     }
@@ -92,9 +98,15 @@ export default function AdminAIConfig() {
     }
   };
 
-  // --- MODAL CONTROLS ---
   const handleOpenNew = () => {
-    setModalData({ id: null, name: "", url: "", category: "Technology & Digital Life", scrapeWindow: "Last 7 Days", minWordCount: 300, excludedKeywords: [], currentKeywordInput: "" });
+    const defaultCat = "Technology & Digital Life";
+    
+    // Combine Global blocks with the specific category blocks
+    const globalWords = defaultKeywordsMap["Global"] || [];
+    const catWords = defaultKeywordsMap[defaultCat] || [];
+    const startingKeywords = [...new Set([...globalWords, ...catWords])];
+
+    setModalData({ id: null, name: "", url: "", category: defaultCat, scrapeWindow: "Last 7 Days", minWordCount: 300, excludedKeywords: startingKeywords, currentKeywordInput: "" });
     setUrlStatus("idle");
     setIsModalOpen(true);
   };
@@ -253,7 +265,24 @@ const handleSaveSource = async () => {
                 <label className="w-1/3 text-gray-600 text-lg">Content Category:</label>
                 <select 
                   className="w-1/3 bg-transparent border-none font-bold text-gray-800 outline-none cursor-pointer"
-                  value={modalData.category} onChange={e => setModalData({...modalData, category: e.target.value})}
+                  value={modalData.category} 
+                  onChange={(e) => {
+                    const newCat = e.target.value;
+      
+                    // If creating a NEW source, auto-swap the keywords
+                    if (!modalData.id) {
+                      const globalWords = defaultKeywordsMap["Global"] || [];
+                      const catWords = defaultKeywordsMap[newCat] || [];
+                      setModalData({
+                        ...modalData, 
+                        category: newCat,
+                        excludedKeywords: [...new Set([...globalWords, ...catWords])]
+                      });
+                    } else {
+                      // If editing an existing source, just change category, don't overwrite their saved keywords
+                      setModalData({...modalData, category: newCat});
+                    }
+                  }}
                 >
                   <option value="Technology & Digital Life">Technology & Digital Life</option>
                   <option value="Business & Entrepreneurship">Business & Entrepreneurship</option>
