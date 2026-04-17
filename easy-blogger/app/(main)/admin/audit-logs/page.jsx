@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Filter, ChevronDown, X } from "lucide-react"; // Added X for clearing dates
+import { Filter, ChevronDown, X } from "lucide-react";
 
-// 1. IMPORT YOUR HELPERS
 import { auth } from "../../../../lib/firebase"; 
 import { api } from "../../../../lib/api";
 
@@ -31,11 +30,12 @@ export default function AuditLogPage() {
       const mappedLogs = logsArray.map(log => ({
         id: log.id,
         admin: log.admin?.displayName || log.admin?.username || "System Admin",
+        // Converts "CREATE_SCRAPING_SOURCE" to "Create Scraping Source"
         action: log.action.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()),
         target: log.targetId ? `${log.targetType || 'ID'}_${log.targetId.slice(0, 8)}` : "System Action",
         details: log.details || "No additional details",
         endpoint: log.ipAddress ? `IP: ${log.ipAddress}` : "Internal Service",
-        rawDate: new Date(log.createdAt), // Store raw date for accurate filtering
+        rawDate: new Date(log.createdAt),
         timestamp: new Date(log.createdAt).toLocaleString([], {
           year: 'numeric', month: '2-digit', day: '2-digit',
           hour: '2-digit', minute: '2-digit', second: '2-digit'
@@ -61,11 +61,27 @@ export default function AuditLogPage() {
     return () => unsubscribe();
   }, []);
 
+  // Upgraded Badge Logic to handle the new Master List
   const getBadgeStyle = (action) => {
     const act = action.toLowerCase();
-    if (act.includes("ban") || act.includes("delete") || act.includes("remove")) return "bg-[#FEE2E2] text-[#EF4444] border border-[#FCA5A5]";
-    if (act.includes("unban") || act.includes("create") || act.includes("active")) return "bg-[#DCFCE7] text-[#22C55E] border border-[#86EFAC]";
-    if (act.includes("review") || act.includes("update") || act.includes("resolve")) return "bg-[#DBEAFE] text-[#3B82F6] border border-[#93C5FD]";
+    
+    // 1. Danger/Destructive (Prioritized to catch "Resolve Report Delete/Ban")
+    if (act.includes("delete") || act.includes("ban") || act.includes("revoke") || act.includes("cancel")) {
+      return "bg-[#FEE2E2] text-[#EF4444] border border-[#FCA5A5]";
+    }
+    // 2. Success/Creation (Prioritized to catch "Resolve Report Keep")
+    if (act.includes("create") || act.includes("unban") || act.includes("keep")) {
+      return "bg-[#DCFCE7] text-[#22C55E] border border-[#86EFAC]";
+    }
+    // 3. Warning/Manual Actions
+    if (act.includes("trigger") || act.includes("lock") || act.includes("reset")) {
+      return "bg-[#FEF9C3] text-[#CA8A04] border border-[#FEF08A]";
+    }
+    // 4. Updates & Modifications
+    if (act.includes("update") || act.includes("toggle") || act.includes("resolve")) {
+      return "bg-[#DBEAFE] text-[#3B82F6] border border-[#93C5FD]";
+    }
+    // 5. Default (Exports, Downloads, Logins)
     return "bg-[#F3F4F6] text-[#6B7280] border border-[#D1D5DB]";
   };
 
@@ -81,7 +97,6 @@ export default function AuditLogPage() {
     let matchDate = true;
     if (startDate || endDate) {
       if (startDate) matchDate = matchDate && log.rawDate >= new Date(startDate);
-      // Append end of day time so it includes logs made late on the endDate
       if (endDate) matchDate = matchDate && log.rawDate <= new Date(`${endDate}T23:59:59`);
     }
 
