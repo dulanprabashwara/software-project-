@@ -16,7 +16,7 @@ export default function AdminAIConfig() {
     id: null, // null means new, string/number means editing
     name: "",
     url: "",
-    category: "Technology",
+    category: "Technology & Digital Life",
     scrapeWindow: "Last 7 Days",
     minWordCount: 300,
     excludedKeywords: [],
@@ -94,7 +94,7 @@ export default function AdminAIConfig() {
 
   // --- MODAL CONTROLS ---
   const handleOpenNew = () => {
-    setModalData({ id: null, name: "", url: "", category: "Technology", scrapeWindow: "Last 7 Days", minWordCount: 300, excludedKeywords: [], currentKeywordInput: "" });
+    setModalData({ id: null, name: "", url: "", category: "Technology & Digital Life", scrapeWindow: "Last 7 Days", minWordCount: 300, excludedKeywords: [], currentKeywordInput: "" });
     setUrlStatus("idle");
     setIsModalOpen(true);
   };
@@ -255,10 +255,29 @@ const handleSaveSource = async () => {
                   className="w-1/3 bg-transparent border-none font-bold text-gray-800 outline-none cursor-pointer"
                   value={modalData.category} onChange={e => setModalData({...modalData, category: e.target.value})}
                 >
-                  <option value="Technology">Technology</option>
-                  <option value="Health">Health</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Lifestyle">Lifestyle</option>
+                  <option value="Technology & Digital Life">Technology & Digital Life</option>
+                  <option value="Business & Entrepreneurship">Business & Entrepreneurship</option>
+                  <option value="Finance & Money">Finance & Money</option>
+                  <option value="Health & Medicine">Health & Medicine</option>
+                  <option value="Wellness & Personal Growth">Wellness & Personal Growth</option>
+                  <option value="Relationships & Family">Relationships & Family</option>
+                  <option value="Education & Learning">Education & Learning</option>
+                  <option value="Environment & Nature">Environment & Nature</option>
+                  <option value="Food & Cooking">Food & Cooking</option>
+                  <option value="Travel & Places">Travel & Places</option>
+                  <option value="Lifestyle & Home">Lifestyle & Home</option>
+                  <option value="Hobbies & Interests">Hobbies & Interests</option>
+                  <option value="Sports & Athletics">Sports & Athletics</option>
+                  <option value="Arts, Culture & Entertainment">Arts, Culture & Entertainment</option>
+                  <option value="Literature & Writing">Literature & Writing</option>
+                  <option value="History">History</option>
+                  <option value="Politics & Society">Politics & Society</option>
+                  <option value="Religion, Philosophy & Beliefs">Religion, Philosophy & Beliefs</option>
+                  <option value="Science & Discovery">Science & Discovery</option>
+                  <option value="Career & Professional Life">Career & Professional Life</option>
+                  <option value="Agriculture & Rural Life">Agriculture & Rural Life</option>
+                  <option value="Industries & Services">Industries & Services</option>
+                  <option value="Community & Social Issues">Community & Social Issues</option>
                 </select>
               </div>
 

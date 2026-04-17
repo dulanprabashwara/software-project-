@@ -1,9 +1,8 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Search, ChevronDown, Plus, Check, Save, AlertCircle, X, MousePointer2, Percent } from "lucide-react";
+import { Search, ChevronDown, Plus, Check, Save, AlertCircle, X, MousePointer2, Percent, DollarSign } from "lucide-react";
 
-// 1. IMPORT REAL BACKEND HELPERS
 import { auth } from "../../../../../lib/firebase"; 
 import { api } from "../../../../../lib/api";
 
@@ -21,7 +20,7 @@ export default function OffersPage() {
   
   // 2. UPDATED STATE TO MATCH PRISMA SCHEMA
   const [formData, setFormData] = useState({
-    name: "", discount_percent: "", duration: "Monthly", stripe_coupon_id: "", is_active: true,
+    name: "", price: "", discount_percent: "", is_active: true,
     features: []
   });
 
@@ -69,7 +68,7 @@ export default function OffersPage() {
     setSelectedId(null);
     setIsAddingNew(true);
     setFormData({
-      name: "", discount_percent: "", duration: "Monthly", stripe_coupon_id: "", is_active: true,
+      name: "", price: "", discount_percent: "", is_active: true,
       features: [
         { name: "Unlimited AI Access", enabled: true },
         { name: "Custom Branding", enabled: false }
@@ -83,19 +82,21 @@ export default function OffersPage() {
     
     // Update local editor state immediately
     setFormData({ ...formData, is_active: newActiveState });
-
-    // If it's an existing offer, you would hit an update endpoint here.
-    // e.g., await api.updateOffer(selectedId, { is_active: newActiveState }, token);
-    // For now, we update local state and let the user click Save.
   };
 
   const validateAndTriggerVerify = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Offer Name is required.";
     
+    // Validate Price
+    const price = parseFloat(formData.price);
+    if (isNaN(price) || price <= 0) {
+      newErrors.price = "Valid price required.";
+    }
+
     const discount = parseInt(formData.discount_percent);
-    if (isNaN(discount) || discount < 1 || discount > 100) {
-      newErrors.discount_percent = "Valid percentage (1-100) required.";
+    if (formData.discount_percent && (isNaN(discount) || discount < 0 || discount > 100)) {
+      newErrors.discount_percent = "Must be 0-100.";
     }
     
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
@@ -111,8 +112,8 @@ export default function OffersPage() {
       // Match the payload to the Prisma schema
       const payload = {
         name: formData.name,
-        discount_percent: parseInt(formData.discount_percent),
-        stripe_coupon_id: formData.stripe_coupon_id,
+        price: parseFloat(formData.price),
+        discount_percent: parseInt(formData.discount_percent)|| 0,
         is_active: formData.is_active,
         features: formData.features
       };
@@ -177,7 +178,12 @@ export default function OffersPage() {
                 <h3 className="font-bold text-[#111827] text-sm leading-tight">{offer.name}</h3>
                 <div className={`w-8 h-2.5 rounded-full ${offer.is_active ? 'bg-[#22C55E]' : 'bg-[#EF4444]'}`}></div>
               </div>
-              <p className="text-[13px] font-black text-[#1ABC9C] mt-1">{offer.discount_percent}% OFF</p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-[13px] font-black text-gray-800">${offer.price}</p>
+                {offer.discount_percent > 0 && (
+                  <p className="text-[11px] font-bold text-[#1ABC9C] bg-[#E6F8F3] px-2 py-0.5 rounded-md">-{offer.discount_percent}%</p>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -191,15 +197,23 @@ export default function OffersPage() {
               {isAddingNew ? "Add New Offer" : `Update Offer: ${formData.name}`}
             </h1>
             <div className="bg-[#F0FDFA] rounded-[35px] p-8 space-y-6 shadow-sm border border-gray-100 max-w-2xl">
-              <div className="grid grid-cols-2 gap-6">
+              
+              <div className="grid grid-cols-3 gap-6">
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Offer Name:</label>
-                  <input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Early Bird" className={`w-full p-3 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.name ? 'border-red-500' : 'border-gray-200'}`} />
+                  <input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Pro Creator" className={`w-full p-3 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.name ? 'border-red-500' : 'border-gray-200'}`} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Discount Percentage (%):</label>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Base Price:</label>
                   <div className="relative">
-                    <input type="number" min="1" max="100" value={formData.discount_percent} onChange={(e) => setFormData({...formData, discount_percent: e.target.value})} placeholder="20" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.discount_percent ? 'border-red-500' : 'border-gray-200'}`} />
+                    <input type="number" min="0" step="0.01" value={formData.price === 0 ? "" : formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} placeholder="9.99" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.price ? 'border-red-500' : 'border-gray-200'}`} />
+                    <DollarSign className="absolute left-3 top-3.5 text-gray-400" size={16} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Discount (%):</label>
+                  <div className="relative">
+                    <input type="number" min="0" max="100" value={formData.discount_percent} onChange={(e) => setFormData({...formData, discount_percent: e.target.value})} placeholder="Optional" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.discount_percent ? 'border-red-500' : 'border-gray-200'}`} />
                     <Percent className="absolute left-3 top-3.5 text-gray-400" size={16} />
                   </div>
                 </div>
@@ -210,7 +224,7 @@ export default function OffersPage() {
                   <p className="text-[10px] font-bold text-gray-400 uppercase">Manage Features:</p>
                   <div className="flex gap-2">
                     <input value={newFeatureName} onChange={(e) => setNewFeatureName(e.target.value)} placeholder="New perk..." className="text-xs p-1.5 border-b border-gray-300 outline-none bg-transparent w-32" />
-                    <button onClick={() => {const f = [...formData.features, {name: newFeatureName, enabled: true}]; setFormData({...formData, features: f}); setNewFeatureName("");}} className="w-6 h-6 bg-[#1ABC9C] text-white rounded-md flex items-center justify-center"><Plus size={14}/></button>
+                    <button onClick={() => {if(!newFeatureName) return; const f = [...formData.features, {name: newFeatureName, enabled: true}]; setFormData({...formData, features: f}); setNewFeatureName("");}} className="w-6 h-6 bg-[#1ABC9C] text-white rounded-md flex items-center justify-center"><Plus size={14}/></button>
                   </div>
                 </div>
                 {formData.features?.map((f, i) => (
@@ -221,12 +235,6 @@ export default function OffersPage() {
                     </button>
                   </div>
                 ))}
-              </div>
-
-              <div className="pt-4 border-t border-gray-100">
-                <label className="text-[10px] font-bold text-gray-400 uppercase">Stripe Coupon ID:</label>
-                <input value={formData.stripe_coupon_id} onChange={(e) => setFormData({...formData, stripe_coupon_id: e.target.value})} placeholder="e.g. SUMMER_20 (Leave blank to auto-generate)" className="w-full p-3 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] border-gray-200" />
-                <p className="text-[9px] text-gray-400 mt-1 italic">*This is the code users will enter, or Stripe will use via API.</p>
               </div>
 
               <div className="flex items-center justify-between pt-6">
@@ -260,7 +268,7 @@ export default function OffersPage() {
           <div className="bg-white p-8 rounded-[40px] shadow-2xl max-w-sm w-full text-center">
             <AlertCircle size={32} className="text-[#1ABC9C] mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Verify Changes</h2>
-            <p className="text-sm text-gray-500 mb-6">Updating <b>{formData.name}</b> to a <span className="text-[#1ABC9C] font-bold">{formData.discount_percent}%</span> discount.</p>
+            <p className="text-sm text-gray-500 mb-6">Updating <b>{formData.name}</b> to a price of <span className="font-bold text-[#111827]">${formData.price}</span> {formData.discount_percent > 0 && <span>with a <span className="text-[#1ABC9C] font-bold">{formData.discount_percent}%</span> discount</span>}.</p>
             <div className="flex gap-4">
               <button onClick={() => setShowVerifyModal(false)} className="flex-1 font-bold text-gray-400 hover:text-gray-600 transition-colors">Back</button>
               <button onClick={confirmFinalSave} className="flex-1 bg-[#114A3F] hover:bg-[#0a2e27] text-white rounded-2xl py-3 font-bold transition-colors">Confirm</button>
