@@ -1,11 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { useEffect } from "react";
-import { Calendar, Clock} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Calendar, Clock } from "lucide-react";
 import Image from "next/image";
 
-//Define a reusable section component for better structure and readability
+const STORAGE_KEYS = {
+  publishArticleTitle: "publish_article_title",
+  publishSourceArticleId: "publish_source_article_id",
+  publishDraft: "publish_article_draft",
+  publishedArticleData: "published_article_data",
+};
+
+const MAX_TAGS = 5;
+
+const createDefaultPublishDraft = () => ({
+  tags: ["Technology", "Design", "Blogging"],
+  timing: "now",
+  scheduledDate: "",
+  scheduledTime: "",
+  shareLinkedIn: true,
+  shareWordPress: true,
+  linkedinCaption: "",
+});
+
 function Section({ title, children }) {
   return (
     <div className="p-10">
@@ -19,7 +37,7 @@ function Toggle({ enabled, setEnabled }) {
   return (
     <button
       type="button"
-      onClick={() => setEnabled((v) => !v)}
+      onClick={() => setEnabled((value) => !value)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
         enabled ? "bg-emerald-500" : "bg-gray-300"
       }`}
@@ -46,171 +64,140 @@ function Radio({ checked }) {
   );
 }
 
+function readPublishDraft() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const rawDraft = sessionStorage.getItem(STORAGE_KEYS.publishDraft);
+  if (!rawDraft) return null;
+
+  try {
+    return JSON.parse(rawDraft);
+  } catch (error) {
+    console.error("Failed to parse publish draft", error);
+    return null;
+  }
+}
+
+function readPublishArticleTitle() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  return sessionStorage.getItem(STORAGE_KEYS.publishArticleTitle) || "";
+}
+
+function readPublishSourceArticleId() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  return sessionStorage.getItem(STORAGE_KEYS.publishSourceArticleId) || "";
+}
+
+function buildSelectedPlatforms({ shareLinkedIn, shareWordPress }) {
+  const platforms = ["Easy Blogger"];
+
+  if (shareLinkedIn) platforms.push("LinkedIn");
+  if (shareWordPress) platforms.push("WordPress");
+
+  return platforms;
+}
 
 export default function PublishArticlePage() {
-  
-  const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState(["Technology", "Design", "Blogging"]);
-  const MAX_TAGS = 5;
+  const router = useRouter();
+  const defaultDraft = useMemo(() => createDefaultPublishDraft(), []);
 
-  const [timing, setTiming] = useState("now"); // "now" or "schedule"
-  const [scheduledDate, setScheduledDate] = useState(""); // "YYYY-MM-DD"
-  const [scheduledTime, setScheduledTime] = useState(""); // "HH:MM" 24h
+  const [articleTitle, setArticleTitle] = useState("");
+  const [tagInput, setTagInput] = useState("");
+  const [tags, setTags] = useState(defaultDraft.tags);
+  const [timing, setTiming] = useState(defaultDraft.timing);
+  const [scheduledDate, setScheduledDate] = useState(defaultDraft.scheduledDate);
+  const [scheduledTime, setScheduledTime] = useState(defaultDraft.scheduledTime);
   const [dateOpen, setDateOpen] = useState(false);
   const [timeOpen, setTimeOpen] = useState(false);
   const [tpHour, setTpHour] = useState("10");
   const [tpMinute, setTpMinute] = useState("30");
   const [tpPeriod, setTpPeriod] = useState("AM");
-
-  // Social sharing
-  const [shareLinkedIn, setShareLinkedIn] = useState(true);
-  const [shareWordPress, setShareWordPress] = useState(true);
+  const [shareLinkedIn, setShareLinkedIn] = useState(defaultDraft.shareLinkedIn);
+  const [shareWordPress, setShareWordPress] = useState(defaultDraft.shareWordPress);
   const [shareText, setShareText] = useState("");
-  const [showShareText, setShowShareText] = useState(false);  
+  const [showShareText, setShowShareText] = useState(false);
+  const [linkedinCaption, setLinkedinCaption] = useState(defaultDraft.linkedinCaption);
 
-  const addTag = (raw) => {
-    const t = raw.trim();
-    if (!t) return;
-
-    if (tags.length >= MAX_TAGS) return;
-
-    if (tags.some((x) => x.toLowerCase() === t.toLowerCase())) return;
-
-    setTags((prev) => [...prev, t]);
-  };
-
-  const removeTag = (tag) => {
-    setTags((prev) => prev.filter((t) => t !== tag));
-  };
-
-  const pad2 = (n) => String(n).padStart(2, "0");
+  const pad2 = (value) => String(value).padStart(2, "0");
 
   const to12Hour = (hhmm) => {
     if (!hhmm) return "";
+
     const parts = hhmm.split(":");
     if (parts.length !== 2) return "";
+
     const [hh, mm] = parts.map(Number);
     if (Number.isNaN(hh) || Number.isNaN(mm)) return "";
+
     const period = hh >= 12 ? "PM" : "AM";
     const h12 = hh % 12 === 0 ? 12 : hh % 12;
+
     return `${h12}:${pad2(mm)} ${period}`;
   };
 
   const to24Hour = (hour12, minute, period) => {
-    let h = parseInt(hour12, 10);
-    const m = parseInt(minute, 10);
+    let hours = parseInt(hour12, 10);
+    const minutes = parseInt(minute, 10);
+
     if (period === "AM") {
-      if (h === 12) h = 0;
-    } else {
-      if (h !== 12) h += 12;
+      if (hours === 12) hours = 0;
+    } else if (hours !== 12) {
+      hours += 12;
     }
-    return `${pad2(h)}:${pad2(m)}`;
+
+    return `${pad2(hours)}:${pad2(minutes)}`;
   };
 
-  const formatDateMMDDYYYY = (yyyy_mm_dd) => {
-    if (!yyyy_mm_dd) return "";
-    const parts = yyyy_mm_dd.split("-");
+  const formatDateMMDDYYYY = (yyyyMmDd) => {
+    if (!yyyyMmDd) return "";
+
+    const parts = yyyyMmDd.split("-");
     if (parts.length !== 3) return "";
-    const [y, m, d] = parts;
-    return `${m}/${d}/${y}`;
+
+    const [year, month, day] = parts;
+    return `${month}/${day}/${year}`;
   };
 
-  useEffect(() => {
-    if (timing !== "now") return;
+  const buildPublishDraft = () => ({
+    tags,
+    timing,
+    scheduledDate,
+    scheduledTime,
+    shareLinkedIn,
+    shareWordPress,
+    linkedinCaption,
+  });
 
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = pad2(now.getMonth() + 1);
-    const d = pad2(now.getDate());
-    const hh = pad2(now.getHours());
-    const mm = pad2(now.getMinutes());
+  const savePublishDraft = () => {
+    sessionStorage.setItem(
+      STORAGE_KEYS.publishDraft,
+      JSON.stringify(buildPublishDraft())
+    );
+  };
 
-    setScheduledDate(`${y}-${m}-${d}`);
-    setScheduledTime(`${hh}:${mm}`);
-    setDateOpen(false);
-    setTimeOpen(false);
+  const addTag = (rawValue) => {
+    const trimmedTag = rawValue.trim();
 
-    // sync 12h picker values
-    const hhNum = now.getHours();
-    const period = hhNum >= 12 ? "PM" : "AM";
-    const hour = hhNum % 12 === 0 ? 12 : hhNum % 12;
-    setTpHour(String(hour));
-    setTpMinute(pad2(now.getMinutes()));
-    setTpPeriod(period);
-  }, [timing]);
+    if (!trimmedTag) return;
+    if (tags.length >= MAX_TAGS) return;
+    if (tags.some((tag) => tag.toLowerCase() === trimmedTag.toLowerCase())) return;
 
-  useEffect(() => {
-    if (timing !== "schedule") return;
-    if (scheduledDate && scheduledTime) return;
+    setTags((previousTags) => [...previousTags, trimmedTag]);
+  };
 
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = pad2(now.getMonth() + 1);
-    const d = pad2(now.getDate());
-
-    setScheduledDate(`${y}-${m}-${d}`);
-    setScheduledTime("10:30");
-    setTpHour("10");
-    setTpMinute("30");
-    setTpPeriod("AM");
-  }, [timing]);
-
-  useEffect(() => {
-    const onClick = (e) => {
-      // close if click outside any popover container
-      if (!e.target.closest?.("[data-picker]")) {
-        setDateOpen(false);
-        setTimeOpen(false);
-      }
-    };
-    window.addEventListener("mousedown", onClick);
-    return () => window.removeEventListener("mousedown", onClick);
-  }, []);
-
-  useEffect(() => {
-    const platforms = [];
-    if (shareLinkedIn) platforms.push("LinkedIn");
-    if (shareWordPress) platforms.push("WordPress");
-
-    if (platforms.length === 0) {
-      setShowShareText(false);
-      // wait for fade-out then clear text
-      const t = setTimeout(() => setShareText(""), 200);
-      return () => clearTimeout(t);
-    }
-
-    setShareText(`This article will be shared on ${platforms.join(" and ")} when it is published`);
-    setShowShareText(true);
-  }, [shareLinkedIn, shareWordPress]);
-
-  useEffect(() => {
-    if (timing !== "now") return;
-
-    const updateNow = () => {
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = pad2(now.getMonth() + 1);
-      const d = pad2(now.getDate());
-      const hh = pad2(now.getHours());
-      const mm = pad2(now.getMinutes());
-
-      setScheduledDate(`${y}-${m}-${d}`);
-      setScheduledTime(`${hh}:${mm}`);
-
-      // sync 12h picker values too (optional, but good)
-      const hhNum = now.getHours();
-      const period = hhNum >= 12 ? "PM" : "AM";
-      const hour = hhNum % 12 === 0 ? 12 : hhNum % 12;
-      setTpHour(String(hour));
-      setTpMinute(pad2(now.getMinutes()));
-      setTpPeriod(period);
-    };
-
-    updateNow(); // update immediately
-    const id = setInterval(updateNow, 1000 * 30); // every 30s (or use 60s)
-
-    return () => clearInterval(id);
-  }, [timing]);
+  const removeTag = (tagToRemove) => {
+    setTags((previousTags) =>
+      previousTags.filter((tag) => tag !== tagToRemove)
+    );
+  };
 
   const isPastDateTime = () => {
     if (!scheduledDate || !scheduledTime) return false;
@@ -221,60 +208,208 @@ export default function PublishArticlePage() {
     return selected < now;
   };
 
+  useEffect(() => {
+    const storedTitle = readPublishArticleTitle();
+    const storedArticleId = readPublishSourceArticleId();
+
+    if (storedTitle) {
+      setArticleTitle(storedTitle);
+    }
+
+    if (!storedArticleId) {
+      sessionStorage.removeItem(STORAGE_KEYS.publishDraft);
+      return;
+    }
+
+    const rawPreviewArticle = sessionStorage.getItem("preview_article");
+    if (!rawPreviewArticle) {
+      sessionStorage.removeItem(STORAGE_KEYS.publishDraft);
+      return;
+    }
+
+    let previewArticle = null;
+
+    try {
+      previewArticle = JSON.parse(rawPreviewArticle);
+    } catch (error) {
+      console.error("Failed to parse preview article", error);
+      sessionStorage.removeItem(STORAGE_KEYS.publishDraft);
+      return;
+    }
+
+    const currentPreviewArticleId = previewArticle?.id || "";
+
+    if (!currentPreviewArticleId || currentPreviewArticleId !== storedArticleId) {
+      sessionStorage.removeItem(STORAGE_KEYS.publishDraft);
+      return;
+    }
+
+    const storedDraft = readPublishDraft();
+    if (!storedDraft) return;
+
+    if (Array.isArray(storedDraft.tags)) {
+      setTags(storedDraft.tags);
+    }
+
+    if (storedDraft.timing === "now" || storedDraft.timing === "schedule") {
+      setTiming(storedDraft.timing);
+    }
+
+    if (typeof storedDraft.scheduledDate === "string") {
+      setScheduledDate(storedDraft.scheduledDate);
+    }
+
+    if (typeof storedDraft.scheduledTime === "string") {
+      setScheduledTime(storedDraft.scheduledTime);
+    }
+
+    if (typeof storedDraft.shareLinkedIn === "boolean") {
+      setShareLinkedIn(storedDraft.shareLinkedIn);
+    }
+
+    if (typeof storedDraft.shareWordPress === "boolean") {
+      setShareWordPress(storedDraft.shareWordPress);
+    }
+
+    if (typeof storedDraft.linkedinCaption === "string") {
+      setLinkedinCaption(storedDraft.linkedinCaption);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (timing !== "now") return;
+
+    const syncCurrentDateTime = () => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = pad2(now.getMonth() + 1);
+      const day = pad2(now.getDate());
+      const hours = pad2(now.getHours());
+      const minutes = pad2(now.getMinutes());
+
+      setScheduledDate(`${year}-${month}-${day}`);
+      setScheduledTime(`${hours}:${minutes}`);
+      setDateOpen(false);
+      setTimeOpen(false);
+
+      const currentHour = now.getHours();
+      const period = currentHour >= 12 ? "PM" : "AM";
+      const hour12 = currentHour % 12 === 0 ? 12 : currentHour % 12;
+
+      setTpHour(String(hour12));
+      setTpMinute(pad2(now.getMinutes()));
+      setTpPeriod(period);
+    };
+
+    syncCurrentDateTime();
+    const intervalId = setInterval(syncCurrentDateTime, 30_000);
+
+    return () => clearInterval(intervalId);
+  }, [timing]);
+
+  useEffect(() => {
+    if (timing !== "schedule") return;
+    if (scheduledDate && scheduledTime) return;
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = pad2(now.getMonth() + 1);
+    const day = pad2(now.getDate());
+
+    setScheduledDate(`${year}-${month}-${day}`);
+    setScheduledTime("10:30");
+    setTpHour("10");
+    setTpMinute("30");
+    setTpPeriod("AM");
+  }, [timing, scheduledDate, scheduledTime]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (!event.target.closest?.("[data-picker]")) {
+        setDateOpen(false);
+        setTimeOpen(false);
+      }
+    };
+
+    window.addEventListener("mousedown", handleOutsideClick);
+    return () => window.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  useEffect(() => {
+    const selectedPlatforms = [];
+
+    if (shareLinkedIn) selectedPlatforms.push("LinkedIn");
+    if (shareWordPress) selectedPlatforms.push("WordPress");
+
+    if (selectedPlatforms.length === 0) {
+      setShowShareText(false);
+
+      const timeoutId = setTimeout(() => setShareText(""), 200);
+      return () => clearTimeout(timeoutId);
+    }
+
+    setShareText(
+      `This article will be shared on ${selectedPlatforms.join(" and ")} when it is published`
+    );
+    setShowShareText(true);
+  }, [shareLinkedIn, shareWordPress]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
       <div className="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-10 text-center">
-          <h1 className="text-4xl font-serif font-bold text-[#111827]">Publish your Article</h1>
+          <h1 className="text-4xl font-serif font-bold text-[#111827]">
+            Publish your Article
+          </h1>
           <p className="text-[#6B7280] mt-1">
             You can publish now or schedule a time to
           </p>
-          <p className="text-[#6B7280] mt-1">
-            publish
-          </p>
+          <p className="text-[#6B7280] mt-1">publish</p>
         </div>
 
-        {/*Border line*/}
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
 
-        {/*Tags input section*/}
         <Section title="Tags">
           <div className="space-y-3">
             <input
               value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
+              onChange={(event) => setTagInput(event.target.value)}
               placeholder="Add a tag"
               className="w-full h-11 rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
                   addTag(tagInput);
                   setTagInput("");
                 }
-                if (e.key === "Backspace" && tagInput.length === 0 && tags.length > 0) {
-                  setTags((prev) => prev.slice(0, -1));
+
+                if (
+                  event.key === "Backspace" &&
+                  tagInput.length === 0 &&
+                  tags.length > 0
+                ) {
+                  setTags((previousTags) => previousTags.slice(0, -1));
                 }
               }}
               disabled={tags.length >= MAX_TAGS}
             />
 
             <div className="flex flex-wrap items-center gap-3">
-              {tags.map((t) => (
+              {tags.map((tag) => (
                 <span
-                key={t}
-                className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-gray-100 px-3 py-1 text-xs text-gray-700"
+                  key={tag}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-gray-100 px-3 py-1 text-xs text-gray-700"
                 >
-                {t}
-                <button
-                  type="button"
-                  onClick={() => removeTag(t)}
-                  className="text-gray-700 hover:text-black leading-none"
-                >
-                  ✕
-                </button>
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="text-gray-700 hover:text-black leading-none"
+                  >
+                    ✕
+                  </button>
                 </span>
               ))}
 
@@ -289,60 +424,61 @@ export default function PublishArticlePage() {
           <div className="w-[90%] border-t border-gray-400" />
         </div>
 
-        {/*Publish timing section*/}
         <Section title="Publish Timing">
           <div className="flex items-start justify-between gap-8">
-            {/* Left: radio */}
             <div className="space-y-3 pt-1">
               <button
-              type="button"
-              onClick={() => setTiming("now")}
-              className="flex items-center gap-3 text-sm text-gray-700"
+                type="button"
+                onClick={() => setTiming("now")}
+                className="flex items-center gap-3 text-sm text-gray-700"
               >
                 <Radio checked={timing === "now"} />
                 Publish now
               </button>
 
               <button
-              type="button"
-              onClick={() => setTiming("schedule")}
-              className="flex items-center gap-3 text-sm text-gray-700"
+                type="button"
+                onClick={() => setTiming("schedule")}
+                className="flex items-center gap-3 text-sm text-gray-700"
               >
                 <Radio checked={timing === "schedule"} />
                 Schedule for later
               </button>
             </div>
 
-            {/* Right: date + time pickers */}
             <div className="w-72 space-y-3">
-              {/* Date */}
               <div className="relative" data-picker>
                 <button
-                type="button"
-                disabled={timing !== "schedule"}
-                onClick={() => {
-                  if (timing !== "schedule") return;
-                  setDateOpen((prev) => !prev);
-                  setTimeOpen(false);
-                }}
-                className="w-full h-11 rounded-md border border-gray-200 bg-white px-4 pr-10 text-left text-sm disabled:bg-gray-50"
+                  type="button"
+                  disabled={timing !== "schedule"}
+                  onClick={() => {
+                    if (timing !== "schedule") return;
+                    setDateOpen((previousValue) => !previousValue);
+                    setTimeOpen(false);
+                  }}
+                  className="w-full h-11 rounded-md border border-gray-200 bg-white px-4 pr-10 text-left text-sm disabled:bg-gray-50"
                 >
-                {scheduledDate ? formatDateMMDDYYYY(scheduledDate) : "Pick a date"}
+                  {scheduledDate
+                    ? formatDateMMDDYYYY(scheduledDate)
+                    : "Pick a date"}
                 </button>
+
                 <Calendar className="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+
                 {dateOpen && timing === "schedule" && (
                   <div className="absolute right-0 mt-2 w-full rounded-md border border-gray-200 bg-white p-3 shadow-lg z-20">
                     <input
-                    type="date"
-                    value={scheduledDate}
-                    onChange={(e) => setScheduledDate(e.target.value)}
-                    className="w-full h-10 rounded-md border border-gray-200 px-3 text-sm"
+                      type="date"
+                      value={scheduledDate}
+                      onChange={(event) => setScheduledDate(event.target.value)}
+                      className="w-full h-10 rounded-md border border-gray-200 px-3 text-sm"
                     />
+
                     <div className="mt-3 flex justify-end">
                       <button
-                      type="button"
-                      className="text-sm text-gray-600 hover:text-gray-900"
-                      onClick={() => setDateOpen(false)}
+                        type="button"
+                        className="text-sm text-gray-600 hover:text-gray-900"
+                        onClick={() => setDateOpen(false)}
                       >
                         Done
                       </button>
@@ -351,74 +487,81 @@ export default function PublishArticlePage() {
                 )}
               </div>
 
-              {/* Time */}
               <div className="relative" data-picker>
                 <button
-                type="button"
-                disabled={timing !== "schedule"}
-                onClick={() => {
-                  if (timing !== "schedule") return;
-                  setTimeOpen((prev) => !prev);
-                  setDateOpen(false);
-                }}
-                className="w-full h-11 rounded-md border border-gray-200 bg-white px-4 pr-10 text-left text-sm disabled:bg-gray-50"
-                > 
-                {scheduledTime ? to12Hour(scheduledTime) : "Pick a time"}
+                  type="button"
+                  disabled={timing !== "schedule"}
+                  onClick={() => {
+                    if (timing !== "schedule") return;
+                    setTimeOpen((previousValue) => !previousValue);
+                    setDateOpen(false);
+                  }}
+                  className="w-full h-11 rounded-md border border-gray-200 bg-white px-4 pr-10 text-left text-sm disabled:bg-gray-50"
+                >
+                  {scheduledTime ? to12Hour(scheduledTime) : "Pick a time"}
                 </button>
 
                 <Clock className="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+
                 {timeOpen && timing === "schedule" && (
                   <div className="absolute right-0 mt-2 w-full rounded-md border border-gray-200 bg-white p-3 shadow-lg z-20">
                     <div className="grid grid-cols-3 gap-2">
                       <div>
                         <label className="text-xs text-gray-500">Hour</label>
                         <select
-                        value={tpHour}
-                        onChange={(e) => setTpHour(e.target.value)}
-                        className="mt-1 w-full h-10 rounded-md border border-gray-200 px-2 text-sm"
+                          value={tpHour}
+                          onChange={(event) => setTpHour(event.target.value)}
+                          className="mt-1 w-full h-10 rounded-md border border-gray-200 px-2 text-sm"
                         >
-                
-                        {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((h) => (
-                          <option key={h} value={h}>{h}</option>
-                        ))}
+                          {Array.from({ length: 12 }, (_, index) =>
+                            String(index + 1)
+                          ).map((hour) => (
+                            <option key={hour} value={hour}>
+                              {hour}
+                            </option>
+                          ))}
                         </select>
                       </div>
+
                       <div>
                         <label className="text-xs text-gray-500">Minute</label>
                         <select
-                        value={tpMinute}
-                        onChange={(e) => setTpMinute(e.target.value)}
-                        className="mt-1 w-full h-10 rounded-md border border-gray-200 px-2 text-sm"
+                          value={tpMinute}
+                          onChange={(event) => setTpMinute(event.target.value)}
+                          className="mt-1 w-full h-10 rounded-md border border-gray-200 px-2 text-sm"
                         >
-                        {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0")).map((m) => (
-                          <option key={m} value={m}>{m}</option>
-                        ))}
+                          {Array.from({ length: 60 }, (_, index) =>
+                            String(index).padStart(2, "0")
+                          ).map((minute) => (
+                            <option key={minute} value={minute}>
+                              {minute}
+                            </option>
+                          ))}
                         </select>
                       </div>
 
                       <div>
                         <label className="text-xs text-gray-500">AM/PM</label>
                         <select
-                        value={tpPeriod}
-                        onChange={(e) => setTpPeriod(e.target.value)}
-                        className="mt-1 w-full h-10 rounded-md border border-gray-200 px-2 text-sm"
+                          value={tpPeriod}
+                          onChange={(event) => setTpPeriod(event.target.value)}
+                          className="mt-1 w-full h-10 rounded-md border border-gray-200 px-2 text-sm"
                         >
                           <option value="AM">AM</option>
                           <option value="PM">PM</option>
                         </select>
                       </div>
-
                     </div>
 
                     <div className="mt-3 flex justify-end">
                       <button
-                      type="button"
-                      className="text-sm text-gray-600 hover:text-gray-900"
-                      onClick={() => {
-                        const time24 = to24Hour(tpHour, tpMinute, tpPeriod);
-                        setScheduledTime(time24);
-                        setTimeOpen(false);
-                      }}
+                        type="button"
+                        className="text-sm text-gray-600 hover:text-gray-900"
+                        onClick={() => {
+                          const time24 = to24Hour(tpHour, tpMinute, tpPeriod);
+                          setScheduledTime(time24);
+                          setTimeOpen(false);
+                        }}
                       >
                         Done
                       </button>
@@ -426,6 +569,7 @@ export default function PublishArticlePage() {
                   </div>
                 )}
               </div>
+
               {timing === "schedule" && isPastDateTime() && (
                 <p className="mt-3 text-sm text-red-500">
                   You cannot schedule an article in the past.
@@ -436,15 +580,12 @@ export default function PublishArticlePage() {
 
           {scheduledDate && scheduledTime && (
             <div className="mt-6 text-sm">
-              <p className="text-gray-600">
-                This article will be published on
-              </p>
+              <p className="text-gray-600">This article will be published on</p>
               <p className="mt-1 font-semibold text-gray-900">
                 {formatDateMMDDYYYY(scheduledDate)} at {to12Hour(scheduledTime)}
               </p>
             </div>
           )}
-
         </Section>
 
         <div className="flex justify-center">
@@ -453,109 +594,180 @@ export default function PublishArticlePage() {
 
         <Section title="Social Sharing">
           <div className="space-y-6">
-
-            {/* LinkedIn */}
             <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
               <div className="flex items-center">
                 <Toggle enabled={shareLinkedIn} setEnabled={setShareLinkedIn} />
               </div>
               <div className="flex items-center">
-                <p className="text-sm font-semibold text-gray-900">Share on LinkedIn</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  Share on LinkedIn
+                </p>
               </div>
 
               <div className="col-span-2">
                 <div
                   className={`grid grid-cols-[48px_1fr] items-center transition-all duration-300 ease-out ${
-                  shareLinkedIn
-                  ? "opacity-100 translate-y-0 max-h-20"
-                  : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                    shareLinkedIn
+                      ? "opacity-100 translate-y-0 max-h-20"
+                      : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
                   }`}
                 >
-                <div className="flex items-center justify-center">
-                  <div className="h-12 w-12 flex items-center justify-center">
-                    <Image
-                    src="/icons/linkedin.png"
-                    alt="LinkedIn"
-                    width={48}
-                    height={48}
-                    className="object-contain"
-                    />
+                  <div className="flex items-center justify-center">
+                    <div className="h-12 w-12 flex items-center justify-center">
+                      <Image
+                        src="/icons/linkedin.png"
+                        alt="LinkedIn"
+                        width={48}
+                        height={48}
+                        className="object-contain"
+                      />
+                    </div>
                   </div>
-                </div>
-                <p className="text-sm text-gray-700">
-                  Connected as <span className="font-semibold">Emma Richardson</span>
-                </p>
+
+                  <p className="text-sm text-gray-700">
+                    Connected as{" "}
+                    <span className="font-semibold">Emma Richardson</span>
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* WordPress */}
             <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
               <div className="flex items-center">
                 <Toggle enabled={shareWordPress} setEnabled={setShareWordPress} />
               </div>
               <div className="flex items-center">
-                <p className="text-sm font-semibold text-gray-900">Share on WordPress</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  Share on WordPress
+                </p>
               </div>
 
               <div className="col-span-2">
                 <div
                   className={`grid grid-cols-[48px_1fr] items-center transition-all duration-300 ease-out ${
                     shareWordPress
-                    ? "opacity-100 translate-y-0 max-h-20"
-                    : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                      ? "opacity-100 translate-y-0 max-h-20"
+                      : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
                   }`}
                 >
                   <div className="flex items-center justify-center">
                     <div className="h-12 w-12 flex items-center justify-center">
                       <Image
-                      src="/icons/wordpress.png"
-                      alt="WordPress"
-                      width={48}
-                      height={48}
-                      className="object-contain"
+                        src="/icons/wordpress.png"
+                        alt="WordPress"
+                        width={48}
+                        height={48}
+                        className="object-contain"
                       />
                     </div>
                   </div>
+
                   <p className="text-sm text-gray-700">
-                    Connected as <span className="font-semibold">Emma Richardson</span>
+                    Connected as{" "}
+                    <span className="font-semibold">Emma Richardson</span>
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Dynamic Share Message */}
             <div
               className={`transition-all duration-300 ease-out ${
-              showShareText
-              ? "opacity-100 translate-y-0 max-h-20"
-              : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                showShareText
+                  ? "opacity-100 translate-y-0 max-h-20"
+                  : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
               }`}
             >
               {shareText && <p className="text-sm text-gray-500">{shareText}</p>}
             </div>
           </div>
-
         </Section>
 
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
-        
+
+        <Section title="LinkedIn Caption (Optional)">
+          <div className="space-y-3">
+            {shareLinkedIn ? (
+              <>
+                <input
+                  type="text"
+                  value={linkedinCaption}
+                  onChange={(event) => setLinkedinCaption(event.target.value)}
+                  placeholder="Write a caption for LinkedIn..."
+                  className="w-full h-11 rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
+                />
+
+                <div className="flex items-center gap-6 text-sm">
+                  <button className="text-gray-600 hover:text-gray-900">
+                    Change account
+                  </button>
+
+                  <button className="text-red-500 hover:text-red-600">
+                    Disconnect
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-gray-400">
+                Enable LinkedIn sharing to add a caption.
+              </p>
+            )}
+          </div>
+        </Section>
+
+        <div className="flex justify-center">
+          <div className="w-[90%] border-t border-gray-400" />
+        </div>
+
         <div className="p-8 flex items-center justify-center gap-40">
-          <button className="px-8 py-3 rounded-full bg-black text-white">Back</button>
           <button
+            onClick={() => router.push("/write/preview")}
+            className="px-8 py-3 rounded-full bg-black text-white"
+          >
+            Back
+          </button>
+
+          <button
+            onClick={() => {
+              console.log("Timing value:", timing); //This is to verify the timing value before saving the draft and navigating
+              savePublishDraft();
+
+              const publishData = {
+                title: articleTitle,
+                tags,
+                platforms: buildSelectedPlatforms({
+                  shareLinkedIn,
+                  shareWordPress,
+                }),
+                timing,
+                scheduledDate,
+                scheduledTime,
+                linkedinCaption,
+              };
+
+              sessionStorage.setItem(
+                STORAGE_KEYS.publishedArticleData,
+                JSON.stringify(publishData)
+              );
+
+              const routeMap = {
+                now: "/write/articlepublished",
+                schedule: "/write/articlescheduled",
+              };
+
+              router.push(routeMap[timing] || "/write/publish");
+            }}
             disabled={timing === "schedule" && isPastDateTime()}
             className={`px-8 py-3 rounded-full text-white transition ${
-            timing === "schedule" && isPastDateTime()
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-emerald-500 hover:bg-emerald-600"
+              timing === "schedule" && isPastDateTime()
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-emerald-500 hover:bg-emerald-600"
             }`}
           >
             {timing === "schedule" ? "Schedule post" : "Publish now"}
           </button>
         </div>
-        
       </div>
     </div>
   );

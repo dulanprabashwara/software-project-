@@ -456,6 +456,13 @@ body.loading * {
   margin-top:20px;
   margin-left: 200px;
   width: 97%;
+line-gap-override: 10px;
+}
+article-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
 }
 
 .back-button {
@@ -503,7 +510,7 @@ body.loading * {
 
 .preview-box {
   width: 750px;
-  height: 680px;
+  height: 680px ;
   background-color: #f3f5f5;
   border-radius: 12px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
@@ -524,7 +531,7 @@ body.loading * {
 .preview-box::-webkit-scrollbar,
 .preview-content::-webkit-scrollbar {
   display: block !important;
-  width: 16px !important;
+  width: 12px !important;
   height: 6px !important;
 }
 
@@ -939,7 +946,7 @@ body.loading * {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-top: -2px;
+  margin-top: 14px;
 }
 
 .action-icon {

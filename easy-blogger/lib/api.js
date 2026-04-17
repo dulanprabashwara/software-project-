@@ -67,6 +67,99 @@ export const api = {
   updateProfile: (data, token) =>
     fetchAPI("/api/users/profile", { method: "PUT", body: data, token }),
   getUserProfile: (identifier) => fetchAPI(`/api/users/${identifier}`),
+  getUserProfileAuth: (identifier, token) =>
+    fetchAPI(`/api/users/${identifier}`, { token }),
 
-  // Add more as needed...
+  // Follow System
+  toggleFollow: (userId, token) =>
+    fetchAPI(`/api/users/${userId}/follow`, { method: "POST", token }),
+  getFollowers: (userId) => fetchAPI(`/api/users/${userId}/followers`),
+  getFollowing: (userId, token) => fetchAPI(`/api/users/${userId}/following`, token ? { token } : {}),
+
+  getAdminDashboard: (token) => 
+    fetchAPI("/api/admin/dashboard", { token }),
+
+  getOffers: (token) => 
+    fetchAPI("/api/admin/offers", { token }),
+
+  createOffer: (data, token) => 
+    fetchAPI("/api/admin/offers", { method: "POST", body: data, token }),
+
+  updateOffer: (id, data, token) =>  
+    fetchAPI(`/api/admin/offers/${id}`, { method: "PUT", body: data, token }),
+
+  getScrapingSources: (token) => 
+    fetchAPI("/api/admin/scraping-sources", { token }),
+
+  createScrapingSource: (data, token) => 
+    fetchAPI("/api/admin/scraping-sources", { method: "POST", body: data, token }),
+  
+  validateUrl: (data, token) => 
+    fetchAPI("/api/admin/validate-url", { method: "POST", body: data, token }),
+
+  updateScrapingSource: (id, data, token) => 
+    fetchAPI(`/api/admin/scraping-sources/${id}`, { method: "PUT", body: data, token }),
+
+  deleteScrapingSource: (id, token) => 
+    fetchAPI(`/api/admin/scraping-sources/${id}`, { method: "DELETE", token }),
+
+  // ─── Messages / Chat ──────────────────────
+  getConversations: (token) => fetchAPI("/api/messages/conversations", { token }),
+  getMessages: (userId, token) => fetchAPI(`/api/messages/${userId}`, { token }),
+  markMessagesAsRead: (userId, token) => fetchAPI(`/api/messages/${userId}/read`, { method: "PUT", token }),
+  getUnreadMessageCount: (token) => fetchAPI("/api/messages/unread/count", { token }),
+
+  getAuditLogs: (query = "", token) => 
+    fetchAPI(`/api/admin/audit-logs${query}`, { token }),
+
+  // --- Admin Moderation Queue ---
+  getAdminReports: (query = "", token) => 
+    fetchAPI(`/api/admin/reports${query}`, { token }),
+  
+  resolveReport: (reportId, status, token) => 
+    fetchAPI(`/api/admin/reports/${reportId}`, { 
+      method: 'PUT', 
+      body: JSON.stringify({ status }), 
+      token 
+    }),
+  
+  banUser: (userId, reason, token) => 
+    fetchAPI(`/api/admin/users/${userId}/ban`, { 
+      method: 'POST', 
+      body: JSON.stringify({ reason }), 
+      token 
+    }),
+  
+  // ─── Payment / Subscription ───────────────
+  getActiveOffers: () =>
+    fetchAPI("/api/payments/offers"),
+
+  createCheckoutSession: (offerId, token) =>
+    fetchAPI("/api/payments/create-checkout-session", { method: "POST", body: { offerId }, token }),
+
+  getSubscriptionStatus: (token) =>
+    fetchAPI("/api/payments/subscription", { token }),
+
+  cancelSubscription: (token) =>
+    fetchAPI("/api/payments/cancel", { method: "POST", token }),
+
+  createPortalSession: (token) =>
+    fetchAPI("/api/payments/portal", { method: "POST", token }),
+
+  // Stripe Customer Portal (dedicated endpoint)
+  createStripePortalSession: (token) =>
+    fetchAPI("/api/stripe/create-portal-session", { method: "POST", token }),
+
+  // Account Management
+  deleteAccount: (token) =>
+    fetchAPI("/api/users/me", { method: "DELETE", token }),
+  // --- Admin User Management ---
+  getAdminUsers: (query = "", token) => 
+    fetchAPI(`/api/admin/users${query}`, { token }),
+  
+  updateUserRole: (userId, role, token) => 
+    fetchAPI(`/api/admin/users/${userId}/role`, { method: 'PUT', body: JSON.stringify({ role }), token }),
+  
+  togglePremiumStatus: (userId, token) => 
+    fetchAPI(`/api/admin/users/${userId}/premium`, { method: 'PUT', token }),
 };

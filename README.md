@@ -17,6 +17,7 @@ cd easy-blogger
 
 # Install dependencies
 npm install
+npm install framer-motion
 
 # Run development server
 npm run dev
