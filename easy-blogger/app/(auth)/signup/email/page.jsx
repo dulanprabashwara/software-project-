@@ -9,36 +9,40 @@ import { auth } from "../../../../lib/firebase";
 import Button from "../../../../components/ui/Button";
 import Input from "../../../../components/ui/Input";
 
+/**
+ * @component EmailSignupPage
+ * @description
+ * Handles the manual registration flow using Email and Password.
+ * @returns {JSX.Element} The email signup form.
+ */
 export default function EmailSignupPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    confirmPassword: "", // Optional validation
+    confirmPassword: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.type === "email"
-        ? "email"
-        : e.target.type === "password"
-          ? e.target.placeholder.includes("Confirm")
-            ? "confirmPassword"
-            : "password"
-          : "name"]: e.target.value,
-    });
-    // Simplification for brevity, better to use name attribute
-  };
-
+  /**
+   * @function handleInputChange
+   * @description Dynamically updates the form state based on input name attributes.
+   */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  /**
+   * @function handleSubmit
+   * @description
+   * Executes the manual registration process sequentially.
+    Creates the base user in Firebase Auth.
+   Appends the `displayName` directly to the Firebase profile.
+    Pauses execution slightly to allow `AuthContext` onAuthStateChanged to natively establish the Postgres record via the `/sync` API endpoint.Makes an explicit API call to update the newly minted Postgres record with the requested `displayName` before cleanly routing to the homepage.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -51,7 +55,6 @@ export default function EmailSignupPage() {
     }
 
     try {
-      // 1. Create user in Firebase
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
@@ -59,19 +62,14 @@ export default function EmailSignupPage() {
       );
       const user = userCredential.user;
 
-      // 2. Update profile with name
       await updateProfile(user, {
         displayName: formData.name,
       });
 
-      // 3. Get token
       const token = await user.getIdToken();
 
-      // 4. Explicitly update the backend sequence to prevent race conditions
-      // where AuthContext's onAuthStateChanged syncs the user before the name is updated.
       try {
         const { api } = await import("../../../../lib/api");
-        // We pause for a tiny bit to give AuthContext a chance to create the user row
         await new Promise((resolve) => setTimeout(resolve, 500));
         await api.updateProfile({ displayName: formData.name }, token);
       } catch (err) {
@@ -80,7 +78,7 @@ export default function EmailSignupPage() {
 
       router.push("/home");
     } catch (err) {
-      console.error(err);
+      console.error("Signup validation error:", err);
       setError(err.message || "Failed to sign up");
     } finally {
       setLoading(false);
