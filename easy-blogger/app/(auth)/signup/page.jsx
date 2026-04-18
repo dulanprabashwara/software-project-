@@ -11,31 +11,51 @@ import {
   FacebookAuthProvider,
 } from "firebase/auth";
 
+/**
+ * @component SignupPage
+ * @description
+ * High-level signup interface combining the landing page background with an 
+ * overarching authentication modal.
+ * WHY: Provides a seamless onboarding experience where users can quickly spin up an 
+ * account via social providers without leaving the context of the landing page's value proposition.
+ * 
+ * @returns {JSX.Element} The signup modal overlaying the root landing page.
+ */
 export default function SignupPage() {
   const router = useRouter();
 
+  /**
+   * @function handleClose
+   * @description Closes the modal by routing back to the index.
+   */
   const handleClose = () => {
     router.push("/");
   };
 
+  /**
+   * @function handleGoogleSignup
+   * @description Triggers the Firebase Google provider popup for instant registration.
+   */
   const handleGoogleSignup = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
-
+      await signInWithPopup(auth, provider);
+      // Let AuthContext globally capture the state and redirect downstream
       router.push("/home");
     } catch (error) {
       console.error("Error signing up with Google", error);
     }
   };
 
+  /**
+   * @function handleFacebookSignup
+   * @description Triggers the Firebase Facebook provider popup for instant registration.
+   */
   const handleFacebookSignup = async () => {
     try {
       const provider = new FacebookAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
-
+      await signInWithPopup(auth, provider);
+      // Let AuthContext globally capture the state and redirect downstream
       router.push("/home");
     } catch (error) {
       console.error("Error signing up with Facebook", error);

@@ -162,4 +162,7 @@ export const api = {
   
   togglePremiumStatus: (userId, token) => 
     fetchAPI(`/api/admin/users/${userId}/premium`, { method: 'PUT', token }),
+
+  getDefaultKeywords: (token) => 
+    fetchAPI(`/api/admin/scraping/default-keywords`, { token }),
 };

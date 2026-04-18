@@ -71,6 +71,15 @@ const EmailIcon = () => (
   </svg>
 );
 
+/**
+ * @component LoginPage
+ * @description
+ * Primary authentication interface allowing existing users to enter the platform.
+ * WHY: Provides aggregated authentication methods (Email, Google, Facebook) bridging 
+ * into a single unified session tracked by `AuthContext`.
+ * 
+ * @returns {JSX.Element} Login user interface.
+ */
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -94,6 +103,10 @@ export default function LoginPage() {
 
   const emailInputRef = React.useRef(null);
 
+  /**
+   * @function handleGoogleLogin
+   * @description Initiates the Firebase Google OAuth popup flow.
+   */
   const handleGoogleLogin = async () => {
     setIsAuthenticating(true);
     setError("");
@@ -108,6 +121,10 @@ export default function LoginPage() {
     }
   };
 
+  /**
+   * @function handleFacebookLogin
+   * @description Initiates the Firebase Facebook OAuth popup flow.
+   */
   const handleFacebookLogin = async () => {
     setIsAuthenticating(true);
     setError("");
@@ -122,6 +139,10 @@ export default function LoginPage() {
     }
   };
 
+  /**
+   * @function handleEmailLogin
+   * @description Standard email/password authentication handler.
+   */
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     setError("");
