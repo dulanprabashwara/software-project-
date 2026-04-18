@@ -40,7 +40,7 @@ function HomeContent() {
     const fetchHomeFeed = async () => {
       try {
         // Using your global .env variable
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/homefeed`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homefeed`);
         const data = await response.json();
         
         // Use articles from DB if they exist, otherwise fallback to empty array
