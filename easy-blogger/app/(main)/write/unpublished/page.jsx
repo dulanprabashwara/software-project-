@@ -159,6 +159,7 @@ export default function UnpublishedArticlesPage() {
       image: article.coverImage || null,
       hasCover: Boolean(article.coverImage),
       isEdited: Boolean(article.isEdited),
+      isEditAsNew: Boolean(article.isEditAsNew),
       profileImage:
         article.author?.avatarUrl || "/images/Unpublished_IMG/profile.jpg",
     }));
@@ -177,7 +178,7 @@ export default function UnpublishedArticlesPage() {
       return;
     }
 
-    router.push(`/write/edit-as-new/${selectedId}`);
+    router.push(`/write/edit-as-new?id=${selectedId}`);
   }, [router, selectedId, showError]);
 
   const handleEditExisting = useCallback(() => {
@@ -320,6 +321,12 @@ export default function UnpublishedArticlesPage() {
                                 {article.isEdited ? (
                                   <span className="rounded-full bg-[#FEF3C7] px-3 py-1 text-xs font-medium text-[#92400E]">
                                     Edited
+                                  </span>
+                                ) : null}
+
+                                {article.isEditAsNew ? (
+                                  <span className="rounded-full bg-[#DBEAFE] px-3 py-1 text-xs font-medium text-[#1D4ED8]">
+                                    Recreated
                                   </span>
                                 ) : null}
                               </div>

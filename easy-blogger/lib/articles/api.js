@@ -233,3 +233,60 @@ export async function discardEditExisting(articleId) {
     },
   );
 }
+
+/*
+ Edit-as-new flow
+ */
+export async function startEditAsNew(sourceArticleId) {
+  if (!sourceArticleId) {
+    throw new ApiError("Source article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(sourceArticleId)}/edit-as-new/start`,
+    {
+      method: "POST",
+    },
+  );
+}
+
+export async function autosaveEditAsNew(articleId, payload) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-as-new/autosave`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function saveEditAsNewAsDraft(articleId, payload) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-as-new/save-draft`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function discardEditAsNew(articleId) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-as-new/discard`,
+    {
+      method: "POST",
+    },
+  );
+}
