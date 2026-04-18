@@ -164,11 +164,8 @@ export default function Page() {
                     return;
                   }
 
-                  if (
-                    context?.mode === "edit-as-new" &&
-                    context?.sourceId
-                  ) {
-                    router.push(`/write/edit-as-new/${context.sourceId}`);
+                  if (context?.mode === "edit-as-new" && context?.sourceId) {
+                    router.push(`/write/edit-as-new?id=${context.sourceId}`);
                     return;
                   }
 
