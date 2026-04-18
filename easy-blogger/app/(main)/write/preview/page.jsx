@@ -58,8 +58,9 @@ export default function Page() {
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
-  if (!article) 
+  if (!article) {
     return null;
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -163,8 +164,8 @@ export default function Page() {
                     return;
                   }
 
-                  if (context?.mode === "edit-as-new") {
-                    router.push("/write/edit-as-new");
+                  if (context?.mode === "edit-as-new" && context?.sourceId) {
+                    router.push(`/write/edit-as-new?id=${context.sourceId}`);
                     return;
                   }
 

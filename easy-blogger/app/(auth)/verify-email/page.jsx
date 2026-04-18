@@ -23,6 +23,16 @@ const EmailIcon = () => (
   </svg>
 );
 
+/**
+ * @component VerifyEmailContent
+ * @description
+ * Informational display and logical handler for verification operations after an email dispatch.
+ * WHY: This component dynamically renders responses based on search params (e.g., "?type=reset"). 
+ * It manages the strict retry policies (Firebase Auth imposes rate limits on resends) 
+ * directly without polluting the parent Suspense wrapper.
+ * 
+ * @returns {JSX.Element} The email verification status card.
+ */
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
@@ -32,6 +42,11 @@ function VerifyEmailContent() {
   const [resendStatus, setResendStatus] = useState("");
   const [error, setError] = useState(false);
 
+  /**
+   * @function handleResend
+   * @description
+   * Triggers the appropriate Firebase resend payload based on the URL context.
+   */
   const handleResend = async () => {
     setResending(true);
     setResendStatus("");
