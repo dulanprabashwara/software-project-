@@ -104,26 +104,34 @@ export default function Page() {
           </div>
 
           {/* META ROW */}
-          <div className="mt-4 flex items-center justify-between border-b border-gray-300 pb-3 text-gray-600 text-sm">
-            <div className="flex items-center gap-8">
-              <div className="flex items-center gap-2">
-                <Star className="w-5 h-5" />
-                <span>{article._count?.likes || 0}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5" />
-                <span>{article._count?.comments || 0}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CalendarDays className="w-5 h-5" />
-                <span>{displayDate}</span>
-              </div>
-            </div>
+          {/* META ROW */}
+<div className="mt-4 flex items-center justify-between border-b border-gray-300 pb-3 text-gray-600 text-sm">
+  <div className="flex items-center gap-8">
+    
+    {/* ✅ UPDATED: Rating Display */}
+    <div className="flex items-center gap-2 text-teal-600 font-medium">
+      <Star className="w-5 h-5 fill-teal-500 text-teal-500" />
+      <span>
+        {article.averageRating > 0 ? article.averageRating.toFixed(1) : "New"}
+      </span>
+      <span className="text-gray-400 font-normal">({article.ratingCount || 0})</span>
+    </div>
 
-            <button onClick={() => setSaved((p) => !p)} className="hover:bg-gray-100 p-2 rounded-full transition">
-              <Bookmark className={`w-5 h-5 ${saved ? "fill-black text-black" : ""}`} />
-            </button>
-          </div>
+    <div className="flex items-center gap-2">
+      <MessageCircle className="w-5 h-5" />
+      <span>{article._count?.comments || 0}</span>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <CalendarDays className="w-5 h-5" />
+      <span>{displayDate}</span>
+    </div>
+  </div>
+
+  <button onClick={() => setSaved((p) => !p)} className="hover:bg-gray-100 p-2 rounded-full transition">
+    <Bookmark className={`w-5 h-5 ${saved ? "fill-black text-black" : ""}`} />
+  </button>
+</div>
 
           {/* CONTENT */}
           <div
