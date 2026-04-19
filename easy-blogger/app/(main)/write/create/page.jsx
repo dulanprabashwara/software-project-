@@ -5,7 +5,7 @@
 import { Editor } from "@tinymce/tinymce-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Image as ImageIcon, X } from "lucide-react";
+import { Image as ImageIcon, X, AlertTriangle } from "lucide-react";
 
 import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
@@ -20,6 +20,8 @@ import {
 const PREVIEW_CONTEXT_STORAGE_KEY = "preview_context";
 const AUTOSAVE_DELAY_MS = 2000;
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const IMAGE_ERROR_FADE_DELAY_MS = 2400;
+const IMAGE_ERROR_HIDE_DELAY_MS = 3000;
 
 function getArticleIdFromResponse(response) {
   return response?.data?.id ?? response?.article?.id ?? null;
@@ -53,10 +55,16 @@ export default function CreateArticlePage() {
   const [fontSize, setFontSize] = useState(16);
   const [mounted, setMounted] = useState(false);
   const [isHydrating, setIsHydrating] = useState(true);
+  const [coverImageError, setCoverImageError] = useState("");
+  const [isCoverImageErrorVisible, setIsCoverImageErrorVisible] = useState(false);
 
   const fileInputRef = useRef(null);
   const editorRef = useRef(null);
   const isSavingRef = useRef(false);
+  const coverImageErrorTimersRef = useRef({
+    fade: null,
+    clear: null,
+  });
 
   const hasContent = useMemo(() => {
     return Boolean(title.trim() || content.trim() || coverImage);
@@ -67,6 +75,47 @@ export default function CreateArticlePage() {
     : "";
 
   const charCount = plainText.length;
+
+  const clearCoverImageErrorTimers = useCallback(() => {
+    if (coverImageErrorTimersRef.current.fade) {
+      clearTimeout(coverImageErrorTimersRef.current.fade);
+      coverImageErrorTimersRef.current.fade = null;
+    }
+
+    if (coverImageErrorTimersRef.current.clear) {
+      clearTimeout(coverImageErrorTimersRef.current.clear);
+      coverImageErrorTimersRef.current.clear = null;
+    }
+  }, []);
+
+  const hideCoverImageError = useCallback(() => {
+    clearCoverImageErrorTimers();
+    setCoverImageError("");
+    setIsCoverImageErrorVisible(false);
+  }, [clearCoverImageErrorTimers]);
+
+  const showCoverImageError = useCallback(
+    (message) => {
+      clearCoverImageErrorTimers();
+      setCoverImageError(message);
+      setIsCoverImageErrorVisible(true);
+
+      coverImageErrorTimersRef.current.fade = setTimeout(() => {
+        setIsCoverImageErrorVisible(false);
+      }, IMAGE_ERROR_FADE_DELAY_MS);
+
+      coverImageErrorTimersRef.current.clear = setTimeout(() => {
+        setCoverImageError("");
+      }, IMAGE_ERROR_HIDE_DELAY_MS);
+    },
+    [clearCoverImageErrorTimers],
+  );
+
+  useEffect(() => {
+    return () => {
+      clearCoverImageErrorTimers();
+    };
+  }, [clearCoverImageErrorTimers]);
 
   useEffect(() => {
     setMounted(true);
@@ -161,10 +210,8 @@ export default function CreateArticlePage() {
   );
 
   useEffect(() => {
-    if (isHydrating)
-      return;
-    if (!hasContent) 
-      return;
+    if (isHydrating) return;
+    if (!hasContent) return;
 
     const timer = setTimeout(() => {
       void saveArticle("editing");
@@ -188,34 +235,37 @@ export default function CreateArticlePage() {
     sessionStorage.removeItem(PREVIEW_CONTEXT_STORAGE_KEY);
   }, []);
 
-  const handleImageUpload = useCallback((event) => {
-    const file = event.target.files?.[0];
-    if (!file) 
-      return;
+  const handleImageUpload = useCallback(
+    (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      window.alert("Please upload a valid image file.");
-      return;
-    }
+      if (!file.type.startsWith("image/")) {
+        showCoverImageError("Please upload a valid image file.");
+        return;
+      }
 
-    if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      window.alert("File size must be less than 5MB.");
-      return;
-    }
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        showCoverImageError("File size must be less than 5MB.");
+        return;
+      }
 
-    const reader = new FileReader();
+      const reader = new FileReader();
 
-    reader.onloadend = () => {
-      setCoverImage(reader.result);
-    };
+      reader.onloadend = () => {
+        hideCoverImageError();
+        setCoverImage(reader.result);
+      };
 
-    reader.onerror = () => {
-      console.error("Failed to read uploaded image.");
-      window.alert("Failed to process the selected image.");
-    };
+      reader.onerror = () => {
+        console.error("Failed to read uploaded image.");
+        showCoverImageError("Failed to process the selected image.");
+      };
 
-    reader.readAsDataURL(file);
-  }, []);
+      reader.readAsDataURL(file);
+    },
+    [hideCoverImageError, showCoverImageError],
+  );
 
   const handleRemoveImage = useCallback(() => {
     setCoverImage(null);
@@ -247,8 +297,7 @@ export default function CreateArticlePage() {
       "Are you sure you want to discard this article? All unsaved changes will be lost.",
     );
 
-    if (!confirmed)
-      return;
+    if (!confirmed) return;
 
     try {
       if (draftId) {
@@ -394,6 +443,18 @@ export default function CreateArticlePage() {
                 Add Cover Image
               </label>
 
+              {coverImageError ? (
+                <div
+                  className={`mb-4 rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 shadow-sm transition-opacity duration-500 ${
+                    isCoverImageErrorVisible ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  <p className="text-sm font-medium text-[#DC2626]">
+                    {coverImageError}
+                  </p>
+                </div>
+              ) : null}
+
               {!coverImage ? (
                 <div
                   onClick={() => fileInputRef.current?.click()}
@@ -522,7 +583,6 @@ export default function CreateArticlePage() {
                   {content.length === 0 && (
                     <span className="text-xs text-[#DC2626]">*Required</span>
                   )}
-
                 </div>
               </div>
             </div>
