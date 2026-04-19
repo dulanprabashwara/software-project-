@@ -15,27 +15,17 @@ import { GoogleIcon, FacebookIcon, EmailIcon } from "../../../components/ui/Icon
 /**
  * @component SignupPage
  * @description
-<<<<<<< HEAD
  * High-level signup interface combining the landing page background with an overarching authentication modal.
-=======
- * High-level signup interface combining the landing page background with an 
- * overarching authentication modal.
- * WHY: Provides a seamless onboarding experience where users can quickly spin up an 
- * account via social providers without leaving the context of the landing page's value proposition.
- * 
+ * WHY: Provides a seamless onboarding experience where users can quickly spin up an account via social providers without leaving the context of the landing page's value proposition.
+ *
  * @returns {JSX.Element} The signup modal overlaying the root landing page.
->>>>>>> 0ef949266a633bef503ac6d9f48a1e1bd9f5915b
  */
 export default function SignupPage() {
   const router = useRouter();
 
   /**
    * @function handleClose
-<<<<<<< HEAD
-   * @description Closes the modal by routing back to the landing page
-=======
-   * @description Closes the modal by routing back to the index.
->>>>>>> 0ef949266a633bef503ac6d9f48a1e1bd9f5915b
+   * @description Closes the modal by routing back to the landing page.
    */
   const handleClose = () => {
     router.push("/");
