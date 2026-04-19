@@ -29,11 +29,19 @@ export function useAuth() {
  * @description
  * The root Context Provider for Authentication.
  * WHY: This component manages the absolute source of truth for a user's session.
+<<<<<<< HEAD
  * It bridges the gap between Firebase Auth (which handles raw JWT identity) and our
  * Postgres database (which handles business-logic roles like ADMIN and isPremium).
  * It listens to Firebase state changes and conditionally fetches the Postgres profile to
  * ensure the UI never leaks protected routes or displays incorrect states.
  *
+=======
+ * It bridges the gap between Firebase Auth (which handles raw JWT identity) and our 
+ * Postgres database (which handles business-logic roles like ADMIN and isPremium).
+ * It listens to Firebase state changes and conditionally fetches the Postgres profile to 
+ * ensure the UI never leaks protected routes or displays incorrect states.
+ * 
+>>>>>>> 0ef949266a633bef503ac6d9f48a1e1bd9f5915b
  * @param {Object} props - React props.
  * @param {React.ReactNode} props.children - Child components requiring auth state.
  * @returns {JSX.Element} The Provider wrapping the application.
@@ -58,7 +66,11 @@ export function AuthProvider({ children }) {
    * @function refreshProfile
    * @description
    * Forcibly re-fetches the user's Postgres profile using their current Firebase token.
+<<<<<<< HEAD
    * WHY: Useful after a user performs an action that alters their database role (e.g., purchasing Premium)
+=======
+   * WHY: Useful after a user performs an action that alters their database role (e.g., purchasing Premium) 
+>>>>>>> 0ef949266a633bef503ac6d9f48a1e1bd9f5915b
    * so the UI instantly updates to reflect their new permissions without requiring a hard refresh.
    * @returns {Promise<Object|null>} The refreshed profile data.
    */
@@ -84,9 +96,15 @@ export function AuthProvider({ children }) {
   /**
    * @function useEffect(onAuthStateChanged)
    * @description
+<<<<<<< HEAD
    * Subscribes to Firebase's persistent authorization state.
    * WHY: This prevents infinite loops and race conditions. When Firebase detects a valid session,
    * we capture the `getIdToken()` and pass it to the backend `/sync` endpoint to fetch the matching
+=======
+   * Subscribes to Firebase's persistent authorization state. 
+   * WHY: This prevents infinite loops and race conditions. When Firebase detects a valid session, 
+   * we capture the `getIdToken()` and pass it to the backend `/sync` endpoint to fetch the matching 
+>>>>>>> 0ef949266a633bef503ac6d9f48a1e1bd9f5915b
    * Postgres data. The `hasSynced` ref prevents spamming the API on hot-reloads.
    */
   useEffect(() => {
