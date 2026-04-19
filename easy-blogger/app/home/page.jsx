@@ -18,7 +18,10 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
-import { homefeed} from "../../hooks/homefeed";
+// Import your new separate hooks
+import { useMainArticles } from "../../hooks/useMainArticles";
+import { useTrending } from "../../hooks/useTrending";
+
 import MainFeed from "../../components/article/MainFeed";
 import RightFeed from "../../components/article/RightFeed";
 import SearchResults from "../../components/search/SearchResults";
@@ -27,17 +30,7 @@ import { DATA } from "../../components/article/ArticleList";
 function HomeContent() {
   const searchParams = useSearchParams();
   const query      = searchParams.get("q");
-
-  //getting data from the homefeed hook
-  const { data, isLoading } = homefeed(query);
-  if (query) return <SearchResults query={query} />;
-if (isLoading) {
-  return (
-    <div className="flex h-full items-center justify-center">
-      <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
-    </div>
-  );
-}
+  
   // "tab" is only set when a user suggestion is clicked in the autocomplete.
   // Defaults to "articles" for normal searches and article-suggestion clicks.
   const tabParam   = searchParams.get("tab");
@@ -48,16 +41,39 @@ if (isLoading) {
     return <SearchResults query={query.trim()} initialTab={initialTab} />;
   }
 
+  const { articles, isLoading } = useMainArticles(query);
+  const { trending, isTrendingLoading } = useTrending();
+
+    // ── Loading state ───────────────────────────────────────────────────────
+  //We prioritize the main articles loading state for the full-screen loader
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
+      </div>
+    );
+  }
+
+  if (isTrendingLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
+      </div>
+    );
+  }
+
+
+
   // ── Normal home feed (original, untouched) ──────────────────────────────
   return (
     <>
       <div className="flex h-full overflow-hidden">
         <div className="p-8 mx-auto h-full overflow-y-auto flex-1">
-          <MainFeed articles={data.articles} />
+          <MainFeed articles={articles} />
         </div>
         <div className="hidden lg:block w-80 flex-none h-full overflow-y-auto">
           <RightFeed
-            trending={DATA.trending}
+            trending={trending}
             topics={DATA.topics}
             usersToFollow={DATA.usersToFollow}
           />
