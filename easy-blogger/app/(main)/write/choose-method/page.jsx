@@ -3,83 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Newspaper, FileEdit, ArrowRight } from "lucide-react";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const USER_PROFILE_ENDPOINT = `${API_BASE_URL}/api/v1/users/me`;
-
-function normalizeUserProfile(dbUser, firebaseUser) {
-  return {
-    name:
-      dbUser?.name ||
-      dbUser?.username ||
-      dbUser?.fullName ||
-      firebaseUser?.displayName ||
-      "Writer",
-    avatar:
-      dbUser?.profileImage ||
-      dbUser?.avatar ||
-      dbUser?.image ||
-      dbUser?.photoURL ||
-      firebaseUser?.photoURL ||
-      "",
-  };
-}
-
-async function fetchCurrentUserProfile(firebaseUser) {
-  const token = await firebaseUser.getIdToken();
-
-  const response = await fetch(USER_PROFILE_ENDPOINT, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to fetch current user profile: ${response.status} ${errorText}`
-    );
-  }
-
-  const data = await response.json();
-  return data?.user || data?.data || data;
-}
-
-function useCurrentUserProfile() {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const auth = getAuth();
-
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!firebaseUser) {
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const dbUser = await fetchCurrentUserProfile(firebaseUser);
-        setUser(normalizeUserProfile(dbUser, firebaseUser));
-      } catch (error) {
-        console.error("Failed to load database user profile:", error);
-        setUser(normalizeUserProfile(null, firebaseUser));
-      } finally {
-        setIsLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  return { user, isLoading };
-}
+import { useAuth } from "../../../context/AuthContext";
 
 function ChooseOptionCard({
   title,
@@ -144,15 +68,16 @@ function UserProfileCard({ user, loading }) {
     );
   }
 
-  const displayName = user?.name?.trim() || "Writer";
+  const displayName = (user?.displayName || user?.username || user?.name || "Writer").trim();
   const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     displayName
   )}&background=1ABC9C&color=ffffff&size=160`;
+  const avatarUrl = user?.avatarUrl || user?.profileImage || user?.avatar || fallbackAvatar;
 
   return (
     <div className="mb-10 flex flex-col items-center">
       <img
-        src={user?.avatar || fallbackAvatar}
+        src={avatarUrl}
         alt={displayName}
         className="h-24 w-24 rounded-full border-4 border-[#1ABC9C] object-cover shadow-md"
       />
@@ -193,7 +118,7 @@ function HeroBrand() {
 
 export default function ChooseMethodPage() {
   const router = useRouter();
-  const { user, isLoading } = useCurrentUserProfile();
+  const { userProfile: user, profileLoading: isLoading } = useAuth();
 
   const options = useMemo(
     () => [

@@ -39,13 +39,10 @@ export default function EmailSignupPage() {
    * @function handleSubmit
    * @description
    * Executes the manual registration process sequentially.
-   * WHY: The sequence is highly specific to prevent race conditions:
-   * 1. Creates the base user in Firebase Auth.
-   * 2. Appends the `displayName` directly to the Firebase profile.
-   * 3. Pauses execution slightly to allow `AuthContext` onAuthStateChanged 
-   *    to natively establish the Postgres record via the `/sync` API endpoint.
-   * 4. Makes an explicit API call to update the newly minted Postgres record 
-   *    with the requested `displayName` before cleanly routing to the homepage.
+   * Creates the base user in Firebase Auth.
+   * Appends the `displayName` directly to the Firebase profile.
+   * Pauses execution slightly to allow `AuthContext` onAuthStateChanged to natively establish the Postgres record via the `/sync` API endpoint.
+   * Makes an explicit API call to update the newly minted Postgres record with the requested `displayName` before cleanly routing to the homepage.
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
