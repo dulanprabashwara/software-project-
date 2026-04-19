@@ -522,12 +522,36 @@ export default function EditAsNewPage() {
     router,
   ]);
 
+  const isTinyMceUiElement = useCallback((element) => {
+    if (!(element instanceof Element)) return false;
+
+    return Boolean(
+      element.closest(
+        [
+          ".tox",
+          ".tox-tinymce-aux",
+          ".tox-dialog",
+          ".tox-dialog-wrap",
+          ".tox-menu",
+          ".tox-collection",
+          ".tox-toolbar",
+          ".tox-toolbar__group",
+          ".mce-content-body",
+        ].join(","),
+      ),
+    );
+  }, []);
+
   useEffect(() => {
     const handleDocumentClickCapture = (event) => {
       if (isHydrating || isSaving || modalState.isOpen) return;
 
       const target = event.target;
       if (!(target instanceof Element)) return;
+
+      if (isTinyMceUiElement(target)) {
+        return;
+      }
 
       const clickableElement = target.closest("button, a, [role='button']");
       if (!clickableElement) return;
@@ -537,6 +561,10 @@ export default function EditAsNewPage() {
       }
 
       if (editingSectionRef.current?.contains(clickableElement)) {
+        return;
+      }
+
+      if (isTinyMceUiElement(clickableElement)) {
         return;
       }
 
@@ -551,7 +579,13 @@ export default function EditAsNewPage() {
     return () => {
       document.removeEventListener("click", handleDocumentClickCapture, true);
     };
-  }, [handleExternalActionAttempt, isHydrating, isSaving, modalState.isOpen]);
+  }, [
+    handleExternalActionAttempt,
+    isHydrating,
+    isSaving,
+    isTinyMceUiElement,
+    modalState.isOpen,
+  ]);
 
   return (
     <>
