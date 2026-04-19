@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+ 
 import ArticleCard from "./ArticleCard";
 
 export default function MainFeed({ articles }) {
