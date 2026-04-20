@@ -12,7 +12,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 93px;
+  height: auto;
+  min-height: 120px;
   width: 90%;
   border-bottom: 3px solid #bac6c4 !important;
   box-shadow: 0 5px 4px rgba(0, 0, 0, 0.1);
@@ -24,6 +25,8 @@
   border-right: none !important;
   position: relative;
   transition: all 0.3s ease;
+  padding: 12px 16px;
+  box-sizing: border-box;
 }
 
 /* Article Label Container with hover shadow effect */
@@ -75,7 +78,7 @@
   display: flex !important;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  width: 60px;
   height: 32px;
   background: transparent;
   border: 2px solid #1ABC9C;
@@ -87,8 +90,8 @@
 }
 
 .restore-article-btn:hover {
-  background: #1ABC9C;
-  color: #ffffff;
+  background: #dffff9;
+  color: #1ABC9C;
   transform: scale(1.05);
 }
 
@@ -179,6 +182,8 @@
   .article-label {
     width: 100%;
     max-width: 700px;
+    min-height: auto;
+    padding: 16px;
   }
   
   .article-title {
@@ -200,7 +205,8 @@
     align-items: flex-start;
     gap: 8px;
     height: auto;
-    padding: 16px 0;
+    min-height: auto;
+    padding: 16px;
   }
   
   .article-title {
