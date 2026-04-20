@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, Clock } from "lucide-react";
 import Image from "next/image";
+import { useAuth } from "../../../context/AuthContext"; // WordPress: get Firebase user
+import { API_BASE_URL } from "../../../../lib/api";     // WordPress: backend base URL
 
 const STORAGE_KEYS = {
   publishArticleTitle: "publish_article_title",
@@ -109,6 +111,9 @@ export default function PublishArticlePage() {
   const router = useRouter();
   const defaultDraft = useMemo(() => createDefaultPublishDraft(), []);
 
+  // WordPress: get authenticated user for API calls
+  const { user: firebaseUser } = useAuth();
+
   const [articleTitle, setArticleTitle] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState(defaultDraft.tags);
@@ -125,6 +130,12 @@ export default function PublishArticlePage() {
   const [shareText, setShareText] = useState("");
   const [showShareText, setShowShareText] = useState(false);
   const [linkedinCaption, setLinkedinCaption] = useState(defaultDraft.linkedinCaption);
+
+  // WordPress connection state
+  const [wpConnected,     setWpConnected]     = useState(false);
+  const [wpUsername,      setWpUsername]      = useState("");
+  const [wpCheckDone,     setWpCheckDone]     = useState(false);
+  const [wpPublishError,  setWpPublishError]  = useState("");
 
   const pad2 = (value) => String(value).padStart(2, "0");
 
@@ -353,6 +364,72 @@ export default function PublishArticlePage() {
     );
     setShowShareText(true);
   }, [shareLinkedIn, shareWordPress]);
+
+  // Check WordPress connection when toggle is turned on
+  useEffect(() => {
+    if (!shareWordPress || !firebaseUser || wpCheckDone) return;
+
+    const checkWp = async () => {
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res   = await fetch(`${API_BASE_URL}/api/wordpress/status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data?.data?.connected) {
+          setWpConnected(true);
+          setWpUsername(data.data.wpUsername || "");
+        } else {
+          setWpConnected(false);
+        }
+      } catch {
+        setWpConnected(false);
+      } finally {
+        setWpCheckDone(true);
+      }
+    };
+
+    checkWp();
+  }, [shareWordPress, firebaseUser, wpCheckDone]);
+
+  // Publish to WordPress after our platform publish succeeds
+  const handleWordPressPublish = async (articleId) => {
+    if (!shareWordPress || !wpConnected || !articleId || !firebaseUser) return;
+
+    try {
+      const token = await firebaseUser.getIdToken();
+
+      // null = publish now; ISO string = scheduled
+      const scheduledAt =
+        timing === "schedule" && scheduledDate && scheduledTime
+          ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString()
+          : null;
+
+      const res  = await fetch(`${API_BASE_URL}/api/wordpress/publish`, {
+        method:  "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization:  `Bearer ${token}`,
+        },
+        body: JSON.stringify({ articleId, scheduledAt }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        setWpPublishError(data?.data?.message || "WordPress publish failed.");
+        sessionStorage.setItem("wp_publish_error", data?.data?.message || "WordPress publish failed.");
+      } else {
+        sessionStorage.removeItem("wp_publish_error");
+        if (data?.data?.wpPostUrl) {
+          sessionStorage.setItem("wp_post_url", data.data.wpPostUrl);
+        }
+      }
+    } catch {
+      setWpPublishError("Could not reach server for WordPress publish.");
+      sessionStorage.setItem("wp_publish_error", "Could not reach server for WordPress publish.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
@@ -594,6 +671,7 @@ export default function PublishArticlePage() {
 
         <Section title="Social Sharing">
           <div className="space-y-6">
+            {/* LinkedIn — unchanged */}
             <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
               <div className="flex items-center">
                 <Toggle enabled={shareLinkedIn} setEnabled={setShareLinkedIn} />
@@ -632,9 +710,16 @@ export default function PublishArticlePage() {
               </div>
             </div>
 
+            {/* WordPress — dynamic connection state */}
             <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
               <div className="flex items-center">
-                <Toggle enabled={shareWordPress} setEnabled={setShareWordPress} />
+                <Toggle
+                  enabled={shareWordPress}
+                  setEnabled={(v) => {
+                    setShareWordPress(v);
+                    if (v) setWpCheckDone(false); // re-check on re-enable
+                  }}
+                />
               </div>
               <div className="flex items-center">
                 <p className="text-sm font-semibold text-gray-900">
@@ -662,11 +747,32 @@ export default function PublishArticlePage() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-gray-700">
-                    Connected as{" "}
-                    <span className="font-semibold">Emma Richardson</span>
-                  </p>
+                  {!wpCheckDone && shareWordPress ? (
+                    <p className="text-sm text-gray-400">Checking WordPress connection...</p>
+                  ) : wpConnected ? (
+                    <p className="text-sm text-gray-700">
+                      Connected as{" "}
+                      <span className="font-semibold">{wpUsername || "WordPress User"}</span>
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-700">
+                      <a
+                        href="/profile/edit"
+                        className="text-[#21759B] underline hover:text-[#1A5F7A]"
+                      >
+                        Connect to WordPress
+                      </a>
+                    </p>
+                  )}
                 </div>
+
+                {/* WordPress publish error */}
+                {wpPublishError && shareWordPress && (
+                  <div className="mt-2 text-sm text-red-500 flex items-center gap-1">
+                    <span>⚠</span>
+                    <span>{wpPublishError}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -729,7 +835,7 @@ export default function PublishArticlePage() {
           </button>
 
           <button
-            onClick={() => {
+            onClick={async () => {
               console.log("Timing value:", timing); //This is to verify the timing value before saving the draft and navigating
               savePublishDraft();
 
@@ -750,6 +856,10 @@ export default function PublishArticlePage() {
                 STORAGE_KEYS.publishedArticleData,
                 JSON.stringify(publishData)
               );
+
+              // Trigger WordPress publish after saving our platform's publish data
+              const articleId = readPublishSourceArticleId();
+              await handleWordPressPublish(articleId);
 
               const routeMap = {
                 now: "/write/articlepublished",
