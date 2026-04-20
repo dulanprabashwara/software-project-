@@ -12,7 +12,7 @@ import {
   MessageCircle,
   Search,
   PenSquare,
-  Bell,
+  // Bell, // Removed Bell since NotificationPanel handles it internally
   Menu,
   LogOut,
   BadgeCheck,
@@ -29,7 +29,7 @@ export default function Header({ onToggleSidebar }) {
   const { user, userProfile, logout } = useAuth(); // get user + logout from backend/auth
 
   const [open, setOpen] = useState(false);
-  const [notiOpen, setNotiOpen] = useState(false);
+  // notiOpen removed — NotificationPanel handles its own open/close state
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef(null);
 
@@ -261,13 +261,13 @@ export default function Header({ onToggleSidebar }) {
                         )}&background=1ABC9C&color=fff`
                       }
                       alt={u.displayName || u.username}
-                      className="w-5 h-5 rounded-full object-cover flex-shrink-0"
+                      className="w-5 h-5 rounded-full object-cover shrink-0"
                     />
                     <span className="truncate">
                       {u.displayName || u.username}
                     </span>
                     {u.username && u.displayName && (
-                      <span className="text-[#6B7280] text-xs ml-auto flex-shrink-0">
+                      <span className="text-[#6B7280] text-xs ml-auto shrink-0">
                         @{u.username}
                       </span>
                     )}
@@ -299,20 +299,16 @@ export default function Header({ onToggleSidebar }) {
           <span className="hidden sm:inline">Write</span>
         </Link>
 
-        <button
-          onClick={() => setNotiOpen((p) => !p)}
-          className="relative p-2 text-gray-500 hover:bg-gray-50 rounded-full"
-          aria-label="Notifications"
-        >
-          <Bell size={22} />
-          <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
-        </button>
-        {notiOpen && <NotificationPanel onClose={() => setNotiOpen(false)} />}
+        {/* Replaced the manual button wrapper with the NotificationPanel component.
+          It handles its own Bell icon and dropdown logic! 
+        */}
+        <NotificationPanel userId={user?.uid || user?.id} />
 
         {/* Avatar + Dropdown */}
         <div className="relative" ref={menuRef}>
           <div>
             <button
+              suppressHydrationWarning
               onClick={() => setOpen((prev) => !prev)}
               className={`w-9 h-9 rounded-full border-2 overflow-hidden ${
                 isPremium ? "border-amber-400" : "border-transparent"
@@ -345,16 +341,14 @@ export default function Header({ onToggleSidebar }) {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="px-4 py-2 border-none mb-1 text-sm mb-0">
+              <div className="px-4 py-2 border-none text-sm mb-0">
                 <p className="font-bold">
                   <Link
                     href="/profile"
                     className="flex items-center justify-between"
                   >
                     <span className="truncate">{displayName}</span>
-                    {isPremium && (
-                      <BadgeCheck className="w-5 h-5 text-[#1ABC9C] flex-shrink-0 ml-2" />
-                    )}
+                    {isPremium && <BadgeCheck className="w-5 h-5 text-[#1ABC9C] shrink-0 ml-2" />}
                   </Link>
                 </p>
                 <p className="text-gray-500 text-xs truncate">{displayEmail}</p>

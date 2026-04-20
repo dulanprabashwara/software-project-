@@ -9,6 +9,7 @@ export default function AdminAIConfig() {
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [defaultKeywordsMap, setDefaultKeywordsMap] = useState({});
+  const [filterCategory, setFilterCategory] = useState("All Categories");
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [urlStatus, setUrlStatus] = useState("idle"); // idle, validating, valid, invalid
@@ -136,6 +137,24 @@ export default function AdminAIConfig() {
     setModalData({ ...modalData, excludedKeywords: modalData.excludedKeywords.filter(k => k !== keywordToRemove) });
   };
 
+  const handleLoadDefaultKeywords = (e) => {
+    e.preventDefault(); // Prevents the modal from accidentally closing or submitting
+    
+    if (window.confirm(`Add default safety keywords for "${modalData.category}"?`)) {
+      const globalWords = defaultKeywordsMap["Global"] || [];
+      const catWords = defaultKeywordsMap[modalData.category] || [];
+      const combinedDefaults = [...new Set([...globalWords, ...catWords])];
+
+      // Merge defaults with whatever is already in the box to prevent data loss
+      const mergedKeywords = [...new Set([...modalData.excludedKeywords, ...combinedDefaults])];
+
+      setModalData({
+        ...modalData,
+        excludedKeywords: mergedKeywords
+      });
+    }
+  };
+
   // --- CRUD OPERATIONS ---
 const handleSaveSource = async () => {
     if (urlStatus === "invalid") {
@@ -205,6 +224,12 @@ const handleSaveSource = async () => {
       setSources(sources.map(s => s.id === id ? { ...s, status: currentStatus } : s));
     }
   };
+
+  // Filter the sources based on the selected category
+  const filteredSources = filterCategory === "All Categories" 
+    ? sources 
+    : sources.filter(source => source.category === filterCategory
+  );
 
   return (
     <div className="max-w-6xl mx-auto p-8 relative">
@@ -284,29 +309,13 @@ const handleSaveSource = async () => {
                     }
                   }}
                 >
-                  <option value="Technology & Digital Life">Technology & Digital Life</option>
-                  <option value="Business & Entrepreneurship">Business & Entrepreneurship</option>
-                  <option value="Finance & Money">Finance & Money</option>
-                  <option value="Health & Medicine">Health & Medicine</option>
-                  <option value="Wellness & Personal Growth">Wellness & Personal Growth</option>
-                  <option value="Relationships & Family">Relationships & Family</option>
-                  <option value="Education & Learning">Education & Learning</option>
-                  <option value="Environment & Nature">Environment & Nature</option>
-                  <option value="Food & Cooking">Food & Cooking</option>
-                  <option value="Travel & Places">Travel & Places</option>
-                  <option value="Lifestyle & Home">Lifestyle & Home</option>
-                  <option value="Hobbies & Interests">Hobbies & Interests</option>
-                  <option value="Sports & Athletics">Sports & Athletics</option>
-                  <option value="Arts, Culture & Entertainment">Arts, Culture & Entertainment</option>
-                  <option value="Literature & Writing">Literature & Writing</option>
-                  <option value="History">History</option>
-                  <option value="Politics & Society">Politics & Society</option>
-                  <option value="Religion, Philosophy & Beliefs">Religion, Philosophy & Beliefs</option>
-                  <option value="Science & Discovery">Science & Discovery</option>
-                  <option value="Career & Professional Life">Career & Professional Life</option>
-                  <option value="Agriculture & Rural Life">Agriculture & Rural Life</option>
-                  <option value="Industries & Services">Industries & Services</option>
-                  <option value="Community & Social Issues">Community & Social Issues</option>
+                  {/* Dynamically generate options from the backend dictionary! */}
+                  {Object.keys(defaultKeywordsMap)
+                    .filter(cat => cat !== "Global") // Hide Global from the category choices
+                    .map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))
+                  }
                 </select>
               </div>
 
@@ -336,7 +345,15 @@ const handleSaveSource = async () => {
               </div>
 
               <div>
-                <label className="text-gray-600 text-lg block mb-4">Excluded Keywords:</label>
+                <div className="flex items-center justify-between mb-4 pr-12 w-2/3">
+                <label className="text-gray-600 text-lg">Excluded Keywords:</label>
+                <button 
+                  onClick={handleLoadDefaultKeywords}
+                  className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md font-bold transition-colors"
+                >
+                  Load Defaults
+                </button>
+                </div>
                 <input 
                   type="text" placeholder="Type a word and press Enter..."
                   className="w-2/3 border-b border-gray-300 pb-2 bg-transparent outline-none text-gray-800 mb-4" 
@@ -369,6 +386,26 @@ const handleSaveSource = async () => {
         </div>
       )}
 
+      {/* FILTER BAR */}
+      <div className="flex justify-end mb-4">
+        <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm">
+          <label className="text-sm font-bold text-gray-500">Filter:</label>
+          <select 
+            className="bg-transparent text-sm text-gray-900 font-bold outline-none cursor-pointer"
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+          >
+            <option value="All Categories">All Categories</option>
+            {Object.keys(defaultKeywordsMap)
+              .filter(cat => cat !== "Global") // Don't show the Global blocklist as a category
+              .map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))
+            }
+          </select>
+        </div>
+      </div>
+
       {/* BOTTOM SECTION: DATA TABLE */}
       <div className="bg-white border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
         <table className="w-full text-left border-collapse">
@@ -385,10 +422,10 @@ const handleSaveSource = async () => {
           <tbody className="divide-y divide-gray-300">
             {loading ? (
               <tr><td colSpan="6" className="p-8 text-center text-gray-500">Loading sources...</td></tr>
-            ) : sources.length === 0 ? (
+            ) : filteredSources.length === 0 ? (
               <tr><td colSpan="6" className="p-8 text-center text-gray-500 font-bold">No sources added yet.</td></tr>
             ): (
-              sources.map((source) => (
+              filteredSources.map((source) => (
                 <tr key={source.id} className="hover:bg-gray-50">
                   {/* Name and URL */}
                   <td className="p-5">

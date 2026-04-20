@@ -129,14 +129,14 @@ export const api = {
   resolveReport: (reportId, status, token) =>
     fetchAPI(`/api/admin/reports/${reportId}`, {
       method: "PUT",
-      body: JSON.stringify({ status }),
+      body:{ status },
       token,
     }),
 
   banUser: (userId, reason, token) =>
     fetchAPI(`/api/admin/users/${userId}/ban`, {
-      method: "POST",
-      body: JSON.stringify({ reason }),
+      method: 'POST',
+      body: { reason },
       token,
     }),
 
