@@ -38,7 +38,7 @@ export default function UserListPage() {
       const token = await user.getIdToken();
       
       // Call the real backend
-      const response = await api.getAdminUsers("", token);
+      const response = await api.getAdminUsers("?limit=100", token);
       
       // MAP Prisma Database fields to your UI's expected format
       const mappedUsers = response.data.map(u => ({
