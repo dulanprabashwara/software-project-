@@ -21,7 +21,7 @@ export default function AuditLogPage() {
       if (!user) return;
       const token = await user.getIdToken();
 
-      const response = await api.getAuditLogs("", token);
+      const response = await api.getAuditLogs("?limit=500", token);
       
       const logsArray = Array.isArray(response.data) 
         ? response.data 
