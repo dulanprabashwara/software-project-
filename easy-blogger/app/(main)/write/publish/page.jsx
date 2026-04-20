@@ -134,7 +134,6 @@ export default function PublishArticlePage() {
   // WordPress connection state
   const [wpConnected,     setWpConnected]     = useState(false);
   const [wpUsername,      setWpUsername]      = useState("");
-  const [wpAvatarUrl,     setWpAvatarUrl]     = useState("");
   const [wpCheckDone,     setWpCheckDone]     = useState(false);
   const [wpPublishError,  setWpPublishError]  = useState("");
 
@@ -380,7 +379,6 @@ export default function PublishArticlePage() {
         if (data?.data?.connected) {
           setWpConnected(true);
           setWpUsername(data.data.wpUsername || "");
-          setWpAvatarUrl(data.data.avatarUrl  || "");
         } else {
           setWpConnected(false);
         }
@@ -739,22 +737,13 @@ export default function PublishArticlePage() {
                 >
                   <div className="flex items-center justify-center">
                     <div className="h-12 w-12 flex items-center justify-center">
-                      {wpConnected && wpAvatarUrl ? (
-                        // User avatar when connected
-                        <img
-                          src={wpAvatarUrl}
-                          alt="WordPress account"
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <Image
-                          src="/icons/wordpress.png"
-                          alt="WordPress"
-                          width={48}
-                          height={48}
-                          className="object-contain"
-                        />
-                      )}
+                      <Image
+                        src="/icons/wordpress.png"
+                        alt="WordPress"
+                        width={48}
+                        height={48}
+                        className="object-contain"
+                      />
                     </div>
                   </div>
 
