@@ -166,6 +166,7 @@ export default function Header({ onToggleSidebar }) {
       {/* Left */}
       <div className="flex items-center gap-4">
         <button
+          data-skip-save-prompt="true"
           onClick={onToggleSidebar}
           className="p-2 hover:bg-gray-100 rounded-lg"
           aria-label="Toggle sidebar"
@@ -309,6 +310,7 @@ export default function Header({ onToggleSidebar }) {
           <div>
             <button
               suppressHydrationWarning
+              data-skip-save-prompt="true"
               onClick={() => setOpen((prev) => !prev)}
               className={`w-9 h-9 rounded-full border-2 overflow-hidden ${
                 isPremium ? "border-amber-400" : "border-transparent"

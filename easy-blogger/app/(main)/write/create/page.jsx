@@ -1,48 +1,53 @@
-/* easy-blogger/app/(main)/write/create/page.jsx */
+//easy-blogger\app\(main)\write\create\page.jsx
 
 "use client";
 
-import { Editor } from "@tinymce/tinymce-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Image as ImageIcon, X, AlertTriangle } from "lucide-react";
 
 import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
+import ArticleEditorShell from "../../../../components/article/ArticleEditorShell";
+import ConfirmDialog from "../../../../components/article/ConfirmDialog";
+import EditorInlineError from "../../../../components/article/EditorInlineError";
+
+import { useAutosave } from "../../../../hooks/articles/useAutoSave";
+import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
+import { useCoverImageUpload } from "../../../../hooks/articles/useCoverImageUpload";
+import {
+  buildArticlePayload,
+  getArticleFromResponse,
+  getArticleIdFromResponse,
+} from "../../../../lib/articles/editorHelpers";
+import {
+  clearPreviewContext,
+  readPreviewContext,
+  writePreviewContext,
+} from "../../../../lib/articles/previewContext";
 import {
   createDraft,
-  updateDraft,
   deleteDraft,
-  getDraftById,
   getCurrentEditingDraft,
+  getDraftById,
+  updateDraft,
 } from "../../../../lib/articles/api";
 
-const PREVIEW_CONTEXT_STORAGE_KEY = "preview_context";
-const AUTOSAVE_DELAY_MS = 2000;
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
-const IMAGE_ERROR_FADE_DELAY_MS = 2400;
-const IMAGE_ERROR_HIDE_DELAY_MS = 3000;
-
-function getArticleIdFromResponse(response) {
-  return response?.data?.id ?? response?.article?.id ?? null;
+function normalizePlainText(value) {
+  return String(value || "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-function getArticleFromResponse(response) {
-  return response?.data ?? response?.article ?? response ?? null;
-}
-
-function buildArticlePayload({ title, content, coverImage, status }) {
-  return {
-    title: title.trim(),
-    content,
-    coverImage,
-    status,
-  };
+function stripHtmlToPlainText(html) {
+  return normalizePlainText(String(html || "").replace(/<[^>]*>/g, " "));
 }
 
 export default function CreateArticlePage() {
   const router = useRouter();
+  const editorRef = useRef(null);
 
+  const [isClientReady, setIsClientReady] = useState(false);
   const [draftId, setDraftId] = useState(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -53,97 +58,111 @@ export default function CreateArticlePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [fontSize, setFontSize] = useState(16);
-  const [mounted, setMounted] = useState(false);
+  const [inlineError, setInlineError] = useState("");
+  const [editorTextLength, setEditorTextLength] = useState(0);
   const [isHydrating, setIsHydrating] = useState(true);
-  const [coverImageError, setCoverImageError] = useState("");
-  const [isCoverImageErrorVisible, setIsCoverImageErrorVisible] = useState(false);
 
-  const fileInputRef = useRef(null);
-  const editorRef = useRef(null);
+  const { modalState, openModal, closeModal } = useConfirmDialog();
+
   const isSavingRef = useRef(false);
-  const coverImageErrorTimersRef = useRef({
-    fade: null,
-    clear: null,
+  const hasHydratedRef = useRef(false);
+  const lastSavedSnapshotRef = useRef("");
+  const editingSectionRef = useRef(null);
+  const isNavigationPromptActiveRef = useRef(false);
+  const pendingExternalActionRef = useRef(null);
+  const bypassExternalActionGuardRef = useRef(false);
+
+  const coverImageUpload = useCoverImageUpload({
+    onChange: setCoverImage,
   });
 
-  const hasContent = useMemo(() => {
-    return Boolean(title.trim() || content.trim() || coverImage);
-  }, [title, content, coverImage]);
-
-  const plainText = editorRef.current
-    ? editorRef.current.getContent({ format: "text" })
-    : "";
-
-  const charCount = plainText.length;
-
-  const clearCoverImageErrorTimers = useCallback(() => {
-    if (coverImageErrorTimersRef.current.fade) {
-      clearTimeout(coverImageErrorTimersRef.current.fade);
-      coverImageErrorTimersRef.current.fade = null;
-    }
-
-    if (coverImageErrorTimersRef.current.clear) {
-      clearTimeout(coverImageErrorTimersRef.current.clear);
-      coverImageErrorTimersRef.current.clear = null;
-    }
+  useEffect(() => {
+    setIsClientReady(true);
   }, []);
 
-  const hideCoverImageError = useCallback(() => {
-    clearCoverImageErrorTimers();
-    setCoverImageError("");
-    setIsCoverImageErrorVisible(false);
-  }, [clearCoverImageErrorTimers]);
+  const getEditorHtmlContent = useCallback(() => {
+    if (editorRef.current) {
+      return editorRef.current.getContent() || "";
+    }
 
-  const showCoverImageError = useCallback(
-    (message) => {
-      clearCoverImageErrorTimers();
-      setCoverImageError(message);
-      setIsCoverImageErrorVisible(true);
+    return content || "";
+  }, [content]);
 
-      coverImageErrorTimersRef.current.fade = setTimeout(() => {
-        setIsCoverImageErrorVisible(false);
-      }, IMAGE_ERROR_FADE_DELAY_MS);
+  const getEditorPlainTextContent = useCallback(() => {
+    if (editorRef.current) {
+      return normalizePlainText(editorRef.current.getContent({ format: "text" }));
+    }
 
-      coverImageErrorTimersRef.current.clear = setTimeout(() => {
-        setCoverImageError("");
-      }, IMAGE_ERROR_HIDE_DELAY_MS);
+    return stripHtmlToPlainText(content);
+  }, [content]);
+
+  const syncEditorDerivedState = useCallback(() => {
+    const plainText = getEditorPlainTextContent();
+    setEditorTextLength(plainText.length);
+
+    if (plainText) {
+      setInlineError("");
+    }
+  }, [getEditorPlainTextContent]);
+
+  const getSnapshot = useCallback(
+    (overrides = {}) => {
+      const nextTitle =
+        typeof overrides.title === "string" ? overrides.title : title;
+      const nextContent =
+        typeof overrides.content === "string"
+          ? overrides.content
+          : getEditorHtmlContent();
+      const nextCoverImage =
+        overrides.coverImage !== undefined ? overrides.coverImage : coverImage;
+
+      return JSON.stringify({
+        title: nextTitle.trim(),
+        content: nextContent,
+        coverImage: nextCoverImage,
+      });
     },
-    [clearCoverImageErrorTimers],
+    [title, getEditorHtmlContent, coverImage],
   );
 
-  useEffect(() => {
-    return () => {
-      clearCoverImageErrorTimers();
-    };
-  }, [clearCoverImageErrorTimers]);
+  const hasAnyContent = Boolean(
+    title.trim() || editorTextLength > 0 || coverImage,
+  );
+
+  const hasRequiredContent = Boolean(title.trim() && editorTextLength > 0);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    syncEditorDerivedState();
+  }, [content, syncEditorDerivedState]);
 
   useEffect(() => {
+    if (!isClientReady || hasHydratedRef.current) return;
+    hasHydratedRef.current = true;
+
     const hydrateEditor = async () => {
       try {
-        const rawPreviewContext = sessionStorage.getItem(
-          PREVIEW_CONTEXT_STORAGE_KEY,
-        );
+        const previewContext = readPreviewContext();
 
-        if (rawPreviewContext) {
-          const previewContext = JSON.parse(rawPreviewContext);
+        if (previewContext?.mode === "create" && previewContext?.id) {
+          const response = await getDraftById(previewContext.id);
+          const article = getArticleFromResponse(response);
 
-          if (previewContext?.mode === "create" && previewContext?.id) {
-            const response = await getDraftById(previewContext.id);
-            const article = getArticleFromResponse(response);
+          if (article) {
+            setDraftId(article.id);
+            setTitle(article.title || "");
+            setContent(article.content || "");
+            setCoverImage(article.coverImage || null);
+            setLastSavedAt(article.updatedAt ? new Date(article.updatedAt) : null);
+            setArticleMode(article.status === "DRAFT" ? "draft" : "new");
 
-            if (article) {
-              setDraftId(article.id);
-              setTitle(article.title || "");
-              setContent(article.content || "");
-              setCoverImage(article.coverImage || null);
-              setLastSavedAt(article.updatedAt ? new Date(article.updatedAt) : null);
-              setIsHydrating(false);
-              return;
-            }
+            lastSavedSnapshotRef.current = JSON.stringify({
+              title: (article.title || "").trim(),
+              content: article.content || "",
+              coverImage: article.coverImage || null,
+            });
+
+            setIsHydrating(false);
+            return;
           }
         }
 
@@ -156,26 +175,73 @@ export default function CreateArticlePage() {
           setContent(article.content || "");
           setCoverImage(article.coverImage || null);
           setLastSavedAt(article.updatedAt ? new Date(article.updatedAt) : null);
+          setArticleMode(article.status === "DRAFT" ? "draft" : "new");
+
+          lastSavedSnapshotRef.current = JSON.stringify({
+            title: (article.title || "").trim(),
+            content: article.content || "",
+            coverImage: article.coverImage || null,
+          });
+        } else {
+          lastSavedSnapshotRef.current = JSON.stringify({
+            title: "",
+            content: "",
+            coverImage: null,
+          });
         }
       } catch (error) {
         console.error("Failed to hydrate create editor from database:", error);
+        setInlineError("Failed to load the editor.");
       } finally {
         setIsHydrating(false);
       }
     };
 
     void hydrateEditor();
-  }, []);
+  }, [isClientReady]);
 
   const saveArticle = useCallback(
-    async (status) => {
-      if (!hasContent) return null;
-      if (isSavingRef.current) return draftId;
+    async (status, overrides = {}) => {
+      if (isSavingRef.current) {
+        return draftId;
+      }
+
+      const nextTitle =
+        typeof overrides.title === "string" ? overrides.title : title;
+      const nextContent =
+        typeof overrides.content === "string"
+          ? overrides.content
+          : getEditorHtmlContent();
+      const nextCoverImage =
+        overrides.coverImage !== undefined ? overrides.coverImage : coverImage;
+
+      const nextPlainText = stripHtmlToPlainText(nextContent);
+      const hasContentToSave = Boolean(
+        nextTitle.trim() || nextPlainText || nextCoverImage,
+      );
+
+      if (!hasContentToSave) {
+        return draftId;
+      }
+
+      const currentSnapshot = getSnapshot({
+        title: nextTitle,
+        content: nextContent,
+        coverImage: nextCoverImage,
+      });
+
+      const isUnchangedEditingSave =
+        status === "editing" &&
+        currentSnapshot === lastSavedSnapshotRef.current;
+
+      if (isUnchangedEditingSave) {
+        return draftId;
+      }
 
       const payload = buildArticlePayload({
-        title,
-        content,
-        coverImage,
+        title: nextTitle,
+        content: nextContent,
+        coverImage: nextCoverImage,
         status,
       });
 
@@ -199,26 +265,28 @@ export default function CreateArticlePage() {
           await updateDraft(currentDraftId, payload);
         }
 
+        lastSavedSnapshotRef.current = currentSnapshot;
         setLastSavedAt(new Date());
+        setContent(nextContent);
+        setEditorTextLength(nextPlainText.length);
+
         return currentDraftId;
       } finally {
         setIsSaving(false);
         isSavingRef.current = false;
       }
     },
-    [coverImage, content, draftId, hasContent, title],
+    [coverImage, draftId, getEditorHtmlContent, getSnapshot, title],
   );
 
-  useEffect(() => {
-    if (isHydrating) return;
-    if (!hasContent) return;
-
-    const timer = setTimeout(() => {
-      void saveArticle("editing");
-    }, AUTOSAVE_DELAY_MS);
-
-    return () => clearTimeout(timer);
-  }, [hasContent, isHydrating, saveArticle]);
+  useAutosave({
+    enabled: isClientReady && !isHydrating && hasAnyContent,
+    onSave: () =>
+      saveArticle("editing", {
+        content: getEditorHtmlContent(),
+      }),
+    watchValues: [title, content, coverImage],
+  });
 
   const resetEditorState = useCallback(() => {
     setDraftId(null);
@@ -227,394 +295,351 @@ export default function CreateArticlePage() {
     setCoverImage(null);
     setLastSavedAt(null);
     setArticleMode("new");
+    setInlineError("");
+    setEditorTextLength(0);
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    lastSavedSnapshotRef.current = JSON.stringify({
+      title: "",
+      content: "",
+      coverImage: null,
+    });
+
+    if (coverImageUpload.fileInputRef.current) {
+      coverImageUpload.fileInputRef.current.value = "";
     }
 
-    sessionStorage.removeItem(PREVIEW_CONTEXT_STORAGE_KEY);
-  }, []);
+    clearPreviewContext();
+  }, [coverImageUpload.fileInputRef]);
 
-  const handleImageUpload = useCallback(
-    (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
+  const saveDraftWithoutRedirect = useCallback(async () => {
+    const plainTextContent = getEditorPlainTextContent();
+    const htmlContent = getEditorHtmlContent();
 
-      if (!file.type.startsWith("image/")) {
-        showCoverImageError("Please upload a valid image file.");
-        return;
-      }
-
-      if (file.size > MAX_IMAGE_SIZE_BYTES) {
-        showCoverImageError("File size must be less than 5MB.");
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-        hideCoverImageError();
-        setCoverImage(reader.result);
-      };
-
-      reader.onerror = () => {
-        console.error("Failed to read uploaded image.");
-        showCoverImageError("Failed to process the selected image.");
-      };
-
-      reader.readAsDataURL(file);
-    },
-    [hideCoverImageError, showCoverImageError],
-  );
-
-  const handleRemoveImage = useCallback(() => {
-    setCoverImage(null);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    if (!title.trim()) {
+      setInlineError("Title is required to save the article.");
+      return false;
     }
-  }, []);
 
-  const handleSaveAsDraft = useCallback(async () => {
-    if (!title.trim() || !content.trim()) {
-      window.alert("Title and content are required.");
-      return;
+    if (!plainTextContent) {
+      setInlineError("Content is required to save the article.");
+      return false;
     }
 
     try {
+      setInlineError("");
       setArticleMode("draft");
-      await saveArticle("draft");
-      sessionStorage.removeItem(PREVIEW_CONTEXT_STORAGE_KEY);
-      router.push("/write/unpublished");
+      await saveArticle("draft", { content: htmlContent });
+      clearPreviewContext();
+      return true;
     } catch (error) {
       console.error("Failed to save article as draft:", error);
-      window.alert("Failed to save draft.");
+      setInlineError("Failed to save draft.");
+      return false;
     }
-  }, [content, router, saveArticle, title]);
+  }, [getEditorHtmlContent, getEditorPlainTextContent, saveArticle, title]);
 
-  const handleDiscard = useCallback(async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to discard this article? All unsaved changes will be lost.",
-    );
-
-    if (!confirmed) return;
-
+  const discardWithoutRedirect = useCallback(async () => {
     try {
       if (draftId) {
         await deleteDraft(draftId);
       }
+
+      resetEditorState();
+      return true;
     } catch (error) {
       console.error("Failed to delete draft:", error);
-    } finally {
-      resetEditorState();
-      router.push("/home");
+      setInlineError("Failed to discard the article.");
+      return false;
     }
-  }, [draftId, resetEditorState, router]);
+  }, [draftId, resetEditorState]);
+
+  const runPendingExternalAction = useCallback(() => {
+    const action = pendingExternalActionRef.current;
+    pendingExternalActionRef.current = null;
+
+    if (!action) return;
+
+    bypassExternalActionGuardRef.current = true;
+
+    Promise.resolve().then(() => {
+      action();
+
+      setTimeout(() => {
+        bypassExternalActionGuardRef.current = false;
+      }, 0);
+    });
+  }, []);
+
+  const handleSaveAsDraft = useCallback(async () => {
+    const didSave = await saveDraftWithoutRedirect();
+    if (!didSave) return;
+
+    router.push("/write/unpublished");
+  }, [router, saveDraftWithoutRedirect]);
+
+  const handleDiscard = useCallback(async () => {
+    openModal({
+      title: "Discard changes?",
+      message:
+        "This will permanently delete the current article draft and all unsaved changes.",
+      confirmText: "Yes",
+      cancelText: "No",
+      onConfirm: async () => {
+        const didDiscard = await discardWithoutRedirect();
+        if (!didDiscard) return;
+
+        closeModal();
+        router.push("/home");
+      },
+      onCancel: async () => {},
+      onClose: async () => {},
+    });
+  }, [closeModal, discardWithoutRedirect, openModal, router]);
 
   const handlePreview = useCallback(async () => {
-    if (!title.trim() || !content.trim()) {
-      window.alert("Please enter both title and content before previewing.");
+    const plainTextContent = getEditorPlainTextContent();
+    const htmlContent = getEditorHtmlContent();
+
+    if (!title.trim()) {
+      setInlineError("Title is required to preview the article.");
+      return;
+    }
+
+    if (!plainTextContent) {
+      setInlineError("Content is required to preview the article.");
       return;
     }
 
     try {
-      const currentDraftId = await saveArticle("editing");
+      setInlineError("");
+      const currentDraftId = await saveArticle("editing", { content: htmlContent });
 
-      sessionStorage.setItem(
-        PREVIEW_CONTEXT_STORAGE_KEY,
-        JSON.stringify({
-          id: currentDraftId,
-          mode: "create",
-        }),
-      );
+      writePreviewContext({
+        id: currentDraftId,
+        mode: "create",
+      });
 
       router.push("/write/preview");
     } catch (error) {
       console.error("Failed to prepare article preview:", error);
-      window.alert("Failed to open preview.");
+      setInlineError("Failed to open preview.");
     }
-  }, [content, router, saveArticle, title]);
-
-  const handleDropImage = useCallback(
-    (event) => {
-      event.preventDefault();
-
-      const file = event.dataTransfer.files?.[0];
-      if (!file) return;
-
-      handleImageUpload({ target: { files: [file] } });
-    },
-    [handleImageUpload],
-  );
+  }, [
+    getEditorHtmlContent,
+    getEditorPlainTextContent,
+    router,
+    saveArticle,
+    title,
+  ]);
 
   const handleZoomChange = useCallback((delta) => {
     setZoom((prev) => Math.max(50, Math.min(200, prev + delta)));
   }, []);
 
+  const handleExternalActionAttempt = useCallback(() => {
+    if (isNavigationPromptActiveRef.current) {
+      return;
+    }
+
+    isNavigationPromptActiveRef.current = true;
+
+    openModal({
+      title: "Save article?",
+      message: "Do you want to save the article before leaving this page?",
+      confirmText: "Yes",
+      cancelText: "No",
+      onConfirm: async () => {
+        try {
+          const didSave = await saveDraftWithoutRedirect();
+
+          if (!didSave) {
+            pendingExternalActionRef.current = null;
+            closeModal();
+            return;
+          }
+
+          closeModal();
+          runPendingExternalAction();
+        } finally {
+          isNavigationPromptActiveRef.current = false;
+        }
+      },
+      onCancel: async () => {
+        try {
+          const didDiscard = await discardWithoutRedirect();
+
+          if (!didDiscard) {
+            pendingExternalActionRef.current = null;
+            return;
+          }
+
+          runPendingExternalAction();
+        } finally {
+          isNavigationPromptActiveRef.current = false;
+        }
+      },
+      onClose: async () => {
+        pendingExternalActionRef.current = null;
+        isNavigationPromptActiveRef.current = false;
+      },
+    });
+  }, [
+    closeModal,
+    discardWithoutRedirect,
+    openModal,
+    runPendingExternalAction,
+    saveDraftWithoutRedirect,
+  ]);
+
+  const isTinyMceUiElement = useCallback((element) => {
+    if (!(element instanceof Element)) return false;
+
+    return Boolean(
+      element.closest(
+        [
+          ".tox",
+          ".tox-tinymce-aux",
+          ".tox-dialog",
+          ".tox-dialog-wrap",
+          ".tox-menu",
+          ".tox-collection",
+          ".tox-toolbar",
+          ".tox-toolbar__group",
+          ".mce-content-body",
+        ].join(","),
+      ),
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!isClientReady) {
+      return;
+    }
+
+    const handleDocumentClickCapture = (event) => {
+      if (
+        bypassExternalActionGuardRef.current ||
+        isHydrating ||
+        isSaving ||
+        modalState.isOpen
+      ) {
+        return;
+      }
+
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (isTinyMceUiElement(target)) return;
+
+      const clickableElement = target.closest("button, a, [role='button']");
+      if (!clickableElement) return;
+
+      if (clickableElement.closest("[data-skip-save-prompt='true']")) return;
+      if (editingSectionRef.current?.contains(clickableElement)) return;
+      if (isTinyMceUiElement(clickableElement)) return;
+
+      pendingExternalActionRef.current = () => {
+        clickableElement.click();
+      };
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      handleExternalActionAttempt();
+    };
+
+    document.addEventListener("click", handleDocumentClickCapture, true);
+
+    return () => {
+      document.removeEventListener("click", handleDocumentClickCapture, true);
+    };
+  }, [
+    handleExternalActionAttempt,
+    isClientReady,
+    isHydrating,
+    isSaving,
+    isTinyMceUiElement,
+    modalState.isOpen,
+  ]);
+
+  if (!isClientReady) {
+    return <div className="min-h-screen bg-white" />;
+  }
+
   return (
-    <div className="min-h-screen bg-white">
-      <Header onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
-      <Sidebar isOpen={sidebarOpen} />
+    <>
+      <ConfirmDialog
+        isOpen={modalState.isOpen}
+        title={modalState.title}
+        message={modalState.message}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        isLoading={modalState.isLoading}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+        onClose={modalState.onClose}
+      />
 
-      <main
-        className={`pt-16 transition-all duration-300 ease-in-out ${
-          sidebarOpen ? "ml-60" : "ml-0"
-        }`}
-      >
-        <div className="bg-white border-b border-[#E5E7EB] px-8 py-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-3 items-center">
-              <div className="text-sm text-[#6B7280] justify-self-start">
-                {isHydrating
-                  ? "Loading..."
-                  : isSaving
-                    ? "Saving..."
-                    : lastSavedAt
-                      ? `Saved at ${lastSavedAt.toLocaleTimeString()}`
-                      : "Not saved yet"}
-              </div>
+      <div className="min-h-screen bg-white">
+        <Header onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
+        <Sidebar isOpen={sidebarOpen} />
 
-              <div className="text-center">
-                <h1 className="text-4xl font-serif font-bold text-[#111827]">
-                  Create your Article
-                </h1>
-                <p className="text-[#6B7280] mt-1">
-                  Create your own Article here
-                </p>
-              </div>
-
-              <div className="justify-self-end flex items-center gap-3">
-                <button
-                  onClick={handleSaveAsDraft}
-                  disabled={!title.trim() || !content.trim() || isSaving || isHydrating}
-                  className="inline-flex items-center px-6 py-2.5 bg-[#111827] text-white rounded-full text-sm font-medium hover:bg-[#1f2937] disabled:opacity-50"
-                >
-                  Save as Draft
-                </button>
-
-                <span className="inline-flex items-center px-6 py-2.5 bg-[#1ABC9C] text-white rounded-full text-sm font-medium">
-                  {articleMode === "draft" ? "Draft Article" : "New Article"}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="px-8 py-8 overflow-y-auto"
-          style={{ height: "calc(100vh - 260px)" }}
+        <main
+          className={`pt-16 transition-all duration-300 ease-in-out ${
+            sidebarOpen ? "ml-60" : "ml-0"
+          }`}
         >
-          <div
-            className="max-w-5xl mx-auto space-y-6"
-            style={{
-              transform: `scale(${zoom / 100})`,
-              transformOrigin: "top center",
-            }}
-          >
-            <div className="bg-[#F8FAFC] rounded-lg p-6">
-              <label className="block text-sm font-semibold text-[#111827] mb-3">
-                Blog Title
-              </label>
-
-              <div className="relative">
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Enter your blog title..."
-                  className="w-full px-4 py-3 bg-white border border-[#E5E7EB] rounded-lg text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
-                  maxLength={100}
-                  disabled={isHydrating}
-                />
-
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                  <span className="text-xs text-[#6B7280]">
-                    {title.length}/100
-                  </span>
-                  {title.length === 0 && (
-                    <span className="text-xs text-[#DC2626]">*Required</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[#F8FAFC] rounded-lg p-6">
-              <label className="block text-sm font-semibold text-[#111827] mb-3">
-                Add Cover Image
-              </label>
-
-              {coverImageError ? (
-                <div
-                  className={`mb-4 rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 shadow-sm transition-opacity duration-500 ${
-                    isCoverImageErrorVisible ? "opacity-100" : "opacity-0"
-                  }`}
-                >
-                  <p className="text-sm font-medium text-[#DC2626]">
-                    {coverImageError}
-                  </p>
-                </div>
-              ) : null}
-
-              {!coverImage ? (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={handleDropImage}
-                  className="border-2 border-dashed border-[#E5E7EB] rounded-lg p-12 text-center cursor-pointer hover:border-[#1ABC9C] transition-colors bg-white"
-                >
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-16 h-16 rounded-full bg-[#F8FAFC] flex items-center justify-center">
-                      <ImageIcon className="w-8 h-8 text-[#6B7280]" />
-                    </div>
-
-                    <div>
-                      <p className="text-sm font-medium text-[#111827] mb-1">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-xs text-[#6B7280]">
-                        PNG, JPG, GIF or WEBP (Max 5 MB)
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative border-2 border-[#E5E7EB] rounded-lg overflow-hidden bg-white">
-                  <img
-                    src={coverImage}
-                    alt="Cover"
-                    className="w-full h-64 object-cover"
-                  />
-                  <button
-                    onClick={handleRemoveImage}
-                    className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-[#F8FAFC] transition-colors"
-                    aria-label="Remove cover image"
-                  >
-                    <X className="w-5 h-5 text-[#DC2626]" />
-                  </button>
-                </div>
-              )}
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/gif,image/webp"
-                onChange={handleImageUpload}
-                className="hidden"
+          <div className="px-8 pt-8">
+            <div className="max-w-5xl mx-auto" data-skip-save-prompt="true">
+              <EditorInlineError
+                title="Content required"
+                message={inlineError}
               />
-
-              {!coverImage && (
-                <p className="text-xs text-[#DC2626] mt-2">*Required</p>
-              )}
-            </div>
-
-            <div className="bg-[#F8FAFC] rounded-lg p-6">
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-semibold text-[#111827]">
-                  Write
-                </label>
-
-                <div className="flex items-center gap-2 text-xs text-[#6B7280]">
-                  <button
-                    type="button"
-                    onClick={() => handleZoomChange(-10)}
-                    className="px-2 py-1 border rounded"
-                  >
-                    Zoom -
-                  </button>
-                  <span>{zoom}%</span>
-                  <button
-                    type="button"
-                    onClick={() => handleZoomChange(10)}
-                    className="px-2 py-1 border rounded"
-                  >
-                    Zoom +
-                  </button>
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
-                  {!mounted ? (
-                    <div className="h-[260px] bg-white" />
-                  ) : (
-                    <Editor
-                      onInit={(evt, editor) => {
-                        editorRef.current = editor;
-                      }}
-                      value={content}
-                      onEditorChange={(newContent) => {
-                        setContent(newContent);
-                      }}
-                      apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
-                      init={{
-                        readonly: false,
-                        promotion: false,
-                        height: 260,
-                        menubar: false,
-                        branding: false,
-                        placeholder: "Write your blog content here...",
-                        plugins: [
-                          "lists",
-                          "link",
-                          "image",
-                          "table",
-                          "code",
-                          "wordcount",
-                          "autolink",
-                        ],
-                        toolbar:
-                          "undo redo | blocks | bold italic underline | " +
-                          "alignleft aligncenter alignright alignjustify | " +
-                          "bullist numlist | link image table | code",
-                        content_style: `body {
-                          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                          font-size: ${fontSize}px;
-                        }`,
-                      }}
-                    />
-                  )}
-                </div>
-
-                <div className="absolute right-4 bottom-4 flex items-center gap-2">
-                  <span className="text-xs text-[#6B7280]">
-                    {charCount}/20,000
-                  </span>
-
-                  {content.length === 0 && (
-                    <span className="text-xs text-[#DC2626]">*Required</span>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
-        </div>
 
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] px-8 py-6 z-30">
-          <div className="max-w-5xl mx-auto flex items-center justify-center gap-20">
-            <button
-              onClick={() => router.push("/home")}
-              className="px-8 py-3 bg-[#111827] hover:bg-[#1f2937] text-white rounded-full text-sm font-medium transition-colors"
-            >
-              Exit Editor
-            </button>
-
-            <button
-              onClick={handlePreview}
-              disabled={!title.trim() || !content.trim() || isHydrating}
-              className="px-8 py-3 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Preview
-            </button>
-
-            <button
-              onClick={handleDiscard}
-              className="px-8 py-3 bg-[#111827] hover:bg-[#1f2937] text-white rounded-full text-sm font-medium transition-colors"
-            >
-              Discard
-            </button>
+          <div ref={editingSectionRef}>
+            <ArticleEditorShell
+              editorRef={editorRef}
+              title={title}
+              onTitleChange={(value) => {
+                setInlineError("");
+                setTitle(value);
+              }}
+              content={content}
+              onContentChange={(value) => {
+                setInlineError("");
+                setContent(value);
+                setEditorTextLength(stripHtmlToPlainText(value).length);
+              }}
+              onEditorReady={syncEditorDerivedState}
+              coverImage={coverImage}
+              coverImageProps={coverImageUpload}
+              zoom={zoom}
+              onZoomChange={handleZoomChange}
+              fontSize={fontSize}
+              isHydrating={isHydrating}
+              isSaving={isSaving}
+              lastSavedAt={lastSavedAt}
+              headerTitle="Create your Article"
+              headerSubtitle="Create your own Article here"
+              modeBadge={articleMode === "draft" ? "Draft Article" : "New Article"}
+              onSaveAsDraft={handleSaveAsDraft}
+              onPreview={handlePreview}
+              onDiscard={handleDiscard}
+              onExit={() => {
+                pendingExternalActionRef.current = () => {
+                  router.push("/home");
+                };
+                handleExternalActionAttempt();
+              }}
+              disableSaveAsDraft={!hasRequiredContent}
+              disablePreview={!hasRequiredContent}
+              disableDiscard={isSaving || isHydrating}
+              editorTextLength={editorTextLength}
+            />
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 }

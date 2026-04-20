@@ -1,3 +1,5 @@
+//easy-blogger\app\(main)\write\unpublished\page.jsx
+
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -187,7 +189,7 @@ export default function UnpublishedArticlesPage() {
       return;
     }
 
-    router.push(`/write/edit-existing/${selectedId}`);
+    router.push(`/write/edit-existing?id=${selectedId}`);
   }, [router, selectedId, showError]);
 
   const handleCreateArticle = useCallback(() => {
