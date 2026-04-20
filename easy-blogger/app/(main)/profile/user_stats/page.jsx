@@ -87,7 +87,7 @@ export default function UserStatsPage() {
         });
       }
     },
-    [firebaseUser]
+    [firebaseUser],
   );
 
   const displayName = userProfile?.displayName || "My Profile";
@@ -127,7 +127,9 @@ export default function UserStatsPage() {
               <button
                 onClick={() => setActiveTab("followers")}
                 className={`pb-3 text-sm font-medium transition-colors relative ${
-                  activeTab === "followers" ? "text-[#111827]" : "text-[#6B7280]"
+                  activeTab === "followers"
+                    ? "text-[#111827]"
+                    : "text-[#6B7280]"
                 }`}
               >
                 <span className="mr-1">Followers</span>
@@ -141,7 +143,9 @@ export default function UserStatsPage() {
               <button
                 onClick={() => setActiveTab("following")}
                 className={`pb-3 text-sm font-medium transition-colors relative ${
-                  activeTab === "following" ? "text-[#111827]" : "text-[#6B7280]"
+                  activeTab === "following"
+                    ? "text-[#111827]"
+                    : "text-[#6B7280]"
                 }`}
               >
                 <span className="mr-1">Following</span>
@@ -168,7 +172,8 @@ export default function UserStatsPage() {
                   <div className="space-y-4">
                     {followers.length === 0 ? (
                       <p className="text-center text-gray-400 py-8 text-sm">
-                        You have no followers yet. Share your profile to gain some!
+                        You have no followers yet. Share your profile to gain
+                        some!
                       </p>
                     ) : (
                       followers.map((person) => {
@@ -184,7 +189,10 @@ export default function UserStatsPage() {
                               className="flex items-center gap-3 min-w-0"
                             >
                               <img
-                                src={person.avatarUrl || fallbackAvatar(person.displayName)}
+                                src={
+                                  person.avatarUrl ||
+                                  fallbackAvatar(person.displayName)
+                                }
                                 alt={person.displayName}
                                 referrerPolicy="no-referrer"
                                 className="w-12 h-12 rounded-full object-cover shrink-0"
@@ -243,7 +251,10 @@ export default function UserStatsPage() {
                               className="flex items-center gap-3 min-w-0"
                             >
                               <img
-                                src={person.avatarUrl || fallbackAvatar(person.displayName)}
+                                src={
+                                  person.avatarUrl ||
+                                  fallbackAvatar(person.displayName)
+                                }
                                 alt={person.displayName}
                                 referrerPolicy="no-referrer"
                                 className="w-12 h-12 rounded-full object-cover shrink-0"
