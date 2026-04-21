@@ -18,8 +18,8 @@ import { getArticleFromResponse } from "../../../../lib/articles/editorHelpers";
 import {
   clearPreviewContext,
   readPreviewContext,
-  writePreviewContext,
 } from "../../../../lib/articles/previewContext";
+
 import {
   autosaveEditAsNew,
   discardEditAsNew,
@@ -354,13 +354,8 @@ export default function EditAsNewPage() {
       setInlineError("");
       await saveArticle("editing", { content: htmlContent });
 
-      writePreviewContext({
-        id: editingArticleId,
-        sourceId: sourceArticleId,
-        mode: "edit-as-new",
-      });
-
-      router.push("/write/preview");
+      router.push(`/write/preview?id=${editingArticleId}&mode=edit-as-new&sourceId=${sourceArticleId}`);
+      
     } catch (error) {
       console.error("Failed to prepare article preview:", error);
       setInlineError("Failed to open preview.");
