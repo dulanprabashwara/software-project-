@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Search, ChevronDown, Plus, Check, Save, AlertCircle, X, MousePointer2, Percent, DollarSign } from "lucide-react";
+import { Search, ChevronDown, Plus, Save, AlertCircle, MousePointer2, Percent, Tag } from "lucide-react";
 
 import { auth } from "../../../../../lib/firebase"; 
 import { api } from "../../../../../lib/api";
@@ -20,8 +20,7 @@ export default function OffersPage() {
   
   // 2. UPDATED STATE TO MATCH PRISMA SCHEMA
   const [formData, setFormData] = useState({
-    name: "", price: "", discount_percent: "", is_active: true,
-    features: []
+    name: "", discount_percent: "",stripe_coupon_id: "", is_active: true,
   });
 
   useEffect(() => {
@@ -60,7 +59,7 @@ export default function OffersPage() {
   const handleSelectOffer = (offer) => {
     setIsAddingNew(false);
     setSelectedId(offer.id);
-    setFormData({ ...offer, features: offer.features || [] });
+    setFormData({ ...offer});
     setErrors({});
   };
 
@@ -68,8 +67,7 @@ export default function OffersPage() {
     setSelectedId(null);
     setIsAddingNew(true);
     setFormData({
-      name: "", price: "", discount_percent: "", is_active: true,
-      features: []
+      name: "", discount_percent: "", stripe_coupon_id: "", is_active: true
     });
     setErrors({});
   };
@@ -84,12 +82,7 @@ export default function OffersPage() {
   const validateAndTriggerVerify = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Offer Name is required.";
-    
-    // Validate Price
-    const price = parseFloat(formData.price);
-    if (isNaN(price) || price < 0) {
-      newErrors.price = "Valid price required.";
-    }
+    if (!formData.stripe_coupon_id?.trim()) newErrors.stripe_coupon_id = "Stripe Coupon ID is required.";
 
     const discount = parseInt(formData.discount_percent);
     if (formData.discount_percent && (isNaN(discount) || discount < 0 || discount > 100)) {
@@ -109,10 +102,9 @@ export default function OffersPage() {
       // Match the payload to the Prisma schema
       const payload = {
         name: formData.name,
-        price: parseFloat(formData.price),
         discount_percent: parseInt(formData.discount_percent)|| 0,
-        is_active: formData.is_active,
-        features: formData.features
+        stripe_coupon_id: formData.stripe_coupon_id.trim(),
+        is_active: formData.is_active
       };
 
       if (isAddingNew) {
@@ -191,48 +183,36 @@ export default function OffersPage() {
         {(selectedId || isAddingNew) ? (
           <div className="p-10 flex-1 overflow-y-auto">
             <h1 className="text-3xl font-black text-[#111827] italic mb-8" style={{ fontFamily: "Georgia, serif" }}>
-              {isAddingNew ? "Add New Offer" : `Update Offer: ${formData.name}`}
+              {isAddingNew ? "Add New Promo Offer" : `Update Promo: ${formData.name}`}
             </h1>
             <div className="bg-[#F0FDFA] rounded-[35px] p-8 space-y-6 shadow-sm border border-gray-100 max-w-2xl">
               
               <div className="grid grid-cols-3 gap-6">
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Offer Name:</label>
-                  <input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Pro Creator" className={`w-full p-3 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.name ? 'border-red-500' : 'border-gray-200'}`} />
+                  <input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Summer Sale" className={`w-full p-3 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.name ? 'border-red-500' : 'border-gray-200'}`} />
+                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                 </div>
-                <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Base Price:</label>
-                  <div className="relative">
-                    <input type="number" min="0" step="0.01" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} placeholder="9.99" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.price ? 'border-red-500' : 'border-gray-200'}`} />
-                    <DollarSign className="absolute left-3 top-3.5 text-gray-400" size={16} />
-                  </div>
-                </div>
+                
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Discount (%):</label>
                   <div className="relative">
-                    <input type="number" min="0" max="100" value={formData.discount_percent} onChange={(e) => setFormData({...formData, discount_percent: e.target.value})} placeholder="Optional" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.discount_percent ? 'border-red-500' : 'border-gray-200'}`} />
+                    <input type="number" min="0" max="100" value={formData.discount_percent} onChange={(e) => setFormData({...formData, discount_percent: e.target.value})} placeholder="e.g. 50" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.discount_percent ? 'border-red-500' : 'border-gray-200'}`} />
                     <Percent className="absolute left-3 top-3.5 text-gray-400" size={16} />
                   </div>
+                  {errors.discount_percent && <p className="text-red-500 text-xs mt-1">{errors.discount_percent}</p>}
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase">Stripe Coupon ID:</label>
+                  <div className="relative">
+                    <input type="text" value={formData.stripe_coupon_id} onChange={(e) => setFormData({...formData, stripe_coupon_id: e.target.value})} placeholder="e.g. SUMMER50" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm font-mono outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.stripe_coupon_id ? 'border-red-500' : 'border-gray-200'}`} />
+                    <Tag className="absolute left-3 top-3.5 text-gray-400" size={16} />
+                  </div>
+                  {errors.stripe_coupon_id && <p className="text-red-500 text-xs mt-1">{errors.stripe_coupon_id}</p>}
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase">Manage Features:</p>
-                  <div className="flex gap-2">
-                    <input value={newFeatureName} onChange={(e) => setNewFeatureName(e.target.value)} placeholder="New perk..." className="text-xs p-1.5 border-b border-gray-300 outline-none bg-transparent w-32" />
-                    <button onClick={() => {if(!newFeatureName) return; const f = [...formData.features, {name: newFeatureName, enabled: true}]; setFormData({...formData, features: f}); setNewFeatureName("");}} className="w-6 h-6 bg-[#1ABC9C] text-white rounded-md flex items-center justify-center"><Plus size={14}/></button>
-                  </div>
-                </div>
-                {formData.features?.map((f, i) => (
-                  <div key={i} className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-gray-50">
-                    <span className="text-sm font-semibold text-gray-700">{f.name}</span>
-                    <button onClick={() => {const updated = [...formData.features]; updated[i].enabled = !updated[i].enabled; setFormData({...formData, features: updated});}} className={`w-6 h-6 rounded-md flex items-center justify-center ${f.enabled ? 'bg-[#22C55E] text-white' : 'bg-red-50 text-red-500 border border-red-100'}`}>
-                      {f.enabled ? <Check size={16} strokeWidth={3} /> : <X size={16} strokeWidth={3} />}
-                    </button>
-                  </div>
-                ))}
-              </div>
 
               <div className="flex items-center justify-between pt-6">
                 <button onClick={validateAndTriggerVerify} className="bg-[#114A3F] text-white pl-6 pr-2 py-2 rounded-full flex items-center gap-3 shadow-md active:scale-95 transition-all">
@@ -265,7 +245,7 @@ export default function OffersPage() {
           <div className="bg-white p-8 rounded-[40px] shadow-2xl max-w-sm w-full text-center">
             <AlertCircle size={32} className="text-[#1ABC9C] mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Verify Changes</h2>
-            <p className="text-sm text-gray-500 mb-6">Updating <b>{formData.name}</b> to a price of <span className="font-bold text-[#111827]">${formData.price}</span> {formData.discount_percent > 0 && <span>with a <span className="text-[#1ABC9C] font-bold">{formData.discount_percent}%</span> discount</span>}.</p>
+            <p className="text-sm text-gray-500 mb-6">You are applying a <span className="text-[#1ABC9C] font-bold">{formData.discount_percent}% discount</span> using the Stripe coupon code <span className="font-mono bg-gray-100 px-1 rounded">{formData.stripe_coupon_id}</span>.</p>
             <div className="flex gap-4">
               <button onClick={() => setShowVerifyModal(false)} className="flex-1 font-bold text-gray-400 hover:text-gray-600 transition-colors">Back</button>
               <button onClick={confirmFinalSave} className="flex-1 bg-[#114A3F] hover:bg-[#0a2e27] text-white rounded-2xl py-3 font-bold transition-colors">Confirm</button>
