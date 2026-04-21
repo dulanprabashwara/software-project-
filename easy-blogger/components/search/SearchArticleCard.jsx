@@ -1,28 +1,16 @@
-// components/search/SearchArticleCard.jsx
-// ─────────────────────────────────────────────────────────────────────────────
-// Article card for search results. Uses BACKEND field names.
-// ─────────────────────────────────────────────────────────────────────────────
-
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import {
-  BadgeCheck,
-  MessageCircle,
-  Star,
-  Clock,
-  Bookmark,
-  MoreHorizontal,
-} from "lucide-react";
+import { BadgeCheck, MessageCircle, Star, Clock, Bookmark, MoreHorizontal } from "lucide-react";
+import { useAuth } from "../../app/context/AuthContext";
+import { toggleArticleSave } from "../../lib/searchApi";
 
 function formatDate(dateStr) {
   if (!dateStr) return "";
   try {
     return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day:   "numeric",
-      year:  "numeric",
+      month: "short", day: "numeric", year: "numeric",
     });
   } catch {
     return "";
@@ -31,6 +19,7 @@ function formatDate(dateStr) {
 
 export default function SearchArticleCard({ article }) {
   const router = useRouter();
+  const { user: firebaseUser } = useAuth();
 
   const {
     id,
@@ -39,20 +28,17 @@ export default function SearchArticleCard({ article }) {
     content,
     coverImage,
     publishedAt,
-    likeCount    = 0,
-    commentCount = 0,
-    readingTime  = 0,
-    author       = {},
-    _count       = {},
-    // isSaved is stamped by the backend search service when user is logged in.
-    // Falls back to false for anonymous visitors or articles where it wasn't checked.
+    averageRating = 0,
+    ratingCount   = 0,
+    commentCount  = 0,
+    readingTime   = 0,
+    author        = {},
+    _count        = {},
     isSaved: initialSaved = false,
   } = article;
 
   const totalComments = _count?.comments ?? commentCount;
 
-  // ── Save / Bookmark state ─────────────────────────────────────────────────
-  // Initialised from the backend value so the icon renders correctly on first paint.
   const [saved,  setSaved]  = useState(Boolean(initialSaved));
   const [saving, setSaving] = useState(false);
 
@@ -63,39 +49,28 @@ export default function SearchArticleCard({ article }) {
     )}&background=1ABC9C&color=fff`;
 
   const previewText =
-    summary ||
-    (content ? content.replace(/<[^>]+>/g, "").slice(0, 200) : "");
+    summary || (content ? content.replace(/<[^>]+>/g, "").slice(0, 200) : "");
 
-  const handleArticleClick = () => {
-    router.push(`/home/read?id=${id}`);
-  };
+  const handleArticleClick = () => router.push(`/home/read?id=${id}`);
 
-  // ── Toggle bookmark ───────────────────────────────────────────────────────
-  // Uses the same /api/saved-articles Next.js route as the existing ArticleCard
-  // so save/unsave behaviour is identical throughout the app.
-  const toggleBookmark = async () => {
+  // Toggles bookmark state. Calls the backend engagement endpoint with auth token.
+  // Reverts optimistic state on error.
+  const handleBookmarkToggle = async () => {
+    if (!firebaseUser || saving) return;
+
     const next = !saved;
-
-    // Optimistic flip
     setSaved(next);
+    setSaving(true);
 
     try {
-      setSaving(true);
+      const token = await firebaseUser.getIdToken();
+      const res   = await toggleArticleSave(id, token);
 
-      const res = await fetch("/api/saved-articles", {
-        method:  next ? "POST" : "DELETE",
-        headers: { "Content-Type": "application/json" },
-        // POST sends the full article object; DELETE sends just the id —
-        // exactly the same payload shape as the existing ArticleCard uses.
-        body: JSON.stringify(next ? { article } : { id }),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`HTTP ${res.status}: ${text}`);
+      // Reconcile with actual server state if response provides it
+      if (res?.saved !== undefined) {
+        setSaved(res.saved);
       }
     } catch (err) {
-      // Revert on error
       setSaved(!next);
       console.error("Bookmark toggle failed:", err.message || err);
     } finally {
@@ -104,13 +79,8 @@ export default function SearchArticleCard({ article }) {
   };
 
   return (
-    // BORDER FIX: removed `last:border-0` so the last card always has border-b.
-    // With multiple cards each has a bottom border creating clean separation.
-    // With a single card it now has both top padding and a bottom border,
-    // so it feels like a contained item rather than an endless element.
     <article className="py-6 border-b border-[#E5E7EB]">
 
-      {/* Author row */}
       <div className="flex items-center gap-2 mb-3">
         <img
           src={avatarSrc}
@@ -120,15 +90,10 @@ export default function SearchArticleCard({ article }) {
         <span className="text-sm font-medium text-[#111827]">
           {author.displayName || author.username || "Unknown"}
         </span>
-        {author.isPremium && (
-          <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" />
-        )}
-        <span className="text-sm text-[#6B7280]">
-          · {formatDate(publishedAt)}
-        </span>
+        {author.isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" />}
+        <span className="text-sm text-[#6B7280]">· {formatDate(publishedAt)}</span>
       </div>
 
-      {/* Title + thumbnail */}
       <div className="flex gap-6 justify-between">
         <div className="flex-1">
           <h2
@@ -150,56 +115,52 @@ export default function SearchArticleCard({ article }) {
         )}
       </div>
 
-      {/* Bottom row — stats left, actions right */}
       <div className="flex items-center justify-between mt-4">
 
-        {/* Left: comment + like + reading time */}
         <div className="flex items-center gap-4 text-sm text-[#6B7280]">
           <button className="flex items-center gap-1.5 hover:text-[#1ABC9C] transition-colors duration-150">
             <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
             <span>{totalComments}</span>
           </button>
-          <button className="flex items-center gap-1.5 hover:text-[#1ABC9C] transition-colors duration-150">
-            <Star className="w-5 h-5" strokeWidth={1.5} />
-            <span>{likeCount}</span>
-          </button>
+
+          {/* Rating display — matches home feed ArticleCard style */}
+          <div className="flex items-center gap-1.5 text-[#1ABC9C]">
+            <Star className="w-5 h-5 fill-[#1ABC9C]" strokeWidth={1.5} />
+            <span className="font-medium">
+              {averageRating > 0 ? averageRating.toFixed(1) : "New"}
+            </span>
+            <span className="text-[#6B7280]">({ratingCount})</span>
+          </div>
+
           {readingTime > 0 && (
-            <span className="flex items-center gap-1.5 text-[#6B7280]">
+            <span className="flex items-center gap-1.5">
               <Clock className="w-4 h-4" strokeWidth={1.5} />
               {readingTime} min read
             </span>
           )}
         </div>
 
-        {/* Right: bookmark + more */}
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={toggleBookmark}
-            disabled={saving}
+            onClick={handleBookmarkToggle}
+            disabled={saving || !firebaseUser}
             className={`group p-2 rounded-full transition-colors duration-150 ${
               saved ? "bg-white" : "hover:bg-[#E8F8F5]"
-            } ${saving ? "opacity-70 cursor-not-allowed" : ""}`}
+            } ${saving || !firebaseUser ? "opacity-70 cursor-not-allowed" : ""}`}
             aria-pressed={saved}
-            title={saved ? "Saved" : "Save for later"}
+            title={!firebaseUser ? "Sign in to save" : saved ? "Saved" : "Save for later"}
           >
-            {/*
-              Bookmark icon visual states
-            */}
             <Bookmark
               className={`w-5 h-5 transition-colors duration-150 ${
-                saved
-                  ? "text-white fill-[#1abc9c]"
-                  : "text-[#1abc9c] group-hover:text-[#1ABC9C]"
+                saved ? "text-[#1abc9c] fill-[#1abc9c]" : "text-[#1abc9c]"
               }`}
               strokeWidth={1.5}
             />
           </button>
 
           <button className="group p-2 hover:bg-[#E8F8F5] rounded-full transition-colors duration-150">
-            <MoreHorizontal
-              className="w-5 h-5 text-[#6B7280] group-hover:text-[#1ABC9C] transition-colors duration-150"
-            />
+            <MoreHorizontal className="w-5 h-5 text-[#6B7280] group-hover:text-[#1ABC9C] transition-colors duration-150" />
           </button>
         </div>
       </div>

@@ -1,36 +1,31 @@
-// components/search/SearchResults.jsx
-// ─────────────────────────────────────────────────────────────────────────────
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { searchArticles, searchUsers } from "../../lib/searchApi";
 import { useAuth } from "../../app/context/AuthContext";
+import { searchArticles, searchUsers } from "../../lib/searchApi";
 import SearchArticleCard from "./SearchArticleCard";
 import UserCard from "./UserCard";
 import RightFeed from "../article/RightFeed";
 import { DATA } from "../article/ArticleList";
 import { Loader2, SearchX } from "lucide-react";
 
+// Renders tabbed search results for articles and user profiles.
+// The initialTab prop controls which tab is active on first render —
+// "profiles" when navigated from a person autocomplete suggestion.
 export default function SearchResults({ query, initialTab = "articles" }) {
-  // initialTab is "profiles" when the URL has ?tab=profiles (set by Header
-  // when the user clicks a person suggestion from the autocomplete dropdown).
   const [activeTab, setActiveTab] = useState(initialTab);
-  const { user: firebaseUser } = useAuth();
+  const { user: firebaseUser }    = useAuth();
 
-  // ── Articles state ────────────────────────────────────────────────────────
   const [articles,        setArticles]        = useState([]);
   const [articlesTotal,   setArticlesTotal]   = useState(0);
   const [articlesLoading, setArticlesLoading] = useState(false);
   const [articlesLoaded,  setArticlesLoaded]  = useState(false);
 
-  // ── Users state ───────────────────────────────────────────────────────────
   const [users,        setUsers]        = useState([]);
   const [usersTotal,   setUsersTotal]   = useState(0);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersLoaded,  setUsersLoaded]  = useState(false);
 
-  // ── Load articles ─────────────────────────────────────────────────────────
   const loadArticles = useCallback(async (q) => {
     setArticlesLoading(true);
     setArticlesLoaded(false);
@@ -40,7 +35,7 @@ export default function SearchResults({ query, initialTab = "articles" }) {
       setArticles(data?.articles || []);
       setArticlesTotal(data?.total || 0);
     } catch (err) {
-      console.error("[SearchResults] article search failed:", err);
+      console.error("Article search failed:", err);
       setArticles([]);
     } finally {
       setArticlesLoading(false);
@@ -48,7 +43,6 @@ export default function SearchResults({ query, initialTab = "articles" }) {
     }
   }, [firebaseUser]);
 
-  // ── Load users ────────────────────────────────────────────────────────────
   const loadUsers = useCallback(async (q) => {
     setUsersLoading(true);
     setUsersLoaded(false);
@@ -58,7 +52,7 @@ export default function SearchResults({ query, initialTab = "articles" }) {
       setUsers(data?.users || []);
       setUsersTotal(data?.total || 0);
     } catch (err) {
-      console.error("[SearchResults] user search failed:", err);
+      console.error("User search failed:", err);
       setUsers([]);
     } finally {
       setUsersLoading(false);
@@ -66,50 +60,37 @@ export default function SearchResults({ query, initialTab = "articles" }) {
     }
   }, [firebaseUser]);
 
-  // ── On query or initialTab change — kick off the right first load ─────────
   useEffect(() => {
     if (!query) return;
-
-    // Reset everything
     setArticles([]);
     setUsers([]);
     setArticlesLoaded(false);
     setUsersLoaded(false);
-    setActiveTab(initialTab); // honour the tab the URL specifies
+    setActiveTab(initialTab);
 
+    // Load the active tab immediately; the other tab loads lazily on first click.
     if (initialTab === "profiles") {
-      // User clicked a person suggestion → load profiles first, articles lazily
       loadUsers(query);
     } else {
-      // Normal search or article suggestion clicked → load articles first
       loadArticles(query);
     }
   }, [query, initialTab, loadArticles, loadUsers]);
 
-  // ── Manual tab click ──────────────────────────────────────────────────────
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    // Lazy-load the other tab on first open
-    if (tab === "profiles" && !usersLoaded && !usersLoading) {
-      loadUsers(query);
-    }
-    if (tab === "articles" && !articlesLoaded && !articlesLoading) {
-      loadArticles(query);
-    }
+    if (tab === "profiles" && !usersLoaded   && !usersLoading)    loadUsers(query);
+    if (tab === "articles" && !articlesLoaded && !articlesLoading) loadArticles(query);
   };
 
   return (
     <div className="flex h-full overflow-hidden">
 
-      {/* Left column */}
       <div className="p-8 mx-auto h-full overflow-y-auto flex-1">
 
         <p className="text-sm text-[#6B7280] mb-5">
-          Results for{" "}
-          <span className="font-semibold text-[#111827]">"{query}"</span>
+          Results for <span className="font-semibold text-[#111827]">"{query}"</span>
         </p>
 
-        {/* Tabs */}
         <div className="flex gap-6 border-b border-[#E5E7EB] mb-1">
           <TabButton
             label="Articles"
@@ -125,7 +106,6 @@ export default function SearchResults({ query, initialTab = "articles" }) {
           />
         </div>
 
-        {/* Articles tab */}
         {activeTab === "articles" && (
           <>
             {articlesLoading && <Spinner />}
@@ -141,7 +121,6 @@ export default function SearchResults({ query, initialTab = "articles" }) {
           </>
         )}
 
-        {/* Profiles tab */}
         {activeTab === "profiles" && (
           <>
             {usersLoading && <Spinner />}
@@ -158,7 +137,6 @@ export default function SearchResults({ query, initialTab = "articles" }) {
         )}
       </div>
 
-      {/* Right column: RightFeed */}
       <div className="hidden lg:block w-80 flex-none h-full overflow-y-auto">
         <RightFeed
           trending={DATA.trending}
@@ -170,8 +148,6 @@ export default function SearchResults({ query, initialTab = "articles" }) {
     </div>
   );
 }
-
-// ── Sub-components ─────────────────────────────────────────────────────────────
 
 function TabButton({ label, count, active, onClick }) {
   return (
@@ -185,11 +161,9 @@ function TabButton({ label, count, active, onClick }) {
     >
       {label}
       {count !== null && (
-        <span
-          className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
-            active ? "bg-[#E8F8F5] text-[#1ABC9C]" : "bg-gray-100 text-[#6B7280]"
-          }`}
-        >
+        <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
+          active ? "bg-[#E8F8F5] text-[#1ABC9C]" : "bg-gray-100 text-[#6B7280]"
+        }`}>
           {count}
         </span>
       )}

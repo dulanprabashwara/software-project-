@@ -1,5 +1,3 @@
-// components/search/UserCard.jsx
-// ─────────────────────────────────────────────────────────────────────────────
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -24,12 +22,11 @@ export default function UserCard({ user }) {
     displayName = "",
     avatarUrl,
     bio,
-    isPremium   = false,
+    isPremium = false,
     stats,
-    _count      = {},
+    _count    = {},
   } = user;
 
-  // isFollowing comes from backend bulk-check (search.service.js)
   const [isFollowing,       setIsFollowing]       = useState(user.isFollowing ?? false);
   const [followerCount,     setFollowerCount]      = useState(
     stats?.totalFollowers ?? _count?.followers ?? 0
@@ -45,33 +42,34 @@ export default function UserCard({ user }) {
       displayName || username || "U"
     )}&background=1ABC9C&color=fff`;
 
-  const handleProfileClick = () => {
+  const navigateToProfile = () => {
     if (username) router.push(`/profile/${username}`);
   };
 
-  // Refetch the real follower count from DB after every toggle
-  const refetchFollowerCount = async () => {
+  // Fetches the current follower count from the DB after a follow/unfollow toggle.
+  const refreshFollowerCount = async () => {
     if (!username) return;
     setIsRefetchingCount(true);
     try {
-      const res = await api.getUserProfile(username);
+      const res   = await api.getUserProfile(username);
       const count = res?.data?._count?.followers ?? res?._count?.followers;
       if (count !== undefined) setFollowerCount(count);
     } catch (err) {
-      console.error("UserCard: failed to refetch follower count:", err);
+      console.error("Failed to refresh follower count:", err);
     } finally {
       setIsRefetchingCount(false);
     }
   };
 
-  const handleFollow = async (e) => {
+  // Toggles follow state optimistically then reconciles with server response.
+  // Follower count is only updated after a confirmed DB refresh.
+  const handleFollowToggle = async (e) => {
     e.stopPropagation();
     if (!firebaseUser || !id || isTogglingFollow) return;
 
-    setIsTogglingFollow(true);
     const wasFollowing = isFollowing;
-    // Flip button immediately — count stays until DB confirms
     setIsFollowing(!wasFollowing);
+    setIsTogglingFollow(true);
 
     try {
       const token = await firebaseUser.getIdToken();
@@ -81,9 +79,7 @@ export default function UserCard({ user }) {
         setIsFollowing(res.data.followed);
       }
 
-      // Fetch real count from DB — the only place the number changes
-      await refetchFollowerCount();
-
+      await refreshFollowerCount();
     } catch (err) {
       console.error("Follow toggle failed:", err);
       setIsFollowing(wasFollowing);
@@ -93,42 +89,26 @@ export default function UserCard({ user }) {
   };
 
   return (
-    // BORDER FIX: removed `last:border-0` — last card now keeps its border-b
     <div className="flex items-center gap-4 py-5 border-b border-[#E5E7EB]">
 
-      {/* Avatar */}
       <button
-        onClick={handleProfileClick}
+        onClick={navigateToProfile}
         className="flex-shrink-0 focus:outline-none"
         aria-label={`View ${displayName || username}'s profile`}
       >
-        <div
-          className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-colors duration-150 ${
-            isPremium
-              ? "border-amber-400"
-              : "border-transparent hover:border-[#1ABC9C]"
-          }`}
-        >
-          <img
-            src={avatarSrc}
-            alt={displayName || username}
-            className="w-full h-full object-cover"
-          />
+        <div className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-colors duration-150 ${
+          isPremium ? "border-amber-400" : "border-transparent hover:border-[#1ABC9C]"
+        }`}>
+          <img src={avatarSrc} alt={displayName || username} className="w-full h-full object-cover" />
         </div>
       </button>
 
-      {/* Info */}
       <div className="flex-1 min-w-0">
-        <button
-          onClick={handleProfileClick}
-          className="flex items-center gap-1.5 text-left focus:outline-none"
-        >
+        <button onClick={navigateToProfile} className="flex items-center gap-1.5 text-left focus:outline-none">
           <span className="font-bold text-[#111827] hover:text-[#1ABC9C] transition-colors duration-150 leading-tight">
             {displayName || username}
           </span>
-          {isPremium && (
-            <BadgeCheck className="w-4 h-4 text-[#1ABC9C] flex-shrink-0" />
-          )}
+          {isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C] flex-shrink-0" />}
         </button>
 
         {displayName && username && (
@@ -136,35 +116,27 @@ export default function UserCard({ user }) {
         )}
 
         {bio && (
-          <p className="text-sm text-[#6B7280] mt-1 line-clamp-2 leading-snug">
-            {bio}
-          </p>
+          <p className="text-sm text-[#6B7280] mt-1 line-clamp-2 leading-snug">{bio}</p>
         )}
 
-        {/* Stats — follower count replaced by spinner during DB refetch */}
         <div className="flex items-center gap-4 mt-2 text-xs text-[#6B7280]">
           <span>
-            <span className="font-semibold text-[#111827]">
-              {formatCount(articleCount)}
-            </span>{" "}
-            {articleCount === 1 ? "Article" : "Articles"}
+            <span className="font-semibold text-[#111827]">{formatCount(articleCount)}</span>
+            {" "}{articleCount === 1 ? "Article" : "Articles"}
           </span>
           <span className="flex items-center gap-1">
             {isRefetchingCount ? (
               <Loader2 className="w-3 h-3 animate-spin text-[#1ABC9C]" />
             ) : (
-              <span className="font-semibold text-[#111827]">
-                {formatCount(followerCount)}
-              </span>
-            )}{" "}
-            {followerCount === 1 && !isRefetchingCount ? "follower" : "followers"}
+              <span className="font-semibold text-[#111827]">{formatCount(followerCount)}</span>
+            )}
+            {" "}{followerCount === 1 && !isRefetchingCount ? "follower" : "followers"}
           </span>
         </div>
       </div>
 
-      {/* Follow / Unfollow button */}
       <button
-        onClick={handleFollow}
+        onClick={handleFollowToggle}
         disabled={isTogglingFollow || !firebaseUser}
         className={`flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 flex-shrink-0 min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed ${
           isFollowing
