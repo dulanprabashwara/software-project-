@@ -72,7 +72,14 @@ export default function AIArticleGeneratorPage() {
   const [isCursorInsidePreview, setIsCursorInsidePreview] = useState(false);
   const [isCopied, setIsCopied]                           = useState(false);
 
-  const [deletedArticle, setDeletedArticle] = useState(null);
+  // ── Delete / restore state ───────────────────────────────────────────────────
+  // deletedLog stores { id, title, date, deletedAt } — used for countdown timer
+  const [deletedLog, setDeletedLog]           = useState(null);
+  const [restoreCountdown, setRestoreCountdown] = useState(null);
+  const restoreTimerRef                         = useRef(null);
+
+  // Keep deletedArticle for backward-compat reference in JSX (maps to deletedLog)
+  const deletedArticle = deletedLog;
 
   const [articles, setArticles]               = useState([]);
   const [articlesLoading, setArticlesLoading] = useState(false);
@@ -87,6 +94,11 @@ export default function AIArticleGeneratorPage() {
   const analyzeTimeoutRef  = useRef(null);
   const generateTimeoutRef = useRef(null);
   const errorResetRef      = useRef(null);
+  // Tracks whether the component is still mounted.
+  // All async callbacks check this before updating state — prevents
+  // "Can't perform a React state update on an unmounted component"
+  // and the re-auth prompt the user sees when refreshing mid-generation.
+  const isMountedRef       = useRef(true);
 
   // Reads the Firebase token from the already-logged-in session — no extra login prompt
   const getAuthHeaders = async () => {
@@ -143,10 +155,15 @@ export default function AIArticleGeneratorPage() {
   }, [isGenerating]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      // Mark unmounted — all async callbacks check this before calling setState
+      // This prevents the re-auth prompt the user sees when refreshing mid-generation
+      isMountedRef.current = false;
       if (analyzeTimeoutRef.current)  clearTimeout(analyzeTimeoutRef.current);
       if (generateTimeoutRef.current) clearTimeout(generateTimeoutRef.current);
       if (errorResetRef.current)      clearTimeout(errorResetRef.current);
+      if (restoreTimerRef.current)    clearInterval(restoreTimerRef.current);
     };
   }, []);
 
@@ -237,17 +254,68 @@ export default function AIArticleGeneratorPage() {
     return "save draft";
   };
 
-  const handleDeleteArticle = (articleId, e) => {
+  // ── Delete article log (soft delete — restorable within 1 hour) ─────────────
+  // Calls DELETE /api/ai/logs/:id on backend which sets deletedAt = now().
+  // The article immediately disappears from the list.
+  // A 1-hour countdown starts — user can restore until it expires.
+  // After 1 hour the backend permanently deletes it on next list fetch.
+  const handleDeleteArticle = async (articleId, e) => {
     e.stopPropagation();
     const articleToDelete = articles.find((a) => a.id === articleId);
-    setDeletedArticle(articleToDelete);
+    if (!articleToDelete) return;
+
+    // Remove from list immediately (optimistic UI)
     setArticles(articles.filter((a) => a.id !== articleId));
+
+    try {
+      const headers = await getAuthHeaders();
+      await fetch(`${BACKEND_URL}/api/ai/logs/${articleId}`, {
+        method: "DELETE",
+        headers,
+      });
+      // Start 1-hour countdown for restore button
+      const deletedAt = Date.now();
+      setDeletedLog({ ...articleToDelete, deletedAt });
+
+      // Update countdown every second
+      if (restoreTimerRef.current) clearInterval(restoreTimerRef.current);
+      restoreTimerRef.current = setInterval(() => {
+        const minutesLeft = Math.max(0, Math.floor((deletedAt + 60 * 60 * 1000 - Date.now()) / 60000));
+        if (!isMountedRef.current) { clearInterval(restoreTimerRef.current); return; }
+        setRestoreCountdown(minutesLeft);
+        if (minutesLeft === 0) {
+          clearInterval(restoreTimerRef.current);
+          setDeletedLog(null);
+          setRestoreCountdown(null);
+        }
+      }, 10000); // update every 10 seconds
+      setRestoreCountdown(59); // start at 59 minutes
+    } catch (err) {
+      // If backend call fails, put the article back
+      console.error("[DeleteLog] Failed:", err);
+      setArticles((prev) => [articleToDelete, ...prev]);
+    }
   };
 
-  const handleRestoreArticle = () => {
-    if (deletedArticle) {
-      setArticles((prev) => [deletedArticle, ...prev]);
-      setDeletedArticle(null);
+  // ── Restore article log ───────────────────────────────────────────────────────
+  // Calls POST /api/ai/logs/:id/restore which clears deletedAt on backend.
+  // The article reappears in the list.
+  const handleRestoreArticle = async () => {
+    if (!deletedLog) return;
+    try {
+      const headers = await getAuthHeaders();
+      const res     = await fetch(`${BACKEND_URL}/api/ai/logs/${deletedLog.id}/restore`, {
+        method: "POST",
+        headers,
+      });
+      if (!res.ok) throw new Error("Restore failed");
+      // Put back in list and clear restore state
+      setArticles((prev) => [{ id: deletedLog.id, title: deletedLog.title, date: deletedLog.date }, ...prev]);
+      setDeletedLog(null);
+      setRestoreCountdown(null);
+      if (restoreTimerRef.current) clearInterval(restoreTimerRef.current);
+    } catch (err) {
+      console.error("[RestoreLog] Failed:", err);
     }
   };
 
@@ -275,22 +343,9 @@ export default function AIArticleGeneratorPage() {
     }
   };
 
-  // ── Edit in editor state ─────────────────────────────────────────────────────
+  // ── Edit in editor state ──────────────────────────────────────────────────
   const [isLoadingEditor, setIsLoadingEditor] = useState(false);
 
-  // ═════════════════════════════════════════════════════════════════════════════
-  // EDIT IN EDITOR
-  // Called when user clicks "Edit" on the AI article preview overlay.
-  //
-  // Calls POST /api/ai/load-to-editor with the logId.
-  // Backend creates an Article row (status: EDITING, isAiGenerated: true)
-  // populated from the AiArticleLog data, then returns the article id.
-  //
-  // We then navigate to /write/create. The write/create page calls
-  // GET /articles/user/editing on mount, finds our freshly created EDITING
-  // article (most recently updated), and loads its title + content into TinyMCE.
-  // From that point the manual article workflow handles everything identically.
-  // ═════════════════════════════════════════════════════════════════════════════
   const handleEditInEditor = async () => {
     if (!generatedArticle?.logId) return;
     setIsLoadingEditor(true);
@@ -303,12 +358,12 @@ export default function AIArticleGeneratorPage() {
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Failed to open in editor");
-      router.push("/write/create");
+      if (isMountedRef.current) router.push("/write/create");
     } catch (err) {
       console.error("[EditInEditor] Failed:", err);
-      alert("Could not open in editor. Please try again.");
+      if (isMountedRef.current) alert("Could not open in editor. Please try again.");
     } finally {
-      setIsLoadingEditor(false);
+      if (isMountedRef.current) setIsLoadingEditor(false);
     }
   };
 
@@ -342,6 +397,7 @@ export default function AIArticleGeneratorPage() {
       const data = await res.json();
       if (!data.success) throw new Error(data.error || "Analysis failed");
 
+      if (!isMountedRef.current) return;
       setSessionId(data.sessionId);
       setAiKeywords(data.keywords || []);
       setHasLengthInPrompt(data.hasArticleLengthInPrompt);
@@ -355,7 +411,7 @@ export default function AIArticleGeneratorPage() {
       document.body.classList.remove("loading-transition");
       setCurrentView("keywords");
     } catch (err) {
-      if (timedOut) return;
+      if (timedOut || !isMountedRef.current) return;
       clearTimeout(analyzeTimeoutRef.current);
       setTransitionError("Something went wrong. Please try again.");
       setTimeout(() => {
@@ -479,9 +535,17 @@ export default function AIArticleGeneratorPage() {
                 <span className="previous-generations-text">Previous Generations</span>
               </div>
               <div className="flex items-center gap-3">
-                {deletedArticle && (
-                  <button onClick={handleRestoreArticle} className="restore-article-btn" title="Restore last deleted article">
+                {deletedLog && (
+                  <button
+                    onClick={handleRestoreArticle}
+                    className="restore-article-btn"
+                    title={`Restore "${deletedLog.title}" (${restoreCountdown ?? 59}min left)`}
+                    style={{ display: "flex", alignItems: "center", gap: "4px" }}
+                  >
                     <img src="/icons/refresh-ccw-01.png" alt="Restore" className="w-4 h-4" />
+                    {restoreCountdown !== null && (
+                      <span style={{ fontSize: "11px", color: "#1ABC9C" }}>{restoreCountdown}m</span>
+                    )}
                   </button>
                 )}
                 <button onClick={() => setCurrentView("input")} className="new-article-button">

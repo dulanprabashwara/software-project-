@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { BookOpen, CalendarDays, Check, Share2, Tag, X } from "lucide-react";
 import Image from "next/image";
+import { useAuth } from "../../../context/AuthContext"; // WordPress retry needs Firebase user
+import { API_BASE_URL } from "../../../../lib/api";     // WordPress retry needs backend URL
 
 const STORAGE_KEYS = {
   publishedArticleData: "published_article_data",
@@ -67,20 +69,64 @@ const CHECK_VARIANTS = {
   },
 };
 
-function PlatformItem({ platform }) {
-  const config = PLATFORM_CONFIG[platform];
+// WordPress status label shown next to the WordPress platform item
+function WordPressStatusLabel({ wpPostUrl, wpError, isRetrying, onRetry }) {
+  if (isRetrying) {
+    return (
+      <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+        Retrying...
+      </span>
+    );
+  }
 
+  if (wpPostUrl) {
+    return (
+      <a
+        href={wpPostUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="ml-2 inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200 transition-colors"
+      >
+        Visit ↗
+      </a>
+    );
+  }
+
+  if (wpError) {
+    return (
+      <span className="ml-2 inline-flex items-center gap-1.5">
+        <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-600">
+          Failed
+        </span>
+        <button
+          onClick={onRetry}
+          className="text-xs text-[#21c4a7] underline hover:text-[#18af98]"
+        >
+          Retry
+        </button>
+      </span>
+    );
+  }
+
+  return null;
+}
+
+function PlatformItem({ platform, wpPostUrl, wpError, isRetrying, onRetry }) {
+  const config = PLATFORM_CONFIG[platform];
   if (!config) return null;
 
   return (
     <div className="flex items-center gap-2">
-      <Image
-        src={config.iconSrc}
-        alt={config.iconAlt}
-        width={22}
-        height={22}
-      />
+      <Image src={config.iconSrc} alt={config.iconAlt} width={22} height={22} />
       <span>{config.label}</span>
+      {platform === "WordPress" && (
+        <WordPressStatusLabel
+          wpPostUrl={wpPostUrl}
+          wpError={wpError}
+          isRetrying={isRetrying}
+          onRetry={onRetry}
+        />
+      )}
     </div>
   );
 }
@@ -92,9 +138,7 @@ function FloatingConfetti() {
         left: Math.random() * 100,
         delay: Math.random() * 2,
         duration: 6 + Math.random() * 3,
-        size: ["text-3xl", "text-4xl", "text-5xl"][
-          Math.floor(Math.random() * 3)
-        ],
+        size: ["text-3xl", "text-4xl", "text-5xl"][Math.floor(Math.random() * 3)],
         initialRotate: Math.random() * 60 - 30,
       })),
     []
@@ -105,23 +149,14 @@ function FloatingConfetti() {
       {items.map((item, index) => (
         <motion.div
           key={index}
-          initial={{
-            y: -100,
-            opacity: 0,
-            rotate: item.initialRotate,
-          }}
+          initial={{ y: -100, opacity: 0, rotate: item.initialRotate }}
           animate={{
             y: ["-10vh", "110vh"],
             x: [0, 20, -20, 10, -10],
             opacity: [0, 1, 1, 0],
             rotate: [-30, 30, -15, 10],
           }}
-          transition={{
-            duration: item.duration,
-            delay: item.delay,
-            repeat: Infinity,
-            ease: "linear",
-          }}
+          transition={{ duration: item.duration, delay: item.delay, repeat: Infinity, ease: "linear" }}
           className={`absolute ${item.size}`}
           style={{ left: `${item.left}%` }}
         >
@@ -133,13 +168,9 @@ function FloatingConfetti() {
 }
 
 function readPublishedArticleData() {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
+  if (typeof window === "undefined") return null;
   const raw = sessionStorage.getItem(STORAGE_KEYS.publishedArticleData);
   if (!raw) return null;
-
   try {
     return JSON.parse(raw);
   } catch (error) {
@@ -150,44 +181,90 @@ function readPublishedArticleData() {
 
 export default function ArticlePublishedPage() {
   const router = useRouter();
+  const { user: firebaseUser } = useAuth(); // WordPress retry needs Firebase token
+
   const [publishedData, setPublishedData] = useState(null);
+
+  // WordPress publish outcome state
+  const [wpPostUrl,   setWpPostUrl]   = useState("");
+  const [wpError,     setWpError]     = useState("");
+  const [isRetrying,  setIsRetrying]  = useState(false);
 
   useEffect(() => {
     const parsedData = readPublishedArticleData();
-
     if (!parsedData) {
       router.replace("/write/publish");
       return;
     }
-
     setPublishedData(parsedData);
+
+    // Read WordPress publish outcome saved by the publish page
+    const savedUrl   = sessionStorage.getItem("wp_post_url")      || "";
+    const savedError = sessionStorage.getItem("wp_publish_error") || "";
+    setWpPostUrl(savedUrl);
+    setWpError(savedError);
   }, [router]);
+
+  // Retry WordPress publish for realtime articles
+  const handleWpRetry = useCallback(async () => {
+    if (!firebaseUser) return;
+
+    const articleId = sessionStorage.getItem("publish_source_article_id") || "";
+    if (!articleId) {
+      setWpError("Article ID not found. Cannot retry.");
+      return;
+    }
+
+    setIsRetrying(true);
+    setWpError("");
+
+    try {
+      const token = await firebaseUser.getIdToken();
+      const res   = await fetch(`${API_BASE_URL}/api/wordpress/publish`, {
+        method:  "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization:  `Bearer ${token}`,
+        },
+        body: JSON.stringify({ articleId, scheduledAt: null }),
+      });
+
+      const data = await res.json();
+
+      if (data.success && data?.data?.wpPostUrl) {
+        setWpPostUrl(data.data.wpPostUrl);
+        setWpError("");
+        sessionStorage.setItem("wp_post_url", data.data.wpPostUrl);
+        sessionStorage.removeItem("wp_publish_error");
+      } else {
+        const msg = data?.data?.message || "WordPress publish failed. Please try again.";
+        setWpError(msg);
+        sessionStorage.setItem("wp_publish_error", msg);
+      }
+    } catch {
+      const msg = "Could not reach server. Please try again.";
+      setWpError(msg);
+      sessionStorage.setItem("wp_publish_error", msg);
+    } finally {
+      setIsRetrying(false);
+    }
+  }, [firebaseUser]);
 
   if (!publishedData) return null;
 
-  const { title, tags, platforms, timing, scheduledDate, scheduledTime } =
-    publishedData;
+  const { title, tags, platforms, timing, scheduledDate, scheduledTime } = publishedData;
 
   const formatPublishDate = () => {
     if (timing === "now") {
       return new Date().toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
+        weekday: "long", month: "long", day: "numeric", year: "numeric",
       });
     }
-
     if (scheduledDate && scheduledTime) {
-      const date = new Date(`${scheduledDate}T${scheduledTime}`);
-      return date.toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
+      return new Date(`${scheduledDate}T${scheduledTime}`).toLocaleDateString("en-US", {
+        weekday: "long", month: "long", day: "numeric", year: "numeric",
       });
     }
-
     return "";
   };
 
@@ -221,17 +298,11 @@ export default function ArticlePublishedPage() {
             <Check size={40} />
           </motion.div>
 
-          <motion.h1
-            variants={ITEM_VARIANTS}
-            className="font-serif text-5xl text-white"
-          >
+          <motion.h1 variants={ITEM_VARIANTS} className="font-serif text-5xl text-white">
             Article Published
           </motion.h1>
 
-          <motion.p
-            variants={ITEM_VARIANTS}
-            className="mt-4 text-lg text-[#17352f]"
-          >
+          <motion.p variants={ITEM_VARIANTS} className="mt-4 text-lg text-[#17352f]">
             Your article is now live and reaching readers
           </motion.p>
 
@@ -253,7 +324,6 @@ export default function ArticlePublishedPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
                 <BookOpen size={20} />
               </div>
-
               <div>
                 <p className="text-sm text-gray-500">Article title</p>
                 <p className="mt-1 text-2xl text-gray-700">{title}</p>
@@ -269,7 +339,6 @@ export default function ArticlePublishedPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
                 <Tag size={20} />
               </div>
-
               <div className="flex-1">
                 <p className="text-sm text-gray-500">Tags</p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -294,12 +363,18 @@ export default function ArticlePublishedPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
                 <Share2 size={20} />
               </div>
-
               <div className="flex-1">
                 <p className="text-sm text-gray-500">Published to</p>
                 <div className="mt-3 flex flex-wrap items-center gap-5 text-lg text-gray-600">
                   {platforms?.map((platform) => (
-                    <PlatformItem key={platform} platform={platform} />
+                    <PlatformItem
+                      key={platform}
+                      platform={platform}
+                      wpPostUrl={wpPostUrl}
+                      wpError={wpError}
+                      isRetrying={isRetrying}
+                      onRetry={handleWpRetry}
+                    />
                   ))}
                 </div>
               </div>

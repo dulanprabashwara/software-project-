@@ -23,24 +23,45 @@ export default function QueuePage() {
       if (!user) return;
       const token = await user.getIdToken();
       
-      const response = await api.getAdminReports("", token);
+      const response = await api.getAdminReports("?limit=100", token);
       
       // MAP Prisma Database relational fields to your UI's expected format
       const mappedReports = response.data.map(report => ({
         id: report.id,
         articleId: report.articleId, // Keep track of the actual article ID
-        reporterId: report.article?.authorId, // The user who wrote the offending article
+        authorId: report.article?.authorId || report.article?.author?.id,
+        // reporterId: report.article?.authorId, // The user who wrote the offending article
         title: report.article?.title || "Untitled Article",
         reason: report.reason,
         reporter: report.reporter?.displayName || report.reporter?.username || "Unknown User",
         timeReported: new Date(report.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         // Map Prisma Enums to your UI statuses
-        status: report.status === 'PENDING' ? 'pending' : 'reviewed',
+        status: report.status,
+        resolvedAt: report.resolvedAt,
         image: report.article?.coverImage || null,
         content: report.article?.content || "No content available."
       }));
 
-      setPosts(mappedReports);
+      //  THE 24-HOUR QUEUE CLEANUP LOGIC 
+      const now = new Date();
+      const cleanedQueue = mappedReports.filter(report => {
+        // 1. Always show PENDING reports
+        if (report.status === 'PENDING') return true;
+        
+        // 2. Hide RESOLVED (Deleted/Banned) permanently so they don't annoy you tomorrow
+        if (report.status === 'RESOLVED') return false; 
+        
+        // 3. For DISMISSED (Kept/Verified), only show them if they were approved in the last 24 hours
+        if (report.status === 'DISMISSED' && report.resolvedAt) {
+          const resolveDate = new Date(report.resolvedAt);
+          const hoursDifference = (now - resolveDate) / (1000 * 60 * 60);
+          return hoursDifference <= 24;
+        }
+        
+        return false; // Hide anything else
+      });
+
+      setPosts(cleanedQueue);
     } catch (error) {
       console.error("Failed to fetch reports:", error);
     } finally {
@@ -80,7 +101,7 @@ export default function QueuePage() {
       if (actionType === "Keep") {
         // Mark the report as DISMISSED or REVIEWED (Content is safe)
         await api.resolveReport(selectedPost.id, "DISMISSED", token);
-        setPosts(posts.map(p => p.id === selectedId ? { ...p, status: 'reviewed' } : p));
+        setPosts(posts.map(p => p.id === selectedId ? { ...p, status: 'DISMISSED' } : p));
       } 
       else if (actionType === "Delete") {
         // Mark the report as RESOLVED (Triggers content takedown in backend)
@@ -89,10 +110,15 @@ export default function QueuePage() {
         setSelectedId(null);
       } 
       else if (actionType === "Ban User") {
+        if (!selectedPost.authorId) {
+           alert("Cannot ban: This article's author is already missing or deleted.");
+           return;
+        }
         // Hit the real ban endpoint for the author of the article
-        await api.banUser(selectedPost.reporterId, selectedPost.reason, token);
+        await api.banUser(selectedPost.authorId, selectedPost.reason, token);
         // Also resolve the report
         await api.resolveReport(selectedPost.id, "RESOLVED", token);
+        
         setPosts(posts.filter(p => p.id !== selectedId));
         setSelectedId(null);
         alert("User banned and report resolved.");
@@ -126,19 +152,19 @@ export default function QueuePage() {
         <h1 className="text-2xl font-bold text-[#111827]" style={{ fontFamily: "Georgia, serif" }}>Moderation</h1>
         <div className="flex gap-2 relative z-20"> 
           <div className="relative w-36" ref={dropdownRef}>
-            <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className={`w-full h-10 px-4 rounded-lg font-medium flex items-center justify-between transition-all ${getDropdownColor()}`}>
+            <button suppressHydrationWarning onClick={() => setIsDropdownOpen(!isDropdownOpen)} className={`w-full h-10 px-4 rounded-lg font-medium flex items-center justify-between transition-all ${getDropdownColor()}`}>
               <span className="capitalize">{filterStatus || "Status"}</span>
               <ChevronDown size={16} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
             {isDropdownOpen && (
               <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-100 rounded-lg shadow-xl z-50 overflow-hidden">
-                <button onClick={() => { setFilterStatus('pending'); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-sm font-semibold text-[#EAB308] hover:bg-[#FEF9C3]">Pending</button>
-                <button onClick={() => { setFilterStatus('reviewed'); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-sm font-semibold text-[#1ABC9C] hover:bg-[#CCFBF1]">Reviewed</button>
+                <button onClick={() => { setFilterStatus('PENDING'); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-sm font-semibold text-[#EAB308] hover:bg-[#FEF9C3]">PENDING</button>
+                <button onClick={() => { setFilterStatus('DISMISSED'); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-sm font-semibold text-[#1ABC9C] hover:bg-[#CCFBF1]">DISMISSED</button>
                 <button onClick={() => { setFilterStatus(null); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-400 hover:bg-gray-50 border-t">Show All</button>
               </div>
             )}
           </div>
-          <div className="relative flex-1 text-[#9CA3AF]"><Search className="absolute left-3 top-3 w-4 h-4" /><input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-10 h-10 bg-white border border-[#E5E7EB] rounded-lg text-sm" /></div>
+          <div className="relative flex-1 text-[#9CA3AF]"><Search className="absolute left-3 top-3 w-4 h-4" /><input suppressHydrationWarning type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-10 h-10 bg-white border border-[#E5E7EB] rounded-lg text-sm" /></div>
         </div>
         <div className="bg-[#E5E7EB] p-1 rounded-full flex text-sm font-medium z-10">
           <Link href="/admin/moderation/queue" className="flex-1 py-1.5 text-center bg-white text-[#111827] shadow-sm rounded-full">Queue</Link>
@@ -178,7 +204,7 @@ export default function QueuePage() {
             
             {/* CONDITIONAL ACTION AREA */}
             <div className="p-6 border-t border-[#E5E7EB] bg-[#F9FAFB] flex justify-end gap-4">
-              {activePost.status === 'reviewed' ? (
+              {activePost.status === 'DISMISSED' ? (
                 <div className="flex items-center gap-3 bg-[#CCFBF1] text-[#0F766E] px-6 py-2 rounded-full border border-[#1ABC9C] shadow-sm">
                   <CheckCircle size={18} /><span className="font-bold text-sm">Verified Content</span>
                 </div>
