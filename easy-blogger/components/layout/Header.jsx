@@ -1,6 +1,5 @@
 // components/layout/Header.jsx
 
-
 "use client";
 
 import NotificationPanel from "../notifications/NotificationPanel";
@@ -13,7 +12,7 @@ import {
   MessageCircle,
   Search,
   PenSquare,
-  Bell,
+  // Bell, // Removed Bell since NotificationPanel handles it internally
   Menu,
   LogOut,
   BadgeCheck,
@@ -30,7 +29,7 @@ export default function Header({ onToggleSidebar }) {
   const { user, userProfile, logout } = useAuth(); // get user + logout from backend/auth
 
   const [open,     setOpen]     = useState(false);
-  const [notiOpen, setNotiOpen] = useState(false);
+  // Removed notiOpen state because NotificationPanel handles its own state internally
   const [mounted,  setMounted]  = useState(false);
   const menuRef = useRef(null);
 
@@ -44,7 +43,7 @@ export default function Header({ onToggleSidebar }) {
   useEffect(() => { setMounted(true); }, []);
 
   // derive user display values 
-  const displayName = userProfile?.displayName || user?.displayName || user?.email?.split("@")[0] || "User";
+  const displayName = userProfile?.displayName || user?.displayName || user?.email?.split("@") || "User";
   const displayEmail = user?.email || "";
   const avatarUrl =
     userProfile?.avatarUrl ||
@@ -279,16 +278,10 @@ export default function Header({ onToggleSidebar }) {
           <span className="hidden sm:inline">Write</span>
         </Link>
 
-        <button
-          suppressHydrationWarning
-          onClick={() => setNotiOpen((p) => !p)}
-          className="relative p-2 text-gray-500 hover:bg-gray-50 rounded-full"
-          aria-label="Notifications"
-        >
-          <Bell size={22} />
-          <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
-        </button>
-        {notiOpen && <NotificationPanel onClose={() => setNotiOpen(false)} />}
+        {/* Replaced the manual button wrapper with the NotificationPanel component.
+          It handles its own Bell icon and dropdown logic! 
+        */}
+        <NotificationPanel userId={user?.uid || user?.id} />
 
         {/* Avatar + Dropdown */}
         <div className="relative" ref={menuRef}>
