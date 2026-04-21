@@ -2,13 +2,14 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BadgeCheck, MessageCircle, Star, Bookmark, MoreHorizontal } from "lucide-react";
+import { useAuth } from "../../app/context/AuthContext";  
 
 export default function ArticleCard({ article }) {
   // ── Data Mapping ────────────────────────────────────────────────────────
   // If author is null, we use a fallback name and avatar.
   const authorName = article.author?.displayName || "Guest Writer"; 
   const authorAvatar = article.author?.avatarUrl || "https://ui-avatars.com/api/?name=Guest";
-  
+  const { user, profileLoading } = useAuth();
   // Safety check for date: If createdAt is missing, use "Recent"
   const displayDate = article.createdAt 
     ? new Date(article.createdAt).toLocaleDateString(undefined, {
@@ -28,20 +29,31 @@ export default function ArticleCard({ article }) {
     setSaved(localStorage.getItem(storageKey) === "1");
   }, [storageKey]);
 
-  const toggleBookmark = async () => {
-    const next = !saved;
+ const toggleBookmark = async () => {
+    // GUARD: Stop unauthenticated users from clicking
+    if (!user) {
+      alert("Please log in to save articles!");
+      // Optionally: router.push('/login');
+      return; 
+    }
 
+    const next = !saved;
     setSaved(next);
     localStorage.setItem(storageKey, next ? "1" : "0");
 
     try {
       setSaving(true);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/saved-articles`, {
-        // Correctly using the ID from the database
+      // Get the fresh Firebase token from the context user
+      const token = await user.getIdToken();
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/saveArticle`, {
         method: next ? "POST" : "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(next ? { articleId: article.id } : { id: article.id }),
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` // Pass token to your backend
+        },
+        body: JSON.stringify({ articleId: article.id }),
       });
 
       if (!res.ok) {
@@ -51,7 +63,7 @@ export default function ArticleCard({ article }) {
     } catch (err) {
       setSaved(!next);
       localStorage.setItem(storageKey, !next ? "1" : "0");
-      alert(err.message || "Operation failed");
+      alert(err.message || "Failed to sync bookmark.");
     } finally {
       setSaving(false);
     }
@@ -114,15 +126,16 @@ export default function ArticleCard({ article }) {
 
         <div className="flex items-center gap-1">
           <button
-            type="button"
-            onClick={toggleBookmark}
-            disabled={saving}
-            className={`group p-2 rounded-full transition-colors duration-150 ${
-              saved ? "bg-white" : "hover:bg-[#E8F8F5]"
-            } ${saving ? "opacity-70 cursor-not-allowed" : ""}`}
-            aria-pressed={saved}
-            title={saved ? "Saved" : "Save"}
-          >
+          type="button"
+          onClick={toggleBookmark}
+          // Disable the button if auth is still loading OR if it is actively saving
+          disabled={saving || profileLoading} 
+          className={`group p-2 rounded-full transition-colors duration-150 ${
+            saved ? "bg-white" : "hover:bg-[#E8F8F5]"
+          } ${(saving || profileLoading) ? "opacity-70 cursor-not-allowed" : ""}`}
+          aria-pressed={saved}
+          title={saved ? "Saved" : "Save"}
+        >
             <Bookmark
               className={`w-5 h-5 transition-colors duration-150 ${
                 saved ? "text-[#1abc9c] fill-[#1abc9c]" : "text-[#1abc9c] group-hover:text-[#1ABC9C]"
