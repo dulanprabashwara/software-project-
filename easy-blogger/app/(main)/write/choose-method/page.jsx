@@ -30,9 +30,7 @@ function ChooseOptionCard({
           }`}
         >
           <Icon
-            className={`h-6 w-6 ${
-              isPrimary ? "text-white" : "text-[#1ABC9C]"
-            }`}
+            className={`h-6 w-6 ${isPrimary ? "text-white" : "text-[#1ABC9C]"}`}
           />
         </div>
 
@@ -44,8 +42,6 @@ function ChooseOptionCard({
           >
             {title}
           </h3>
-
-          
         </div>
       </div>
 
@@ -68,11 +64,17 @@ function UserProfileCard({ user, loading }) {
     );
   }
 
-  const displayName = (user?.displayName || user?.username || user?.name || "Writer").trim();
+  const displayName = (
+    user?.displayName ||
+    user?.username ||
+    user?.name ||
+    "Writer"
+  ).trim();
   const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-    displayName
+    displayName,
   )}&background=1ABC9C&color=ffffff&size=160`;
-  const avatarUrl = user?.avatarUrl || user?.profileImage || user?.avatar || fallbackAvatar;
+  const avatarUrl =
+    user?.avatarUrl || user?.profileImage || user?.avatar || fallbackAvatar;
 
   return (
     <div className="mb-10 flex flex-col items-center">
@@ -137,7 +139,7 @@ export default function ChooseMethodPage() {
         variant: "secondary",
       },
     ],
-    [router]
+    [router],
   );
 
   return (

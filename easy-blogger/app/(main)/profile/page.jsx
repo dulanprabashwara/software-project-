@@ -140,16 +140,24 @@ export default function ProfilePage() {
   // grab the URL of the profile page and copy it to the clipboard
   const handleCopyLink = () => {
     const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-      alert("Profile link copied to clipboard!");
-      setShowMenu(false);
-    }).catch((err) => {
-      console.error("Failed to copy link:", err);
-      alert("Failed to copy link. Please copy the URL manually.");
-    });
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => {
+          alert("Profile link copied to clipboard!");
+          setShowMenu(false);
+        })
+        .catch((err) => {
+          console.error("Failed to copy: ", err);
+          fallbackCopyTextToClipboard(url);
+        });
+    } else {
+      fallbackCopyTextToClipboard(url);
+    }
   };
 
-  // About Section Handlers
+  // when user click get started when dont have a bio
   const handleGetStartedAbout = () => {
     setIsEditingAbout(true);
   };
@@ -178,6 +186,7 @@ export default function ProfilePage() {
     }
   };
 
+  //when the user alredy have an about and click about
   const handleEditAbout = () => {
     setIsEditingAbout(true);
   };
@@ -217,7 +226,7 @@ export default function ProfilePage() {
             return next;
           });
 
-          //update counts in profile if we are viewing our own modal
+          //update following count in profile
           updateContextProfile({
             _count: {
               ...userProfile?._count,
