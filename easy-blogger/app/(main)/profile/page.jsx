@@ -22,7 +22,7 @@ export default function ProfilePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // When ?modal=followers/following/shares is present, show the stats modal
+  // When ?modal=followers/following/shares is present, show the stats modal. model is triggered by the url
   const modalTab = searchParams.get("modal");
 
   // Show spinner only while Firebase auth state is being determined
@@ -61,7 +61,7 @@ export default function ProfilePage() {
   const [togglingIds, setTogglingIds] = useState(new Set());
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
-  // Sync active stats tab when stat tab changes
+  // Sync active stats tab when modal changes
   useEffect(() => {
     if (modalTab) setStatsActiveTab(modalTab);
   }, [modalTab]);
@@ -120,6 +120,7 @@ export default function ProfilePage() {
     loadStats();
   }, [modalTab, userProfile?.id]);
 
+  //close the dropdown menu when clicked outside after clicking 3 dots
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -136,50 +137,16 @@ export default function ProfilePage() {
   //route to profile page when close the modal
   const closeModal = () => router.push("/profile");
 
-  // copy profile link
+  // grab the URL of the profile page and copy it to the clipboard
   const handleCopyLink = () => {
     const url = window.location.href;
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard
-        .writeText(url)
-        .then(() => {
-          alert("Profile link copied to clipboard!");
-          setShowMenu(false);
-        })
-        .catch((err) => {
-          console.error("Failed to copy: ", err);
-          fallbackCopyTextToClipboard(url);
-        });
-    } else {
-      fallbackCopyTextToClipboard(url);
-    }
-  };
-
-  const fallbackCopyTextToClipboard = (text) => {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    textArea.style.top = "0";
-    textArea.style.left = "0";
-    textArea.style.position = "fixed";
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
-    try {
-      const successful = document.execCommand("copy");
-      if (successful) {
-        alert("Profile link copied to clipboard!");
-        setShowMenu(false);
-      } else {
-        alert("Failed to copy link.");
-      }
-    } catch (err) {
-      console.error("Fallback: Oops, unable to copy", err);
-      alert("Failed to copy link.");
-    }
-
-    document.body.removeChild(textArea);
+    navigator.clipboard.writeText(url).then(() => {
+      alert("Profile link copied to clipboard!");
+      setShowMenu(false);
+    }).catch((err) => {
+      console.error("Failed to copy link:", err);
+      alert("Failed to copy link. Please copy the URL manually.");
+    });
   };
 
   // About Section Handlers
@@ -263,6 +230,7 @@ export default function ProfilePage() {
       } catch (err) {
         console.error("Toggle follow failed:", err);
       } finally {
+        //remove the toggeling user's id from the toggelingIds list
         setTogglingIds((prev) => {
           const next = new Set(prev);
           next.delete(userId);
@@ -323,7 +291,7 @@ export default function ProfilePage() {
       comments: 5,
     },
   ];
-
+  //loading screen
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-[calc(100vh-64px)] pt-20 bg-gray-50">
