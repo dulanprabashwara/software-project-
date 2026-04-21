@@ -6,18 +6,21 @@ import { useAuth } from "../context/AuthContext";
 const SubscriptionContext = createContext();
 
 export function SubscriptionProvider({ children }) {
-  const { userProfile, loading: authLoading } = useAuth();
+  const { userProfile, loading: authLoading, profileLoading } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Sync premium status from backend profile
+  // Wait for both authLoad and profileLoad
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || profileLoading) return;
+
     if (userProfile) {
       setIsPremium(!!userProfile.isPremium);
+    } else {
+      setIsPremium(false);
     }
     setIsLoading(false);
-  }, [userProfile, authLoading]);
+  }, [userProfile, authLoading, profileLoading]);
 
   // Dev toggle for testing (does not persist to backend)
   const togglePremium = () => {
