@@ -10,6 +10,7 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import React, { useState } from "react";
@@ -60,9 +61,15 @@ export default function LoginPage() {
       await signInWithPopup(auth, provider);
       // Let AuthContext handle the redirect via useEffect
     } catch (error) {
-      console.error("Error logging in with Google", error);
-      setError("Failed to log in with Google.");
-      setIsAuthenticating(false);
+      if (error.code === "auth/popup-blocked") {
+        // Browser blocked the popup — fall back to redirect flow
+        const provider = new GoogleAuthProvider();
+        await signInWithRedirect(auth, provider);
+      } else {
+        console.error("Error logging in with Google", error);
+        setError("Failed to log in with Google.");
+        setIsAuthenticating(false);
+      }
     }
   };
 
@@ -78,9 +85,14 @@ export default function LoginPage() {
       await signInWithPopup(auth, provider);
       // Let AuthContext handle the redirect via useEffect
     } catch (error) {
-      console.error("Error logging in with Facebook", error);
-      setError("Failed to log in with Facebook.");
-      setIsAuthenticating(false);
+      if (error.code === "auth/popup-blocked") {
+        const provider = new FacebookAuthProvider();
+        await signInWithRedirect(auth, provider);
+      } else {
+        console.error("Error logging in with Facebook", error);
+        setError("Failed to log in with Facebook.");
+        setIsAuthenticating(false);
+      }
     }
   };
 

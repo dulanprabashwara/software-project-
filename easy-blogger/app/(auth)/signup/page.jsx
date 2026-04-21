@@ -8,6 +8,7 @@ import { auth } from "../../../lib/firebase";
 import {
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
   FacebookAuthProvider,
 } from "firebase/auth";
 import { GoogleIcon, FacebookIcon, EmailIcon } from "../../../components/ui/Icons";
@@ -39,10 +40,15 @@ export default function SignupPage() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      // Let AuthContext globally capture the state and redirect downstream
       router.push("/home");
     } catch (error) {
-      console.error("Error signing up with Google", error);
+      if (error.code === "auth/popup-blocked") {
+        // Browser blocked the popup — fall back to redirect flow (no popup needed)
+        const provider = new GoogleAuthProvider();
+        await signInWithRedirect(auth, provider);
+      } else {
+        console.error("Error signing up with Google", error);
+      }
     }
   };
 
@@ -54,10 +60,14 @@ export default function SignupPage() {
     try {
       const provider = new FacebookAuthProvider();
       await signInWithPopup(auth, provider);
-      // Let AuthContext globally capture the state and redirect downstream
       router.push("/home");
     } catch (error) {
-      console.error("Error signing up with Facebook", error);
+      if (error.code === "auth/popup-blocked") {
+        const provider = new FacebookAuthProvider();
+        await signInWithRedirect(auth, provider);
+      } else {
+        console.error("Error signing up with Facebook", error);
+      }
     }
   };
 
