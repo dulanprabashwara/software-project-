@@ -77,6 +77,7 @@ export default function NotificationPanel({
   return (
     <div className="relative" ref={panelRef}>
       <button
+        data-skip-save-prompt="true"
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 hover:bg-emerald-50 rounded-full transition-colors"
       >

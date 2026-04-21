@@ -279,16 +279,6 @@ export default function Header({ onToggleSidebar }) {
           <span className="hidden sm:inline">Write</span>
         </Link>
 
-        <button
-          data-skip-save-prompt="true"
-          onClick={() => setNotiOpen((p) => !p)}
-          className="relative p-2 text-gray-500 hover:bg-gray-50 rounded-full"
-          aria-label="Notifications"
-        >
-          <Bell size={22} />
-          <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
-        </button>
-        {notiOpen && <NotificationPanel onClose={() => setNotiOpen(false)} />}
         {/* Replaced the manual button wrapper with the NotificationPanel component.
           It handles its own Bell icon and dropdown logic! 
         */}
@@ -298,8 +288,8 @@ export default function Header({ onToggleSidebar }) {
         <div className="relative" ref={menuRef}>
           <div>
             <button
-              data-skip-save-prompt="true"
               suppressHydrationWarning
+              data-skip-save-prompt="true"
               onClick={() => setOpen((prev) => !prev)}
               className={`w-9 h-9 rounded-full border-2 overflow-hidden ${
                 isPremium ? "border-amber-400" : "border-transparent"
