@@ -18,6 +18,8 @@ import {
 const PREVIEW_CONTEXT_STORAGE_KEY = "preview_context";
 const AUTOSAVE_DELAY_MS = 2000;
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const IMAGE_ERROR_FADE_DELAY_MS = 2400;
+const IMAGE_ERROR_HIDE_DELAY_MS = 3000;
 
 function getArticleFromResponse(response) {
   return response?.data ?? response?.article ?? response ?? null;
@@ -96,6 +98,8 @@ export default function EditAsNewPage() {
   const [mounted, setMounted] = useState(false);
   const [isHydrating, setIsHydrating] = useState(true);
   const [inlineError, setInlineError] = useState("");
+  const [coverImageError, setCoverImageError] = useState("");
+  const [isCoverImageErrorVisible, setIsCoverImageErrorVisible] = useState(false);
 
   const [modalState, setModalState] = useState({
     isOpen: false,
@@ -114,6 +118,10 @@ export default function EditAsNewPage() {
   const hasStartedRef = useRef(false);
   const editingSectionRef = useRef(null);
   const isNavigationPromptActiveRef = useRef(false);
+  const coverImageErrorTimersRef = useRef({
+    fade: null,
+    clear: null,
+  });
 
   const hasContent = useMemo(() => {
     return Boolean(title.trim() || content.trim() || coverImage);
@@ -132,6 +140,47 @@ export default function EditAsNewPage() {
 
     return Boolean(title.trim() && plainTextContent);
   }, [content, title]);
+
+  const clearCoverImageErrorTimers = useCallback(() => {
+    if (coverImageErrorTimersRef.current.fade) {
+      clearTimeout(coverImageErrorTimersRef.current.fade);
+      coverImageErrorTimersRef.current.fade = null;
+    }
+
+    if (coverImageErrorTimersRef.current.clear) {
+      clearTimeout(coverImageErrorTimersRef.current.clear);
+      coverImageErrorTimersRef.current.clear = null;
+    }
+  }, []);
+
+  const hideCoverImageError = useCallback(() => {
+    clearCoverImageErrorTimers();
+    setCoverImageError("");
+    setIsCoverImageErrorVisible(false);
+  }, [clearCoverImageErrorTimers]);
+
+  const showCoverImageError = useCallback(
+    (message) => {
+      clearCoverImageErrorTimers();
+      setCoverImageError(message);
+      setIsCoverImageErrorVisible(true);
+
+      coverImageErrorTimersRef.current.fade = setTimeout(() => {
+        setIsCoverImageErrorVisible(false);
+      }, IMAGE_ERROR_FADE_DELAY_MS);
+
+      coverImageErrorTimersRef.current.clear = setTimeout(() => {
+        setCoverImageError("");
+      }, IMAGE_ERROR_HIDE_DELAY_MS);
+    },
+    [clearCoverImageErrorTimers],
+  );
+
+  useEffect(() => {
+    return () => {
+      clearCoverImageErrorTimers();
+    };
+  }, [clearCoverImageErrorTimers]);
 
   const closeModal = useCallback(() => {
     setModalState((prev) => ({
@@ -299,34 +348,37 @@ export default function EditAsNewPage() {
     return () => clearTimeout(timer);
   }, [hasContent, isHydrating, saveArticle]);
 
-  const handleImageUpload = useCallback((event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleImageUpload = useCallback(
+    (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setInlineError("Please upload a valid image file.");
-      return;
-    }
+      if (!file.type.startsWith("image/")) {
+        showCoverImageError("Please upload a valid image file.");
+        return;
+      }
 
-    if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      setInlineError("File size must be less than 5MB.");
-      return;
-    }
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        showCoverImageError("File size must be less than 5MB.");
+        return;
+      }
 
-    const reader = new FileReader();
+      const reader = new FileReader();
 
-    reader.onloadend = () => {
-      setInlineError("");
-      setCoverImage(reader.result);
-    };
+      reader.onloadend = () => {
+        hideCoverImageError();
+        setCoverImage(reader.result);
+      };
 
-    reader.onerror = () => {
-      console.error("Failed to read uploaded image.");
-      setInlineError("Failed to process the selected image.");
-    };
+      reader.onerror = () => {
+        console.error("Failed to read uploaded image.");
+        showCoverImageError("Failed to process the selected image.");
+      };
 
-    reader.readAsDataURL(file);
-  }, []);
+      reader.readAsDataURL(file);
+    },
+    [hideCoverImageError, showCoverImageError],
+  );
 
   const handleRemoveImage = useCallback(() => {
     setCoverImage(null);
@@ -470,12 +522,36 @@ export default function EditAsNewPage() {
     router,
   ]);
 
+  const isTinyMceUiElement = useCallback((element) => {
+    if (!(element instanceof Element)) return false;
+
+    return Boolean(
+      element.closest(
+        [
+          ".tox",
+          ".tox-tinymce-aux",
+          ".tox-dialog",
+          ".tox-dialog-wrap",
+          ".tox-menu",
+          ".tox-collection",
+          ".tox-toolbar",
+          ".tox-toolbar__group",
+          ".mce-content-body",
+        ].join(","),
+      ),
+    );
+  }, []);
+
   useEffect(() => {
     const handleDocumentClickCapture = (event) => {
       if (isHydrating || isSaving || modalState.isOpen) return;
 
       const target = event.target;
       if (!(target instanceof Element)) return;
+
+      if (isTinyMceUiElement(target)) {
+        return;
+      }
 
       const clickableElement = target.closest("button, a, [role='button']");
       if (!clickableElement) return;
@@ -485,6 +561,10 @@ export default function EditAsNewPage() {
       }
 
       if (editingSectionRef.current?.contains(clickableElement)) {
+        return;
+      }
+
+      if (isTinyMceUiElement(clickableElement)) {
         return;
       }
 
@@ -499,7 +579,13 @@ export default function EditAsNewPage() {
     return () => {
       document.removeEventListener("click", handleDocumentClickCapture, true);
     };
-  }, [handleExternalActionAttempt, isHydrating, isSaving, modalState.isOpen]);
+  }, [
+    handleExternalActionAttempt,
+    isHydrating,
+    isSaving,
+    isTinyMceUiElement,
+    modalState.isOpen,
+  ]);
 
   return (
     <>
@@ -567,10 +653,7 @@ export default function EditAsNewPage() {
             className="px-8 py-8 overflow-y-auto"
             style={{ height: "calc(100vh - 260px)" }}
           >
-            <div
-              className="max-w-5xl mx-auto"
-              data-skip-save-prompt="true"
-            >
+            <div className="max-w-5xl mx-auto" data-skip-save-prompt="true">
               {inlineError ? (
                 <div className="mb-6 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-5 py-4 shadow-sm">
                   <div className="flex items-start gap-3">
@@ -631,6 +714,18 @@ export default function EditAsNewPage() {
                 <label className="block text-sm font-semibold text-[#111827] mb-3">
                   Add Cover Image
                 </label>
+
+                {coverImageError ? (
+                  <div
+                    className={`mb-4 rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 shadow-sm transition-opacity duration-500 ${
+                      isCoverImageErrorVisible ? "opacity-100" : "opacity-0"
+                    }`}
+                  >
+                    <p className="text-sm font-medium text-[#DC2626]">
+                      {coverImageError}
+                    </p>
+                  </div>
+                ) : null}
 
                 {!coverImage ? (
                   <div

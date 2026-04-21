@@ -69,10 +69,7 @@ export default function OffersPage() {
     setIsAddingNew(true);
     setFormData({
       name: "", price: "", discount_percent: "", is_active: true,
-      features: [
-        { name: "Unlimited AI Access", enabled: true },
-        { name: "Custom Branding", enabled: false }
-      ]
+      features: []
     });
     setErrors({});
   };
@@ -90,7 +87,7 @@ export default function OffersPage() {
     
     // Validate Price
     const price = parseFloat(formData.price);
-    if (isNaN(price) || price <= 0) {
+    if (isNaN(price) || price < 0) {
       newErrors.price = "Valid price required.";
     }
 
@@ -206,7 +203,7 @@ export default function OffersPage() {
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Base Price:</label>
                   <div className="relative">
-                    <input type="number" min="0" step="0.01" value={formData.price === 0 ? "" : formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} placeholder="9.99" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.price ? 'border-red-500' : 'border-gray-200'}`} />
+                    <input type="number" min="0" step="0.01" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} placeholder="9.99" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.price ? 'border-red-500' : 'border-gray-200'}`} />
                     <DollarSign className="absolute left-3 top-3.5 text-gray-400" size={16} />
                   </div>
                 </div>
