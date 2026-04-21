@@ -17,7 +17,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useSubscription } from "../../subscription/SubscriptionContext";
 import "../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../styles/ai-article-generator/ai-article-generator-view2.css";
@@ -100,17 +100,31 @@ export default function AIArticleGeneratorPage() {
   // and the re-auth prompt the user sees when refreshing mid-generation.
   const isMountedRef       = useRef(true);
 
-  // Reads the Firebase token from the already-logged-in session — no extra login prompt
+  // Waits for Firebase to finish re-initializing after a browser refresh before
+  // reading the token. On first load currentUser is already set so this resolves
+  // instantly. On refresh Firebase restores the session from IndexedDB (~50ms) and
+  // onAuthStateChanged fires — we wait for that before proceeding.
   const getAuthHeaders = async () => {
-    const token = await getAuth().currentUser?.getIdToken();
-    if (!token) {
-      router.push("/login");
+    try {
+      const auth = getAuth();
+      const user = await new Promise((resolve, reject) => {
+        if (auth.currentUser) { resolve(auth.currentUser); return; }
+        const unsub = onAuthStateChanged(auth, (u) => {
+          unsub();
+          if (u) resolve(u);
+          else   reject(new Error("No authenticated user"));
+        });
+        setTimeout(() => { unsub(); reject(new Error("Auth timeout")); }, 5000);
+      });
+      const token = await user.getIdToken();
+      return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      };
+    } catch {
+      if (isMountedRef.current) router.push("/login");
       throw new Error("Not authenticated");
     }
-    return {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
-    };
   };
 
   useEffect(() => {
@@ -191,7 +205,12 @@ export default function AIArticleGeneratorPage() {
     }
   };
 
-  useEffect(() => { fetchArticleLogs(); }, []);
+  // Only fetch once isLoading is false (auth confirmed + subscription checked)
+  // Prevents the "Not authenticated" error on refresh where Firebase re-initializes
+  // slightly after the component mounts.
+  useEffect(() => {
+    if (!isLoading && isPremium) fetchArticleLogs();
+  }, [isLoading, isPremium]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const validateUserInput = (text) => {
     if (!/[a-zA-Z]/.test(text)) { setInputError("Please enter a valid text!"); return false; }

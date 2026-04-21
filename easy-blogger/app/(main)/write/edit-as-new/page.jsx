@@ -1,84 +1,42 @@
+//easy-blogger\app\(main)\write\edit-as-new\page.jsx
+
 "use client";
 
-import { Editor } from "@tinymce/tinymce-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Image as ImageIcon, X, AlertTriangle } from "lucide-react";
 
 import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
+import ArticleEditorShell from "../../../../components/article/ArticleEditorShell";
+import ConfirmDialog from "../../../../components/article/ConfirmDialog";
+import EditorInlineError from "../../../../components/article/EditorInlineError";
+
+import { useAutosave } from "../../../../hooks/articles/useAutoSave";
+import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
+import { useCoverImageUpload } from "../../../../hooks/articles/useCoverImageUpload";
+import { getArticleFromResponse } from "../../../../lib/articles/editorHelpers";
 import {
-  getDraftById,
-  startEditAsNew,
+  clearPreviewContext,
+  readPreviewContext,
+} from "../../../../lib/articles/previewContext";
+
+import {
   autosaveEditAsNew,
   discardEditAsNew,
+  getDraftById,
   saveEditAsNewAsDraft,
+  startEditAsNew,
 } from "../../../../lib/articles/api";
 
-const PREVIEW_CONTEXT_STORAGE_KEY = "preview_context";
-const AUTOSAVE_DELAY_MS = 2000;
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
-const IMAGE_ERROR_FADE_DELAY_MS = 2400;
-const IMAGE_ERROR_HIDE_DELAY_MS = 3000;
-
-function getArticleFromResponse(response) {
-  return response?.data ?? response?.article ?? response ?? null;
+function normalizePlainText(value) {
+  return String(value || "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-function ConfirmModal({
-  isOpen,
-  title,
-  message,
-  confirmText = "Yes",
-  cancelText = "No",
-  isLoading = false,
-  onConfirm,
-  onCancel,
-}) {
-  if (!isOpen) return null;
-
-  return (
-    <div
-      data-skip-save-prompt="true"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-[2px] px-4"
-    >
-      <div
-        data-skip-save-prompt="true"
-        className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-[#E5E7EB] overflow-hidden"
-      >
-        <div className="flex items-start gap-4 px-6 py-5">
-          <div className="mt-0.5 flex h-11 w-11 items-center justify-center rounded-full bg-[#FEF3C7]">
-            <AlertTriangle className="h-5 w-5 text-[#D97706]" />
-          </div>
-
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold text-[#111827]">{title}</h2>
-            <p className="mt-2 text-sm leading-6 text-[#6B7280]">{message}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-3 border-t border-[#E5E7EB] bg-[#F9FAFB] px-6 py-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isLoading}
-            className="rounded-full border border-[#D1D5DB] bg-white px-5 py-2.5 text-sm font-medium text-[#374151] transition hover:bg-[#F3F4F6] disabled:opacity-50"
-          >
-            {cancelText}
-          </button>
-
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={isLoading}
-            className="rounded-full bg-[#111827] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#1F2937] disabled:opacity-50"
-          >
-            {isLoading ? "Please wait..." : confirmText}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+function stripHtmlToPlainText(html) {
+  return normalizePlainText(String(html || "").replace(/<[^>]*>/g, " "));
 }
 
 export default function EditAsNewPage() {
@@ -86,6 +44,7 @@ export default function EditAsNewPage() {
   const searchParams = useSearchParams();
   const sourceArticleId = searchParams.get("id");
 
+  const [isClientReady, setIsClientReady] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState(null);
@@ -95,152 +54,68 @@ export default function EditAsNewPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [fontSize, setFontSize] = useState(16);
-  const [mounted, setMounted] = useState(false);
-  const [isHydrating, setIsHydrating] = useState(true);
   const [inlineError, setInlineError] = useState("");
-  const [coverImageError, setCoverImageError] = useState("");
-  const [isCoverImageErrorVisible, setIsCoverImageErrorVisible] = useState(false);
+  const [editorTextLength, setEditorTextLength] = useState(0);
+  const [isHydrating, setIsHydrating] = useState(true);
 
-  const [modalState, setModalState] = useState({
-    isOpen: false,
-    title: "",
-    message: "",
-    confirmText: "Yes",
-    cancelText: "No",
-    onConfirm: null,
-    onCancel: null,
-    isLoading: false,
-  });
+  const { modalState, openModal, closeModal } = useConfirmDialog();
 
-  const fileInputRef = useRef(null);
   const editorRef = useRef(null);
   const isSavingRef = useRef(false);
   const hasStartedRef = useRef(false);
   const editingSectionRef = useRef(null);
   const isNavigationPromptActiveRef = useRef(false);
-  const coverImageErrorTimersRef = useRef({
-    fade: null,
-    clear: null,
+  const pendingExternalActionRef = useRef(null);
+  const bypassExternalActionGuardRef = useRef(false);
+
+  const coverImageUpload = useCoverImageUpload({
+    onChange: setCoverImage,
   });
 
-  const hasContent = useMemo(() => {
-    return Boolean(title.trim() || content.trim() || coverImage);
-  }, [title, content, coverImage]);
-
-  const plainText = editorRef.current
-    ? editorRef.current.getContent({ format: "text" })
-    : "";
-
-  const charCount = plainText.length;
-
-  const hasRequiredContent = useMemo(() => {
-    const plainTextContent = editorRef.current
-      ? editorRef.current.getContent({ format: "text" }).trim()
-      : String(content || "").replace(/<[^>]*>/g, "").trim();
-
-    return Boolean(title.trim() && plainTextContent);
-  }, [content, title]);
-
-  const clearCoverImageErrorTimers = useCallback(() => {
-    if (coverImageErrorTimersRef.current.fade) {
-      clearTimeout(coverImageErrorTimersRef.current.fade);
-      coverImageErrorTimersRef.current.fade = null;
-    }
-
-    if (coverImageErrorTimersRef.current.clear) {
-      clearTimeout(coverImageErrorTimersRef.current.clear);
-      coverImageErrorTimersRef.current.clear = null;
-    }
+  useEffect(() => {
+    setIsClientReady(true);
   }, []);
 
-  const hideCoverImageError = useCallback(() => {
-    clearCoverImageErrorTimers();
-    setCoverImageError("");
-    setIsCoverImageErrorVisible(false);
-  }, [clearCoverImageErrorTimers]);
-
-  const showCoverImageError = useCallback(
-    (message) => {
-      clearCoverImageErrorTimers();
-      setCoverImageError(message);
-      setIsCoverImageErrorVisible(true);
-
-      coverImageErrorTimersRef.current.fade = setTimeout(() => {
-        setIsCoverImageErrorVisible(false);
-      }, IMAGE_ERROR_FADE_DELAY_MS);
-
-      coverImageErrorTimersRef.current.clear = setTimeout(() => {
-        setCoverImageError("");
-      }, IMAGE_ERROR_HIDE_DELAY_MS);
-    },
-    [clearCoverImageErrorTimers],
-  );
-
-  useEffect(() => {
-    return () => {
-      clearCoverImageErrorTimers();
-    };
-  }, [clearCoverImageErrorTimers]);
-
-  const closeModal = useCallback(() => {
-    setModalState((prev) => ({
-      ...prev,
-      isOpen: false,
-      isLoading: false,
-      onConfirm: null,
-      onCancel: null,
-    }));
-  }, []);
-
-  const openModal = useCallback(
-    ({
-      title,
-      message,
-      confirmText = "Yes",
-      cancelText = "No",
-      onConfirm,
-      onCancel,
-    }) => {
-      setModalState({
-        isOpen: true,
-        title,
-        message,
-        confirmText,
-        cancelText,
-        isLoading: false,
-        onConfirm: async () => {
-          try {
-            setModalState((prev) => ({ ...prev, isLoading: true }));
-            await onConfirm?.();
-          } finally {
-            setModalState((prev) => ({ ...prev, isLoading: false }));
-          }
-        },
-        onCancel: async () => {
-          try {
-            setModalState((prev) => ({ ...prev, isLoading: true }));
-            await onCancel?.();
-          } finally {
-            setModalState((prev) => ({ ...prev, isLoading: false }));
-            closeModal();
-          }
-        },
-      });
-    },
-    [closeModal],
-  );
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (content.trim()) {
-      setInlineError("");
+  const getEditorHtmlContent = useCallback(() => {
+    if (editorRef.current) {
+      return editorRef.current.getContent() || "";
     }
+
+    return content || "";
   }, [content]);
 
+  const getEditorPlainTextContent = useCallback(() => {
+    if (editorRef.current) {
+      return normalizePlainText(editorRef.current.getContent({ format: "text" }));
+    }
+
+    return stripHtmlToPlainText(content);
+  }, [content]);
+
+  const syncEditorDerivedState = useCallback(() => {
+    const plainText = getEditorPlainTextContent();
+    setEditorTextLength(plainText.length);
+
+    if (plainText) {
+      setInlineError("");
+    }
+  }, [getEditorPlainTextContent]);
+
+  const hasAnyContent = Boolean(
+    title.trim() || editorTextLength > 0 || coverImage,
+  );
+
+  const hasRequiredContent = Boolean(title.trim() && editorTextLength > 0);
+
   useEffect(() => {
+    syncEditorDerivedState();
+  }, [content, syncEditorDerivedState]);
+
+  useEffect(() => {
+    if (!isClientReady) {
+      return;
+    }
+
     if (!sourceArticleId) {
       router.push("/write/unpublished");
       return;
@@ -254,30 +129,24 @@ export default function EditAsNewPage() {
 
     const hydrateEditor = async () => {
       try {
-        const rawPreviewContext = sessionStorage.getItem(
-          PREVIEW_CONTEXT_STORAGE_KEY,
-        );
+        const previewContext = readPreviewContext();
 
-        if (rawPreviewContext) {
-          const previewContext = JSON.parse(rawPreviewContext);
+        if (
+          previewContext?.mode === "edit-as-new" &&
+          previewContext?.sourceId === sourceArticleId &&
+          previewContext?.id
+        ) {
+          const response = await getDraftById(previewContext.id);
+          const article = getArticleFromResponse(response);
 
-          if (
-            previewContext?.mode === "edit-as-new" &&
-            previewContext?.sourceId === sourceArticleId &&
-            previewContext?.id
-          ) {
-            const response = await getDraftById(previewContext.id);
-            const article = getArticleFromResponse(response);
-
-            if (article) {
-              setEditingArticleId(article.id);
-              setTitle(article.title || "");
-              setContent(article.content || "");
-              setCoverImage(article.coverImage || null);
-              setLastSavedAt(article.updatedAt ? new Date(article.updatedAt) : null);
-              setIsHydrating(false);
-              return;
-            }
+          if (article) {
+            setEditingArticleId(article.id);
+            setTitle(article.title || "");
+            setContent(article.content || "");
+            setCoverImage(article.coverImage || null);
+            setLastSavedAt(article.updatedAt ? new Date(article.updatedAt) : null);
+            setIsHydrating(false);
+            return;
           }
         }
 
@@ -302,18 +171,36 @@ export default function EditAsNewPage() {
     };
 
     void hydrateEditor();
-  }, [router, sourceArticleId]);
+  }, [isClientReady, router, sourceArticleId]);
 
   const saveArticle = useCallback(
-    async (mode) => {
-      if (!editingArticleId) return null;
-      if (!hasContent) return null;
-      if (isSavingRef.current) return null;
+    async (mode, overrides = {}) => {
+      if (!editingArticleId || isSavingRef.current) {
+        return null;
+      }
+
+      const nextTitle =
+        typeof overrides.title === "string" ? overrides.title : title;
+      const nextContent =
+        typeof overrides.content === "string"
+          ? overrides.content
+          : getEditorHtmlContent();
+      const nextCoverImage =
+        overrides.coverImage !== undefined ? overrides.coverImage : coverImage;
+
+      const nextPlainText = stripHtmlToPlainText(nextContent);
+      const canSave = Boolean(
+        nextTitle.trim() || nextPlainText || nextCoverImage,
+      );
+
+      if (!canSave) {
+        return null;
+      }
 
       const payload = {
-        title,
-        content,
-        coverImage,
+        title: nextTitle,
+        content: nextContent,
+        coverImage: nextCoverImage,
       };
 
       try {
@@ -327,6 +214,8 @@ export default function EditAsNewPage() {
 
         const article = getArticleFromResponse(response);
         setLastSavedAt(article?.updatedAt ? new Date(article.updatedAt) : new Date());
+        setContent(nextContent);
+        setEditorTextLength(nextPlainText.length);
 
         return article;
       } finally {
@@ -334,76 +223,98 @@ export default function EditAsNewPage() {
         isSavingRef.current = false;
       }
     },
-    [editingArticleId, title, content, coverImage, hasContent],
+    [editingArticleId, title, coverImage, getEditorHtmlContent],
   );
 
-  useEffect(() => {
-    if (isHydrating) return;
-    if (!hasContent) return;
+  useAutosave({
+    enabled: isClientReady && !isHydrating && hasAnyContent,
+    onSave: () =>
+      saveArticle("editing", {
+        content: getEditorHtmlContent(),
+      }),
+    watchValues: [title, content, coverImage],
+  });
 
-    const timer = setTimeout(() => {
-      void saveArticle("editing");
-    }, AUTOSAVE_DELAY_MS);
+  const runPendingExternalAction = useCallback(() => {
+    const action = pendingExternalActionRef.current;
+    pendingExternalActionRef.current = null;
 
-    return () => clearTimeout(timer);
-  }, [hasContent, isHydrating, saveArticle]);
+    if (!action) return;
 
-  const handleImageUpload = useCallback(
-    (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
+    bypassExternalActionGuardRef.current = true;
 
-      if (!file.type.startsWith("image/")) {
-        showCoverImageError("Please upload a valid image file.");
-        return;
-      }
+    Promise.resolve().then(() => {
+      action();
 
-      if (file.size > MAX_IMAGE_SIZE_BYTES) {
-        showCoverImageError("File size must be less than 5MB.");
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-        hideCoverImageError();
-        setCoverImage(reader.result);
-      };
-
-      reader.onerror = () => {
-        console.error("Failed to read uploaded image.");
-        showCoverImageError("Failed to process the selected image.");
-      };
-
-      reader.readAsDataURL(file);
-    },
-    [hideCoverImageError, showCoverImageError],
-  );
-
-  const handleRemoveImage = useCallback(() => {
-    setCoverImage(null);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+      setTimeout(() => {
+        bypassExternalActionGuardRef.current = false;
+      }, 0);
+    });
   }, []);
 
-  const handleSaveAsDraft = useCallback(async () => {
-    if (!title.trim() || !content.trim()) {
+  const saveDraftWithoutRedirect = useCallback(async () => {
+    const plainTextContent = getEditorPlainTextContent();
+    const htmlContent = getEditorHtmlContent();
+
+    if (!title.trim()) {
+      setInlineError("Title is required to save the article.");
+      return false;
+    }
+
+    if (!plainTextContent) {
       setInlineError("Content is required to save the article.");
-      return;
+      return false;
     }
 
     try {
       setInlineError("");
-      await saveArticle("draft");
-      sessionStorage.removeItem(PREVIEW_CONTEXT_STORAGE_KEY);
-      router.push("/write/unpublished");
+      await saveArticle("draft", { content: htmlContent });
+      clearPreviewContext();
+      return true;
     } catch (error) {
       console.error("Failed to save edit-as-new article as draft:", error);
       setInlineError("Failed to save draft.");
+      return false;
     }
-  }, [content, router, saveArticle, title]);
+  }, [getEditorHtmlContent, getEditorPlainTextContent, saveArticle, title]);
+
+  const discardWithoutRedirect = useCallback(async () => {
+    if (!editingArticleId) {
+      clearPreviewContext();
+      return true;
+    }
+
+    try {
+      await discardEditAsNew(editingArticleId);
+      clearPreviewContext();
+      return true;
+    } catch (error) {
+      const message =
+        error?.message ||
+        error?.response?.data?.message ||
+        "";
+
+      const isAlreadyGone =
+        typeof message === "string" &&
+        message.toLowerCase().includes("article not found");
+
+      if (isAlreadyGone) {
+        clearPreviewContext();
+        return true;
+      }
+
+      console.error("Failed to discard edit-as-new article:", error);
+      setInlineError("Failed to discard changes.");
+      return false;
+    }
+  }, [editingArticleId]);
+
+  const handleSaveAsDraft = useCallback(async () => {
+    const didSave = await saveDraftWithoutRedirect();
+    if (!didSave) return;
+
+    router.push("/write/unpublished");
+  }, [router, saveDraftWithoutRedirect]);
 
   const handleDiscard = useCallback(async () => {
     if (!editingArticleId) return;
@@ -415,63 +326,55 @@ export default function EditAsNewPage() {
       confirmText: "Yes",
       cancelText: "No",
       onConfirm: async () => {
-        try {
-          await discardEditAsNew(editingArticleId);
-          sessionStorage.removeItem(PREVIEW_CONTEXT_STORAGE_KEY);
-          closeModal();
-          router.push("/write/unpublished");
-        } catch (error) {
-          console.error("Failed to discard edit-as-new article:", error);
-          setInlineError("Failed to discard changes.");
-        }
+        const didDiscard = await discardWithoutRedirect();
+        if (!didDiscard) return;
+
+        closeModal();
+        router.push("/write/unpublished");
       },
       onCancel: async () => {},
     });
-  }, [closeModal, editingArticleId, openModal, router]);
+  }, [closeModal, discardWithoutRedirect, editingArticleId, openModal, router]);
 
   const handlePreview = useCallback(async () => {
-    if (!title.trim() || !content.trim()) {
+    const plainTextContent = getEditorPlainTextContent();
+    const htmlContent = getEditorHtmlContent();
+
+    if (!title.trim()) {
+      setInlineError("Title is required to preview the article.");
+      return;
+    }
+
+    if (!plainTextContent) {
       setInlineError("Content is required to preview the article.");
       return;
     }
 
     try {
       setInlineError("");
-      await saveArticle("editing");
+      await saveArticle("editing", { content: htmlContent });
 
-      sessionStorage.setItem(
-        PREVIEW_CONTEXT_STORAGE_KEY,
-        JSON.stringify({
-          id: editingArticleId,
-          sourceId: sourceArticleId,
-          mode: "edit-as-new",
-        }),
-      );
-
-      router.push("/write/preview");
+      router.push(`/write/preview?id=${editingArticleId}&mode=edit-as-new&sourceId=${sourceArticleId}`);
+      
     } catch (error) {
       console.error("Failed to prepare article preview:", error);
       setInlineError("Failed to open preview.");
     }
-  }, [editingArticleId, sourceArticleId, content, router, saveArticle, title]);
-
-  const handleDropImage = useCallback(
-    (event) => {
-      event.preventDefault();
-
-      const file = event.dataTransfer.files?.[0];
-      if (!file) return;
-
-      handleImageUpload({ target: { files: [file] } });
-    },
-    [handleImageUpload],
-  );
+  }, [
+    editingArticleId,
+    getEditorHtmlContent,
+    getEditorPlainTextContent,
+    router,
+    saveArticle,
+    sourceArticleId,
+    title,
+  ]);
 
   const handleZoomChange = useCallback((delta) => {
     setZoom((prev) => Math.max(50, Math.min(200, prev + delta)));
   }, []);
 
-  const handleExternalActionAttempt = useCallback(async () => {
+  const handleExternalActionAttempt = useCallback(() => {
     if (isNavigationPromptActiveRef.current) {
       return;
     }
@@ -485,41 +388,45 @@ export default function EditAsNewPage() {
       cancelText: "No",
       onConfirm: async () => {
         try {
-          if (!hasRequiredContent) {
+          const didSave = await saveDraftWithoutRedirect();
+
+          if (!didSave) {
+            pendingExternalActionRef.current = null;
             closeModal();
-            setInlineError("Content is required to save the article.");
             return;
           }
 
-          setInlineError("");
-          await handleSaveAsDraft();
           closeModal();
+          runPendingExternalAction();
         } finally {
           isNavigationPromptActiveRef.current = false;
         }
       },
       onCancel: async () => {
         try {
-          if (editingArticleId) {
-            await discardEditAsNew(editingArticleId);
+          const didDiscard = await discardWithoutRedirect();
+
+          if (!didDiscard) {
+            pendingExternalActionRef.current = null;
+            return;
           }
-          sessionStorage.removeItem(PREVIEW_CONTEXT_STORAGE_KEY);
-          router.push("/write/unpublished");
-        } catch (error) {
-          console.error("Failed to discard edit-as-new article:", error);
-          setInlineError("Failed to discard changes.");
+
+          runPendingExternalAction();
         } finally {
           isNavigationPromptActiveRef.current = false;
         }
       },
+      onClose: async () => {
+        pendingExternalActionRef.current = null;
+        isNavigationPromptActiveRef.current = false;
+      },
     });
   }, [
     closeModal,
-    editingArticleId,
-    handleSaveAsDraft,
-    hasRequiredContent,
+    discardWithoutRedirect,
     openModal,
-    router,
+    runPendingExternalAction,
+    saveDraftWithoutRedirect,
   ]);
 
   const isTinyMceUiElement = useCallback((element) => {
@@ -543,35 +450,39 @@ export default function EditAsNewPage() {
   }, []);
 
   useEffect(() => {
+    if (!isClientReady) {
+      return;
+    }
+
     const handleDocumentClickCapture = (event) => {
-      if (isHydrating || isSaving || modalState.isOpen) return;
+      if (
+        bypassExternalActionGuardRef.current ||
+        isHydrating ||
+        isSaving ||
+        modalState.isOpen
+      ) {
+        return;
+      }
 
       const target = event.target;
       if (!(target instanceof Element)) return;
-
-      if (isTinyMceUiElement(target)) {
-        return;
-      }
+      if (isTinyMceUiElement(target)) return;
 
       const clickableElement = target.closest("button, a, [role='button']");
       if (!clickableElement) return;
 
-      if (clickableElement.closest("[data-skip-save-prompt='true']")) {
-        return;
-      }
+      if (clickableElement.closest("[data-skip-save-prompt='true']")) return;
+      if (editingSectionRef.current?.contains(clickableElement)) return;
+      if (isTinyMceUiElement(clickableElement)) return;
 
-      if (editingSectionRef.current?.contains(clickableElement)) {
-        return;
-      }
-
-      if (isTinyMceUiElement(clickableElement)) {
-        return;
-      }
+      pendingExternalActionRef.current = () => {
+        clickableElement.click();
+      };
 
       event.preventDefault();
       event.stopPropagation();
 
-      void handleExternalActionAttempt();
+      handleExternalActionAttempt();
     };
 
     document.addEventListener("click", handleDocumentClickCapture, true);
@@ -581,15 +492,22 @@ export default function EditAsNewPage() {
     };
   }, [
     handleExternalActionAttempt,
+    isClientReady,
     isHydrating,
     isSaving,
     isTinyMceUiElement,
     modalState.isOpen,
   ]);
 
+  if (!isClientReady) {
+    return (
+      <div className="min-h-screen bg-white" />
+    );
+  }
+
   return (
     <>
-      <ConfirmModal
+      <ConfirmDialog
         isOpen={modalState.isOpen}
         title={modalState.title}
         message={modalState.message}
@@ -598,6 +516,7 @@ export default function EditAsNewPage() {
         isLoading={modalState.isLoading}
         onConfirm={modalState.onConfirm}
         onCancel={modalState.onCancel}
+        onClose={modalState.onClose}
       />
 
       <div className="min-h-screen bg-white">
@@ -609,286 +528,54 @@ export default function EditAsNewPage() {
             sidebarOpen ? "ml-60" : "ml-0"
           }`}
         >
-          <div className="bg-white border-b border-[#E5E7EB] px-8 py-6">
-            <div className="max-w-6xl mx-auto">
-              <div className="grid grid-cols-3 items-center">
-                <div className="text-sm text-[#6B7280] justify-self-start">
-                  {isHydrating
-                    ? "Loading..."
-                    : isSaving
-                      ? "Saving..."
-                      : lastSavedAt
-                        ? `Saved at ${lastSavedAt.toLocaleTimeString()}`
-                        : "Not saved yet"}
-                </div>
-
-                <div className="text-center">
-                  <h1 className="text-4xl font-serif font-bold text-[#111827]">
-                    Edit as a New Article
-                  </h1>
-                  <p className="text-[#6B7280] mt-1">
-                    Create a brand new article using the same title
-                  </p>
-                </div>
-
-                <div className="justify-self-end flex items-center gap-3">
-                  <button
-                    data-skip-save-prompt="true"
-                    onClick={handleSaveAsDraft}
-                    disabled={!title.trim() || !content.trim() || isSaving || isHydrating}
-                    className="inline-flex items-center px-6 py-2.5 bg-[#111827] text-white rounded-full text-sm font-medium hover:bg-[#1f2937] disabled:opacity-50"
-                  >
-                    Save as Draft
-                  </button>
-
-                  <span className="inline-flex items-center px-6 py-2.5 bg-[#1ABC9C] text-white rounded-full text-sm font-medium">
-                    New Article Copy
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="px-8 py-8 overflow-y-auto"
-            style={{ height: "calc(100vh - 260px)" }}
-          >
+          <div className="px-8 pt-8">
             <div className="max-w-5xl mx-auto" data-skip-save-prompt="true">
-              {inlineError ? (
-                <div className="mb-6 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-5 py-4 shadow-sm">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-[#FEE2E2]">
-                      <AlertTriangle className="h-4 w-4 text-[#DC2626]" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-[#B91C1C]">
-                        Content required
-                      </h3>
-                      <p className="mt-1 text-sm leading-6 text-[#DC2626]">
-                        {inlineError}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            <div
-              ref={editingSectionRef}
-              className="max-w-5xl mx-auto space-y-6"
-              style={{
-                transform: `scale(${zoom / 100})`,
-                transformOrigin: "top center",
-              }}
-            >
-              <div className="bg-[#F8FAFC] rounded-lg p-6">
-                <label className="block text-sm font-semibold text-[#111827] mb-3">
-                  Blog Title
-                </label>
-
-                <div className="space-y-2">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={title}
-                      readOnly
-                      className="w-full px-4 py-3 bg-[#F3F4F6] border border-[#E5E7EB] rounded-lg text-[#111827] cursor-not-allowed"
-                      maxLength={100}
-                      disabled={isHydrating}
-                    />
-
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                      <span className="text-xs text-[#6B7280]">
-                        {title.length}/100
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-[#6B7280]">
-                    This title is copied from the original article and cannot be changed.
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-[#F8FAFC] rounded-lg p-6">
-                <label className="block text-sm font-semibold text-[#111827] mb-3">
-                  Add Cover Image
-                </label>
-
-                {coverImageError ? (
-                  <div
-                    className={`mb-4 rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 shadow-sm transition-opacity duration-500 ${
-                      isCoverImageErrorVisible ? "opacity-100" : "opacity-0"
-                    }`}
-                  >
-                    <p className="text-sm font-medium text-[#DC2626]">
-                      {coverImageError}
-                    </p>
-                  </div>
-                ) : null}
-
-                {!coverImage ? (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    onDragOver={(event) => event.preventDefault()}
-                    onDrop={handleDropImage}
-                    className="border-2 border-dashed border-[#E5E7EB] rounded-lg p-12 text-center cursor-pointer hover:border-[#1ABC9C] transition-colors bg-white"
-                  >
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-16 h-16 rounded-full bg-[#F8FAFC] flex items-center justify-center">
-                        <ImageIcon className="w-8 h-8 text-[#6B7280]" />
-                      </div>
-
-                      <div>
-                        <p className="text-sm font-medium text-[#111827] mb-1">
-                          Click to upload or drag and drop
-                        </p>
-                        <p className="text-xs text-[#6B7280]">
-                          PNG, JPG, GIF or WEBP (Max 5 MB)
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative border-2 border-[#E5E7EB] rounded-lg overflow-hidden bg-white">
-                    <img
-                      src={coverImage}
-                      alt="Cover"
-                      className="w-full h-64 object-cover"
-                    />
-                    <button
-                      onClick={handleRemoveImage}
-                      className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg hover:bg-[#F8FAFC] transition-colors"
-                      aria-label="Remove cover image"
-                    >
-                      <X className="w-5 h-5 text-[#DC2626]" />
-                    </button>
-                  </div>
-                )}
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/gif,image/webp"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-
-                {!coverImage && (
-                  <p className="text-xs text-[#DC2626] mt-2">*Required</p>
-                )}
-              </div>
-
-              <div className="bg-[#F8FAFC] rounded-lg p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <label className="block text-sm font-semibold text-[#111827]">
-                    Write
-                  </label>
-
-                  <div className="flex items-center gap-2 text-xs text-[#6B7280]">
-                    <button
-                      type="button"
-                      onClick={() => handleZoomChange(-10)}
-                      className="px-2 py-1 border rounded"
-                    >
-                      Zoom -
-                    </button>
-                    <span>{zoom}%</span>
-                    <button
-                      type="button"
-                      onClick={() => handleZoomChange(10)}
-                      className="px-2 py-1 border rounded"
-                    >
-                      Zoom +
-                    </button>
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
-                    {!mounted ? (
-                      <div className="h-[260px] bg-white" />
-                    ) : (
-                      <Editor
-                        onInit={(evt, editor) => {
-                          editorRef.current = editor;
-                        }}
-                        value={content}
-                        onEditorChange={(newContent) => {
-                          setInlineError("");
-                          setContent(newContent);
-                        }}
-                        apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
-                        init={{
-                          readonly: false,
-                          promotion: false,
-                          height: 260,
-                          menubar: false,
-                          branding: false,
-                          placeholder: "Write your blog content here...",
-                          plugins: [
-                            "lists",
-                            "link",
-                            "image",
-                            "table",
-                            "code",
-                            "wordcount",
-                            "autolink",
-                          ],
-                          toolbar:
-                            "undo redo | blocks | bold italic underline | " +
-                            "alignleft aligncenter alignright alignjustify | " +
-                            "bullist numlist | link image table | code",
-                          content_style: `body {
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                            font-size: ${fontSize}px;
-                          }`,
-                        }}
-                      />
-                    )}
-                  </div>
-
-                  <div className="absolute right-4 bottom-4 flex items-center gap-2">
-                    <span className="text-xs text-[#6B7280]">
-                      {charCount}/20,000
-                    </span>
-
-                    {content.length === 0 && (
-                      <span className="text-xs text-[#DC2626]">*Required</span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <EditorInlineError
+                title="Content required"
+                message={inlineError}
+              />
             </div>
           </div>
 
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] px-8 py-6 z-30">
-            <div className="max-w-5xl mx-auto flex items-center justify-center gap-20">
-              <button
-                onClick={() => router.push("/write/unpublished")}
-                className="px-8 py-3 bg-[#111827] hover:bg-[#1f2937] text-white rounded-full text-sm font-medium transition-colors"
-              >
-                Exit Editor
-              </button>
-
-              <button
-                data-skip-save-prompt="true"
-                onClick={handlePreview}
-                disabled={!title.trim() || !content.trim() || isHydrating}
-                className="px-8 py-3 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Preview
-              </button>
-
-              <button
-                data-skip-save-prompt="true"
-                onClick={handleDiscard}
-                disabled={isSaving || isHydrating || !editingArticleId}
-                className="px-8 py-3 bg-[#111827] hover:bg-[#1f2937] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
-              >
-                Discard
-              </button>
-            </div>
+          <div ref={editingSectionRef}>
+            <ArticleEditorShell
+              editorRef={editorRef}
+              title={title}
+              onTitleChange={setTitle}
+              titleReadOnly
+              titleHelperText="This title is copied from the original article and cannot be changed."
+              content={content}
+              onContentChange={(value) => {
+                setContent(value);
+                setInlineError("");
+                setEditorTextLength(stripHtmlToPlainText(value).length);
+              }}
+              onEditorReady={syncEditorDerivedState}
+              coverImage={coverImage}
+              coverImageProps={coverImageUpload}
+              zoom={zoom}
+              onZoomChange={handleZoomChange}
+              fontSize={fontSize}
+              isHydrating={isHydrating}
+              isSaving={isSaving}
+              lastSavedAt={lastSavedAt}
+              headerTitle="Edit as a New Article"
+              headerSubtitle="Create a brand new article using the same title"
+              modeBadge="New Article Copy"
+              onSaveAsDraft={handleSaveAsDraft}
+              onPreview={handlePreview}
+              onDiscard={handleDiscard}
+              onExit={() => {
+                pendingExternalActionRef.current = () => {
+                  router.push("/write/unpublished");
+                };
+                handleExternalActionAttempt();
+              }}
+              disableSaveAsDraft={!hasRequiredContent}
+              disablePreview={!hasRequiredContent}
+              disableDiscard={isSaving || isHydrating || !editingArticleId}
+              editorTextLength={editorTextLength}
+            />
           </div>
         </main>
       </div>
