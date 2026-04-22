@@ -123,13 +123,13 @@ export default function OtherUserStatsPage({ params }) {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[1001]"
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-1001"
         onClick={() => router.back()}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-[1002] p-4 pointer-events-none">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col pointer-events-auto overflow-hidden">
+      <div className="fixed inset-0 flex items-center justify-center z-1002 p-4 pointer-events-none">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-150 flex flex-col pointer-events-auto overflow-hidden">
           {/* Header */}
           <div className="p-6 border-b border-[#E5E7EB] shrink-0">
             <div className="flex items-center justify-between mb-4">

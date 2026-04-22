@@ -148,7 +148,7 @@ export default function SignupPage() {
 
           {/* Right Illustration */}
           <div className="flex-1 relative hidden md:block pl-8 overflow-visible">
-            <div className="relative w-full h-[500px]">
+            <div className="relative w-full h-125">
               <svg
                 className="absolute top-24 left-8 w-48 h-48"
                 viewBox="0 0 192 192"

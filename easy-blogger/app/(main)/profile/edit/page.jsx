@@ -575,7 +575,7 @@ export default function EditProfilePage() {
 
       {/* Subscription Card - Conditional */}
       {profileLoading && !userProfile ? (
-        <div className="bg-[#F9FAFB] rounded-xl border border-[#E5E7EB] p-6 mb-6 animate-pulse h-[100px]"></div>
+        <div className="bg-[#F9FAFB] rounded-xl border border-[#E5E7EB] p-6 mb-6 animate-pulse h-25"></div>
       ) : isPremium ? (
         /* Premium Member Card */
         <div className="bg-white rounded-xl border border-[#1ABC9C] p-6 mb-6 shadow-sm relative overflow-hidden">

@@ -141,7 +141,7 @@ export default function PreviewPage() {
                         <img
                           src={article.coverImage}
                           alt="Cover"
-                          className="h-[320px] w-full object-cover"
+                          className="h-80 w-full object-cover"
                         />
                       </div>
                     ) : null}

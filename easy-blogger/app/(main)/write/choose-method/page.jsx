@@ -19,7 +19,7 @@ function ChooseOptionCard({
       onClick={onClick}
       className={`group flex w-full items-center justify-between rounded-2xl border px-6 py-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(15,23,42,0.10)] ${
         isPrimary
-          ? "border-transparent bg-gradient-to-r from-[#1ABC9C] to-[#159A80]"
+          ? "border-transparent bg-linear-to-r from-[#1ABC9C] to-[#159A80]"
           : "border-[#DCE7E4] bg-white hover:border-[#1ABC9C]"
       }`}
     >
@@ -143,7 +143,7 @@ export default function ChooseMethodPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F3FBF8] via-[#F8FAFC] to-[#F8FAFC] px-6 py-10">
+    <div className="min-h-screen bg-linear-to-br from-[#F3FBF8] via-[#F8FAFC] to-[#F8FAFC] px-6 py-10">
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center justify-center">
         <div className="grid w-full overflow-hidden rounded-3xl bg-[#F8FAFC] shadow-[0_30px_80px_rgba(15,23,42,0.12)] lg:grid-cols-2">
           <div className="flex flex-col justify-center px-8 py-10 sm:px-12 lg:px-14">
@@ -171,7 +171,7 @@ export default function ChooseMethodPage() {
           </div>
 
           <div className="relative hidden items-center justify-center overflow-hidden bg-[#F0FDF9] lg:flex">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(26,188,156,0.18),_transparent_65%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(26,188,156,0.18),transparent_65%)]" />
             <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#1ABC9C]/10 blur-3xl" />
             <div className="absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-[#0EA5E9]/10 blur-3xl" />
 

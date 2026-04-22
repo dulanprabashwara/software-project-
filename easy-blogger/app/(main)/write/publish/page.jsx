@@ -432,7 +432,7 @@ export default function PublishArticlePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-linear-to-b from-white to-emerald-50 flex items-center justify-center p-6">
       <div className="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-10 text-center">
           <h1 className="text-4xl font-serif font-bold text-[#111827]">

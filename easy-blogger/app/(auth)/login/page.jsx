@@ -131,7 +131,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       <div className="absolute inset-0 bg-[#F8FAFC]">
-        <div className="absolute left-0 top-0 w-1/3 h-full bg-gradient-to-r from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
+        <div className="absolute left-0 top-0 w-1/3 h-full bg-linear-to-r from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
         <div className="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
       </div>
 

@@ -104,7 +104,7 @@ export default function UserStatsPage() {
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[600px] flex flex-col pointer-events-auto">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-150 flex flex-col pointer-events-auto">
           {/* Header */}
           <div className="p-6 border-b border-[#E5E7EB] shrink-0">
             <div className="flex items-center justify-between mb-4">
