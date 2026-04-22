@@ -131,7 +131,19 @@ export default function AIArticleGeneratorPage() {
     if (!isLoading && !isPremium) router.push("/subscription/upgrade");
   }, [isPremium, isLoading, router]);
 
-  // Sidebar mock data
+  // Fetch trending topics from backend
+  const fetchTrendingTopics = async () => {
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${BACKEND_URL}/api/ai/trending-topics`, { headers });
+      const { topics } = await res.json();
+      setTrendingTopics(topics || []);
+    } catch (err) {
+      console.error("[TrendingTopics] Failed:", err);
+    }
+  };
+
+  // Sidebar mock data (excluding trending topics)
   useEffect(() => {
     const fetchSidebarData = async () => {
       try {
@@ -140,13 +152,19 @@ export default function AIArticleGeneratorPage() {
         const data = await res.json();
         if (data.trendingArticles) setTrendingArticles(data.trendingArticles);
         if (data.topAIArticles)    setTopAIArticles(data.topAIArticles);
-        if (data.trendingTopics)   setTrendingTopics(data.trendingTopics);
       } catch (err) {
         console.error("[Sidebar] Failed:", err);
       }
     };
     fetchSidebarData();
   }, []);
+
+  // Fetch trending topics from backend
+  useEffect(() => {
+    if (!isLoading && isPremium) {
+      fetchTrendingTopics();
+    }
+  }, [isLoading, isPremium]);
 
   useEffect(() => {
     if (trendingArticles.length === 0) return;
@@ -635,7 +653,7 @@ export default function AIArticleGeneratorPage() {
           <div>
             <h3 className="insights-section-title">Trending topics</h3>
             <div className="trending-topics-buttons">
-              {trendingTopics.map((topic, index) => <button key={index} className="topic-button">{topic}</button>)}
+              {trendingTopics.map((topic, index) => <button key={index} className="topic-button">{topic.keyword}</button>)}
             </div>
           </div>
         </div>
@@ -916,7 +934,7 @@ export default function AIArticleGeneratorPage() {
         <div>
           <h3 className="insights-section-title">Trending topics</h3>
           <div className="trending-topics-buttons">
-            {trendingTopics.map((topic, index) => <button key={index} className="topic-button">{topic}</button>)}
+            {trendingTopics.map((topic, index) => <button key={index} className="topic-button">{topic.keyword}</button>)}
           </div>
         </div>
       </div>
