@@ -16,13 +16,6 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-/**
- * Edit Profile Page
- *
- * Purpose: Allows users to update their profile information and manage account settings
- * Features: Profile photo upload, bio editing, email settings, password change, account deletion
- */
-
 import { useSubscription } from "../../../subscription/SubscriptionContext";
 import { useAuth } from "../../../context/AuthContext";
 import { api, API_BASE_URL } from "../../../../lib/api"; // WordPress OAuth needs API_BASE_URL
@@ -39,27 +32,24 @@ export default function EditProfilePage() {
     updateProfile: updateContextProfile,
   } = useAuth();
 
-  // Firebase data is available almost instantly (cached auth state).
-  // Use it as the immediate fallback so the form renders with real data
-  // on first paint. Backend-only fields (username, bio) fill in via
-  // useEffect once syncUser completes.
+  // Firebase data is available almost instantly as the immediate fallback so the form renders with real data
+
   const [displayName, setDisplayName] = useState(
     userProfile?.displayName || firebaseUser?.displayName || "",
   );
   const [username, setUsername] = useState(userProfile?.username || "");
-  const [email] = useState(
-    firebaseUser?.email || userProfile?.email || "",
-  );
+  const [email] = useState(firebaseUser?.email || userProfile?.email || "");
   const [about, setAbout] = useState(userProfile?.bio || "");
   const [profilePhoto, setProfilePhoto] = useState(
-    userProfile?.avatarUrl || firebaseUser?.photoURL || "/api/placeholder/120/120",
+    userProfile?.avatarUrl ||
+      firebaseUser?.photoURL ||
+      "/api/placeholder/120/120",
   );
 
-  // Track if we've populated the form from the backend yet so we don't
+  //Track if we've populated the form from the backend yet so we don't
   // overwrite user edits if the context updates.
   const [hasInitializedForm, setHasInitializedForm] = useState(false);
 
-  // All hooks MUST be declared before any early returns (React rules of hooks)
   const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -70,9 +60,9 @@ export default function EditProfilePage() {
   const [wordpressConnected, setWordpressConnected] = useState(false);
   // WordPress connection state
   const [wpUsername, setWpUsername] = useState("");
-  const [wpSiteUrl,  setWpSiteUrl]  = useState("");
-  const [wpError,    setWpError]    = useState("");
-  const [wpLoading,  setWpLoading]  = useState(false);
+  const [wpSiteUrl, setWpSiteUrl] = useState("");
+  const [wpError, setWpError] = useState("");
+  const [wpLoading, setWpLoading] = useState(false);
   const fileInputRef = useRef(null);
 
   // Password change state
@@ -83,10 +73,12 @@ export default function EditProfilePage() {
   const [showNewPw, setShowNewPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
 
-  // Populate form fields as soon as userProfile arrives (handles cold start).
+  // fill the form as soon as userProfile arrives
   useEffect(() => {
     if (userProfile && !hasInitializedForm) {
-      setDisplayName(userProfile.displayName || firebaseUser?.displayName || "");
+      setDisplayName(
+        userProfile.displayName || firebaseUser?.displayName || "",
+      );
       setUsername(userProfile.username || "");
       setAbout(userProfile.bio || "");
       if (userProfile.avatarUrl) setProfilePhoto(userProfile.avatarUrl);
@@ -108,14 +100,14 @@ export default function EditProfilePage() {
     const checkWpConnection = async () => {
       try {
         const token = await firebaseUser.getIdToken();
-        const res   = await fetch(`${API_BASE_URL}/api/wordpress/status`, {
+        const res = await fetch(`${API_BASE_URL}/api/wordpress/status`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         if (data?.data?.connected) {
           setWordpressConnected(true);
           setWpUsername(data.data.wpUsername || "");
-          setWpSiteUrl(data.data.siteUrl     || "");
+          setWpSiteUrl(data.data.siteUrl || "");
         }
       } catch {
         // non-critical: silently ignore, UI defaults to disconnected
@@ -129,18 +121,19 @@ export default function EditProfilePage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const params   = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(window.location.search);
     const wpStatus = params.get("wp_status");
     if (!wpStatus) return;
 
     if (wpStatus === "connected") {
       setWordpressConnected(true);
       setWpUsername(params.get("wp_username") || "");
-      setWpSiteUrl(params.get("wp_site")     || "");
+      setWpSiteUrl(params.get("wp_site") || "");
       setWpError("");
     } else if (wpStatus === "error") {
       setWpError(
-        params.get("wp_message") || "WordPress connection failed. Please try again."
+        params.get("wp_message") ||
+          "WordPress connection failed. Please try again.",
       );
     }
 
@@ -153,15 +146,12 @@ export default function EditProfilePage() {
     window.history.replaceState({}, "", cleanUrl.toString());
   }, []);
 
-  // Detect if the user signed in via Google (no email/password to change)
-  const isGoogleUser = firebaseUser?.providerData?.some(
-    (p) => p.providerId === "google.com",
-  ) && !firebaseUser?.providerData?.some(
-    (p) => p.providerId === "password",
-  );
+  // Detect if the user signed in via Google
+  const isGoogleUser =
+    firebaseUser?.providerData?.some((p) => p.providerId === "google.com") &&
+    !firebaseUser?.providerData?.some((p) => p.providerId === "password");
 
-
-
+  //when user click profile picture get that and convert to a string and sets to profilePhoto
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -177,6 +167,7 @@ export default function EditProfilePage() {
     }
   };
 
+  //when click save changes get them and send to the backend
   const handleSaveChanges = async () => {
     if (!firebaseUser) return;
     setIsSaving(true);
@@ -193,12 +184,10 @@ export default function EditProfilePage() {
         avatarUrl: newAvatarUrl,
       };
 
-      // 1. Update backend Database
       await api.updateProfile(updateData, token);
 
-      // 2. Update Firebase Auth Profile (displayName only)
-      // photoURL is intentionally omitted — Firebase Auth rejects base64 data URLs.
-      // The avatar is stored in our backend DB and read from userProfile.avatarUrl.
+      // Update Firebase Auth Profile (displayName only)
+
       if (displayName !== firebaseUser.displayName) {
         const { updateProfile: updateFirebaseAuthProfile } =
           await import("firebase/auth");
@@ -207,7 +196,7 @@ export default function EditProfilePage() {
         });
       }
 
-      // 3. Update AuthContext so all components reflect changes instantly
+      //Update AuthContext with the saved data
       updateContextProfile({
         displayName,
         bio: about,
@@ -223,9 +212,9 @@ export default function EditProfilePage() {
     }
   };
 
+  //clear password states when toggle change password
   const handleChangePassword = () => {
     setShowPasswordChange(!showPasswordChange);
-    // Clear state when toggling
     setPasswordError("");
     setPasswordSuccess(false);
     setCurrentPassword("");
@@ -237,24 +226,29 @@ export default function EditProfilePage() {
     setPasswordError("");
     setPasswordSuccess(false);
 
-    // Validation
+    // chekck if all feilds are filled
     if (!currentPassword || !newPassword || !confirmPassword) {
       setPasswordError("Please fill in all password fields.");
       return;
     }
+    //check if newpassword and confirmpassword match
     if (newPassword !== confirmPassword) {
       setPasswordError("New passwords do not match.");
       return;
     }
+    //check new password length is less than 8
     if (newPassword.length < 8) {
       setPasswordError("New password must be at least 8 characters.");
       return;
     }
+    //check if new password and old password are same
     if (newPassword === currentPassword) {
-      setPasswordError("New password must be different from your current password.");
+      setPasswordError(
+        "New password must be different from your current password.",
+      );
       return;
     }
-
+    //check if the user is logeed in
     if (!firebaseUser || !firebaseUser.email) return;
 
     setIsUpdatingPassword(true);
@@ -265,11 +259,12 @@ export default function EditProfilePage() {
         updatePassword,
       } = await import("firebase/auth");
 
-      // Re-authenticate first (required by Firebase for sensitive operations)
+      // get the user email and entered current password
       const credential = EmailAuthProvider.credential(
         firebaseUser.email,
         currentPassword,
       );
+      //reauthenticate the user with the entered credentials
       await reauthenticateWithCredential(firebaseUser, credential);
 
       // Now update the password
@@ -286,6 +281,7 @@ export default function EditProfilePage() {
       }, 2000);
     } catch (err) {
       console.error("Failed to update password:", err);
+      //define the password error
       if (
         err.code === "auth/invalid-credential" ||
         err.code === "auth/wrong-password" ||
@@ -293,11 +289,17 @@ export default function EditProfilePage() {
       ) {
         setPasswordError("The current password you entered is incorrect.");
       } else if (err.code === "auth/weak-password") {
-        setPasswordError("The new password is too weak. Please choose a stronger one.");
+        setPasswordError(
+          "The new password is too weak. Please choose a stronger one.",
+        );
       } else if (err.code === "auth/requires-recent-login") {
-        setPasswordError("Session expired. Please log out and log back in, then try again.");
+        setPasswordError(
+          "Session expired. Please log out and log back in, then try again.",
+        );
       } else if (err.code === "auth/too-many-requests") {
-        setPasswordError("Too many attempts. Please wait a few minutes and try again.");
+        setPasswordError(
+          "Too many attempts. Please wait a few minutes and try again.",
+        );
       } else {
         setPasswordError(err.message || "An error occurred. Please try again.");
       }
@@ -306,6 +308,7 @@ export default function EditProfilePage() {
     }
   };
 
+  //clear the useStates when click cancel password button
   const handleCancelPasswordChange = () => {
     setCurrentPassword("");
     setNewPassword("");
@@ -313,8 +316,8 @@ export default function EditProfilePage() {
     setShowPasswordChange(false);
   };
 
+  //delete the user account
   const [isDeleting, setIsDeleting] = useState(false);
-
   const handleDeleteAccount = async () => {
     if (
       !confirm(
@@ -333,8 +336,7 @@ export default function EditProfilePage() {
       // Call backend — deletes DB rows + Firebase Auth account via Admin SDK
       await api.deleteAccount(token);
 
-      // Redirect to landing page (Firebase onAuthStateChanged will
-      // automatically clear the AuthContext since the account no longer exists)
+      // Redirect to landing page
       router.push("/");
     } catch (err) {
       console.error("Failed to delete account:", err);
@@ -365,8 +367,8 @@ export default function EditProfilePage() {
       setWpError("");
       try {
         const token = await firebaseUser.getIdToken();
-        const res   = await fetch(`${API_BASE_URL}/api/wordpress/disconnect`, {
-          method:  "DELETE",
+        const res = await fetch(`${API_BASE_URL}/api/wordpress/disconnect`, {
+          method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {
@@ -377,28 +379,34 @@ export default function EditProfilePage() {
         setWpUsername("");
         setWpSiteUrl("");
       } catch (err) {
-        setWpError(err.message || "Failed to disconnect WordPress. Please try again.");
+        setWpError(
+          err.message || "Failed to disconnect WordPress. Please try again.",
+        );
       } finally {
         setWpLoading(false);
       }
-
     } else {
       // redirect to WordPress.com; callback handles the response
       setWpLoading(true);
       setWpError("");
       try {
         const token = await firebaseUser.getIdToken();
-        const res   = await fetch(`${API_BASE_URL}/api/wordpress/auth`, {
+        const res = await fetch(`${API_BASE_URL}/api/wordpress/auth`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         if (!res.ok || !data?.data?.authUrl) {
-          throw new Error(data?.message || "Could not get WordPress authorization URL.");
+          throw new Error(
+            data?.message || "Could not get WordPress authorization URL.",
+          );
         }
         window.location.href = data.data.authUrl;
         // page navigates away; state resets on remount if user cancels
       } catch (err) {
-        setWpError(err.message || "Failed to initiate WordPress connection. Please try again.");
+        setWpError(
+          err.message ||
+            "Failed to initiate WordPress connection. Please try again.",
+        );
         setWpLoading(false);
       }
     }
@@ -667,14 +675,25 @@ export default function EditProfilePage() {
               {isGoogleUser ? (
                 /* Google-only users cannot set a password */
                 <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="w-5 h-5 text-blue-500 mt-0.5 shrink-0">ℹ️</div>
+                  <div className="w-5 h-5 text-blue-500 mt-0.5 shrink-0">
+                    ℹ️
+                  </div>
                   <div>
-                    <p className="text-sm font-medium text-blue-800">Google Account</p>
+                    <p className="text-sm font-medium text-blue-800">
+                      Google Account
+                    </p>
                     <p className="text-sm text-blue-700 mt-1">
-                      Your account uses Google Sign-In. To change your password, please visit your{" "}
-                      <a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+                      Your account uses Google Sign-In. To change your password,
+                      please visit your{" "}
+                      <a
+                        href="https://myaccount.google.com/security"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline font-medium"
+                      >
                         Google Account settings
-                      </a>.
+                      </a>
+                      .
                     </p>
                   </div>
                 </div>
@@ -684,7 +703,9 @@ export default function EditProfilePage() {
                   {passwordSuccess && (
                     <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                       <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
-                      <p className="text-sm text-green-700 font-medium">Password updated successfully!</p>
+                      <p className="text-sm text-green-700 font-medium">
+                        Password updated successfully!
+                      </p>
                     </div>
                   )}
 
@@ -701,7 +722,10 @@ export default function EditProfilePage() {
                     <input
                       type={showCurrentPw ? "text" : "password"}
                       value={currentPassword}
-                      onChange={(e) => { setCurrentPassword(e.target.value); setPasswordError(""); }}
+                      onChange={(e) => {
+                        setCurrentPassword(e.target.value);
+                        setPasswordError("");
+                      }}
                       placeholder="Current password"
                       className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     />
@@ -710,7 +734,11 @@ export default function EditProfilePage() {
                       onClick={() => setShowCurrentPw(!showCurrentPw)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]"
                     >
-                      {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showCurrentPw ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
 
@@ -719,7 +747,10 @@ export default function EditProfilePage() {
                     <input
                       type={showNewPw ? "text" : "password"}
                       value={newPassword}
-                      onChange={(e) => { setNewPassword(e.target.value); setPasswordError(""); }}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value);
+                        setPasswordError("");
+                      }}
                       placeholder="New password (min. 8 characters)"
                       className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     />
@@ -728,7 +759,11 @@ export default function EditProfilePage() {
                       onClick={() => setShowNewPw(!showNewPw)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]"
                     >
-                      {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showNewPw ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
 
@@ -737,7 +772,10 @@ export default function EditProfilePage() {
                     <input
                       type={showConfirmPw ? "text" : "password"}
                       value={confirmPassword}
-                      onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(""); }}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setPasswordError("");
+                      }}
                       placeholder="Confirm new password"
                       className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     />
@@ -746,7 +784,11 @@ export default function EditProfilePage() {
                       onClick={() => setShowConfirmPw(!showConfirmPw)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]"
                     >
-                      {showConfirmPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showConfirmPw ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
 
@@ -759,13 +801,30 @@ export default function EditProfilePage() {
                     >
                       {isUpdatingPassword ? (
                         <>
-                          <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                          <svg
+                            className="animate-spin w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v8H4z"
+                            />
                           </svg>
                           Updating...
                         </>
-                      ) : "Update Password"}
+                      ) : (
+                        "Update Password"
+                      )}
                     </button>
                     <button
                       onClick={handleCancelPasswordChange}
@@ -781,8 +840,8 @@ export default function EditProfilePage() {
           )}
         </div>
 
-      {/* Email Settings */}
-      <div>
+        {/* Email Settings */}
+        <div>
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 bg-[#F3F4F6] rounded-lg flex items-center justify-center">
               <Mail className="w-5 h-5 text-[#6B7280]" />
@@ -911,7 +970,9 @@ export default function EditProfilePage() {
               </div>
               <div>
                 <p className="font-medium text-[#111827]">
-                  {wordpressConnected ? "WordPress Connected" : "WordPress Disconnected"}
+                  {wordpressConnected
+                    ? "WordPress Connected"
+                    : "WordPress Disconnected"}
                 </p>
                 <p className="text-sm text-[#6B7280]">
                   {wordpressConnected
@@ -933,8 +994,12 @@ export default function EditProfilePage() {
               }`}
             >
               {wpLoading
-                ? wordpressConnected ? "Disconnecting..." : "Connecting..."
-                : wordpressConnected ? "Disconnect" : "Connect"}
+                ? wordpressConnected
+                  ? "Disconnecting..."
+                  : "Connecting..."
+                : wordpressConnected
+                  ? "Disconnect"
+                  : "Connect"}
             </button>
           </div>
         </div>
