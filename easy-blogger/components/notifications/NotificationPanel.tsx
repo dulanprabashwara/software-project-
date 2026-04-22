@@ -30,13 +30,13 @@ function getNotificationDetails(notification: any) {
       return {
         title: "New Comment",
         message: `${actorName} commented on "${articleTitle}".`,
-        link: `/article?id=${articleId}#comments`,
+        link: `home/read/article?id=${articleId}#comments`,
       };
     case "RATE":
       return {
         title: "New Rating",
         message: `${actorName} rated "${articleTitle}".`,
-        link: `/article?id=${articleId}`,
+        link: `home/read/article?id=${articleId}`,
       };
     case "FOLLOW":
       return {

@@ -1,16 +1,23 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../app/context/AuthContext"; // Adjust path as needed
 
-// persists for entire session (SPA lifetime)
-let cachedArticles = null;
+// Cache by auth state to prevent serving guest data to logged-in users
+const articleCache = {};
 
 export function useMainArticles() {
-  const [articles, setArticles] = useState(cachedArticles || []);
-  const [isLoading, setIsLoading] = useState(!cachedArticles);
+  const { user, profileLoading } = useAuth();
+  const [articles, setArticles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // ✅ if already cached → NEVER fetch again
-    if (cachedArticles) {
-      setArticles(cachedArticles);
+    // 1. Wait until Firebase resolves the auth state
+    if (profileLoading) return;
+
+    // 2. Determine cache key based on auth state
+    const cacheKey = user ? user.uid : "guest";
+
+    if (articleCache[cacheKey]) {
+      setArticles(articleCache[cacheKey]);
       setIsLoading(false);
       return;
     }
@@ -18,24 +25,35 @@ export function useMainArticles() {
     const fetchData = async () => {
       setIsLoading(true);
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/homefeed/main`
-      );
+      try {
+        const headers = {};
 
-      const data = await res.json();
+        // 3. Attach token if the user is authenticated
+        if (user) {
+          const token = await user.getIdToken();
+          headers["Authorization"] = `Bearer ${token}`;
+        }
 
-      const result = Array.isArray(data)
-        ? data
-        : data.articles || [];
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/homefeed/main`,
+          { headers }
+        );
 
-      cachedArticles = result;
+        const data = await res.json();
+        const result = Array.isArray(data) ? data : data.articles || [];
 
-      setArticles(result);
-      setIsLoading(false);
+        // 4. Save to the specific cache key
+        articleCache[cacheKey] = result;
+        setArticles(result);
+      } catch (error) {
+        console.error("Failed to fetch main articles:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchData();
-  }, []);
+  }, [user, profileLoading]); // Refetch automatically when user logs in/out
 
   return { articles, isLoading };
 }

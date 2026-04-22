@@ -414,12 +414,8 @@ export default function CreateArticlePage() {
       setInlineError("");
       const currentDraftId = await saveArticle("editing", { content: htmlContent });
 
-      writePreviewContext({
-        id: currentDraftId,
-        mode: "create",
-      });
-
-      router.push("/write/preview");
+      router.push(`/write/preview?id=${currentDraftId}&mode=create`);
+      
     } catch (error) {
       console.error("Failed to prepare article preview:", error);
       setInlineError("Failed to open preview.");
