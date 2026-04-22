@@ -1,1 +1,0 @@
-// Editor layout wrapper component
