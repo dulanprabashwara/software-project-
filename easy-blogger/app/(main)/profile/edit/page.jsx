@@ -16,7 +16,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-import { useSubscription } from "../../../subscription/SubscriptionContext";
+import { useSubscription } from "../../../context/SubscriptionContext";
 import { useAuth } from "../../../context/AuthContext";
 import { api, API_BASE_URL } from "../../../../lib/api"; // WordPress OAuth needs API_BASE_URL
 

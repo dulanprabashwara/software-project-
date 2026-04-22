@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { X, Loader2, MessageCircle } from "lucide-react";
-import { useSubscription } from "../../subscription/SubscriptionContext";
+import { useSubscription } from "../../context/SubscriptionContext";
 import { useAuth } from "../../context/AuthContext";
 import ArticleCard from "../../../components/article/ArticleCard";
 import { api } from "../../../lib/api";
