@@ -34,11 +34,12 @@
   display: flex;
   align-items: flex-start;
   gap: 20px;
-  margin-left: 20px;
+  margin-left: 107px;       /* aligned with other sections on details page */
+  margin-top: 20px;
 }
 
 .result-left-side {
-  width: 40px;
+  width: 40px;              /* 40px spacer pushes content right */
   flex-shrink: 0;
 }
 
@@ -47,7 +48,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 /* ── Article title label (clickable to open preview) ─────────────────────── */

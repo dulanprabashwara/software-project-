@@ -14,6 +14,9 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useSubscription } from "../../context/SubscriptionContext";
+import { fetchAPI } from "../../../lib/api";
+import InsightsSidebar from "../../../components/ai/InsightsSidebar";
+import TrendingArticleSlider from "../../../components/ai/TrendingArticleSlider";
 import "../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../styles/ai-article-generator/ai-article-generator-view2.css";
 import "../../../styles/ai-article-generator/articles-view.css";
@@ -139,10 +142,12 @@ export default function AIArticleGeneratorPage() {
 
   // ── Data fetching ──────────────────────────────────────────────────────────
 
-  // Fetches trending articles (all articles, for the slider) from the trending endpoint.
+  // Fetches trending articles (all articles by trendingScore) for the slider.
+  // Calls the dedicated trending endpoint — not the article-by-slug route.
   const fetchTrendingArticles = async () => {
     try {
-      const data = await fetchAPI("/api/articles/trending");
+      const res  = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/articles/trending`);
+      const data = await res.json();
       if (data.success && data.articles) setTrendingArticles(data.articles);
     } catch (err) {
       console.error("[Slider] Failed to fetch trending articles:", err);
@@ -753,7 +758,6 @@ export default function AIArticleGeneratorPage() {
 
                   {!isGenerating && !generateError && generatedArticle && (
                     <div className="article-result-section" style={{ width: "100%" }}>
-                      <div className="result-left-side"></div>
                       <p className="heres-article-text">Here&apos;s your article..</p>
                       <div className="article-title-label" onClick={() => setShowPreview(true)}>
                         <span className="article-title-text">{generatedArticle.title}</span>
@@ -762,7 +766,6 @@ export default function AIArticleGeneratorPage() {
                           <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                         </svg>
                       </div>
-                      <br /><br />
                       <div className="article-actions">
                         <button className="back-button" onClick={() => { setGeneratedArticle(null); setCurrentView("input"); }}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
