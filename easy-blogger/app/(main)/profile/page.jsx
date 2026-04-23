@@ -65,9 +65,6 @@ export default function ProfilePage() {
   const [publishedArticles, setPublishedArticles] = useState([]);
   const [articlesLoading, setArticlesLoading] = useState(false);
 
-  const [publishedArticles, setPublishedArticles] = useState([]);
-  const [articlesLoading, setArticlesLoading] = useState(false);
-
   // Sync active stats tab when modal changes
   useEffect(() => {
     if (modalTab) setStatsActiveTab(modalTab);
