@@ -1,14 +1,13 @@
 "use client";
 
-import { TrendingUp,Search } from 'lucide-react';
-
-import TrendingArticleCard from "../../../../components/article/TrendingArticleCard";
-import { DATA } from "../../../../components/article/ArticleList";
+import { TrendingUp,Search} from 'lucide-react';
+import TrendingArticles from '../../../../components/article/TrendingArticles';
 import {topics} from "../../../../components/article/Topics";
 import TopTopicsChart from "../../../../components/TopTopicsChart";
 
 export default function PublicStats() {
- 
+    
+
   return (
     <div>
 
@@ -27,14 +26,7 @@ export default function PublicStats() {
       <section>
        
         
-          <div className="flex gap-5 overflow-x-auto bg-white p-3 rounded-[1rem] mb-3 ">
-            {DATA.trending.map((article) => (
-              <div key={article.id} className=" bg-white w-160 shrink-0 px-4 border-2 rounded-[1rem] border-[#e5e7eb]">
-                <TrendingArticleCard article={article} />
-              </div>
-            ))}  
-          </div>
-         
+          <TrendingArticles/>
       </section>
 
       
