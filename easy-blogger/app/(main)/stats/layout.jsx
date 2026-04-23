@@ -14,14 +14,14 @@ export default function Layout({ children }) {
       <div className="flex justify-between text-[1.75rem] px-50 py-4 h-full font-[Georgia] overflow-hidden">
         <button
           onClick={() => router.push("/stats/public")}
-          className={isPublic ? "text-[#1abc9c] bg-[#f0fdf9] px-7 rounded-[2rem]"  : "text-[#6b6b6b] px-7 rounded-[2rem]"}
+          className={isPublic ? "text-[#1abc9c] bg-[#f0fdf9] px-7 rounded-4xl"  : "text-[#6b6b6b] px-7 rounded-4xl"}
         >
           Public
         </button>
 
         <button
           onClick={() => router.push("/stats/private")}
-          className={isPrivate ?"text-[#1abc9c] bg-[#f0fdf9] px-7 rounded-[2rem]": "text-[#6b6b6b] px-7 rounded-[2rem]"}
+          className={isPrivate ?"text-[#1abc9c] bg-[#f0fdf9] px-7 rounded-4xl": "text-[#6b6b6b] px-7 rounded-4xl"}
         >
           Private
         </button>

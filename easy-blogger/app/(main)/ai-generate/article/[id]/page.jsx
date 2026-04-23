@@ -12,9 +12,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getAuth } from "firebase/auth";
-import { useSubscription } from "../../../../subscription/SubscriptionContext";
-import InsightsSidebar from "../../../../../components/ai/InsightsSidebar";
-import { fetchAPI } from "../../../../../lib/api";
+import { useSubscription } from "../../../../../context/SubscriptionContext";
 import "../../../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../../../styles/ai-article-generator/ai-article-generator-view2.css";
 import "../../../../../styles/ai-article-generator/ai-article-generator-details.css";

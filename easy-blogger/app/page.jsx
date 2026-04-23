@@ -80,7 +80,7 @@ export default function LandingPage() {
 
           {/* Right Illustration */}
           <div className="flex-1 relative hidden md:block pl-8 overflow-visible">
-            <div className="relative w-full h-[500px]">
+            <div className="relative w-full h-125">
               {/* Circle outline with diagonal line - centered left area */}
               <svg
                 className="absolute top-24 left-8 w-48 h-48 animate-spin-slow"

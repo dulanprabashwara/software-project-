@@ -7,7 +7,7 @@ export const useComments = (articleId, token) => {
 
   const fetchComments = async () => {
     try {
-const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/comments/${articleId}`);      const data = await res.json();
+const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/comments/${articleId}`);      const data = await res.json();
       setComments(data);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -23,7 +23,7 @@ const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/comments/${a
   const addComment = async (content, parentId = null) => {
     if (!token) return false;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/comments`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,7 +44,7 @@ const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/comments/${a
   const submitRating = async (num) => { // 'num' is defined here
     if (!token) return false;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/comments/${articleId}/rate`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments/${articleId}/rate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

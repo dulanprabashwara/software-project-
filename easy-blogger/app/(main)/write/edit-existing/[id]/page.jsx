@@ -42,7 +42,7 @@ function ConfirmModal({
   return (
     <div
       data-skip-save-prompt="true"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-[2px] px-4"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-[2px] px-4"
     >
       <div
         data-skip-save-prompt="true"
@@ -792,7 +792,7 @@ export default function EditExistingPage() {
                 <div className="relative">
                   <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
                     {!mounted ? (
-                      <div className="h-[260px] bg-white" />
+                      <div className="h-65 bg-white" />
                     ) : (
                       <Editor
                         onInit={(evt, editor) => {

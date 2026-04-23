@@ -47,7 +47,7 @@ export default function ArticleCard({ article }) {
       // Get the fresh Firebase token from the context user
       const token = await user.getIdToken();
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/saveArticle`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/savedArticle`, {
         method: next ? "POST" : "DELETE",
         headers: { 
           "Content-Type": "application/json",
@@ -77,7 +77,7 @@ export default function ArticleCard({ article }) {
           alt={authorName}
           className="w-8 h-8 rounded-full object-cover"
         />
-        <span className="text-sm font-medium text-[#111827]">{authorName}</span>
+        <span className="text-sm font-medium text-[#111827]">{authorName }</span>
 
         {/* Optional chaining safely checks if author exists before checking isVerified */}
         {article.author?.isVerified && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" />}
@@ -94,14 +94,14 @@ export default function ArticleCard({ article }) {
 
           <div className="line-clamp-3">
             <div
-              className="text-gray-500 text-[16px] leading-6 [&_*]:text-gray-500 [&_*]:text-[16px]"
+              className="text-gray-500 text-[16px] leading-6 **:text-gray-500 **:text-[16px]"
               dangerouslySetInnerHTML={{ __html: article.content || "<p>No content available.</p>" }}
             />
           </div>
         </div>
 
         {article.coverImage && (
-          <div className="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden">
+          <div className="w-28 h-28 shrink-0 rounded-lg overflow-hidden">
             <img src={article.coverImage} alt={article.title} className="w-full h-full object-cover" />
           </div>
         )}
