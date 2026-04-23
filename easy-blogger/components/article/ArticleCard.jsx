@@ -70,7 +70,7 @@ export default function ArticleCard({ article }) {
   };
 
   return (
-    <article className="py-6 border-b border-[#E5E7EB] last:border-0">
+    <article className="py-6 border-b border-[#E5E7EB] last:border-0  ">
       <div className="flex items-center gap-2 mb-3">
         <img
           src={authorAvatar}
@@ -87,12 +87,15 @@ export default function ArticleCard({ article }) {
 
       <div className="flex gap-6 justify-between">
         <div className="flex-1">
-          <h2 className="text-xl font-bold text-[#111827] mb-2 leading-tight font-serif hover:text-[#1ABC9C] cursor-pointer transition-colors duration-150" 
+          <div className="h-14">
+            <h2 className="text-xl font-bold text-[#111827] mb-2 leading-tight font-serif hover:text-[#1ABC9C] cursor-pointer transition-colors duration-150" 
           onClick={() => router.push(`/home/read?id=${article.id}`)}>
             {article.title || "Untitled Article"}
           </h2>
+          </div>
+          
 
-          <div className="line-clamp-3">
+          <div className="line-clamp-3 h-18">
             <div
               className="text-gray-500 text-[16px] leading-6 [&_*]:text-gray-500 [&_*]:text-[16px]"
               dangerouslySetInnerHTML={{ __html: article.content || "<p>No content available.</p>" }}
