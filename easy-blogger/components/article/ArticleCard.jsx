@@ -98,14 +98,14 @@ export default function ArticleCard({ article }) {
 
           <div className="line-clamp-3">
             <div
-              className="text-gray-500 text-[16px] leading-6 [&_*]:text-gray-500 [&_*]:text-[16px]"
+              className="text-gray-500 text-[16px] leading-6 **:text-gray-500 **:text-[16px]"
               dangerouslySetInnerHTML={{ __html: article.content || "<p>No content available.</p>" }}
             />
           </div>
         </div>
 
         {article.coverImage && (
-          <div className="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden">
+          <div className="w-28 h-28 shrink-0 rounded-lg overflow-hidden">
             <img src={article.coverImage} alt={article.title} className="w-full h-full object-cover" />
           </div>
         )}

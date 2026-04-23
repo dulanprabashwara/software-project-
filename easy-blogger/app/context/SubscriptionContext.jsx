@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "./AuthContext";
 
 const SubscriptionContext = createContext();
 
@@ -22,15 +22,8 @@ export function SubscriptionProvider({ children }) {
     setIsLoading(false);
   }, [userProfile, authLoading, profileLoading]);
 
-  // Dev toggle for testing (does not persist to backend)
-  const togglePremium = () => {
-    setIsPremium((prev) => !prev);
-  };
-
   return (
-    <SubscriptionContext.Provider
-      value={{ isPremium, togglePremium, isLoading }}
-    >
+    <SubscriptionContext.Provider value={{ isPremium, isLoading }}>
       {children}
     </SubscriptionContext.Provider>
   );

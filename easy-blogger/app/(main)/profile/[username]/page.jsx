@@ -41,7 +41,7 @@ export default function UserProfilePage({ params }) {
       setProfileError(null);
       try {
         let res;
-        // If the user is logged in, send the token so isFollowing is computed
+        // If the user is logged in send the token with username to get the user data
         if (firebaseUser) {
           const token = await firebaseUser.getIdToken();
           res = await api.getUserProfileAuth(username, token);
@@ -63,40 +63,37 @@ export default function UserProfilePage({ params }) {
       }
     };
 
-    // Wait for Firebase to finish checking auth state before making the network request
-    // so we don't accidentally fetch as an anonymous user, causing the Follow button to flash.
+    // Wait for Firebase to finish checking auth state before fetching user data
     if (username && !authLoading) {
       fetchProfile();
     }
   }, [username, firebaseUser, authLoading]);
 
-  // ── Follow / Unfollow toggle with optimistic UI ──
+  // ── Follow / Unfollow functionality ──
   const handleFollowToggle = async () => {
     if (!firebaseUser || !profile?.id || isTogglingFollow) return;
 
-    // Optimistic update
+    //when click follow or unfollow update the button and the follower count
     const wasFollowing = isFollowing;
     setIsFollowing(!wasFollowing);
     setFollowerCount((prev) => (wasFollowing ? prev - 1 : prev + 1));
     setIsTogglingFollow(true);
 
     try {
+      //tell backend to update the follow or following the user
       const token = await firebaseUser.getIdToken();
       const res = await api.toggleFollow(profile.id, token);
 
-      // Reconcile with server response
       if (res.success && res.data) {
         setIsFollowing(res.data.followed);
-        // If the server says differently from our optimistic guess, fix the count
+
         if (res.data.followed !== !wasFollowing) {
-          setFollowerCount((prev) =>
-            res.data.followed ? prev + 1 : prev - 1,
-          );
+          setFollowerCount((prev) => (res.data.followed ? prev + 1 : prev - 1));
         }
       }
     } catch (err) {
+      //if failed toggling return the button to original state and reset follower count
       console.error("Follow toggle failed:", err);
-      // Revert optimistic update
       setIsFollowing(wasFollowing);
       setFollowerCount((prev) => (wasFollowing ? prev + 1 : prev - 1));
     } finally {
@@ -104,7 +101,7 @@ export default function UserProfilePage({ params }) {
     }
   };
 
-  // ── Close dropdown on outside click ──
+  //close the dropdown menu when clicked outside after clicking 3 dots
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -118,52 +115,19 @@ export default function UserProfilePage({ params }) {
     };
   }, []);
 
+  // grab the URL of the profile page and copy it to the clipboard
   const handleCopyLink = () => {
     const url = window.location.href;
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard
-        .writeText(url)
-        .then(() => {
-          alert("Profile link copied to clipboard!");
-          setShowMenu(false);
-        })
-        .catch((err) => {
-          console.error("Failed to copy: ", err);
-          fallbackCopyTextToClipboard(url);
-        });
-    } else {
-      fallbackCopyTextToClipboard(url);
-    }
-  };
-
-  const fallbackCopyTextToClipboard = (text) => {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-
-    // Avoid scrolling to bottom
-    textArea.style.top = "0";
-    textArea.style.left = "0";
-    textArea.style.position = "fixed";
-
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
-    try {
-      const successful = document.execCommand("copy");
-      if (successful) {
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
         alert("Profile link copied to clipboard!");
         setShowMenu(false);
-      } else {
-        alert("Failed to copy link.");
-      }
-    } catch (err) {
-      console.error("Fallback: Oops, unable to copy", err);
-      alert("Failed to copy link.");
-    }
-
-    document.body.removeChild(textArea);
+      })
+      .catch((err) => {
+        console.error("Failed to copy link:", err);
+        alert("Failed to copy link. Please copy the URL manually.");
+      });
   };
 
   // ── Derived display values ──
@@ -446,8 +410,6 @@ export default function UserProfilePage({ params }) {
               )}
             </div>
           )}
-
-          {/* Optional: Add section for "More from Medium" or similar if needed */}
         </div>
       </div>
     </div>

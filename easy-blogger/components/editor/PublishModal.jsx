@@ -1,1 +1,0 @@
-// Publish modal component

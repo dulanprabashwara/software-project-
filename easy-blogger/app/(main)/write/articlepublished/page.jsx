@@ -150,7 +150,7 @@ export default function ArticlePublishedPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35 }}
-      className="min-h-screen bg-gradient-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6 overflow-hidden"
+      className="min-h-screen bg-linear-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6 overflow-hidden"
     >
       <FloatingConfetti />
 
@@ -158,9 +158,9 @@ export default function ArticlePublishedPage() {
         variants={container}
         initial="hidden"
         animate="visible"
-        className="relative w-full max-w-[570px] overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-xl"
+        className="relative w-full max-w-142.5 overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-xl"
       >
-        <div className="relative bg-gradient-to-br from-[#21c4a7] to-[#18af98] px-8 py-10 text-center">
+        <div className="relative bg-linear-to-br from-[#21c4a7] to-[#18af98] px-8 py-10 text-center">
           <button
             onClick={() => router.push("/home")}
             className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-gray-700"

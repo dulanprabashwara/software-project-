@@ -20,7 +20,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getAuth } from "firebase/auth";
-import { useSubscription } from "../../../../subscription/SubscriptionContext";
+import { useSubscription } from "../../../../../context/SubscriptionContext";
 import "../../../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../../../styles/ai-article-generator/ai-article-generator-details.css";
 

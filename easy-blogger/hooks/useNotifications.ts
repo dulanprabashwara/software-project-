@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
-import axios from 'axios';
 import { useAuth } from '../app/context/AuthContext'; 
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -74,12 +73,14 @@ export function useNotifications(userId: string | undefined) {
       
       // 3. Send the delete request to the backend
       console.log("Full Request URL:", `${SOCKET_URL}/api/notifications/delete`);
-      await axios.post(`${SOCKET_URL}/api/notifications/mark-read`, 
-        { notificationId: id },
-        { 
-          headers: { Authorization: `Bearer ${token}` } 
-        }
-      );
+      await fetch(`${SOCKET_URL}/api/notifications/mark-read`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ notificationId: id }),
+      });
     } catch (err) {
       console.error("Failed to delete notification:", err);
       // Optional: Refetch on error to restore UI if deletion failed on server

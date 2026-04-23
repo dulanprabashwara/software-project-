@@ -109,7 +109,7 @@ export default function SearchArticleCard({ article }) {
           )}
         </div>
         {coverImage && (
-          <div className="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden">
+          <div className="w-28 h-28 shrink-0 rounded-lg overflow-hidden">
             <img src={coverImage} alt={title} className="w-full h-full object-cover" />
           </div>
         )}
