@@ -1,18 +1,10 @@
 /**
- * Article Details Page
- *
+ * AI Article Details Page
  * Route: /ai-generate/article/[id]
  *
- * Fetches full AiArticleLog entry from Express backend GET /api/ai/logs/:id
- * using the Firebase auth token from the already-logged-in session.
- *
- * Displays all generation details in read-only mode:
- *   - Original text prompt
- *   - Keywords presented + which ones were selected (highlighted)
- *   - Article length and tone (shows "Included in prompt" when null)
- *   - Generated article title → clickable to open preview overlay
- *   - Full article content in preview overlay
- *   - Save draft button → POST /api/ai/save-draft
+ * Shows a read-only view of a previously AI-generated article log:
+ * prompt, keywords used, length/tone settings, and the generated article title.
+ * The article content opens in a preview overlay on title click.
  */
 
 "use client";
@@ -21,69 +13,71 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getAuth } from "firebase/auth";
 import { useSubscription } from "../../../../subscription/SubscriptionContext";
+import InsightsSidebar from "../../../../../components/ai/InsightsSidebar";
+import { fetchAPI } from "../../../../../lib/api";
 import "../../../../../styles/ai-article-generator/ai-article-generator.css";
+import "../../../../../styles/ai-article-generator/ai-article-generator-view2.css";
 import "../../../../../styles/ai-article-generator/ai-article-generator-details.css";
 
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const ARTICLE_LENGTH_LABELS = {
+  short:        { left: "Short",      right: "300-1000"  },
+  "mid-length": { left: "Mid-length", right: "1000-2000" },
+  long:         { left: "Long",       right: "2000+"     },
+};
 
 export default function ArticleDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const { isPremium, isLoading } = useSubscription();
 
-  const [articleData, setArticleData] = useState(null);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState(null);
-  const [showPreview, setShowPreview] = useState(false);
-  const [isCopied, setIsCopied]       = useState(false);
-
-  const [isSavingDraft, setIsSavingDraft]     = useState(false);
+  const [articleData, setArticleData]       = useState(null);
+  const [loading, setLoading]               = useState(true);
+  const [error, setError]                   = useState(null);
+  const [showPreview, setShowPreview]       = useState(false);
+  const [isCopied, setIsCopied]             = useState(false);
+  const [isSavingDraft, setIsSavingDraft]   = useState(false);
   const [draftSaveStatus, setDraftSaveStatus] = useState(null);
-  // null | "saved" | "already_saved" | "error"
+  const [isLoadingEditor, setIsLoadingEditor] = useState(false);
 
-  // Reads the Firebase token from the already-logged-in session — no extra login prompt
+  // Sidebar data (same as main page — fetched once on load)
+  const [topAIArticles, setTopAIArticles]   = useState([]);
+  const [trendingTopics, setTrendingTopics] = useState([]);
+
+  // Reads the Firebase token from the current session.
   const getAuthHeaders = async () => {
     const token = await getAuth().currentUser?.getIdToken();
-    if (!token) {
-      router.push("/login");
-      throw new Error("Not authenticated");
-    }
-    return {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
-    };
+    if (!token) { router.push("/login"); throw new Error("Not authenticated"); }
+    return { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
   };
 
+  // Fetches the full article log and sidebar data on mount.
   useEffect(() => {
-    if (!isLoading && !isPremium) {
-      router.push("/subscription/upgrade");
-      return;
-    }
-
+    if (isLoading) return;
+    if (!isPremium) { router.push("/subscription/upgrade"); return; }
     if (!params.id) return;
 
-    const fetchArticle = async () => {
+    const fetchAll = async () => {
       try {
         const headers = await getAuthHeaders();
-        const res     = await fetch(`${BACKEND_URL}/api/ai/logs/${params.id}`, { headers });
 
+        // Fetch article log
+        const res  = await fetch(`${BACKEND_URL}/api/ai/logs/${params.id}`, { headers });
         if (!res.ok) {
           if (res.status === 404) throw new Error("Article not found.");
           throw new Error(`Server error: ${res.status}`);
         }
-
         const data = await res.json();
         if (!data.success || !data.log) throw new Error("Invalid response from server.");
 
         const log = data.log;
-
-        // Map DB field names → names the UI uses
         setArticleData({
           textPrompt:            log.userPrompt,
           keywordsPresented:     log.keywordsPresented || [],
           keywordsSelected:      log.keywordsSelected  || [],
-          articleLengthSelected: log.articleLength,   // null = included in prompt
-          toneSelected:          log.tone,             // null = included in prompt
+          articleLengthSelected: log.articleLength,
+          toneSelected:          log.tone,
           title:                 log.articleTitle,
           content:               log.articleContent,
           wordCount:             log.wordCount,
@@ -91,8 +85,21 @@ export default function ArticleDetailsPage() {
           generatedAt:           log.generatedAt,
         });
 
-        // Pre-set status if already saved
         if (log.savedToDraftId) setDraftSaveStatus("already_saved");
+
+        // Fetch sidebar data
+        const [aiRes, topicsRes] = await Promise.allSettled([
+          fetch(`${BACKEND_URL}/api/ai/top-ai-articles`, { headers }),
+          fetch(`${BACKEND_URL}/api/ai/trending-topics`, { headers }),
+        ]);
+        if (aiRes.status === "fulfilled" && aiRes.value.ok) {
+          const d = await aiRes.value.json();
+          if (d.success) setTopAIArticles(d.articles || []);
+        }
+        if (topicsRes.status === "fulfilled" && topicsRes.value.ok) {
+          const d = await topicsRes.value.json();
+          if (d.success) setTrendingTopics(d.topics || []);
+        }
       } catch (err) {
         console.error("[ArticleDetail] Fetch failed:", err);
         setError(err.message);
@@ -101,18 +108,18 @@ export default function ArticleDetailsPage() {
       }
     };
 
-    fetchArticle();
-  }, [params.id, isPremium, isLoading, router]);
+    fetchAll();
+  }, [params.id, isPremium, isLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const getArticleLengthDisplay = (length) => {
-    const opts = {
-      short:        { left: "Short",      right: "300-1000"  },
-      "mid-length": { left: "Mid-length", right: "1000-2000" },
-      long:         { left: "Long",       right: "2000+"     },
-    };
-    return opts[length] || null;
+  const saveDraftLabel = () => {
+    if (isSavingDraft)                       return "saving...";
+    if (draftSaveStatus === "saved")         return "saved ✓";
+    if (draftSaveStatus === "already_saved") return "already saved";
+    if (draftSaveStatus === "error")         return "save failed";
+    return "save draft";
   };
 
+  // Copies the full article (title + content) to the clipboard.
   const handleCopyToClipboard = async (content) => {
     try {
       await navigator.clipboard.writeText(content);
@@ -123,15 +130,7 @@ export default function ArticleDetailsPage() {
     }
   };
 
-  const saveDraftLabel = () => {
-    if (isSavingDraft)                       return "saving...";
-    if (draftSaveStatus === "saved")         return "saved ✓";
-    if (draftSaveStatus === "already_saved") return "already saved";
-    if (draftSaveStatus === "error")         return "save failed";
-    return "save draft";
-  };
-
-  // logId IS params.id — each AiArticleLog row id is used directly
+  // Saves the article as a draft in the articles table.
   const handleSaveDraft = async () => {
     if (!articleData) return;
     setIsSavingDraft(true);
@@ -139,16 +138,13 @@ export default function ArticleDetailsPage() {
     try {
       const headers = await getAuthHeaders();
       const res     = await fetch(`${BACKEND_URL}/api/ai/save-draft`, {
-        method: "POST",
-        headers,
+        method: "POST", headers,
         body: JSON.stringify({ logId: params.id }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Save failed");
       setDraftSaveStatus(data.alreadySaved ? "already_saved" : "saved");
-      if (!data.alreadySaved) {
-        setArticleData((prev) => ({ ...prev, savedToDraftId: data.draft.id }));
-      }
+      if (!data.alreadySaved) setArticleData((prev) => ({ ...prev, savedToDraftId: data.draft.id }));
       setTimeout(() => setDraftSaveStatus(null), 4000);
     } catch (err) {
       console.error("[SaveDraft] Failed:", err);
@@ -159,30 +155,15 @@ export default function ArticleDetailsPage() {
     }
   };
 
-  // ── Edit in editor state ─────────────────────────────────────────────────────
-  const [isLoadingEditor, setIsLoadingEditor] = useState(false);
-
-  // ═════════════════════════════════════════════════════════════════════════════
-  // EDIT IN EDITOR
-  // Called when user clicks "Edit" on the preview overlay of a previous article.
-  // Uses params.id as the logId — each AiArticleLog id is the log identifier.
-  //
-  // Calls POST /api/ai/load-to-editor.
-  // Backend creates (or reuses) an Article row with status EDITING and
-  // isAiGenerated: true, then returns the article id.
-  //
-  // Navigating to /write/create causes that page to call
-  // GET /articles/user/editing and load the most recently updated EDITING
-  // article (ours) into TinyMCE. Manual workflow handles everything from there.
-  // ═════════════════════════════════════════════════════════════════════════════
+  // Opens the article in the TinyMCE editor at /write/create.
+  // The editor picks up the most recently updated EDITING article on load.
   const handleEditInEditor = async () => {
     if (!articleData) return;
     setIsLoadingEditor(true);
     try {
       const headers = await getAuthHeaders();
       const res     = await fetch(`${BACKEND_URL}/api/ai/load-to-editor`, {
-        method: "POST",
-        headers,
+        method: "POST", headers,
         body: JSON.stringify({ logId: params.id }),
       });
       const data = await res.json();
@@ -196,7 +177,7 @@ export default function ArticleDetailsPage() {
     }
   };
 
-  // ── Screen states ────────────────────────────────────────────────────────────
+  // ── Screen states ──────────────────────────────────────────────────────────
 
   if (isLoading || loading) {
     return (
@@ -205,15 +186,16 @@ export default function ArticleDetailsPage() {
       </div>
     );
   }
-
   if (!isPremium) return null;
 
   if (error) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Article</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#dc2626", marginBottom: "1rem" }}>
+            Error Loading Article
+          </h2>
+          <p style={{ color: "#6b7280", marginBottom: "1rem" }}>{error}</p>
           <button
             onClick={() => router.push("/ai-generate")}
             className="px-4 py-2 bg-[#1ABC9C] text-white rounded-lg hover:bg-[#16A085] transition-colors"
@@ -229,7 +211,9 @@ export default function ArticleDetailsPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-600 mb-4">Article Not Found</h2>
+          <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#6b7280", marginBottom: "1rem" }}>
+            Article Not Found
+          </h2>
           <button
             onClick={() => router.push("/ai-generate")}
             className="px-4 py-2 bg-[#1ABC9C] text-white rounded-lg hover:bg-[#16A085] transition-colors"
@@ -241,7 +225,7 @@ export default function ArticleDetailsPage() {
     );
   }
 
-  const lengthDisplay = getArticleLengthDisplay(articleData.articleLengthSelected);
+  const lengthDisplay = ARTICLE_LENGTH_LABELS[articleData.articleLengthSelected] || null;
   const isAlreadySaved = !!articleData.savedToDraftId;
 
   return (
@@ -250,7 +234,6 @@ export default function ArticleDetailsPage() {
       <div className="ai-generator-main flex-1 overflow-y-auto article-details-page">
         <div className="ai-content-wrapper">
 
-          {/* Title bar */}
           <div className="ai-generator-title justify-between">
             <div className="flex items-center gap-3">
               <button
@@ -259,16 +242,12 @@ export default function ArticleDetailsPage() {
               >
                 <img src="/icons/menu icon.png" alt="Menu" className="ai-generator-menu-icon" />
               </button>
-              <img
-                src="/icons/Ai article generator icon teel color.png"
-                alt="AI Article Generator"
-                className="ai-generator-ai-icon"
-              />
+              <img src="/icons/Ai article generator icon teel color.png" alt="AI Article Generator" className="ai-generator-ai-icon" />
               <h1 className="ai-generator-title-text">AI Article Generator</h1>
             </div>
           </div>
 
-          {/* User Prompt — read-only */}
+          {/* Original prompt — read-only */}
           <div className="user-input-section">
             <div className="user-textbox">
               <textarea
@@ -304,13 +283,13 @@ export default function ArticleDetailsPage() {
             {articleData.keywordsPresented.length > 0 && (
               <p className="selected-keywords-title">
                 {articleData.keywordsSelected.length === 4
-                  ? "selected: 4 keywords(Maximum)"
+                  ? "selected: 4 keywords (Maximum)"
                   : `selected: ${articleData.keywordsSelected.length} keywords`}
               </p>
             )}
           </div>
 
-          {/* Article Length — read-only */}
+          {/* Article length — read-only display */}
           <div className="article-length-section">
             <p className="article-length-text">Article Length :</p>
             <div className="article-length-dropdown">
@@ -361,12 +340,10 @@ export default function ArticleDetailsPage() {
             )}
           </div>
 
-          {/* Generated Article */}
+          {/* Generated article result */}
           <div className="result-container">
             <div className="result-left-side"></div>
             <div className="result-right-side">
-
-              {/* Clickable title → opens preview */}
               <div className="article-title-label" onClick={() => setShowPreview(true)}>
                 <span className="article-title-text">{articleData.title}</span>
                 <svg className="open-book-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E1E1E" strokeWidth="2">
@@ -374,8 +351,6 @@ export default function ArticleDetailsPage() {
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                 </svg>
               </div>
-
-              {/* Action icons */}
               <div className="article-actions">
                 <button className="action-icon" title="Copy" onClick={() => handleCopyToClipboard(`${articleData.title}\n\n${articleData.content}`)}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -394,61 +369,18 @@ export default function ArticleDetailsPage() {
                   </svg>
                 </button>
               </div>
-
             </div>
           </div>
 
         </div>
       </div>
 
-      {/* ── Insights Sidebar ── */}
-      <div className="insights-sidebar">
-        <div className="insights-header">
-          <h2 className="insights-title">Insights</h2>
-          <div className="insights-dots">
-            <div className="insights-dot-1"></div>
-            <div className="insights-dot-2"></div>
-          </div>
-        </div>
-        <div className="mb-8">
-          <h3 className="insights-section-title">Top AI Assisted Articles</h3>
-          <div className="space-y-3">
-            {[
-              { title: "Understanding Neural Networks",  authors: "Sarah Chan"      },
-              { title: "Python for Data Science",        authors: "Rebecca Hudson"  },
-              { title: "Machine Learning Basics",        authors: "Danielle Cruise" },
-              { title: "AI Ethics and Governance",       authors: "Janet Wales"     },
-            ].map((article, index) => (
-              <div key={index} className="insights-article-section">
-                <div className="insights-article-header">
-                  <span className="insights-article-number">{index + 1}</span>
-                  <h4 className="insights-article-name">{article.title}</h4>
-                </div>
-                <div className="insights-author-section">
-                  <p className="insights-author-name">{article.authors}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div>
-          <h3 className="insights-section-title">Trending topics</h3>
-          <div className="trending-topics-buttons">
-            {["Technology", "Health", "Business", "Science", "Education", "Environment"].map((topic, index) => (
-              <button key={index} className="topic-button">{topic}</button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <InsightsSidebar topAIArticles={topAIArticles} trendingTopics={trendingTopics} />
 
-      {/* ── Preview Overlay ── */}
+      {/* Article preview overlay */}
       {showPreview && articleData && (
         <div className="preview-overlay" onClick={() => setShowPreview(false)}>
-
-          <div
-            className="preview-close-circle"
-            onClick={(e) => { e.stopPropagation(); setShowPreview(false); }}
-          >
+          <div className="preview-close-circle" onClick={(e) => { e.stopPropagation(); setShowPreview(false); }}>
             <button className="preview-close-button-circle" onClick={() => setShowPreview(false)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2">
                 <path d="M18 6L6 18"></path>
@@ -458,11 +390,13 @@ export default function ArticleDetailsPage() {
           </div>
 
           <div className="preview-box" onClick={(e) => e.stopPropagation()}>
-
             <div className="preview-header">
               <div className="preview-header-actions">
-
-                <button className="preview-copy-icon" title="Copy" onClick={() => handleCopyToClipboard(`${articleData.title}\n\n${articleData.content}`)}>
+                <button
+                  className="preview-copy-icon"
+                  title="Copy"
+                  onClick={() => handleCopyToClipboard(`${articleData.title}\n\n${articleData.content}`)}
+                >
                   {isCopied ? (
                     <span className="preview-copied-message">copied to clipboard</span>
                   ) : (
@@ -472,7 +406,6 @@ export default function ArticleDetailsPage() {
                     </svg>
                   )}
                 </button>
-
                 <button
                   className="preview-save-icon"
                   title="Save to drafts"
@@ -495,7 +428,6 @@ export default function ArticleDetailsPage() {
                 >
                   <span className="preview-edit-text">{isLoadingEditor ? "opening..." : "edit"}</span>
                 </button>
-
               </div>
             </div>
 
@@ -511,7 +443,6 @@ export default function ArticleDetailsPage() {
                 word count: {articleData.wordCount ?? articleData.content.split(" ").length}
               </span>
             </div>
-
           </div>
         </div>
       )}
