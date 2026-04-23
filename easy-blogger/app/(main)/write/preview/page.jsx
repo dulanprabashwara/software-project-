@@ -1,12 +1,12 @@
-//easy-blogger\app\(main)\write\preview\page.jsx
-
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
-import { getDraftById } from "../../../../lib/articles/api";
+import ConfirmDialog from "../../../../components/article/ConfirmDialog";
+import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
+import { getDraftById, updateDraft } from "../../../../lib/articles/api";
 import ArticleContentRenderer from "../../../../components/article/ArticleContentRenderer";
 
 function getArticleFromResponse(response) {
@@ -24,6 +24,8 @@ export default function PreviewPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [article, setArticle] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { modalState, openModal, closeModal } = useConfirmDialog();
 
   useEffect(() => {
     const loadPreviewArticle = async () => {
@@ -67,7 +69,27 @@ export default function PreviewPage() {
 
   const handlePublish = () => {
     if (!article?.id) return;
-    router.push(`/write/publish?id=${article.id}`);
+
+    openModal({
+      title: "Save article?",
+      message: "Do you want to save this article before moving to publish page?",
+      confirmText: "Yes",
+      cancelText: "No",
+      onConfirm: async () => {
+        try {
+          await updateDraft(article.id, { status: "draft" });
+          closeModal();
+          router.push(`/write/publish?id=${article.id}`);
+        } catch (error) {
+          console.error("Failed to save article before publish:", error);
+          closeModal();
+        }
+      },
+      onCancel: async () => {
+        closeModal();
+      },
+      onClose: async () => {},
+    });
   };
 
   const handleEditAgain = () => {
@@ -106,35 +128,48 @@ export default function PreviewPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
-      <Sidebar isOpen={sidebarOpen} />
+    <>
+      <ConfirmDialog
+        isOpen={modalState.isOpen}
+        title={modalState.title}
+        message={modalState.message}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        isLoading={modalState.isLoading}
+        onConfirm={modalState.onConfirm}
+        onCancel={modalState.onCancel}
+        onClose={modalState.onClose}
+      />
 
-      <main className={mainClassName}>
-        <div className="shrink-0 border-b border-[#E5E7EB] bg-white px-6 py-3">
-          <div className="mx-auto max-w-5xl text-center">
-            <h1 className="text-2xl font-serif font-bold text-[#111827]">
-              Preview your Article
-            </h1>
-            <p className="mt-1 text-sm text-[#6B7280]">
-              Review the saved article before publishing or editing again
-            </p>
-          </div>
-        </div>
+      <div className="min-h-screen bg-white">
+        <Header onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
+        <Sidebar isOpen={sidebarOpen} />
 
-        {isLoading ? (
-          <div className="flex flex-1 items-center justify-center px-8">
-            <p className="text-[#6B7280]">Loading preview...</p>
+        <main className={mainClassName}>
+          <div className="shrink-0 border-b border-[#E5E7EB] bg-white px-6 py-3">
+            <div className="mx-auto max-w-5xl text-center">
+              <h1 className="text-2xl font-serif font-bold text-[#111827]">
+                Preview your Article
+              </h1>
+              <p className="mt-1 text-sm text-[#6B7280]">
+                Review the saved article before publishing or editing again
+              </p>
+            </div>
           </div>
-        ) : !article ? null : (
-          <>
-            <div className="flex-1 overflow-y-auto px-8 py-6">
-              <div className="mx-auto max-w-4xl pb-6">
-                <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-md">
-                  <div className="bg-emerald-100/60 px-8 py-8">
-                    <h2 className="font-serif text-3xl leading-tight text-[#111827]">
-                      {article.title}
-                    </h2>
+
+          {isLoading ? (
+            <div className="flex flex-1 items-center justify-center px-8">
+              <p className="text-[#6B7280]">Loading preview...</p>
+            </div>
+          ) : !article ? null : (
+            <>
+              <div className="flex-1 overflow-y-auto px-8 py-6">
+                <div className="mx-auto max-w-4xl pb-6">
+                  <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-md">
+                    <div className="bg-emerald-100/60 px-8 py-8">
+                      <h2 className="font-serif text-3xl leading-tight text-[#111827]">
+                        {article.title}
+                      </h2>
 
                     {article.coverImage ? (
                       <div className="mt-6 overflow-hidden rounded-lg border border-[#E5E7EB] bg-white">
@@ -146,43 +181,44 @@ export default function PreviewPage() {
                       </div>
                     ) : null}
 
-                    <hr className="my-8 border-black/20" />
+                      <hr className="my-8 border-black/20" />
 
-                    <div className="rounded-lg bg-white px-8 py-8">
-                      <ArticleContentRenderer
-                        content={article.content}
-                        className="prose-teal"
-                      />
+                      <div className="rounded-lg bg-white px-8 py-8">
+                        <ArticleContentRenderer
+                          content={article.content}
+                          className="prose-teal"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="shrink-0 border-t border-[#E5E7EB] bg-white px-6 py-2">
-              <div className="mx-auto flex max-w-4xl items-center justify-between gap-6 text-center">
-                {actions.map((action) => (
-                  <div
-                    key={action.buttonText}
-                    className="flex flex-1 flex-col items-center"
-                  >
-                    <p className="mb-1 text-sm italic text-[#6B7280]">
-                      {action.label}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={action.onClick}
-                      className={`rounded-full py-2 text-sm font-medium text-white ${action.buttonClassName}`}
+              <div className="shrink-0 border-t border-[#E5E7EB] bg-white px-6 py-2">
+                <div className="mx-auto flex max-w-4xl items-center justify-between gap-6 text-center">
+                  {actions.map((action) => (
+                    <div
+                      key={action.buttonText}
+                      className="flex flex-1 flex-col items-center"
                     >
-                      {action.buttonText}
-                    </button>
-                  </div>
-                ))}
+                      <p className="mb-1 text-sm italic text-[#6B7280]">
+                        {action.label}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={action.onClick}
+                        className={`rounded-full py-2 text-sm font-medium text-white ${action.buttonClassName}`}
+                      >
+                        {action.buttonText}
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          </>
-        )}
-      </main>
-    </div>
+            </>
+          )}
+        </main>
+      </div>
+    </>
   );
 }

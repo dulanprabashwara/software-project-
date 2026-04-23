@@ -1,4 +1,3 @@
-// Profile page - Shows user's profile with their articles
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
@@ -8,6 +7,7 @@ import { useSubscription } from "../../context/SubscriptionContext";
 import { useAuth } from "../../context/AuthContext";
 import ArticleCard from "../../../components/article/ArticleCard";
 import { api } from "../../../lib/api";
+import { getMyPublishedArticles } from "../../../lib/articles/api";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("home");
@@ -34,6 +34,7 @@ export default function ProfilePage() {
     firebaseUser?.displayName ||
     firebaseUser?.email?.split("@")[0] ||
     "User";
+
   const avatarUrl =
     userProfile?.avatarUrl ||
     firebaseUser?.photoURL ||
@@ -61,6 +62,9 @@ export default function ProfilePage() {
   const [togglingIds, setTogglingIds] = useState(new Set());
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
+  const [publishedArticles, setPublishedArticles] = useState([]);
+  const [articlesLoading, setArticlesLoading] = useState(false);
+
   // Sync active stats tab when modal changes
   useEffect(() => {
     if (modalTab) setStatsActiveTab(modalTab);
@@ -73,7 +77,6 @@ export default function ProfilePage() {
       setHasAbout(!!userProfile.bio);
     }
   }, [userProfile]);
-
   // Fetch live unread message count on mount
   useEffect(() => {
     if (!firebaseUser) return;
@@ -90,6 +93,25 @@ export default function ProfilePage() {
   }, [firebaseUser]);
 
   // Fetch real followers/following when modal opens
+  useEffect(() => {
+    if (!firebaseUser) return;
+
+    const loadPublishedArticles = async () => {
+      try {
+        setArticlesLoading(true);
+        const response = await getMyPublishedArticles(1, 20);
+        setPublishedArticles(response?.data || []);
+      } catch (error) {
+        console.error("Failed to load published articles:", error);
+        setPublishedArticles([]);
+      } finally {
+        setArticlesLoading(false);
+      }
+    };
+
+    void loadPublishedArticles();
+  }, [firebaseUser]);
+
   useEffect(() => {
     if (!modalTab || !userProfile?.id) return;
 
@@ -250,57 +272,7 @@ export default function ProfilePage() {
     [firebaseUser, userProfile, updateContextProfile],
   );
 
-  // Mock articles data
-  const articles = [
-    {
-      id: 1,
-      authorName: "Emma Richardson",
-      authorAvatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face",
-      verified: false,
-      date: "Dec 4, 2025",
-      title: "How AI is Transforming Content Creation in 2025",
-      content:
-        "Explore the latest developments in artificial intelligence and how they are revolutionizing the way we create, curate, and consume content across digital platforms.",
-      thumbnail:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=300&fit=crop",
-      comments: 42,
-      likes: 4.8,
-    },
-    {
-      id: 2,
-      authorName: "Emma Richardson",
-      authorAvatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face",
-      verified: false,
-      date: "Nov 25, 2025",
-      title: "Designing for Accessibility in 2025",
-      content:
-        "A deep dive into the design thinking process and how it can help teams solve complex problems, innovate faster, and create products that truly resonate with users.",
-      thumbnail:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop",
-      comments: 35,
-      likes: 4.9,
-    },
-  ];
-
-  const shares = [
-    {
-      id: 1,
-      title: "The Future of AI in 2026",
-      platform: "Twitter",
-      date: "Jan 2, 2026",
-      likes: 12,
-    },
-    {
-      id: 2,
-      title: "Mastering React Patterns",
-      platform: "LinkedIn",
-      date: "Jan 1, 2026",
-      comments: 5,
-    },
-  ];
-  //loading screen
+  
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-[calc(100vh-64px)] pt-20 bg-gray-50">
@@ -391,13 +363,20 @@ export default function ProfilePage() {
               </button>
             </div>
           </div>
-
           {/* Tab Content */}
           {activeTab === "home" ? (
             <div>
-              {articles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
+              {articlesLoading ? (
+                <p className="text-sm text-[#6B7280]">Loading articles...</p>
+              ) : publishedArticles.length === 0 ? (
+                <p className="text-sm text-[#6B7280]">
+                  You have not published any articles yet.
+                </p>
+              ) : (
+                publishedArticles.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
+                ))
+              )}
             </div>
           ) : (
             <div className="py-8">
@@ -489,31 +468,6 @@ export default function ProfilePage() {
                     : "border-[#E5E7EB]"
                 }`}
               />
-              {userProfile?.isPremium && (
-                <div className="absolute -bottom-1 -right-1 transform translate-x-1/4 translate-y-1/4 drop-shadow-md">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M22.5 12.5L20.1 15.3L20.4 19L16.8 19.8L14.9 23L11.5 21.6L8.1 23L6.2 19.8L2.6 19L2.9 15.3L0.5 12.5L2.9 9.7L2.6 6L6.2 5.2L8.1 2L11.5 3.4L14.9 2L16.8 5.2L20.4 6L20.1 9.7L22.5 12.5Z"
-                      fill="#1ABC9C"
-                      stroke="white"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M7 12L10 15L16 9"
-                      stroke="white"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              )}
             </div>
 
             <h2 className="text-base font-bold text-[#111827] mb-2 flex items-center gap-2">
