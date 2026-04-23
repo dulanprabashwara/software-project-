@@ -1,5 +1,5 @@
 import "../styles/globals.css";
-import { SubscriptionProvider } from "./subscription/SubscriptionContext";
+import { SubscriptionProvider } from "./context/SubscriptionContext";
 import { AuthProvider } from "./context/AuthContext";
 
 export const metadata = {

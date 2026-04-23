@@ -10,6 +10,7 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import React, { useState } from "react";
@@ -60,9 +61,15 @@ export default function LoginPage() {
       await signInWithPopup(auth, provider);
       // Let AuthContext handle the redirect via useEffect
     } catch (error) {
-      console.error("Error logging in with Google", error);
-      setError("Failed to log in with Google.");
-      setIsAuthenticating(false);
+      if (error.code === "auth/popup-blocked") {
+        // Browser blocked the popup — fall back to redirect flow
+        const provider = new GoogleAuthProvider();
+        await signInWithRedirect(auth, provider);
+      } else {
+        console.error("Error logging in with Google", error);
+        setError("Failed to log in with Google.");
+        setIsAuthenticating(false);
+      }
     }
   };
 
@@ -78,9 +85,14 @@ export default function LoginPage() {
       await signInWithPopup(auth, provider);
       // Let AuthContext handle the redirect via useEffect
     } catch (error) {
-      console.error("Error logging in with Facebook", error);
-      setError("Failed to log in with Facebook.");
-      setIsAuthenticating(false);
+      if (error.code === "auth/popup-blocked") {
+        const provider = new FacebookAuthProvider();
+        await signInWithRedirect(auth, provider);
+      } else {
+        console.error("Error logging in with Facebook", error);
+        setError("Failed to log in with Facebook.");
+        setIsAuthenticating(false);
+      }
     }
   };
 
@@ -119,7 +131,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       <div className="absolute inset-0 bg-[#F8FAFC]">
-        <div className="absolute left-0 top-0 w-1/3 h-full bg-gradient-to-r from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
+        <div className="absolute left-0 top-0 w-1/3 h-full bg-linear-to-r from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
         <div className="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
       </div>
 

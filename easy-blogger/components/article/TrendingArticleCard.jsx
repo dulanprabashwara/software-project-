@@ -39,7 +39,7 @@ export default function TrendingArticleCard({ article }) {
 
           <div className="line-clamp-3">
             <div
-              className="text-gray-500 text-[16px] leading-6 [&_*]:text-gray-500 [&_*]:text-[16px]"
+              className="text-gray-500 text-[16px] leading-6 **:text-gray-500 **:text-[16px]"
               dangerouslySetInnerHTML={{
                 __html: article.content,
               }}
@@ -50,7 +50,7 @@ export default function TrendingArticleCard({ article }) {
 
         {/* Thumbnail */}
         {article.thumbnail && (
-          <div className="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden">
+          <div className="w-28 h-28 shrink-0 rounded-lg overflow-hidden">
             <img
               src={article.thumbnail}
               alt={article.title}

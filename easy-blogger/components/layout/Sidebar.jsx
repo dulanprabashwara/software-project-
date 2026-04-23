@@ -14,7 +14,7 @@ import {
   Plus,
   Loader2,
 } from "lucide-react";
-import { useSubscription } from "../../app/subscription/SubscriptionContext";
+import { useSubscription } from "../../app/context/SubscriptionContext";
 import { useAuth } from "../../app/context/AuthContext";
 import { api } from "../../lib/api";
 import { useState } from "react";

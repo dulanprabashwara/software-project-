@@ -338,7 +338,7 @@ export default function UnpublishedArticlesPage() {
                               </p>
                             </div>
 
-                            <div className="w-[220px] shrink-0 flex justify-end">
+                            <div className="w-55 shrink-0 flex justify-end">
                               <div className="h-28 w-40 overflow-hidden rounded-md bg-black/10 flex items-center justify-center">
                                 {article.hasCover ? (
                                   <img
@@ -416,7 +416,7 @@ export default function UnpublishedArticlesPage() {
             </>
           )}
 
-          <div className="mt-10 border-t-2 border-black/100" />
+          <div className="mt-10 border-t-2 border-black" />
 
           <div className="mt-8 flex items-center justify-between px-6">
             <button

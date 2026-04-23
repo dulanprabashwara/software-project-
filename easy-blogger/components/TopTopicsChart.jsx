@@ -60,7 +60,7 @@ export default function TopTopicsChart() {
   };
 
   return (
-    <div className="w-full h-[400px] bg-white p-6 rounded-xl shadow">
+    <div className="w-full h-100 bg-white p-6 rounded-xl shadow">
       <Bar data={data} options={options} />
     </div>
   );

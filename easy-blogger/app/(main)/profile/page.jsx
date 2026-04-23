@@ -1,11 +1,10 @@
 // Profile page - Shows user's profile with their articles
 "use client";
-
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { X, Loader2, MessageCircle } from "lucide-react";
-import { useSubscription } from "../../subscription/SubscriptionContext";
+import { useSubscription } from "../../context/SubscriptionContext";
 import { useAuth } from "../../context/AuthContext";
 import ArticleCard from "../../../components/article/ArticleCard";
 import { api } from "../../../lib/api";
@@ -23,13 +22,13 @@ export default function ProfilePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // When ?modal=followers/following/reads/shares is present, show the stats modal
+  // When ?modal=followers/following/shares is present, show the stats modal. model is triggered by the url
   const modalTab = searchParams.get("modal");
 
-  // Show spinner only while Firebase auth state is being determined (fast, ~50ms).
+  // Show spinner only while Firebase auth state is being determined
   const loading = authLoading;
-  // Derive display values — Firebase is available immediately as fallback
-  // while the backend userProfile loads asynchronously.
+
+  // Derive display values
   const displayName =
     userProfile?.displayName ||
     firebaseUser?.displayName ||
@@ -51,9 +50,9 @@ export default function ProfilePage() {
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [hasAbout, setHasAbout] = useState(false);
 
-  // Stats modal state
+  // active Stat modal tab
   const [statsActiveTab, setStatsActiveTab] = useState(modalTab || "followers");
-  
+
   // Real stats data
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
@@ -62,7 +61,7 @@ export default function ProfilePage() {
   const [togglingIds, setTogglingIds] = useState(new Set());
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
-  // Sync stats tab when URL changes
+  // Sync active stats tab when modal changes
   useEffect(() => {
     if (modalTab) setStatsActiveTab(modalTab);
   }, [modalTab]);
@@ -108,9 +107,9 @@ export default function ProfilePage() {
         setFollowers(followersList);
         setFollowing(followingList);
 
-        // Track who we currently follow
-         const alreadyFollowing = new Set(followingList.map((u) => u.id));
-         setFollowingSet(alreadyFollowing);
+        // get the id of who we currently follow
+        const alreadyFollowing = new Set(followingList.map((u) => u.id));
+        setFollowingSet(alreadyFollowing);
       } catch (err) {
         console.error("Failed to fetch stats:", err);
       } finally {
@@ -121,6 +120,7 @@ export default function ProfilePage() {
     loadStats();
   }, [modalTab, userProfile?.id]);
 
+  //close the dropdown menu when clicked outside after clicking 3 dots
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -134,8 +134,10 @@ export default function ProfilePage() {
     };
   }, []);
 
+  //route to profile page when close the modal
   const closeModal = () => router.push("/profile");
 
+  // grab the URL of the profile page and copy it to the clipboard
   const handleCopyLink = () => {
     const url = window.location.href;
 
@@ -155,37 +157,12 @@ export default function ProfilePage() {
     }
   };
 
-  const fallbackCopyTextToClipboard = (text) => {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    textArea.style.top = "0";
-    textArea.style.left = "0";
-    textArea.style.position = "fixed";
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
-    try {
-      const successful = document.execCommand("copy");
-      if (successful) {
-        alert("Profile link copied to clipboard!");
-        setShowMenu(false);
-      } else {
-        alert("Failed to copy link.");
-      }
-    } catch (err) {
-      console.error("Fallback: Oops, unable to copy", err);
-      alert("Failed to copy link.");
-    }
-
-    document.body.removeChild(textArea);
-  };
-
-  // About Section Handlers
+  // when user click get started when dont have a bio
   const handleGetStartedAbout = () => {
     setIsEditingAbout(true);
   };
 
+  //when click save about, grabs jwt token and send the text to the backend with jwt token
   const handleSaveAbout = async () => {
     if (aboutText.trim() && userProfile) {
       try {
@@ -193,7 +170,7 @@ export default function ProfilePage() {
         await api.updateProfile({ bio: aboutText }, token);
         setHasAbout(true);
         setIsEditingAbout(false);
-        updateContextProfile({ bio: aboutText });
+        updateContextProfile({ bio: aboutText }); //call authcontext to update its memory  with new about
       } catch (err) {
         console.error("Failed to update bio", err);
         alert("Failed to save about text.");
@@ -201,6 +178,7 @@ export default function ProfilePage() {
     }
   };
 
+  //cancel editing about
   const handleCancelAbout = () => {
     setIsEditingAbout(false);
     if (!hasAbout) {
@@ -208,10 +186,12 @@ export default function ProfilePage() {
     }
   };
 
+  //when the user alredy have an about and click about
   const handleEditAbout = () => {
     setIsEditingAbout(true);
   };
 
+  //delete about
   const handleDeleteAbout = async () => {
     if (confirm("Are you sure you want to delete your bio?")) {
       try {
@@ -219,7 +199,7 @@ export default function ProfilePage() {
         await api.updateProfile({ bio: null }, token);
         setHasAbout(false);
         setAboutText("");
-        updateContextProfile({ bio: null });
+        updateContextProfile({ bio: null }); //call authcotext to delete about from its memory
       } catch (err) {
         console.error("Failed to delete bio", err);
         alert("Failed to delete bio.");
@@ -227,32 +207,39 @@ export default function ProfilePage() {
     }
   };
 
+  //when toggle follow/unfollow get the userId and send to backend to updates that user's follower or following list
   const handleToggleFollow = useCallback(
     async (userId) => {
+      //stop if not logged in
       if (!firebaseUser) return;
+      //add the toggeling user's id to the toggelingIds list
       setTogglingIds((prev) => new Set(prev).add(userId));
       try {
         const token = await firebaseUser.getIdToken();
         const res = await api.toggleFollow(userId, token);
         if (res.success) {
+          //if the backend says youre following add userid to the follwing list , else remove it
           setFollowingSet((prev) => {
             const next = new Set(prev);
             if (res.data.followed) next.add(userId);
             else next.delete(userId);
             return next;
           });
-          
-          // Optimistically update counts in profile if we are viewing our own modal
+
+          //update following count in profile
           updateContextProfile({
             _count: {
               ...userProfile?._count,
-              following: (userProfile?._count?.following || 0) + (res.data.followed ? 1 : -1)
-            }
+              following:
+                (userProfile?._count?.following || 0) +
+                (res.data.followed ? 1 : -1),
+            },
           });
         }
       } catch (err) {
         console.error("Toggle follow failed:", err);
       } finally {
+        //remove the toggeling user's id from the toggelingIds list
         setTogglingIds((prev) => {
           const next = new Set(prev);
           next.delete(userId);
@@ -260,7 +247,7 @@ export default function ProfilePage() {
         });
       }
     },
-    [firebaseUser, userProfile, updateContextProfile]
+    [firebaseUser, userProfile, updateContextProfile],
   );
 
   // Mock articles data
@@ -313,7 +300,7 @@ export default function ProfilePage() {
       comments: 5,
     },
   ];
-
+  //loading screen
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-[calc(100vh-64px)] pt-20 bg-gray-50">
@@ -497,7 +484,9 @@ export default function ProfilePage() {
                 alt={displayName}
                 referrerPolicy="no-referrer"
                 className={`w-20 h-20 rounded-full object-cover border-2 ${
-                  userProfile?.isPremium ? "border-[#F59E0B]" : "border-[#E5E7EB]"
+                  userProfile?.isPremium
+                    ? "border-[#F59E0B]"
+                    : "border-[#E5E7EB]"
                 }`}
               />
               {userProfile?.isPremium && (
@@ -567,7 +556,6 @@ export default function ProfilePage() {
               Edit profile
             </a>
           </div>
-
         </div>
       </aside>
 
@@ -575,12 +563,12 @@ export default function ProfilePage() {
       {modalTab && (
         <>
           <div
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[1001]"
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-1001"
             onClick={closeModal}
           />
 
-          <div className="fixed inset-0 flex items-center justify-center z-[1002] p-4 pointer-events-none">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col pointer-events-auto">
+          <div className="fixed inset-0 flex items-center justify-center z-1002 p-4 pointer-events-none">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-150 flex flex-col pointer-events-auto">
               <div className="p-6 border-b border-[#E5E7EB]">
                 <div className="flex items-center justify-between mb-4">
                   <h2
@@ -599,9 +587,23 @@ export default function ProfilePage() {
 
                 <div className="flex gap-6">
                   {[
-                    { key: "followers", label: "Followers", count: userProfile?._count?.followers || followers.length || 0 },
-                    { key: "following", label: "Following", count: userProfile?._count?.following || following.length || 0 },
-                    { key: "shares", label: "Shares", count: userProfile?.stats?.totalShares || 0 },
+                    {
+                      key: "followers",
+                      label: "Followers",
+                      count:
+                        userProfile?._count?.followers || followers.length || 0,
+                    },
+                    {
+                      key: "following",
+                      label: "Following",
+                      count:
+                        userProfile?._count?.following || following.length || 0,
+                    },
+                    {
+                      key: "shares",
+                      label: "Shares",
+                      count: userProfile?.stats?.totalShares || 0,
+                    },
                   ].map(({ key, label, count }) => (
                     <button
                       key={key}
@@ -631,7 +633,10 @@ export default function ProfilePage() {
                 {statsLoading ? (
                   <div className="space-y-6">
                     {[1, 2, 3, 4, 5].map((i) => (
-                      <div key={i} className="flex items-center justify-between animate-pulse">
+                      <div
+                        key={i}
+                        className="flex items-center justify-between animate-pulse"
+                      >
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
                           <div className="space-y-2">
@@ -649,12 +654,15 @@ export default function ProfilePage() {
                     {statsActiveTab === "followers" && (
                       <div className="space-y-4">
                         {followers.length === 0 ? (
-                           <p className="text-center text-gray-400 py-8 text-sm">
-                             You have no followers yet. Share your profile to gain some!
-                           </p>
+                          <p className="text-center text-gray-400 py-8 text-sm">
+                            You have no followers yet. Share your profile to
+                            gain some!
+                          </p>
                         ) : (
                           followers.map((person) => {
-                            const isFollowingPerson = followingSet.has(person.id);
+                            const isFollowingPerson = followingSet.has(
+                              person.id,
+                            );
                             const isToggling = togglingIds.has(person.id);
                             const isSelf = userProfile?.id === person.id;
                             return (
@@ -663,11 +671,18 @@ export default function ProfilePage() {
                                 className="flex items-center justify-between"
                               >
                                 <Link
-                                  href={isSelf ? "/profile" : `/profile/${person.username}`}
+                                  href={
+                                    isSelf
+                                      ? "/profile"
+                                      : `/profile/${person.username}`
+                                  }
                                   className="flex items-center gap-3 min-w-0"
                                 >
                                   <img
-                                    src={person.avatarUrl || fallbackAvatar(person.displayName)}
+                                    src={
+                                      person.avatarUrl ||
+                                      fallbackAvatar(person.displayName)
+                                    }
                                     alt={person.displayName}
                                     referrerPolicy="no-referrer"
                                     className="w-12 h-12 rounded-full object-cover shrink-0"
@@ -684,7 +699,9 @@ export default function ProfilePage() {
                                 {!isSelf && (
                                   <div className="flex items-center gap-2 ml-4 shrink-0">
                                     <button
-                                      onClick={() => handleToggleFollow(person.id)}
+                                      onClick={() =>
+                                        handleToggleFollow(person.id)
+                                      }
                                       disabled={isToggling}
                                       className={`shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
                                         isFollowingPerson
@@ -735,11 +752,18 @@ export default function ProfilePage() {
                                 className="flex items-center justify-between"
                               >
                                 <Link
-                                  href={isSelf ? "/profile" : `/profile/${person.username}`}
+                                  href={
+                                    isSelf
+                                      ? "/profile"
+                                      : `/profile/${person.username}`
+                                  }
                                   className="flex items-center gap-3 min-w-0"
                                 >
                                   <img
-                                    src={person.avatarUrl || fallbackAvatar(person.displayName)}
+                                    src={
+                                      person.avatarUrl ||
+                                      fallbackAvatar(person.displayName)
+                                    }
                                     alt={person.displayName}
                                     referrerPolicy="no-referrer"
                                     className="w-12 h-12 rounded-full object-cover shrink-0"
@@ -756,7 +780,9 @@ export default function ProfilePage() {
                                 {!isSelf && (
                                   <div className="flex items-center gap-2 ml-4 shrink-0">
                                     <button
-                                      onClick={() => handleToggleFollow(person.id)}
+                                      onClick={() =>
+                                        handleToggleFollow(person.id)
+                                      }
                                       disabled={isToggling}
                                       className={`shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
                                         stillFollowing

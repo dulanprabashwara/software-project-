@@ -6,7 +6,7 @@ import Header from "../../../components/layout/Header";
 import Sidebar from "../../../components/layout/Sidebar";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { useSubscription } from "../SubscriptionContext";
+import { useSubscription } from "../../context/SubscriptionContext";
 import { api } from "../../../lib/api";
 
 /**
