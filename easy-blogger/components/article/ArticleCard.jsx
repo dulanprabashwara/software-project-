@@ -10,15 +10,19 @@ export default function ArticleCard({ article }) {
   const authorName = article.author?.displayName || "Guest Writer"; 
   const authorAvatar = article.author?.avatarUrl || "https://ui-avatars.com/api/?name=Guest";
   const { user, profileLoading } = useAuth();
-  // Safety check for date: If createdAt is missing, use "Recent"
-  const displayDate = article.createdAt 
-    ? new Date(article.createdAt).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
-    : "Recent";
+  const rawDate =
+    article.status === "PUBLISHED"
+      ? article.publishedAt || article.createdAt
+      : article.updatedAt || article.createdAt;
 
+  const displayDate = rawDate
+    ? new Date(rawDate).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  : "Recent";
+  
   const storageKey = useMemo(() => `saved:${article.id}`, [article.id]);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);

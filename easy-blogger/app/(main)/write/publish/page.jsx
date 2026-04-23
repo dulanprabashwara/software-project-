@@ -1,18 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Calendar, Clock } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "../../../context/AuthContext"; // WordPress: get Firebase user
 import { API_BASE_URL } from "../../../../lib/api";     // WordPress: backend base URL
-
-const STORAGE_KEYS = {
-  publishArticleTitle: "publish_article_title",
-  publishSourceArticleId: "publish_source_article_id",
-  publishDraft: "publish_article_draft",
-  publishedArticleData: "published_article_data",
-};
+import {getDraftById,publishArticle as publishEasyBloggerArticle,} from "../../../../lib/articles/api";
 
 const MAX_TAGS = 5;
 
@@ -66,38 +60,6 @@ function Radio({ checked }) {
   );
 }
 
-function readPublishDraft() {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const rawDraft = sessionStorage.getItem(STORAGE_KEYS.publishDraft);
-  if (!rawDraft) return null;
-
-  try {
-    return JSON.parse(rawDraft);
-  } catch (error) {
-    console.error("Failed to parse publish draft", error);
-    return null;
-  }
-}
-
-function readPublishArticleTitle() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  return sessionStorage.getItem(STORAGE_KEYS.publishArticleTitle) || "";
-}
-
-function readPublishSourceArticleId() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  return sessionStorage.getItem(STORAGE_KEYS.publishSourceArticleId) || "";
-}
-
 function buildSelectedPlatforms({ shareLinkedIn, shareWordPress }) {
   const platforms = ["Easy Blogger"];
 
@@ -107,13 +69,41 @@ function buildSelectedPlatforms({ shareLinkedIn, shareWordPress }) {
   return platforms;
 }
 
+function formatDateToInput(dateValue) {
+  if (!dateValue) return "";
+
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function formatTimeToInput(dateValue) {
+  if (!dateValue) return "";
+
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+}
+
 export default function PublishArticlePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const defaultDraft = useMemo(() => createDefaultPublishDraft(), []);
 
-  // WordPress: get authenticated user for API calls
   const { user: firebaseUser } = useAuth();
 
+  const articleId = searchParams.get("id") || "";
+
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [articleTitle, setArticleTitle] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState(defaultDraft.tags);
@@ -131,11 +121,13 @@ export default function PublishArticlePage() {
   const [showShareText, setShowShareText] = useState(false);
   const [linkedinCaption, setLinkedinCaption] = useState(defaultDraft.linkedinCaption);
 
-  // WordPress connection state
-  const [wpConnected,     setWpConnected]     = useState(false);
-  const [wpUsername,      setWpUsername]      = useState("");
-  const [wpCheckDone,     setWpCheckDone]     = useState(false);
-  const [wpPublishError,  setWpPublishError]  = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [publishError, setPublishError] = useState("");
+
+  const [wpConnected, setWpConnected] = useState(false);
+  const [wpUsername, setWpUsername] = useState("");
+  const [wpCheckDone, setWpCheckDone] = useState(false);
+  const [wpPublishError, setWpPublishError] = useState("");
 
   const pad2 = (value) => String(value).padStart(2, "0");
 
@@ -177,23 +169,6 @@ export default function PublishArticlePage() {
     return `${month}/${day}/${year}`;
   };
 
-  const buildPublishDraft = () => ({
-    tags,
-    timing,
-    scheduledDate,
-    scheduledTime,
-    shareLinkedIn,
-    shareWordPress,
-    linkedinCaption,
-  });
-
-  const savePublishDraft = () => {
-    sessionStorage.setItem(
-      STORAGE_KEYS.publishDraft,
-      JSON.stringify(buildPublishDraft())
-    );
-  };
-
   const addTag = (rawValue) => {
     const trimmedTag = rawValue.trim();
 
@@ -219,73 +194,61 @@ export default function PublishArticlePage() {
     return selected < now;
   };
 
+  const buildScheduledAt = () => {
+    if (timing !== "schedule" || !scheduledDate || !scheduledTime) {
+      return null;
+    }
+
+    return new Date(`${scheduledDate}T${scheduledTime}`).toISOString();
+  };
+
   useEffect(() => {
-    const storedTitle = readPublishArticleTitle();
-    const storedArticleId = readPublishSourceArticleId();
+    const loadArticle = async () => {
+      if (!articleId) {
+        router.replace("/write/create");
+        return;
+      }
 
-    if (storedTitle) {
-      setArticleTitle(storedTitle);
-    }
+      try {
+        setIsPageLoading(true);
+        const response = await getDraftById(articleId);
+        const article = response?.data ?? response?.article ?? response ?? null;
 
-    if (!storedArticleId) {
-      sessionStorage.removeItem(STORAGE_KEYS.publishDraft);
-      return;
-    }
+        if (!article) {
+          router.replace("/write/create");
+          return;
+        }
 
-    const rawPreviewArticle = sessionStorage.getItem("preview_article");
-    if (!rawPreviewArticle) {
-      sessionStorage.removeItem(STORAGE_KEYS.publishDraft);
-      return;
-    }
+        setArticleTitle(article.title || "");
 
-    let previewArticle = null;
+        if (Array.isArray(article.tags) && article.tags.length > 0) {
+          setTags(article.tags.slice(0, MAX_TAGS));
+        }
 
-    try {
-      previewArticle = JSON.parse(rawPreviewArticle);
-    } catch (error) {
-      console.error("Failed to parse preview article", error);
-      sessionStorage.removeItem(STORAGE_KEYS.publishDraft);
-      return;
-    }
+        if (article.status === "SCHEDULED" && article.scheduledAt) {
+          setTiming("schedule");
+          setScheduledDate(formatDateToInput(article.scheduledAt));
+          setScheduledTime(formatTimeToInput(article.scheduledAt));
 
-    const currentPreviewArticleId = previewArticle?.id || "";
+          const scheduled = new Date(article.scheduledAt);
+          const currentHour = scheduled.getHours();
+          const period = currentHour >= 12 ? "PM" : "AM";
+          const hour12 = currentHour % 12 === 0 ? 12 : currentHour % 12;
 
-    if (!currentPreviewArticleId || currentPreviewArticleId !== storedArticleId) {
-      sessionStorage.removeItem(STORAGE_KEYS.publishDraft);
-      return;
-    }
+          setTpHour(String(hour12));
+          setTpMinute(pad2(scheduled.getMinutes()));
+          setTpPeriod(period);
+        }
+      } catch (error) {
+        console.error("Failed to load publish article:", error);
+        setPublishError("Failed to load article data.");
+      } finally {
+        setIsPageLoading(false);
+      }
+    };
 
-    const storedDraft = readPublishDraft();
-    if (!storedDraft) return;
-
-    if (Array.isArray(storedDraft.tags)) {
-      setTags(storedDraft.tags);
-    }
-
-    if (storedDraft.timing === "now" || storedDraft.timing === "schedule") {
-      setTiming(storedDraft.timing);
-    }
-
-    if (typeof storedDraft.scheduledDate === "string") {
-      setScheduledDate(storedDraft.scheduledDate);
-    }
-
-    if (typeof storedDraft.scheduledTime === "string") {
-      setScheduledTime(storedDraft.scheduledTime);
-    }
-
-    if (typeof storedDraft.shareLinkedIn === "boolean") {
-      setShareLinkedIn(storedDraft.shareLinkedIn);
-    }
-
-    if (typeof storedDraft.shareWordPress === "boolean") {
-      setShareWordPress(storedDraft.shareWordPress);
-    }
-
-    if (typeof storedDraft.linkedinCaption === "string") {
-      setLinkedinCaption(storedDraft.linkedinCaption);
-    }
-  }, []);
+    void loadArticle();
+  }, [articleId, router]);
 
   useEffect(() => {
     if (timing !== "now") return;
@@ -365,17 +328,17 @@ export default function PublishArticlePage() {
     setShowShareText(true);
   }, [shareLinkedIn, shareWordPress]);
 
-  // Check WordPress connection when toggle is turned on
   useEffect(() => {
     if (!shareWordPress || !firebaseUser || wpCheckDone) return;
 
     const checkWp = async () => {
       try {
         const token = await firebaseUser.getIdToken();
-        const res   = await fetch(`${API_BASE_URL}/api/wordpress/status`, {
+        const res = await fetch(`${API_BASE_URL}/api/wordpress/status`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
+
         if (data?.data?.connected) {
           setWpConnected(true);
           setWpUsername(data.data.wpUsername || "");
@@ -392,44 +355,44 @@ export default function PublishArticlePage() {
     checkWp();
   }, [shareWordPress, firebaseUser, wpCheckDone]);
 
-  // Publish to WordPress after our platform publish succeeds
-  const handleWordPressPublish = async (articleId) => {
-    if (!shareWordPress || !wpConnected || !articleId || !firebaseUser) return;
+  const handleWordPressPublish = async (currentArticleId) => {
+    if (!shareWordPress || !wpConnected || !currentArticleId || !firebaseUser) return;
 
     try {
       const token = await firebaseUser.getIdToken();
 
-      // null = publish now; ISO string = scheduled
       const scheduledAt =
         timing === "schedule" && scheduledDate && scheduledTime
           ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString()
           : null;
 
-      const res  = await fetch(`${API_BASE_URL}/api/wordpress/publish`, {
-        method:  "POST",
+      const res = await fetch(`${API_BASE_URL}/api/wordpress/publish`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization:  `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ articleId, scheduledAt }),
+        body: JSON.stringify({ articleId: currentArticleId, scheduledAt }),
       });
 
       const data = await res.json();
 
       if (!data.success) {
-        setWpPublishError(data?.data?.message || "WordPress publish failed.");
-        sessionStorage.setItem("wp_publish_error", data?.data?.message || "WordPress publish failed.");
-      } else {
-        sessionStorage.removeItem("wp_publish_error");
-        if (data?.data?.wpPostUrl) {
-          sessionStorage.setItem("wp_post_url", data.data.wpPostUrl);
-        }
+        const message = data?.data?.message || "WordPress publish failed.";
+        setWpPublishError(message);
       }
     } catch {
       setWpPublishError("Could not reach server for WordPress publish.");
-      sessionStorage.setItem("wp_publish_error", "Could not reach server for WordPress publish.");
     }
   };
+
+  if (isPageLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
+        <p className="text-sm text-gray-500">Loading publish details...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
@@ -671,7 +634,6 @@ export default function PublishArticlePage() {
 
         <Section title="Social Sharing">
           <div className="space-y-6">
-            {/* LinkedIn — unchanged */}
             <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
               <div className="flex items-center">
                 <Toggle enabled={shareLinkedIn} setEnabled={setShareLinkedIn} />
@@ -710,14 +672,13 @@ export default function PublishArticlePage() {
               </div>
             </div>
 
-            {/* WordPress — dynamic connection state */}
             <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
               <div className="flex items-center">
                 <Toggle
                   enabled={shareWordPress}
-                  setEnabled={(v) => {
-                    setShareWordPress(v);
-                    if (v) setWpCheckDone(false); // re-check on re-enable
+                  setEnabled={(value) => {
+                    setShareWordPress(value);
+                    if (value) setWpCheckDone(false);
                   }}
                 />
               </div>
@@ -748,11 +709,15 @@ export default function PublishArticlePage() {
                   </div>
 
                   {!wpCheckDone && shareWordPress ? (
-                    <p className="text-sm text-gray-400">Checking WordPress connection...</p>
+                    <p className="text-sm text-gray-400">
+                      Checking WordPress connection...
+                    </p>
                   ) : wpConnected ? (
                     <p className="text-sm text-gray-700">
                       Connected as{" "}
-                      <span className="font-semibold">{wpUsername || "WordPress User"}</span>
+                      <span className="font-semibold">
+                        {wpUsername || "WordPress User"}
+                      </span>
                     </p>
                   ) : (
                     <p className="text-sm text-gray-700">
@@ -766,7 +731,6 @@ export default function PublishArticlePage() {
                   )}
                 </div>
 
-                {/* WordPress publish error */}
                 {wpPublishError && shareWordPress && (
                   <div className="mt-2 text-sm text-red-500 flex items-center gap-1">
                     <span>⚠</span>
@@ -826,9 +790,15 @@ export default function PublishArticlePage() {
           <div className="w-[90%] border-t border-gray-400" />
         </div>
 
+        {publishError ? (
+          <div className="px-10 pb-2">
+            <p className="text-sm text-red-500">{publishError}</p>
+          </div>
+        ) : null}
+
         <div className="p-8 flex items-center justify-center gap-40">
           <button
-            onClick={() => router.push("/write/preview")}
+            onClick={() => router.back()}
             className="px-8 py-3 rounded-full bg-black text-white"
           >
             Back
@@ -836,46 +806,53 @@ export default function PublishArticlePage() {
 
           <button
             onClick={async () => {
-              console.log("Timing value:", timing); //This is to verify the timing value before saving the draft and navigating
-              savePublishDraft();
+              if (!articleId) {
+                setPublishError("Article id is missing.");
+                return;
+              }
 
-              const publishData = {
-                title: articleTitle,
-                tags,
-                platforms: buildSelectedPlatforms({
-                  shareLinkedIn,
-                  shareWordPress,
-                }),
-                timing,
-                scheduledDate,
-                scheduledTime,
-                linkedinCaption,
-              };
+              try {
+                setPublishError("");
+                setWpPublishError("");
+                setIsSubmitting(true);
 
-              sessionStorage.setItem(
-                STORAGE_KEYS.publishedArticleData,
-                JSON.stringify(publishData)
-              );
+                const payload = {
+                  tags,
+                  timing,
+                  scheduledAt: buildScheduledAt(),
+                };
 
-              // Trigger WordPress publish after saving our platform's publish data
-              const articleId = readPublishSourceArticleId();
-              await handleWordPressPublish(articleId);
+                const response = await publishEasyBloggerArticle(articleId, payload);
+                const publishedArticle =
+                  response?.data ?? response?.article ?? response ?? null;
 
-              const routeMap = {
-                now: "/write/articlepublished",
-                schedule: "/write/articlescheduled",
-              };
+                await handleWordPressPublish(articleId);
 
-              router.push(routeMap[timing] || "/write/publish");
+                if (timing === "schedule") {
+                  router.push(`/write/articlescheduled?id=${publishedArticle?.id || articleId}`);
+                  return;
+                }
+
+                router.push(`/write/articlepublished?id=${publishedArticle?.id || articleId}`);
+              } catch (error) {
+                console.error("Failed to publish article:", error);
+                setPublishError(error?.message || "Failed to publish article.");
+              } finally {
+                setIsSubmitting(false);
+              }
             }}
-            disabled={timing === "schedule" && isPastDateTime()}
+            disabled={isSubmitting || (timing === "schedule" && isPastDateTime())}
             className={`px-8 py-3 rounded-full text-white transition ${
-              timing === "schedule" && isPastDateTime()
+              isSubmitting || (timing === "schedule" && isPastDateTime())
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-emerald-500 hover:bg-emerald-600"
             }`}
           >
-            {timing === "schedule" ? "Schedule post" : "Publish now"}
+            {isSubmitting
+              ? "Processing..."
+              : timing === "schedule"
+                ? "Schedule post"
+                : "Publish now"}
           </button>
         </div>
       </div>
