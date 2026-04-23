@@ -18,7 +18,7 @@ export function useTrending() {
     const fetchTrending = async () => {
       setIsTrendingLoading(true);
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/trendingArticles/trending`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/trendingArticles/trendingTitles`);
         const data = await response.json();
         
         const result = Array.isArray(data) ? data : data.trending || [];

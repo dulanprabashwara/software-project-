@@ -21,7 +21,7 @@ import { Loader2 } from "lucide-react";
 
 // Import hooks for feeds (middle and right)
 import { useMainArticles } from "../../hooks/useMainArticles";
-import { useTrending } from "../../hooks/useTrending";
+import { useTrending } from "../../hooks/useTrendingTitles";
 
 //Components import
 import MainFeed from "../../components/article/MainFeed";

@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../app/context/AuthContext"; // Adjust path as needed
 
-export function useSavedArticles() {
+export function usePublishedArticles() {
   const { user, profileLoading } = useAuth();
-  const [savedArticles, setSavedArticles] = useState([]);
+  const [publishedArticles, setPublishedArticles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchSavedArticles = useCallback(async () => {
     // If no user is logged in, they have no saved articles.
     if (!user) {
-      setSavedArticles([]);
+      setPublishedArticles([]);
       setIsLoading(false);
       return;
     }
@@ -17,8 +17,8 @@ export function useSavedArticles() {
     setIsLoading(true);
 
     try {
-      const token = await user.getIdToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/savedArticle`, {
+      const token = await user.getIdToken(); 
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/saveArticle`, {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -29,7 +29,7 @@ export function useSavedArticles() {
       const json = await res.json();
       
       if (json.success) {
-        setSavedArticles(json.data || []);
+        setPublishedArticles(json.data || []);
       } else {
         console.error("Backend error:", json.message);
       }
