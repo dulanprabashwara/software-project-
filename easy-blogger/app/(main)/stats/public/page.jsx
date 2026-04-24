@@ -23,11 +23,9 @@ export default function PublicStats() {
          
         
 
-      <section>
+     
+        <TrendingArticles/>
        
-        
-          <TrendingArticles/>
-      </section>
 
       
 

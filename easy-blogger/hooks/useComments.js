@@ -7,7 +7,8 @@ export const useComments = (articleId, token) => {
 
   const fetchComments = async () => {
     try {
-const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/comments/${articleId}`);      const data = await res.json();
+const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments/${articleId}`);      
+const data = await res.json();
       setComments(data);
     } catch (err) {
       console.error("Fetch error:", err);

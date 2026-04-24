@@ -74,7 +74,7 @@ export default function ArticleCard({ article }) {
   };
 
   return (
-    <article className="py-6 border-b border-[#E5E7EB] last:border-0">
+    <article className="py-6 border-b border-[#E5E7EB] last:border-0  ">
       <div className="flex items-center gap-2 mb-3">
         <img
           src={authorAvatar}
@@ -91,12 +91,15 @@ export default function ArticleCard({ article }) {
 
       <div className="flex gap-6 justify-between">
         <div className="flex-1">
-          <h2 className="text-xl font-bold text-[#111827] mb-2 leading-tight font-serif hover:text-[#1ABC9C] cursor-pointer transition-colors duration-150" 
+          <div className="h-14">
+            <h2 className="text-xl font-bold text-[#111827] mb-2 leading-tight font-serif hover:text-[#1ABC9C] cursor-pointer transition-colors duration-150" 
           onClick={() => router.push(`/home/read?id=${article.id}`)}>
             {article.title || "Untitled Article"}
           </h2>
+          </div>
+          
 
-          <div className="line-clamp-3">
+          <div className="line-clamp-3 h-18">
             <div
               className="text-gray-500 text-[16px] leading-6 **:text-gray-500 **:text-[16px]"
               dangerouslySetInnerHTML={{ __html: article.content || "<p>No content available.</p>" }}
@@ -115,15 +118,15 @@ export default function ArticleCard({ article }) {
         <div className="flex items-center gap-4 text-sm text-[#6B7280]">
           <button className="flex items-center gap-1.5 hover:text-[#1ABC9C] transition-colors duration-150">
             <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
-            <span>{article._count?.comments || 0}</span>
+            <span>{article.commentCount || "-"}</span>
           </button>
 
-          <div className="flex items-center gap-1.5 text-[#1ABC9C]">
-    <Star className="w-5 h-5 fill-[#1ABC9C]" strokeWidth={1.5} />
+          <div className="flex items-center gap-1.5  ">
+    <Star className="w-5 h-5 " strokeWidth={1.5} />
     <span className="font-medium">
-      {article.averageRating > 0 ? article.averageRating.toFixed(1) : "New"}
+      {article.averageRating > 0 ? article.averageRating.toFixed(1) : "-"}
     </span>
-    <span className="text-[#6B7280]">({article.ratingCount || 0})</span>
+    <span className="text-[#6B7280]"> [{article.ratingCount || 0}]</span>
   
 </div>
         </div>
