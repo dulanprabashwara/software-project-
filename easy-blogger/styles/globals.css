@@ -175,42 +175,55 @@ button:hover {
 }
 
 /* 2. Force Headings to look like Headings */
+/* --- Exact TinyMCE Style Mappings --- */
+
 .prose h1 {
-  font-size: 2.25em !important;
-  font-weight: 800 !important;
+  font-size: 2.25rem !important; /* 36px */
+  font-weight: 700 !important;
+  margin-top: 0.67em !important;
+  margin-bottom: 0.67em !important;
   display: block !important;
 }
 
 .prose h2 {
-  font-size: 1.5em !important;
+  font-size: 1.875rem !important; /* 30px */
   font-weight: 700 !important;
-   display: block !important;
-}
- 
-.prose h3 {
-  font-size: 1.25em !important; /* ~20px */
-  font-weight: 700 !important;
+  margin-top: 0.83em !important;
+  margin-bottom: 0.83em !important;
   display: block !important;
- }
+}
+
+.prose h3 {
+  font-size: 1.5rem !important; /* 24px */
+  font-weight: 700 !important;
+  margin-top: 1em !important;
+  margin-bottom: 1em !important;
+  display: block !important;
+}
 
 .prose h4 {
-  font-size: 1.1em !important; /* ~18px */
+  font-size: 1.25rem !important; /* 20px */
   font-weight: 700 !important;
+  margin-top: 1.33em !important;
+  margin-bottom: 1.33em !important;
   display: block !important;
 }
 
 .prose h5 {
-  font-size: 1em !important; /* ~16px (Base) */
+  font-size: 1rem !important; /* 16px - Base size but bold */
   font-weight: 700 !important;
+  margin-top: 1.67em !important;
+  margin-bottom: 1.67em !important;
   display: block !important;
 }
 
 .prose h6 {
-  font-size: 0.85em !important; /* ~14px (Small) */
+  font-size: 0.875rem !important; /* 14px */
   font-weight: 700 !important;
+  margin-top: 2.33em !important;
+  margin-bottom: 2.33em !important;
   display: block !important;
- }
-
+}
 /* 3. Force Tables to show borders */
 .prose table {
   width: 100% !important;
