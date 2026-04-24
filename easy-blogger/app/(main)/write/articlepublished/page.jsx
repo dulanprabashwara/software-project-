@@ -2,13 +2,21 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CalendarDays, BookOpen, Share2, Tag, Check } from "lucide-react";
+import { BookOpen, CalendarDays, Check, Share2, Tag } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
 import { API_BASE_URL } from "../../../../lib/api";
 import { getDraftById } from "../../../../lib/articles/api";
 import InfoCard from "../../../../components/article/InfoCard";
 import PlatformItem from "../../../../components/article/PlatformItem";
 import PublishStatusLayout from "../../../../components/article/PublishStatusLayout";
+
+function getWordPressUrl(data) {
+  return data?.data?.wpPostUrl || data?.data?.postUrl || data?.data?.url || "";
+}
+
+function getWordPressError(data) {
+  return data?.data?.errorMsg || data?.data?.message || data?.message || "";
+}
 
 export default function ArticlePublishedPage() {
   const router = useRouter();
@@ -24,8 +32,44 @@ export default function ArticlePublishedPage() {
   const [wpError, setWpError] = useState("");
   const [isRetrying, setIsRetrying] = useState(false);
 
+  const loadWordPressPublishStatus = useCallback(async () => {
+    if (!firebaseUser || !articleId) return;
+
+    try {
+      const token = await firebaseUser.getIdToken();
+
+      const res = await fetch(
+        `${API_BASE_URL}/api/wordpress/publish-status/${articleId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data?.success) return;
+
+      const url = getWordPressUrl(data);
+      const error = getWordPressError(data);
+
+      if (url) {
+        setWpPostUrl(url);
+        setWpError("");
+        return;
+      }
+
+      if (error) {
+        setWpError(error);
+      }
+    } catch (error) {
+      console.error("Failed to load WordPress publish status:", error);
+    }
+  }, [firebaseUser, articleId]);
+
   useEffect(() => {
-    const load = async () => {
+    const loadArticle = async () => {
       if (!articleId) {
         router.replace("/write/create");
         return;
@@ -49,7 +93,7 @@ export default function ArticlePublishedPage() {
       }
     };
 
-    void load();
+    void loadArticle();
   }, [articleId, router]);
 
   useEffect(() => {
@@ -58,18 +102,28 @@ export default function ArticlePublishedPage() {
 
       try {
         const token = await firebaseUser.getIdToken();
+
         const res = await fetch(`${API_BASE_URL}/api/wordpress/status`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
+
         const data = await res.json();
-        setWpConnected(Boolean(data?.data?.connected));
+        const connected = Boolean(data?.data?.connected);
+
+        setWpConnected(connected);
+
+        if (connected) {
+          await loadWordPressPublishStatus();
+        }
       } catch {
         setWpConnected(false);
       }
     };
 
     void checkWordPress();
-  }, [firebaseUser]);
+  }, [firebaseUser, loadWordPressPublishStatus]);
 
   const handleWpRetry = useCallback(async () => {
     if (!firebaseUser || !articleId) return;
@@ -79,6 +133,7 @@ export default function ArticlePublishedPage() {
 
     try {
       const token = await firebaseUser.getIdToken();
+
       const res = await fetch(`${API_BASE_URL}/api/wordpress/publish`, {
         method: "POST",
         headers: {
@@ -89,12 +144,17 @@ export default function ArticlePublishedPage() {
       });
 
       const data = await res.json();
+      const url = getWordPressUrl(data);
 
-      if (data?.success && data?.data?.wpPostUrl) {
-        setWpPostUrl(data.data.wpPostUrl);
-      } else {
-        setWpError(data?.data?.message || "WordPress publish failed. Please try again.");
+      if (data?.success && url) {
+        setWpPostUrl(url);
+        setWpError("");
+        return;
       }
+
+      setWpError(
+        getWordPressError(data) || "WordPress publish failed. Please try again."
+      );
     } catch {
       setWpError("Could not reach server. Please try again.");
     } finally {
@@ -166,11 +226,11 @@ export default function ArticlePublishedPage() {
           {platforms.map((platform) => (
             <PlatformItem
               key={platform}
-              name={platform}
-              wpPostUrl={wpPostUrl}
-              wpError={wpError}
-              isRetrying={isRetrying}
-              onRetry={handleWpRetry}
+              platform={platform}
+              url={platform === "WordPress" ? wpPostUrl : ""}
+              error={platform === "WordPress" ? wpError : ""}
+              isRetrying={platform === "WordPress" ? isRetrying : false}
+              onRetry={platform === "WordPress" ? handleWpRetry : undefined}
             />
           ))}
         </div>
