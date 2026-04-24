@@ -191,6 +191,17 @@ export async function getMyPublishedArticles(page = 1, limit = 10) {
   });
 }
 
+export async function getMyScheduledArticles(page = 1, limit = 10) {
+  const query = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  return apiRequest(`/articles/user/scheduled?${query.toString()}`, {
+    method: "GET",
+  });
+}
+
 export async function publishArticle(articleId, payload) {
   if (!articleId) {
     throw new ApiError("Article id is required.", 400);
