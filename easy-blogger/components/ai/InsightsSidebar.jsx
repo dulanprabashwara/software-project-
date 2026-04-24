@@ -1,10 +1,16 @@
 "use client";
 
-// Reusable sidebar that appears on all AI generator views.
-// Shows top AI-assisted articles (fetched from backend) and trending topic buttons.
-// topAIArticles and trendingTopics are passed in as props from the parent page.
+import { useRouter } from "next/navigation";
 
-export default function InsightsSidebar({ topAIArticles = [], trendingTopics = [] }) {
+// Reusable sidebar that appears on all AI generator views.
+// Shows top AI-assisted articles (fetched from backend) and trending keyword buttons.
+// topAIArticles and trendingKeywords are passed in as props from the parent page.
+
+export default function InsightsSidebar({ topAIArticles = [], trendingKeywords = [] }) {
+  const router = useRouter();
+
+  const handleArticleClick = (id) => router.push(`/home/read?id=${id}`);
+
   return (
     <div className="insights-sidebar">
       <div className="insights-header">
@@ -22,7 +28,12 @@ export default function InsightsSidebar({ topAIArticles = [], trendingTopics = [
             <div key={article.id || index} className="insights-article-section">
               <div className="insights-article-header">
                 <span className="insights-article-number">{index + 1}</span>
-                <h4 className="insights-article-name">{article.title}</h4>
+                <h4
+                  className="insights-article-name"
+                  onClick={() => handleArticleClick(article.id)}
+                >
+                  {article.title}
+                </h4>
               </div>
               <div className="insights-author-section">
                 <p className="insights-author-name">{article.author?.displayName || "Unknown"}</p>
@@ -33,9 +44,9 @@ export default function InsightsSidebar({ topAIArticles = [], trendingTopics = [
       </div>
 
       <div>
-        <h3 className="insights-section-title">Trending topics</h3>
+        <h3 className="insights-section-title">Trending Keywords</h3>
         <div className="trending-topics-buttons">
-          {trendingTopics.map((topic, index) => (
+          {trendingKeywords.map((topic, index) => (
             <button key={index} className="topic-button">{topic.keyword}</button>
           ))}
         </div>

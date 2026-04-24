@@ -42,8 +42,8 @@ export default function ArticleDetailsPage() {
   const [isLoadingEditor, setIsLoadingEditor] = useState(false);
 
   // Sidebar data (same as main page — fetched once on load)
-  const [topAIArticles, setTopAIArticles]   = useState([]);
-  const [trendingTopics, setTrendingTopics] = useState([]);
+  const [topAIArticles, setTopAIArticles]       = useState([]);
+  const [trendingKeywords, setTrendingKeywords] = useState([]);
 
   // Reads the Firebase token from the current session.
   const getAuthHeaders = async () => {
@@ -88,17 +88,17 @@ export default function ArticleDetailsPage() {
         if (log.savedToDraftId) setDraftSaveStatus("already_saved");
 
         // Fetch sidebar data
-        const [aiRes, topicsRes] = await Promise.allSettled([
+        const [aiRes, keywordsRes] = await Promise.allSettled([
           fetch(`${BACKEND_URL}/api/ai/top-ai-articles`, { headers }),
-          fetch(`${BACKEND_URL}/api/ai/trending-topics`, { headers }),
+          fetch(`${BACKEND_URL}/api/ai/trending-keywords`, { headers }),
         ]);
         if (aiRes.status === "fulfilled" && aiRes.value.ok) {
           const d = await aiRes.value.json();
           if (d.success) setTopAIArticles(d.articles || []);
         }
-        if (topicsRes.status === "fulfilled" && topicsRes.value.ok) {
-          const d = await topicsRes.value.json();
-          if (d.success) setTrendingTopics(d.topics || []);
+        if (keywordsRes.status === "fulfilled" && keywordsRes.value.ok) {
+          const d = await keywordsRes.value.json();
+          if (d.success) setTrendingKeywords(d.keywords || []);
         }
       } catch (err) {
         console.error("[ArticleDetail] Fetch failed:", err);
@@ -375,7 +375,7 @@ export default function ArticleDetailsPage() {
         </div>
       </div>
 
-      <InsightsSidebar topAIArticles={topAIArticles} trendingTopics={trendingTopics} />
+      <InsightsSidebar topAIArticles={topAIArticles} trendingKeywords={trendingKeywords} />
 
       {/* Article preview overlay */}
       {showPreview && articleData && (

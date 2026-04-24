@@ -88,7 +88,7 @@ export default function AIArticleGeneratorPage() {
   // ── Sidebar data ───────────────────────────────────────────────────────────
   const [trendingArticles, setTrendingArticles] = useState([]);
   const [topAIArticles, setTopAIArticles]       = useState([]);
-  const [trendingTopics, setTrendingTopics]     = useState([]);
+  const [trendingKeywords, setTrendingKeywords]     = useState([]);
 
   // ── Refs for cleanup ───────────────────────────────────────────────────────
   const analyzeTimeoutRef  = useRef(null);
@@ -167,14 +167,14 @@ export default function AIArticleGeneratorPage() {
   };
 
   // Fetches trending keyword topics for the Insights sidebar.
-  const fetchTrendingTopics = async () => {
+  const fetchTrendingKeywords = async () => {
     try {
       const headers = await getAuthHeaders();
-      const res     = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/ai/trending-topics`, { headers });
+      const res     = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/ai/trending-keywords`, { headers });
       const data    = await res.json();
-      if (data.success) setTrendingTopics(data.topics || []);
+      if (data.success) setTrendingKeywords(data.keywords|| []);
     } catch (err) {
-      console.error("[Insights] Failed to fetch trending topics:", err);
+      console.error("[Insights] Failed to fetch trending keywords:", err);
     }
   };
 
@@ -205,7 +205,7 @@ export default function AIArticleGeneratorPage() {
     if (isLoading || !isPremium) return;
     fetchTrendingArticles();
     fetchTopAIArticles();
-    fetchTrendingTopics();
+    fetchTrendingKeywords();
     fetchArticleLogs();
   }, [isLoading, isPremium]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -573,7 +573,7 @@ export default function AIArticleGeneratorPage() {
           </div>
         </div>
 
-        <InsightsSidebar topAIArticles={topAIArticles} trendingTopics={trendingTopics} />
+        <InsightsSidebar topAIArticles={topAIArticles} trendingKeywords={trendingKeywords} />
       </div>
     );
   }
@@ -814,7 +814,7 @@ export default function AIArticleGeneratorPage() {
         </div>
       </div>
 
-      <InsightsSidebar topAIArticles={topAIArticles} trendingTopics={trendingTopics} />
+      <InsightsSidebar topAIArticles={topAIArticles} trendingKeywords={trendingKeywords} />
 
       {/* Loading transition overlay — shown while /analyze is in progress */}
       {isLoadingTransition && (
