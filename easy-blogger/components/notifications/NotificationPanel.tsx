@@ -91,7 +91,7 @@ export default function NotificationPanel({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-50 w-[380px] mt-3 bg-white border border-gray-100 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95">
+        <div className="absolute right-0 z-50 w-95 mt-3 bg-white border border-gray-100 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-emerald-50/30 rounded-t-2xl">
             <div>
               <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
@@ -111,7 +111,7 @@ export default function NotificationPanel({
             )}
           </div>
 
-          <div className="overflow-y-auto max-h-[400px]">
+          <div className="overflow-y-auto max-h-100">
             {loading ? (
               <div className="p-10 flex justify-center">
                 <Loader2 className="animate-spin text-emerald-500" />

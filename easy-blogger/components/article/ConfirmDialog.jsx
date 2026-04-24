@@ -18,7 +18,7 @@ export default function ConfirmDialog({
   return (
     <div
       data-skip-save-prompt="true"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-[2px] px-4"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-[2px] px-4"
     >
       <div
         data-skip-save-prompt="true"

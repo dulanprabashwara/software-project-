@@ -12,7 +12,7 @@ export default function PublicStats() {
     <div>
 
          
-    <div className="w-full bg-[#f0fdf9] p-4 rounded-[2rem] mb-10">
+    <div className="w-full bg-[#f0fdf9] p-4 rounded-4xl mb-10">
 
          
       
@@ -31,7 +31,7 @@ export default function PublicStats() {
 
     </div>
 
-    <div className="w-full bg-[#f0fdf9] p-4 mb-10 font-[Goergia] rounded-[2rem]">
+    <div className="w-full bg-[#f0fdf9] p-4 mb-10 font-[Goergia] rounded-4xl">
 
          
       
@@ -49,7 +49,7 @@ export default function PublicStats() {
                 {topics.map((topic) => (
     <button
       key={topic.id}
-      className="bg-white border-2 border-[#1abc9c] text-[#1abc9c] px-5 w-50 py-2 rounded-[1rem] text-[1.5rem]"
+      className="bg-white border-2 border-[#1abc9c] text-[#1abc9c] px-5 w-50 py-2 rounded-2xl text-[1.5rem]"
     >
       {topic.name}
     </button>
@@ -59,7 +59,7 @@ export default function PublicStats() {
   
 </section>
 <div className="text-right">
-  <button className="bg-[#1abc9c] border-2 border-[white] text-white px-5  py-2 rounded-[1rem] text-[1rem]"> 
+  <button className="bg-[#1abc9c] border-2 border-[white] text-white px-5  py-2 rounded-2xl text-[1rem]"> 
     More
   </button>
 </div>

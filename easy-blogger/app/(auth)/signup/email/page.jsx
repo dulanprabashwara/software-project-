@@ -39,10 +39,9 @@ export default function EmailSignupPage() {
    * @function handleSubmit
    * @description
    * Executes the manual registration process sequentially.
-   * Creates the base user in Firebase Auth.
-   * Appends the `displayName` directly to the Firebase profile.
-   * Pauses execution slightly to allow `AuthContext` onAuthStateChanged to natively establish the Postgres record via the `/sync` API endpoint.
-   * Makes an explicit API call to update the newly minted Postgres record with the requested `displayName` before cleanly routing to the homepage.
+    Creates the base user in Firebase Auth.
+   Appends the `displayName` directly to the Firebase profile.
+    Pauses execution slightly to allow `AuthContext` onAuthStateChanged to natively establish the Postgres record via the `/sync` API endpoint.Makes an explicit API call to update the newly minted Postgres record with the requested `displayName` before cleanly routing to the homepage.
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -90,7 +89,7 @@ export default function EmailSignupPage() {
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Background similar to login */}
       <div className="absolute inset-0 bg-[#F8FAFC]">
-        <div className="absolute left-0 top-0 w-1/3 h-full bg-gradient-to-r from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
+        <div className="absolute left-0 top-0 w-1/3 h-full bg-linear-to-r from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
         <div className="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
       </div>
 

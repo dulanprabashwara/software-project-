@@ -88,7 +88,7 @@ function VerifyEmailContent() {
         }}
       >
         {/* Green/Teal to Blue gradient bar at top */}
-        <div className="h-1.5 bg-gradient-to-r from-[#1ABC9C] to-[#3B82F6]"></div>
+        <div className="h-1.5 bg-linear-to-r from-[#1ABC9C] to-[#3B82F6]"></div>
 
         <div className="px-10 py-14 text-center">
           {/* Email Icon in Circle */}
@@ -164,7 +164,7 @@ export default function VerifyEmailPage() {
       {/* Background with gradient blobs */}
       <div className="absolute inset-0 bg-[#F8FAFC]">
         {/* Left gradient blob */}
-        <div className="absolute left-0 top-0 w-1/3 h-full bg-gradient-to-r from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
+        <div className="absolute left-0 top-0 w-1/3 h-full bg-linear-to-r from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
         {/* Right gradient blob */}
         <div className="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
       </div>

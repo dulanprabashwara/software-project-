@@ -93,7 +93,7 @@ export default function UserCard({ user }) {
 
       <button
         onClick={navigateToProfile}
-        className="flex-shrink-0 focus:outline-none"
+        className="shrink-0 focus:outline-none"
         aria-label={`View ${displayName || username}'s profile`}
       >
         <div className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-colors duration-150 ${
@@ -108,7 +108,7 @@ export default function UserCard({ user }) {
           <span className="font-bold text-[#111827] hover:text-[#1ABC9C] transition-colors duration-150 leading-tight">
             {displayName || username}
           </span>
-          {isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C] flex-shrink-0" />}
+          {isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C] shrink-0" />}
         </button>
 
         {displayName && username && (
@@ -138,7 +138,7 @@ export default function UserCard({ user }) {
       <button
         onClick={handleFollowToggle}
         disabled={isTogglingFollow || !firebaseUser}
-        className={`flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 flex-shrink-0 min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed ${
+        className={`flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 shrink-0 min-w-25 disabled:opacity-50 disabled:cursor-not-allowed ${
           isFollowing
             ? "bg-[#1ABC9C] text-white border-[#1ABC9C] hover:bg-[#17a589] hover:border-[#17a589]"
             : "bg-white text-[#1ABC9C] border-[#1ABC9C] hover:bg-[#E8F8F5]"

@@ -10,15 +10,19 @@ export default function ArticleCard({ article }) {
   const authorName = article.author?.displayName || "Guest Writer"; 
   const authorAvatar = article.author?.avatarUrl || "https://ui-avatars.com/api/?name=Guest";
   const { user, profileLoading } = useAuth();
-  // Safety check for date: If createdAt is missing, use "Recent"
-  const displayDate = article.createdAt 
-    ? new Date(article.createdAt).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
-    : "Recent";
+  const rawDate =
+    article.status === "PUBLISHED"
+      ? article.publishedAt || article.createdAt
+      : article.updatedAt || article.createdAt;
 
+  const displayDate = rawDate
+    ? new Date(rawDate).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  : "Recent";
+  
   const storageKey = useMemo(() => `saved:${article.id}`, [article.id]);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -97,14 +101,14 @@ export default function ArticleCard({ article }) {
 
           <div className="line-clamp-3 h-18">
             <div
-              className="text-gray-500 text-[16px] leading-6 [&_*]:text-gray-500 [&_*]:text-[16px]"
+              className="text-gray-500 text-[16px] leading-6 **:text-gray-500 **:text-[16px]"
               dangerouslySetInnerHTML={{ __html: article.content || "<p>No content available.</p>" }}
             />
           </div>
         </div>
 
         {article.coverImage && (
-          <div className="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden">
+          <div className="w-28 h-28 shrink-0 rounded-lg overflow-hidden">
             <img src={article.coverImage} alt={article.title} className="w-full h-full object-cover" />
           </div>
         )}
