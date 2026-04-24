@@ -114,15 +114,15 @@ export default function ArticleCard({ article }) {
         <div className="flex items-center gap-4 text-sm text-[#6B7280]">
           <button className="flex items-center gap-1.5 hover:text-[#1ABC9C] transition-colors duration-150">
             <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
-            <span>{article._count?.comments || 0}</span>
+            <span>{article.commentCount || "-"}</span>
           </button>
 
-          <div className="flex items-center gap-1.5 text-[#1ABC9C]">
-    <Star className="w-5 h-5 fill-[#1ABC9C]" strokeWidth={1.5} />
+          <div className="flex items-center gap-1.5  ">
+    <Star className="w-5 h-5 " strokeWidth={1.5} />
     <span className="font-medium">
-      {article.averageRating > 0 ? article.averageRating.toFixed(1) : "New"}
+      {article.averageRating > 0 ? article.averageRating.toFixed(1) : "-"}
     </span>
-    <span className="text-[#6B7280]">({article.ratingCount || 0})</span>
+    <span className="text-[#6B7280]"> [{article.ratingCount || 0}]</span>
   
 </div>
         </div>

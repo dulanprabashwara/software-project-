@@ -24,19 +24,20 @@ function getNotificationDetails(notification: any) {
     "Someone";
   const articleTitle = notification.sourceArticle?.title || "an article";
   const articleId = notification.sourceArticleId || "";
+  const link = `/home/read?id=${articleId}`;
 
   switch (notification.type) {
     case "COMMENT":
       return {
         title: "New Comment",
         message: `${actorName} commented on "${articleTitle}".`,
-        link: `home/read/article?id=${articleId}#comments`,
+        link: link,
       };
     case "RATE":
       return {
         title: "New Rating",
         message: `${actorName} rated "${articleTitle}".`,
-        link: `home/read/article?id=${articleId}`,
+        link: link,
       };
     case "FOLLOW":
       return {

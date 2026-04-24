@@ -178,17 +178,38 @@ button:hover {
 .prose h1 {
   font-size: 2.25em !important;
   font-weight: 800 !important;
-  margin-bottom: 0.88em !important;
   display: block !important;
 }
 
 .prose h2 {
   font-size: 1.5em !important;
   font-weight: 700 !important;
-  margin-top: 2em !important;
-  margin-bottom: 1em !important;
+   display: block !important;
+}
+ 
+.prose h3 {
+  font-size: 1.25em !important; /* ~20px */
+  font-weight: 700 !important;
+  display: block !important;
+ }
+
+.prose h4 {
+  font-size: 1.1em !important; /* ~18px */
+  font-weight: 700 !important;
   display: block !important;
 }
+
+.prose h5 {
+  font-size: 1em !important; /* ~16px (Base) */
+  font-weight: 700 !important;
+  display: block !important;
+}
+
+.prose h6 {
+  font-size: 0.85em !important; /* ~14px (Small) */
+  font-weight: 700 !important;
+  display: block !important;
+ }
 
 /* 3. Force Tables to show borders */
 .prose table {
