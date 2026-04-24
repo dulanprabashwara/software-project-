@@ -1,5 +1,5 @@
 "use client";
-
+//acts as a dedicated modal for displaying the followers and following lists of a user other than the one currently logged in
 import { useState, useEffect, use, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { X, Loader2 } from "lucide-react";
@@ -21,14 +21,14 @@ export default function OtherUserStatsPage({ params }) {
   const urlTab = searchParams.get("tab") || "followers";
   const [activeTab, setActiveTab] = useState(urlTab);
 
-  // Profile info (for the header name & counts)
+  // Profile info (user name &  followers/following counts)
   const [profile, setProfile] = useState(null);
 
   // Lists
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
 
-  // Track which users the logged-in user is following (in this list)
+  // Track which users the logged-in user is following to show message button
   const [followingSet, setFollowingSet] = useState(new Set());
   const [togglingIds, setTogglingIds] = useState(new Set());
 
@@ -58,7 +58,7 @@ export default function OtherUserStatsPage({ params }) {
         const profileData = profileRes.data;
         setProfile(profileData);
 
-        // 2. Fetch followers & following in parallel using the DB id
+        // 2. Fetch followers & following using the user's DB id
         const [followersRes, followingRes] = await Promise.all([
           api.getFollowers(profileData.id),
           api.getFollowing(profileData.id),
@@ -70,10 +70,13 @@ export default function OtherUserStatsPage({ params }) {
         setFollowers(followersList);
         setFollowing(followingList);
 
-        // 3. Fetch who the LOGGED-IN user follows so we can show Message buttons
+        // 3. Fetch who the LOGGED-IN user following ids so we can show Message buttons
         if (loggedInProfile?.id && firebaseUser) {
           const myToken = await firebaseUser.getIdToken();
-          const myFollowingRes = await api.getFollowing(loggedInProfile.id, myToken);
+          const myFollowingRes = await api.getFollowing(
+            loggedInProfile.id,
+            myToken,
+          );
           if (myFollowingRes.success) {
             setFollowingSet(new Set(myFollowingRes.data.map((u) => u.id)));
           }
@@ -88,6 +91,7 @@ export default function OtherUserStatsPage({ params }) {
     load();
   }, [username, firebaseUser, authLoading]);
 
+  //when click follow  or unfollow send a request to backend to update our following list
   const handleToggleFollow = useCallback(
     async (userId, isCurrentlyFollowing) => {
       if (!firebaseUser) return;
@@ -96,6 +100,7 @@ export default function OtherUserStatsPage({ params }) {
         const token = await firebaseUser.getIdToken();
         const res = await api.toggleFollow(userId, token);
         if (res.success) {
+          //if success update our follwing list
           setFollowingSet((prev) => {
             const next = new Set(prev);
             if (res.data.followed) next.add(userId);

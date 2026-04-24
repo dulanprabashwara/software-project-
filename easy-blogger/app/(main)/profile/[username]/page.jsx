@@ -1,5 +1,5 @@
 "use client";
-
+//display a user profile other than the one currently logged in
 import { useState, use, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
