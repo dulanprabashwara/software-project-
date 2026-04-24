@@ -180,6 +180,39 @@ export async function getMyDrafts(page = 1, limit = 10, options = {}) {
   });
 }
 
+export async function getMyPublishedArticles(page = 1, limit = 10) {
+  const query = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  return apiRequest(`/articles/user/published?${query.toString()}`, {
+    method: "GET",
+  });
+}
+
+export async function getMyScheduledArticles(page = 1, limit = 10) {
+  const query = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  return apiRequest(`/articles/user/scheduled?${query.toString()}`, {
+    method: "GET",
+  });
+}
+
+export async function publishArticle(articleId, payload) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(`/articles/${encodeURIComponent(articleId)}/publish`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function startEditExisting(articleId) {
   if (!articleId) {
     throw new ApiError("Article id is required.", 400);

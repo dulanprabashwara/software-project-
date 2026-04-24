@@ -22,7 +22,7 @@ export default function RightFeed({ trending, topics, usersToFollow }) {
               <h4 className="text-sm font-semibold line-clamp-2 group-hover:text-teal-500">
                 {item.title}
               </h4>
-              <p className="text-xs text-gray-500">{item.authorName}</p>
+              <p className="text-xs text-gray-500">{item.author?.displayName || "Unknown Author"}</p>
             </div>
           </div>
         ))}

@@ -10,15 +10,19 @@ export default function ArticleCard({ article }) {
   const authorName = article.author?.displayName || "Guest Writer"; 
   const authorAvatar = article.author?.avatarUrl || "https://ui-avatars.com/api/?name=Guest";
   const { user, profileLoading } = useAuth();
-  // Safety check for date: If createdAt is missing, use "Recent"
-  const displayDate = article.createdAt 
-    ? new Date(article.createdAt).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
-    : "Recent";
+  const rawDate =
+    article.status === "PUBLISHED"
+      ? article.publishedAt || article.createdAt
+      : article.updatedAt || article.createdAt;
 
+  const displayDate = rawDate
+    ? new Date(rawDate).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  : "Recent";
+  
   const storageKey = useMemo(() => `saved:${article.id}`, [article.id]);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -47,7 +51,7 @@ export default function ArticleCard({ article }) {
       // Get the fresh Firebase token from the context user
       const token = await user.getIdToken();
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/saveArticle`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/savedArticle`, {
         method: next ? "POST" : "DELETE",
         headers: { 
           "Content-Type": "application/json",
@@ -70,14 +74,14 @@ export default function ArticleCard({ article }) {
   };
 
   return (
-    <article className="py-6 border-b border-[#E5E7EB] last:border-0">
+    <article className="py-6 border-b border-[#E5E7EB] last:border-0  ">
       <div className="flex items-center gap-2 mb-3">
         <img
           src={authorAvatar}
           alt={authorName}
           className="w-8 h-8 rounded-full object-cover"
         />
-        <span className="text-sm font-medium text-[#111827]">{authorName}</span>
+        <span className="text-sm font-medium text-[#111827]">{authorName }</span>
 
         {/* Optional chaining safely checks if author exists before checking isVerified */}
         {article.author?.isVerified && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" />}
@@ -87,12 +91,15 @@ export default function ArticleCard({ article }) {
 
       <div className="flex gap-6 justify-between">
         <div className="flex-1">
-          <h2 className="text-xl font-bold text-[#111827] mb-2 leading-tight font-serif hover:text-[#1ABC9C] cursor-pointer transition-colors duration-150" 
+          <div className="h-14">
+            <h2 className="text-xl font-bold text-[#111827] mb-2 leading-tight font-serif hover:text-[#1ABC9C] cursor-pointer transition-colors duration-150" 
           onClick={() => router.push(`/home/read?id=${article.id}`)}>
             {article.title || "Untitled Article"}
           </h2>
+          </div>
+          
 
-          <div className="line-clamp-3">
+          <div className="line-clamp-3 h-18">
             <div
               className="text-gray-500 text-[16px] leading-6 **:text-gray-500 **:text-[16px]"
               dangerouslySetInnerHTML={{ __html: article.content || "<p>No content available.</p>" }}
@@ -111,15 +118,15 @@ export default function ArticleCard({ article }) {
         <div className="flex items-center gap-4 text-sm text-[#6B7280]">
           <button className="flex items-center gap-1.5 hover:text-[#1ABC9C] transition-colors duration-150">
             <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
-            <span>{article._count?.comments || 0}</span>
+            <span>{article.commentCount || "-"}</span>
           </button>
 
-          <div className="flex items-center gap-1.5 text-[#1ABC9C]">
-    <Star className="w-5 h-5 fill-[#1ABC9C]" strokeWidth={1.5} />
+          <div className="flex items-center gap-1.5  ">
+    <Star className="w-5 h-5 " strokeWidth={1.5} />
     <span className="font-medium">
-      {article.averageRating > 0 ? article.averageRating.toFixed(1) : "New"}
+      {article.averageRating > 0 ? article.averageRating.toFixed(1) : "-"}
     </span>
-    <span className="text-[#6B7280]">({article.ratingCount || 0})</span>
+    <span className="text-[#6B7280]"> [{article.ratingCount || 0}]</span>
   
 </div>
         </div>
