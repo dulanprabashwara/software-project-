@@ -121,10 +121,19 @@
   height: 24px;
 }
 
-.slider-chevron-left  { left: 4px; }
-.slider-chevron-right { right: 4px; }
+.slider-chevron-left  { left: -10px; }
+.slider-chevron-right { right: -10px; }
 
 /* ── Slider inner layout ─────────────────────────────────────────────────── */
+
+/* Outer column wrapper — stacks the two-column top row, stats row, and dots
+   vertically so stats + dots always span the full slider width */
+.slider-body {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0;
+}
 
 .slider-content {
   display: flex;
@@ -148,6 +157,7 @@
   flex-direction: column;
   align-items: flex-end;
   flex-shrink: 0;
+  
 }
 
 /* ── Author row ──────────────────────────────────────────────────────────── */
@@ -232,12 +242,17 @@
   gap: 16px;
   margin-top: 8px;
   width: 100%;
+  
 }
 
 .stat-item {
   display: flex;
   align-items: center;
   gap: 4px;
+  /* Base color for all stat items — overridden by stat-button and stat-rating */
+  color: #4B5563;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
 }
 
 .stat-button {
@@ -272,6 +287,7 @@
   align-items: center;
   gap: 4px;
   margin-left: auto;
+  
 }
 
 .slider-icon-btn {
@@ -300,6 +316,7 @@
   height: 128px;
   border-radius: 8px;
   object-fit: cover;
+  margin-top: 8px;
 }
 
 .cover-image-placeholder {
@@ -308,6 +325,53 @@
   align-items: center;
   justify-content: center;
 }
+
+/* ── rating, bookmark active state, dot indicators ────── */
+
+.stat-rating { color: #1ABC9C; }
+
+.stat-icon-rating {
+  fill: #1ABC9C;
+  color: #1ABC9C;
+}
+
+.stat-number-rating {
+  color: #1ABC9C;
+  font-weight: 500;
+}
+
+.stat-number-muted { color: #6B7280; }
+
+/* Bookmark active (saved) state */
+.slider-icon-btn--saved { color: #1ABC9C; }
+
+.slider-icon-lucide--saved {
+  color: #1ABC9C;
+  fill: #1ABC9C;
+}
+
+/* Dot indicators */
+.slider-dots {
+  display: flex;
+  justify-content: center;  /* true centering — no margin-left needed */
+  align-items: center;
+  width: 100%;              /* spans the full slider-body width */
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.slider-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #a8ddd3;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.slider-dot--active { background-color: #1ABC9C; }
 
 /* ── User input section ──────────────────────────────────────────────────── */
 
@@ -574,6 +638,7 @@ body.loading-transition { overflow: hidden; }
   .input-error-message { margin-left: 0; }
   .trending-section { width: 100%; margin-left: 0; }
   .trending-slider { width: 100%; min-height: auto; padding: 16px 32px; }
+  .slider-body { gap: 8px; }
   .slider-content { flex-direction: column; gap: 12px; }
   .slider-right-content { align-items: center; }
   .article-description { max-width: 100%; }
@@ -587,3 +652,7 @@ body.loading-transition { overflow: hidden; }
   .article-description { font-size: 13px; }
   .cover-image { width: 90px; height: 90px; }
 }
+
+
+
+
