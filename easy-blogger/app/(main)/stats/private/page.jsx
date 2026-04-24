@@ -1,7 +1,6 @@
-import { DATA } from "../../../../components/article/ArticleList";
-import ArticleCard from "../../../../components/article/ArticleCard";
 import { Star } from 'lucide-react';
 import FollowerGrowthChart from "../../../../components/FollowerGrowthChart";
+import TrendingArticles from "../../../../components/article/TrendingArticles";
 
 
 export default function PrivateStats()
@@ -57,16 +56,7 @@ export default function PrivateStats()
                             </h1>
                         </div>
 
-                        <div className="overflow-hidden  bg-white  p-3 rounded-2xl w-full">
-                            <div className="flex gap-5 w-full overflow-x-auto ">
-                                {DATA.publishedArticles.map((article) => (
-                                      <div key={article.id} className="bg-white w-120 shrink-0 px-4 border-2 rounded-2xl border-[#e5e7eb]">
-                                        <ArticleCard article={article} />
-                                      </div>
-                                    ))} 
-                            </div>
-                         
-                        </div>
+                         <TrendingArticles/>
                         
                         
                             <div className="flex justify-end mt-18">
