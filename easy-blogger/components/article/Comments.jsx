@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Star, Loader2 } from "lucide-react";
 import { useComments } from "../../hooks/useComments";
 
-export const Comments = ({ articleId, currentUser, token }) => {
+export const Comments = ({ articleId,token }) => {
   // 1. Guard against missing ID
   if (!articleId) {
     return (
