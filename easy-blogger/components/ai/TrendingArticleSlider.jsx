@@ -16,10 +16,6 @@ function formatPublishDate(isoString) {
 }
 
 // Rotating slider that displays one trending article at a time.
-// Articles are passed in from the parent — the parent is responsible for fetching.
-// Article fields: id, title, summary, coverImage, publishedAt, createdAt,
-// averageRating, ratingCount, commentCount, readingTime,
-// author.displayName, author.avatarUrl, author.isPremium, isSaved
 export default function TrendingArticleSlider({ articles = [] }) {
   const router = useRouter();
   const { user: firebaseUser } = useAuth();
