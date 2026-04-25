@@ -2,25 +2,25 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
-/* ── Page wrapper — fills full height from header to bottom, no gaps ─────── */
+/* ── Page wrapper ────────────────────────────────────────────────────────── */
 
 .ai-generator-main {
   width: 100%;
   max-width: 100%;
-  min-height: 100%;          /* fills the parent flex column, no top/bottom whitespace */
   background-color: #fafafa;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  margin-top: 0;             /* remove the 12px that caused the top gap */
+  /* align-self stretch ensures this fills the full height of its flex parent */
+  align-self: stretch;
 }
 
 .ai-content-wrapper {
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 16px 14px 40px;   /* consistent top padding, bottom padding fills space */
-  flex: 1;                   /* ensures it stretches to fill ai-generator-main height */
+  padding: 16px 14px 40px;
+  flex: 1;
   display: flex;
   flex-direction: column;
 }
@@ -38,7 +38,6 @@
 .ai-generator-menu-icon {
   width: 32px;
   height: 36px;
-  color: #96bbb4;
 }
 
 .ai-generator-ai-icon {
@@ -90,10 +89,9 @@
   background-color: #D6EFEB;
   border-radius: 25px;
   position: relative;
-  padding: 20px 32px;        /* extra horizontal padding — chevrons sit outside */
+  padding: 20px 32px;
   display: flex;
   align-items: center;
-  gap: 0;
   margin-top: 12px;
   margin-left: 18px;
 }
@@ -116,23 +114,18 @@
   justify-content: center;
 }
 
-.slider-chevron img {
-  width: 24px;
-  height: 24px;
-}
+.slider-chevron img { width: 24px; height: 24px; }
 
 .slider-chevron-left  { left: -10px; }
 .slider-chevron-right { right: -10px; }
 
 /* ── Slider inner layout ─────────────────────────────────────────────────── */
 
-/* Outer column wrapper — stacks the two-column top row, stats row, and dots
-   vertically so stats + dots always span the full slider width */
+/* Stacks top row + stats row + dots vertically so stats span the full width */
 .slider-body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 0;
 }
 
 .slider-content {
@@ -157,7 +150,6 @@
   flex-direction: column;
   align-items: flex-end;
   flex-shrink: 0;
-  
 }
 
 /* ── Author row ──────────────────────────────────────────────────────────── */
@@ -242,14 +234,12 @@
   gap: 16px;
   margin-top: 8px;
   width: 100%;
-  
 }
 
 .stat-item {
   display: flex;
   align-items: center;
   gap: 4px;
-  /* Base color for all stat items — overridden by stat-button and stat-rating */
   color: #4B5563;
   font-family: "Segoe UI", system-ui, sans-serif;
   font-size: 14px;
@@ -269,7 +259,6 @@
 
 .stat-button:hover { color: #1ABC9C; }
 
-/* Lucide icon inside stat button */
 .stat-icon-lucide {
   width: 16px;
   height: 16px;
@@ -281,13 +270,18 @@
   color: inherit;
 }
 
-/* Bookmark + MoreHorizontal pushed to the right */
+/* Rating active state */
+.stat-rating      { color: #1ABC9C; }
+.stat-icon-rating { fill: #1ABC9C; color: #1ABC9C; }
+.stat-number-rating { color: #1ABC9C; font-weight: 500; }
+.stat-number-muted  { color: #6B7280; }
+
+/* Bookmark + MoreHorizontal — pushed to the far right of the stats row */
 .slider-actions-right {
   display: flex;
   align-items: center;
   gap: 4px;
   margin-left: auto;
-  
 }
 
 .slider-icon-btn {
@@ -302,12 +296,11 @@
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.slider-icon-btn:hover { background-color: rgba(26,188,156,0.12); color: #1ABC9C; }
+.slider-icon-btn:hover { background-color: rgba(26, 188, 156, 0.12); color: #1ABC9C; }
 
-.slider-icon-lucide {
-  width: 18px;
-  height: 18px;
-}
+.slider-icon-lucide        { width: 18px; height: 18px; }
+.slider-icon-btn--saved    { color: #1ABC9C; }
+.slider-icon-lucide--saved { color: #1ABC9C; fill: #1ABC9C; }
 
 /* ── Cover image ─────────────────────────────────────────────────────────── */
 
@@ -326,36 +319,13 @@
   justify-content: center;
 }
 
-/* ── rating, bookmark active state, dot indicators ────── */
+/* ── Dot indicators ──────────────────────────────────────────────────────── */
 
-.stat-rating { color: #1ABC9C; }
-
-.stat-icon-rating {
-  fill: #1ABC9C;
-  color: #1ABC9C;
-}
-
-.stat-number-rating {
-  color: #1ABC9C;
-  font-weight: 500;
-}
-
-.stat-number-muted { color: #6B7280; }
-
-/* Bookmark active (saved) state */
-.slider-icon-btn--saved { color: #1ABC9C; }
-
-.slider-icon-lucide--saved {
-  color: #1ABC9C;
-  fill: #1ABC9C;
-}
-
-/* Dot indicators */
 .slider-dots {
   display: flex;
-  justify-content: center;  /* true centering — no margin-left needed */
+  justify-content: center;
   align-items: center;
-  width: 100%;              /* spans the full slider-body width */
+  width: 100%;
   gap: 6px;
   margin-top: 10px;
 }
@@ -506,13 +476,9 @@ body.loading-transition { overflow: hidden; }
 
 .loading-spinner { display: flex; align-items: center; justify-content: center; }
 
-.spinner-svg        { animation: ai-spin 2s linear infinite; }
-.spinner-circle     { opacity: 0.3; }
-.spinner-circle-active {
-  opacity: 1;
-  transform-origin: center;
-  animation: ai-spin 2s linear infinite;
-}
+.spinner-svg            { animation: ai-spin 2s linear infinite; }
+.spinner-circle         { opacity: 0.3; }
+.spinner-circle-active  { opacity: 1; transform-origin: center; animation: ai-spin 2s linear infinite; }
 
 .loading-text {
   font-family: "Inter", sans-serif;
@@ -523,14 +489,22 @@ body.loading-transition { overflow: hidden; }
 }
 
 /* ── Insights sidebar ────────────────────────────────────────────────────── */
+/*
+ * KEY FIX: The sidebar must fill the full height of the page including the
+ * scrollable area below the fold. Using align-self:stretch on the sidebar
+ * ensures it grows with the tallest sibling (the main content area).
+ * The parent flex container must NOT clip overflow so the background colour
+ * extends naturally as the page grows.
+ */
 
 .insights-sidebar {
   width: 321px;
-  min-height: 100%;            /* fills full page height — no bottom whitespace */
   background-color: #f6f6f6;
   border-left: 1px solid #e8e8e8;
   padding: 24px;
   flex-shrink: 0;
+  /* stretch to match the tallest sibling — fixes the white gap below keywords */
+  align-self: stretch;
 }
 
 .insights-header {
@@ -540,7 +514,7 @@ body.loading-transition { overflow: hidden; }
   margin-bottom: 24px;
 }
 
-.insights-dots { display: flex; gap: 4px; }
+.insights-dots  { display: flex; gap: 4px; }
 .insights-dot-1 { width: 8px; height: 8px; background-color: #1abc9c; border-radius: 50%; }
 .insights-dot-2 { width: 8px; height: 8px; background-color: #6ae6cd; border-radius: 50%; }
 
@@ -603,10 +577,17 @@ body.loading-transition { overflow: hidden; }
   margin-left: 34px;
 }
 
+/* ── Trending keywords buttons — flexible wrap layout ─────────────────────── */
+/*
+ * KEY FIX: Buttons must wrap and not overflow a narrow sidebar.
+ * overflow:hidden prevents any rogue long keyword from breaking the layout.
+ */
+
 .trending-topics-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  overflow: hidden;            /* guard against any overflowing keyword text */
 }
 
 .topic-button {
@@ -620,6 +601,11 @@ body.loading-transition { overflow: hidden; }
   color: #6b6b6b;
   cursor: pointer;
   transition: background-color 0.2s;
+  /* prevents a single very-long keyword from overflowing the sidebar */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topic-button:hover { background-color: #e8e8e8; }
@@ -632,24 +618,24 @@ body.loading-transition { overflow: hidden; }
 
 @media (max-width: 768px) {
   .ai-content-wrapper { padding: 12px 12px 32px; }
-  .user-prompt-text { font-size: 22px; margin-left: 16px; }
-  .user-textbox { width: 100%; margin-left: 0; }
-  .continue-button { width: 100%; margin-left: 0; }
+  .user-prompt-text  { font-size: 22px; margin-left: 16px; }
+  .user-textbox      { width: 100%; margin-left: 0; }
+  .continue-button   { width: 100%; margin-left: 0; }
   .input-error-message { margin-left: 0; }
-  .trending-section { width: 100%; margin-left: 0; }
-  .trending-slider { width: 100%; min-height: auto; padding: 16px 32px; }
-  .slider-body { gap: 8px; }
-  .slider-content { flex-direction: column; gap: 12px; }
+  .trending-section  { width: 100%; margin-left: 0; }
+  .trending-slider   { width: 100%; min-height: auto; padding: 16px 32px; }
+  .slider-body       { gap: 8px; }
+  .slider-content    { flex-direction: column; gap: 12px; }
   .slider-right-content { align-items: center; }
-  .article-description { max-width: 100%; }
+  .article-description  { max-width: 100%; }
   .ai-generator-title-text { font-size: 26px; }
 }
 
 @media (max-width: 480px) {
   .ai-content-wrapper { padding: 8px 8px 24px; }
-  .user-prompt-text { font-size: 18px; }
+  .user-prompt-text   { font-size: 18px; }
   .slider-article-title { font-size: 16px; }
-  .article-description { font-size: 13px; }
+  .article-description  { font-size: 13px; }
   .cover-image { width: 90px; height: 90px; }
 }
 

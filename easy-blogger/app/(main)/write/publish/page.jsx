@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Calendar, Clock } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "../../../context/AuthContext"; // WordPress: get Firebase user
 import { API_BASE_URL } from "../../../../lib/api";     // WordPress: backend base URL
-import {getDraftById,publishArticle as publishEasyBloggerArticle,} from "../../../../lib/articles/api";
+import {clearEditExistingBackup, getDraftById,publishArticle as publishEasyBloggerArticle,} from "../../../../lib/articles/api";
 
 const MAX_TAGS = 5;
 
@@ -102,6 +102,11 @@ export default function PublishArticlePage() {
   const { user: firebaseUser } = useAuth();
 
   const articleId = searchParams.get("id") || "";
+
+  const mode = searchParams.get("mode") || "";
+  const isEditExistingFlow = mode === "edit-existing";
+  const isLeavingRef = useRef(false);
+  const isReplayingNavigationRef = useRef(false);
 
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [articleTitle, setArticleTitle] = useState("");
@@ -201,6 +206,66 @@ export default function PublishArticlePage() {
 
     return new Date(`${scheduledDate}T${scheduledTime}`).toISOString();
   };
+
+  useEffect(() => {
+    if (!isEditExistingFlow || !articleId) return;
+
+    const handleNavigationClick = async (event) => {
+      if (isReplayingNavigationRef.current) return;
+
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const clickableElement = target.closest(
+        "button, a, [role='button']"
+      );
+
+      if (!clickableElement) return;
+
+      // Allow buttons inside publish flow
+      if (
+        clickableElement.closest("[data-keep-edit-backup='true']")
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      try {
+        await clearEditExistingBackup(articleId);
+      } catch (error) {
+        console.error(
+          "Failed to clear edit-existing backup:",
+          error
+        );
+      }
+
+      isReplayingNavigationRef.current = true;
+
+      Promise.resolve().then(() => {
+        clickableElement.click();
+
+        setTimeout(() => {
+          isReplayingNavigationRef.current = false;
+        }, 0);
+      });
+    };
+
+    document.addEventListener(
+      "click",
+      handleNavigationClick,
+      true
+    );
+
+    return () => {
+      document.removeEventListener(
+        "click",
+        handleNavigationClick,
+        true
+      );
+    };
+  }, [articleId, isEditExistingFlow]);
 
   useEffect(() => {
     const loadArticle = async () => {
@@ -798,6 +863,8 @@ export default function PublishArticlePage() {
 
         <div className="p-8 flex items-center justify-center gap-40">
           <button
+            type="button"
+            data-keep-edit-backup="true"
             onClick={() => router.back()}
             className="px-8 py-3 rounded-full bg-black text-white"
           >
@@ -805,6 +872,8 @@ export default function PublishArticlePage() {
           </button>
 
           <button
+            type="button"
+            data-keep-edit-backup="true"
             onClick={async () => {
               if (!articleId) {
                 setPublishError("Article id is missing.");

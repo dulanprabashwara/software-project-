@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
 import ConfirmDialog from "../../../../components/article/ConfirmDialog";
-import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
-import { getDraftById, updateDraft } from "../../../../lib/articles/api";
 import ArticleContentRenderer from "../../../../components/article/ArticleContentRenderer";
+import {EditorHeader,EditorBottomActions,} from "../../../../components/article/EditorSharedLayout";
+import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
+import { getDraftById, updateDraft, clearEditExistingBackup, } from "../../../../lib/articles/api";
 
 function getArticleFromResponse(response) {
   return response?.data ?? response?.article ?? response ?? null;
@@ -26,6 +27,8 @@ export default function PreviewPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const { modalState, openModal, closeModal } = useConfirmDialog();
+
+  const isReplayingNavigationRef = useRef(false);
 
   useEffect(() => {
     const loadPreviewArticle = async () => {
@@ -55,77 +58,101 @@ export default function PreviewPage() {
     void loadPreviewArticle();
   }, [articleId, mode, router]);
 
-  const mainClassName = useMemo(
-    () =>
-      `pt-16 h-[calc(100vh-64px)] flex flex-col transition-all duration-300 ease-in-out ${
-        sidebarOpen ? "ml-60" : "ml-0"
-      }`,
-    [sidebarOpen],
-  );
+  const mainClassName = `pt-3 min-h-screen transition-all duration-300 ease-in-out ${
+    sidebarOpen ? "ml-60" : "ml-0"
+  }`;
 
   const handleExitEditor = () => {
     router.push("/home");
   };
 
-  const handlePublish = () => {
-    if (!article?.id) return;
+  const handlePublish = async () => {
+    if (!article?.id) 
+      return;
 
-    openModal({
-      title: "Save article?",
-      message: "Do you want to save this article before moving to publish page?",
-      confirmText: "Yes",
-      cancelText: "No",
-      onConfirm: async () => {
-        try {
-          await updateDraft(article.id, { status: "draft" });
-          closeModal();
-          router.push(`/write/publish?id=${article.id}`);
-        } catch (error) {
-          console.error("Failed to save article before publish:", error);
-          closeModal();
-        }
-      },
-      onCancel: async () => {
-        closeModal();
-      },
-      onClose: async () => {},
-    });
+    try {
+      await updateDraft(article.id, {
+        status: "draft",
+      });
+
+      router.push(`/write/publish?id=${article.id}&mode=${mode}`);
+    } catch (error) {
+      console.error("Failed to move to publish page:", error);
+    }
   };
 
-  const handleEditAgain = () => {
-    if (mode === "edit-existing" && articleId) {
-      router.push(`/write/edit-existing?id=${articleId}`);
+  const handleEditAgain = async () => {
+    if (!article?.id) 
       return;
-    }
 
-    if (mode === "edit-as-new" && sourceId) {
-      router.push(`/write/edit-as-new?id=${sourceId}`);
-      return;
-    }
+    try {
+      if (mode === "edit-existing" && articleId) {
+        router.push(`/write/edit-existing?id=${articleId}`);
+        return;
+      }
+      if (mode === "edit-as-new" && sourceId) {
+        router.push(`/write/edit-as-new?id=${sourceId}`);
+        return;
+      }
+      if (mode === "create" && articleId) {
+        await updateDraft(article.id, {
+          status: "editing",
+        });
 
-    router.push("/write/create");
+        router.push("/write/create");
+        return;
+      }
+      router.push("/write/create");
+    } catch (error) {
+      console.error("Failed to reopen article for editing:", error);
+      router.push("/write/create");
+    }
   };
 
-  const actions = [
-    {
-      label: "Exit from the editor ?",
-      buttonText: "Exit Editor",
-      onClick: handleExitEditor,
-      buttonClassName: "bg-black px-7",
-    },
-    {
-      label: "Publish Now ?",
-      buttonText: "Publish",
-      onClick: handlePublish,
-      buttonClassName: "bg-[#1ABC9C] px-8",
-    },
-    {
-      label: "Edit Again?",
-      buttonText: "Edit",
-      onClick: handleEditAgain,
-      buttonClassName: "bg-black px-7",
-    },
-  ];
+  useEffect(() => {
+    if (mode !== "edit-existing" || !articleId || modalState.isOpen) return;
+
+    const handleNavigationClick = async (event) => {
+      if (isReplayingNavigationRef.current) 
+        return;
+
+      const target = event.target;
+      if (!(target instanceof Element)) 
+        return;
+
+      const clickableElement = target.closest("button, a, [role='button']");
+      if (!clickableElement)
+        return;
+
+      if (clickableElement.closest("[data-keep-edit-backup='true']"))
+        return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      try {
+        await clearEditExistingBackup(articleId);
+      } catch (error) {
+        console.error("Failed to clear edit backup before leaving preview:", error);
+      }
+
+      isReplayingNavigationRef.current = true;
+
+      Promise.resolve().then(() => {
+        clickableElement.click();
+
+        setTimeout(() => {
+          isReplayingNavigationRef.current = false;
+        }, 0);
+      });
+    };
+
+    document.addEventListener("click", handleNavigationClick, true);
+
+    return () => {
+      document.removeEventListener("click", handleNavigationClick, true);
+    };
+  }, [mode, articleId, modalState.isOpen]);
 
   return (
     <>
@@ -146,16 +173,10 @@ export default function PreviewPage() {
         <Sidebar isOpen={sidebarOpen} />
 
         <main className={mainClassName}>
-          <div className="shrink-0 border-b border-[#E5E7EB] bg-white px-6 py-3">
-            <div className="mx-auto max-w-5xl text-center">
-              <h1 className="text-2xl font-serif font-bold text-[#111827]">
-                Preview your Article
-              </h1>
-              <p className="mt-1 text-sm text-[#6B7280]">
-                Review the saved article before publishing or editing again
-              </p>
-            </div>
-          </div>
+          <EditorHeader
+            title="Preview your Article"
+            subtitle="Review the saved article before publishing or editing again"
+          />
 
           {isLoading ? (
             <div className="flex flex-1 items-center justify-center px-8">
@@ -163,7 +184,7 @@ export default function PreviewPage() {
             </div>
           ) : !article ? null : (
             <>
-              <div className="flex-1 overflow-y-auto px-8 py-6">
+              <div className="px-8 py-6">
                 <div className="mx-auto max-w-4xl pb-6">
                   <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-md">
                     <div className="bg-emerald-100/60 px-8 py-8">
@@ -171,15 +192,17 @@ export default function PreviewPage() {
                         {article.title}
                       </h2>
 
-                    {article.coverImage ? (
-                      <div className="mt-6 overflow-hidden rounded-lg border border-[#E5E7EB] bg-white">
-                        <img
-                          src={article.coverImage}
-                          alt="Cover"
-                          className="h-80 w-full object-cover"
-                        />
-                      </div>
-                    ) : null}
+                      {article.coverImage ? (
+                        <div className="mt-6 rounded-lg border border-[#E5E7EB] bg-white p-4">
+                          <div className="flex min-h-[220px] max-h-[420px] items-center justify-center overflow-hidden rounded-lg bg-white">
+                            <img
+                              src={article.coverImage}
+                              alt="Cover preview"
+                              className="max-h-[420px] max-w-full object-contain"
+                            />
+                          </div>
+                        </div>
+                      ) : null}
 
                       <hr className="my-8 border-black/20" />
 
@@ -194,27 +217,25 @@ export default function PreviewPage() {
                 </div>
               </div>
 
-              <div className="shrink-0 border-t border-[#E5E7EB] bg-white px-6 py-2">
-                <div className="mx-auto flex max-w-4xl items-center justify-between gap-6 text-center">
-                  {actions.map((action) => (
-                    <div
-                      key={action.buttonText}
-                      className="flex flex-1 flex-col items-center"
-                    >
-                      <p className="mb-1 text-sm italic text-[#6B7280]">
-                        {action.label}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={action.onClick}
-                        className={`rounded-full py-2 text-sm font-medium text-white ${action.buttonClassName}`}
-                      >
-                        {action.buttonText}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <EditorBottomActions
+                actions={[
+                  {
+                    label: "Exit Editor",
+                    onClick: handleExitEditor,
+                  },
+                  {
+                    label: "Publish",
+                    onClick: handlePublish,
+                    variant: "primary",
+                    keepEditBackup: true,
+                  },
+                  {
+                    label: "Edit",
+                    onClick: handleEditAgain,
+                    keepEditBackup: true,
+                  },
+                ]}
+              />
             </>
           )}
         </main>
