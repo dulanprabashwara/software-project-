@@ -80,8 +80,10 @@ export default function Page() {
           </div>
 
           <h1 className="text-4xl md:text-5xl font-black font-serif mb-6">{article.title}</h1>
+         < div className="mt-6 overflow-hidden rounded-lg border border-[#E5E7EB] bg-white">
 
-          <img ref={coverRef} src={article.coverImage} className="w-full h-[450px] object-cover rounded-xl mb-10" alt="" />
+            <img ref={coverRef} src={article.coverImage} className="h-80 w-full rounded-xl mb-10" alt="" />
+          </div>
 
           <div className="prose prose-teal prose-lg max-w-none mb-20" dangerouslySetInnerHTML={{ __html: article.content }} />
 
