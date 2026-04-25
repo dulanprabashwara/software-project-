@@ -11,11 +11,11 @@ import PlatformItem from "../../../../components/article/PlatformItem";
 import PublishStatusLayout from "../../../../components/article/PublishStatusLayout";
 
 function getWordPressUrl(data) {
-  return data?.data?.wpPostUrl || data?.data?.postUrl || data?.data?.url || "";
+  return data?.data?.job?.wpPostUrl || data?.data?.wpPostUrl || "";
 }
 
 function getWordPressError(data) {
-  return data?.data?.errorMsg || data?.data?.message || data?.message || "";
+  return data?.data?.job?.errorMsg || data?.data?.message || data?.message || "";
 }
 
 export default function ArticlePublishedPage() {
@@ -40,15 +40,10 @@ export default function ArticlePublishedPage() {
 
       const res = await fetch(
         `${API_BASE_URL}/api/wordpress/publish-status/${articleId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const data = await res.json();
-
       if (!res.ok || !data?.success) return;
 
       const url = getWordPressUrl(data);
@@ -104,9 +99,7 @@ export default function ArticlePublishedPage() {
         const token = await firebaseUser.getIdToken();
 
         const res = await fetch(`${API_BASE_URL}/api/wordpress/status`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await res.json();
@@ -152,9 +145,7 @@ export default function ArticlePublishedPage() {
         return;
       }
 
-      setWpError(
-        getWordPressError(data) || "WordPress publish failed. Please try again."
-      );
+      setWpError(getWordPressError(data) || "WordPress publish failed. Please try again.");
     } catch {
       setWpError("Could not reach server. Please try again.");
     } finally {
@@ -226,9 +217,9 @@ export default function ArticlePublishedPage() {
           {platforms.map((platform) => (
             <PlatformItem
               key={platform}
-              platform={platform}
-              url={platform === "WordPress" ? wpPostUrl : ""}
-              error={platform === "WordPress" ? wpError : ""}
+              name={platform}
+              wpPostUrl={platform === "WordPress" ? wpPostUrl : ""}
+              wpError={platform === "WordPress" ? wpError : ""}
               isRetrying={platform === "WordPress" ? isRetrying : false}
               onRetry={platform === "WordPress" ? handleWpRetry : undefined}
             />
