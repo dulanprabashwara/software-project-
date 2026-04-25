@@ -20,9 +20,18 @@ import "../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../styles/ai-article-generator/ai-article-generator-view2.css";
 import "../../../styles/ai-article-generator/articles-view.css";
 
-const BACKEND_URL    = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const AI_TIMEOUT_MS  = 300000; // 5 minutes
-const WARNING_VISIBLE_MS = 5000; // 5seconds
+const BACKEND_URL             = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const AI_TIMEOUT_MS           = 300000;  // 5 minutes — AI generation can be slow
+const WARNING_VISIBLE_MS      = 30000;   // 30 seconds — delete warning callout auto-hide
+const AUTH_TIMEOUT_MS         = 5000;    // Firebase re-auth wait before giving up
+const ERROR_DISPLAY_MS        = 3000;    // how long error messages stay visible
+const DRAFT_STATUS_CLEAR_MS   = 4000;    // how long "saved" / "error" feedback stays
+const COPY_FEEDBACK_MS        = 6000;    // how long "copied!" stays visible
+const RESTORE_POLL_MS         = 10000;   // how often the restore countdown updates
+const RESTORE_WINDOW_MS       = 3600000; // 1 hour — grace period before permanent delete
+const HOURLY_REFRESH_MS       = 3600000; // 1 hour — trending data refresh interval
+const MAX_KEYWORDS_SELECTABLE = 4;
+const MAX_PROMPT_WORDS        = 50;
 
 function formatDate(isoString) {
   if (!isoString) return "";
@@ -139,7 +148,7 @@ export default function AIArticleGeneratorPage() {
           unsub();
           u ? resolve(u) : reject(new Error("No authenticated user"));
         });
-        setTimeout(() => { unsub(); reject(new Error("Auth timeout")); }, 5000);
+        setTimeout(() => { unsub(); reject(new Error("Auth timeout")); }, AUTH_TIMEOUT_MS);
       });
       const token = await user.getIdToken();
       return { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
@@ -223,7 +232,7 @@ export default function AIArticleGeneratorPage() {
     const hourlyRefresh = setInterval(() => {
       fetchTrendingArticles();
       fetchTopAIArticles();
-    }, 60 * 60 * 1000);
+    }, HOURLY_REFRESH_MS);
     return () => clearInterval(hourlyRefresh);
   }, [isLoading, isPremium]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -295,7 +304,7 @@ export default function AIArticleGeneratorPage() {
 
     if (restoreTimerRef.current) clearInterval(restoreTimerRef.current);
     restoreTimerRef.current = setInterval(() => {
-      const minutesLeft = Math.max(0, Math.floor((deletedAt + 3600000 - Date.now()) / 60000));
+      const minutesLeft = Math.max(0, Math.floor((deletedAt + RESTORE_WINDOW_MS - Date.now()) / 60000));
       if (!isMountedRef.current) { clearInterval(restoreTimerRef.current); return; }
       setRestoreCountdown(minutesLeft);
       if (minutesLeft === 0) {
@@ -304,7 +313,7 @@ export default function AIArticleGeneratorPage() {
         setRestoreCountdown(null);
         setShowDeleteWarning(false);
       }
-    }, 10000);
+    }, RESTORE_POLL_MS);
   };
 
   // Handles a delete button click. If another article is already in the grace period,
@@ -389,7 +398,7 @@ export default function AIArticleGeneratorPage() {
     try {
       await navigator.clipboard.writeText(`${generatedArticle.title}\n\n${generatedArticle.content}`);
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 6000);
+      setTimeout(() => setIsCopied(false), COPY_FEEDBACK_MS);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -418,11 +427,11 @@ export default function AIArticleGeneratorPage() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Save failed");
       setDraftSaveStatus(data.alreadySaved ? "already_saved" : "saved");
-      setTimeout(() => setDraftSaveStatus(null), 4000);
+      setTimeout(() => setDraftSaveStatus(null), DRAFT_STATUS_CLEAR_MS);
     } catch (err) {
       console.error("[SaveDraft] Failed:", err);
       setDraftSaveStatus("error");
-      setTimeout(() => setDraftSaveStatus(null), 4000);
+      setTimeout(() => setDraftSaveStatus(null), DRAFT_STATUS_CLEAR_MS);
     } finally {
       setIsSavingDraft(false);
     }
@@ -466,7 +475,7 @@ export default function AIArticleGeneratorPage() {
         setIsLoadingTransition(false);
         setTransitionError(null);
         document.body.classList.remove("loading-transition");
-      }, 3000);
+      }, ERROR_DISPLAY_MS);
     }, AI_TIMEOUT_MS);
 
     try {
@@ -503,7 +512,7 @@ export default function AIArticleGeneratorPage() {
         setIsLoadingTransition(false);
         setTransitionError(null);
         document.body.classList.remove("loading-transition");
-      }, 3000);
+      }, ERROR_DISPLAY_MS);
     }
   };
 
@@ -519,7 +528,7 @@ export default function AIArticleGeneratorPage() {
       timedOut = true;
       setIsGenerating(false);
       setGenerateError("The AI is taking too long. Please try again.");
-      errorResetRef.current = setTimeout(() => setGenerateError(null), 3000);
+      errorResetRef.current = setTimeout(() => setGenerateError(null), ERROR_DISPLAY_MS);
     }, AI_TIMEOUT_MS);
 
     try {
@@ -540,7 +549,7 @@ export default function AIArticleGeneratorPage() {
       clearTimeout(generateTimeoutRef.current);
       setIsGenerating(false);
       setGenerateError(`Failed to ${errorText.toLowerCase()}. Please try again.`);
-      errorResetRef.current = setTimeout(() => setGenerateError(null), 3000);
+      errorResetRef.current = setTimeout(() => setGenerateError(null), ERROR_DISPLAY_MS);
     } finally {
       if (!timedOut) setIsGenerating(false);
     }
@@ -568,8 +577,8 @@ export default function AIArticleGeneratorPage() {
 
   if (currentView === "articles") {
     return (
-      <div className="flex h-full">
-        <div className="ai-generator-main flex-1 overflow-y-auto">
+      <div className="flex min-h-full overflow-y-auto">
+        <div className="ai-generator-main flex-1">
           <div className="ai-content-wrapper">
 
             <div className="ai-generator-title justify-between">
@@ -689,8 +698,8 @@ export default function AIArticleGeneratorPage() {
   // ── Main input + keywords view ─────────────────────────────────────────────
 
   return (
-    <div className="flex h-full">
-      <div className="ai-generator-main flex-1 overflow-y-auto">
+    <div className="flex min-h-full overflow-y-auto">
+      <div className="ai-generator-main flex-1">
         <div className="ai-content-wrapper">
 
           <div className="ai-generator-title justify-between">
@@ -761,8 +770,8 @@ export default function AIArticleGeneratorPage() {
                         <button
                           key={keyword}
                           onClick={() => handleKeywordToggle(keyword)}
-                          className={`keyword-button ${selectedKeywords.includes(keyword) ? "selected" : ""} ${selectedKeywords.length >= 4 && !selectedKeywords.includes(keyword) ? "disabled" : ""}`}
-                          disabled={selectedKeywords.length >= 4 && !selectedKeywords.includes(keyword)}
+                          className={`keyword-button ${selectedKeywords.includes(keyword) ? "selected" : ""} ${selectedKeywords.length >= MAX_KEYWORDS_SELECTABLE && !selectedKeywords.includes(keyword) ? "disabled" : ""}`}
+                          disabled={selectedKeywords.length >= MAX_KEYWORDS_SELECTABLE && !selectedKeywords.includes(keyword)}
                         >
                           {keyword}
                         </button>
