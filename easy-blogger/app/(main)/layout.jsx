@@ -1,3 +1,4 @@
+//easy-blogger\app\(main)\layout.jsx
 "use client";
 
 import { useState } from "react";
