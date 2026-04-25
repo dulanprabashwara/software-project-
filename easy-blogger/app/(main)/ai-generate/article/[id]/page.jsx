@@ -2,8 +2,7 @@
  * AI Article Details Page
  * Route: /ai-generate/article/[id]
  *
- * Shows a read-only view of a previously AI-generated article log:
- * prompt, keywords used, length/tone settings, and the generated article title.
+ * Shows a read-only view of a previously AI-generated article log.
  * The article content opens in a preview overlay on title click.
  */
 
@@ -13,7 +12,6 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getAuth } from "firebase/auth";
 import { useSubscription } from "../../../../context/SubscriptionContext";
-import { fetchAPI } from "../../../../../lib/api";
 import InsightsSidebar from "../../../../../components/ai/InsightsSidebar";
 import "../../../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../../../styles/ai-article-generator/ai-article-generator-view2.css";
@@ -32,20 +30,21 @@ export default function ArticleDetailsPage() {
   const router = useRouter();
   const { isPremium, isLoading } = useSubscription();
 
-  const [articleData, setArticleData]       = useState(null);
-  const [loading, setLoading]               = useState(true);
-  const [error, setError]                   = useState(null);
-  const [showPreview, setShowPreview]       = useState(false);
-  const [isCopied, setIsCopied]             = useState(false);
-  const [isSavingDraft, setIsSavingDraft]   = useState(false);
+  const [articleData, setArticleData]         = useState(null);
+  const [loading, setLoading]                 = useState(true);
+  const [error, setError]                     = useState(null);
+  const [showPreview, setShowPreview]         = useState(false);
+  const [isCopied, setIsCopied]               = useState(false);
+  const [isSavingDraft, setIsSavingDraft]     = useState(false);
   const [draftSaveStatus, setDraftSaveStatus] = useState(null);
   const [isLoadingEditor, setIsLoadingEditor] = useState(false);
 
-  // Sidebar data (same as main page — fetched once on load)
-  const [topAIArticles, setTopAIArticles]       = useState([]);
+  // userResponse: null | "satisfied" | "dissatisfied" — loaded from DB, toggled locally
+  const [userResponse, setUserResponse]       = useState(null);
+
+  const [topAIArticles, setTopAIArticles]     = useState([]);
   const [trendingKeywords, setTrendingKeywords] = useState([]);
 
-  // Reads the Firebase token from the current session.
   const getAuthHeaders = async () => {
     const token = await getAuth().currentUser?.getIdToken();
     if (!token) { router.push("/login"); throw new Error("Not authenticated"); }
@@ -84,6 +83,9 @@ export default function ArticleDetailsPage() {
           savedToDraftId:        log.savedToDraftId || null,
           generatedAt:           log.generatedAt,
         });
+
+        // Restore the saved reaction from the database
+        setUserResponse(log.userResponse || null);
 
         if (log.savedToDraftId) setDraftSaveStatus("already_saved");
 
@@ -130,7 +132,25 @@ export default function ArticleDetailsPage() {
     }
   };
 
-  // Saves the article as a draft in the articles table.
+  // Toggles the user's like/dislike reaction and persists it to the backend.
+  const handleUserResponse = async (value) => {
+    const next = userResponse === value ? null : value;
+    setUserResponse(next); // optimistic
+    try {
+      const headers = await getAuthHeaders();
+      const res     = await fetch(`${BACKEND_URL}/api/ai/logs/${params.id}/response`, {
+        method: "PATCH", headers,
+        body: JSON.stringify({ response: next }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error("Response update failed");
+      setUserResponse(data.userResponse);
+    } catch (err) {
+      console.error("[UserResponse] Failed:", err);
+      setUserResponse(userResponse); // revert
+    }
+  };
+
   const handleSaveDraft = async () => {
     if (!articleData) return;
     setIsSavingDraft(true);
@@ -225,12 +245,11 @@ export default function ArticleDetailsPage() {
     );
   }
 
-  const lengthDisplay = ARTICLE_LENGTH_LABELS[articleData.articleLengthSelected] || null;
+  const lengthDisplay  = ARTICLE_LENGTH_LABELS[articleData.articleLengthSelected] || null;
   const isAlreadySaved = !!articleData.savedToDraftId;
 
   return (
     <div className="flex h-full">
-      {/* ── Article Details Main Section ── */}
       <div className="ai-generator-main flex-1 overflow-y-auto article-details-page">
         <div className="ai-content-wrapper">
 
@@ -261,7 +280,7 @@ export default function ArticleDetailsPage() {
             </div>
           </div>
 
-          {/* Keywords — read-only, selected ones highlighted */}
+          {/* Keywords — read-only */}
           <div className="selected-keywords-section">
             <div className="keyword-buttons-container">
               {articleData.keywordsPresented.length > 0 ? (
@@ -289,7 +308,7 @@ export default function ArticleDetailsPage() {
             )}
           </div>
 
-          {/* Article length — read-only display */}
+          {/* Article length — read-only */}
           <div className="article-length-section">
             <p className="article-length-text">Article Length :</p>
             <div className="article-length-dropdown">
@@ -351,20 +370,31 @@ export default function ArticleDetailsPage() {
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                 </svg>
               </div>
+              {/* Action icons: like, dislike — copy removed (available in preview) */}
               <div className="article-actions">
-                <button className="action-icon" title="Copy" onClick={() => handleCopyToClipboard(`${articleData.title}\n\n${articleData.content}`)}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                  </svg>
-                </button>
-                <button className="action-icon" title="Like">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <button
+                  className="action-icon"
+                  title="Like"
+                  onClick={() => handleUserResponse("satisfied")}
+                >
+                  <svg
+                    width="16" height="16" viewBox="0 0 24 24" strokeWidth="2"
+                    fill={userResponse === "satisfied" ? "#1ABC9C" : "none"}
+                    stroke={userResponse === "satisfied" ? "#1ABC9C" : "currentColor"}
+                  >
                     <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
                   </svg>
                 </button>
-                <button className="action-icon" title="Dislike">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <button
+                  className="action-icon"
+                  title="Dislike"
+                  onClick={() => handleUserResponse("dissatisfied")}
+                >
+                  <svg
+                    width="16" height="16" viewBox="0 0 24 24" strokeWidth="2"
+                    fill={userResponse === "dissatisfied" ? "#1ABC9C" : "none"}
+                    stroke={userResponse === "dissatisfied" ? "#1ABC9C" : "currentColor"}
+                  >
                     <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-3"></path>
                   </svg>
                 </button>
