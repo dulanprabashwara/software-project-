@@ -5,7 +5,12 @@ export function getTinyMceConfig({
   return {
     readonly: false,
     promotion: false,
-    height: 260,
+
+    // Auto-resize editor height based on written content
+    min_height: 260,
+    max_height: 900,
+    autoresize_bottom_margin: 24,
+    
     menubar: false,
     branding: false,
     placeholder,
@@ -17,7 +22,9 @@ export function getTinyMceConfig({
       "code",
       "wordcount",
       "autolink",
+      "autoresize",
     ],
+
     toolbar:
       "undo redo | blocks | bold italic underline | " +
       "alignleft aligncenter alignright alignjustify | " +
