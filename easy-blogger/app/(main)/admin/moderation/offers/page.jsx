@@ -15,6 +15,7 @@ export default function OffersPage() {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const dropdownRef = useRef(null);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [newFeatureName, setNewFeatureName] = useState("");
   
@@ -61,6 +62,7 @@ export default function OffersPage() {
     setSelectedId(offer.id);
     setFormData({ ...offer});
     setErrors({});
+    setSubmitError("");
   };
 
   const handlePlusClick = () => {
@@ -70,6 +72,7 @@ export default function OffersPage() {
       name: "", discount_percent: "", stripe_coupon_id: "", is_active: true
     });
     setErrors({});
+    setSubmitError("");
   };
 
   const toggleVisibility = async () => {
@@ -82,7 +85,16 @@ export default function OffersPage() {
   const validateAndTriggerVerify = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Offer Name is required.";
-    if (!formData.stripe_coupon_id?.trim()) newErrors.stripe_coupon_id = "Stripe Coupon ID is required.";
+    
+    // STRIPE ID VALIDATION
+    const stripeId = formData.stripe_coupon_id?.trim();
+    if (!stripeId) {
+      newErrors.stripe_coupon_id = "Stripe Coupon ID is required.";
+    } else if (/\s/.test(stripeId)) {
+      newErrors.stripe_coupon_id = "Coupon IDs cannot contain spaces.";
+    } else if (/[^a-zA-Z0-9_-]/.test(stripeId)) {
+      newErrors.stripe_coupon_id = "Only letters, numbers, hyphens, and underscores allowed.";
+    }
 
     const discount = parseInt(formData.discount_percent);
     if (formData.discount_percent && (isNaN(discount) || discount < 0 || discount > 100)) {
@@ -96,6 +108,7 @@ export default function OffersPage() {
   // --- REAL BACKEND SAVE ---
   const confirmFinalSave = async () => {
     try {
+      setSubmitError("");
       const user = auth.currentUser;
       const token = await user.getIdToken();
 
@@ -120,7 +133,8 @@ export default function OffersPage() {
       
     } catch (err) { 
       console.error("Save Error:", err); 
-      alert("Failed to save offer. Check console.");
+      setShowVerifyModal(false);
+      setSubmitError(err.message || "Failed to save to the database. Please try again.");
     }
   };
 
@@ -185,6 +199,14 @@ export default function OffersPage() {
             <h1 className="text-3xl font-black text-[#111827] italic mb-8" style={{ fontFamily: "Georgia, serif" }}>
               {isAddingNew ? "Add New Promo Offer" : `Update Promo: ${formData.name}`}
             </h1>
+
+            {submitError && (
+              <div className="mb-6 bg-red-50 border border-red-200 text-red-600 px-5 py-4 rounded-xl text-sm flex items-start gap-3 shadow-sm">
+                <AlertCircle size={20} className="shrink-0 mt-0.5" />
+                <p className="font-medium leading-relaxed">{submitError}</p>
+              </div>
+            )}
+
             <div className="bg-[#F0FDFA] rounded-[35px] p-8 space-y-6 shadow-sm border border-gray-100 max-w-2xl">
               
               <div className="grid grid-cols-3 gap-6">
