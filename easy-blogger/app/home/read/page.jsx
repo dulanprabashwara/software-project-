@@ -11,6 +11,11 @@ import { Comments } from "../../../components/article/Comments";
 import { useSavedArticles } from "../../../hooks/useSavedArticles";
 
 export default function Page() {
+
+// ... inside your Page component ...
+
+
+
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
   
@@ -28,6 +33,30 @@ export default function Page() {
 
   const scrollRef = useRef(null);
   const coverRef = useRef(null);
+
+  useEffect(() => {
+  const recordVisit = async () => {
+    // Only record if we have an article ID and a logged-in user
+    if (!id || !token) return;
+
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/readHistory/record`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ articleId: id })
+      });
+      console.log("History recorded.");
+    } catch (err) {
+      console.error("Failed to record history:", err);
+    }
+  };
+
+  recordVisit();
+}, [id, token]); // Only runs when the ID or Token changes
+
 
   useEffect(() => {
     if (user) {

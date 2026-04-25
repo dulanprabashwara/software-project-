@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BadgeCheck, MessageCircle, Star, Bookmark, MoreHorizontal, BookOpen, Crown, Sparkles } from "lucide-react";
+import { BadgeCheck, MessageCircle, Star, Bookmark, MoreHorizontal, BookOpen,Sparkles } from "lucide-react";
 import { useAuth } from "../../app/context/AuthContext";  
 
 export default function ArticleCard({ 
@@ -95,13 +95,12 @@ export default function ArticleCard({
         />
         <span className="text-sm font-medium text-[#111827]">{authorName}</span>
 
-        {article.author?.isVerified && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" />}
-        {article.author?.isPremium && <Crown className="w-4 h-4 text-yellow-500" title="Premium Author" />}
+         {article.author?.isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" title="Premium Author" />}
 
         <span className="text-sm text-[#6B7280]">· {displayDate}</span>
 
         {article.isAiGenerated && (
-          <span className="flex items-center gap-1 ml-2 text-[10px] font-semibold text-purple-600 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-full">
+          <span className="flex items-center gap-1 ml-2 text-[10px] font-semibold border border-[#1ABC9C]  text-[#1ABC9C] bg-purple-50  px-2 py-0.5 rounded-full">
             <Sparkles className="w-3 h-3" />
             AI Generated
           </span>
