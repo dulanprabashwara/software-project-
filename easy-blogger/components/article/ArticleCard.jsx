@@ -143,21 +143,6 @@ export default function ArticleCard({
 
       <div className="flex items-center justify-between mt-4">
         <div className="flex items-center gap-4 text-sm text-[#6B7280]">
-<<<<<<< Updated upstream
-          <button className="flex items-center gap-1.5 hover:text-[#1ABC9C] transition-colors duration-150">
-            <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
-            <span>{article.commentCount || "--"}</span>
-          </button>
-
-          <div className="flex items-center gap-1.5  ">
-    <Star className="w-5 h-5 " strokeWidth={1.5} />
-    <span className="font-medium">
-      {article.averageRating > 0 ? article.averageRating.toFixed(1) : "--"}
-    </span>
-    <span className="text-[#6B7280]"> [{article.ratingCount || 0}]</span>
-  
-</div>
-=======
           
           <button className={`flex items-center gap-1.5 transition-colors duration-150 ${hasCommented ? 'text-[#1ABC9C]' : 'hover:text-[#1ABC9C]'}`}>
             <MessageCircle className={`w-5 h-5 ${hasCommented ? 'fill-[#1ABC9C]' : ''}`} strokeWidth={1.5} />
@@ -180,7 +165,6 @@ export default function ArticleCard({
               <BookOpen className="w-[18px] h-[18px]" strokeWidth={1.5} />
             </div>
           )}
->>>>>>> Stashed changes
         </div>
 
         <div className="flex items-center gap-1">
