@@ -98,15 +98,15 @@ export default function ArticleEditorShell({
         }
       />
 
-      <div className="px-8 py-8">
+      <div className="px-6 py-4">
         <div
-          className="mx-auto max-w-5xl space-y-6"
+          className="mx-auto max-w-4xl space-y-4"
           style={{
             transform: `scale(${zoom / 100})`,
             transformOrigin: "top center",
           }}
         >
-          <div className="rounded-lg bg-[#F8FAFC] p-6">
+          <div className="rounded-lg bg-[#F8FAFC] p-4">
             <label className="mb-3 block text-sm font-semibold text-[#111827]">
               Blog Title
             </label>
@@ -119,7 +119,7 @@ export default function ArticleEditorShell({
                   onChange={(event) => onTitleChange(event.target.value)}
                   readOnly={titleReadOnly}
                   placeholder="Enter your blog title..."
-                  className={`w-full rounded-lg border px-4 py-3 text-[#111827] ${
+                  className={`w-full rounded-lg border px-4 py-2.5 text-[#111827] ${
                     titleReadOnly
                       ? "cursor-not-allowed border-[#E5E7EB] bg-[#F3F4F6]"
                       : "border-[#E5E7EB] bg-white placeholder-[#9CA3AF] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1ABC9C]"

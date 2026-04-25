@@ -12,6 +12,7 @@ import {
 import ArticleCard from "../../../../components/article/ArticleCard";
 import { useAuth } from "../../../context/AuthContext";
 import { api } from "../../../../lib/api";
+import { getPublishedArticlesByUsername } from "../../../../lib/articles/api"; // Fetch published articles for the viewed profile user from database
 
 export default function UserProfilePage({ params }) {
   const unwrappedParams = use(params);
@@ -33,6 +34,38 @@ export default function UserProfilePage({ params }) {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [isTogglingFollow, setIsTogglingFollow] = useState(false);
+
+  // Store published articles and loading state for Home tab
+  const [articles, setArticles] = useState([]);
+  const [articlesLoading, setArticlesLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPublishedArticles = async () => {
+      // Stop request if username is missing
+      if (!username) 
+        return;
+
+      try {
+        // Show loading state while fetching articles
+        setArticlesLoading(true);
+
+        // Get only published articles of this profile user
+        const response = await getPublishedArticlesByUsername(username, 1, 20);
+
+        // Save articles from backend response
+        setArticles(response?.data || []);
+      } catch (error) {
+        // Prevent UI breaking if request fails
+        console.error("Failed to fetch published articles:", error);
+        setArticles([]);
+      } finally {
+        // Stop loading state after request completes
+        setArticlesLoading(false);
+      }
+    };
+
+    void fetchPublishedArticles();
+  }, [username]);
 
   // ── Fetch profile from backend ──
   useEffect(() => {
@@ -207,38 +240,6 @@ export default function UserProfilePage({ params }) {
     );
   }
 
-  // Mock articles for now — these will be replaced when articles are integrated
-  const articles = [
-    {
-      id: 1,
-      authorName: displayName,
-      authorAvatar: avatarUrl,
-      verified: isPremium,
-      date: "Dec 4, 2025",
-      title: "How AI is Transforming Content Creation in 2025",
-      description:
-        "Explore the latest developments in artificial intelligence and how they are revolutionizing the way we create, curate, and consume content across digital platforms.",
-      thumbnail:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=300&fit=crop",
-      comments: 42,
-      likes: 4.8,
-    },
-    {
-      id: 2,
-      authorName: displayName,
-      authorAvatar: avatarUrl,
-      verified: isPremium,
-      date: "Nov 25, 2025",
-      title: "Designing for Accessibility in 2025",
-      description:
-        "A deep dive into the design thinking process and how it can help teams solve complex problems, innovate faster, and create products that truly resonate with users.",
-      thumbnail:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop",
-      comments: 35,
-      likes: 4.9,
-    },
-  ];
-
   return (
     <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden bg-white">
       {/* Main Content Area - Left Side */}
@@ -318,9 +319,18 @@ export default function UserProfilePage({ params }) {
           {/* Tab Content */}
           {activeTab === "home" ? (
             <div className="space-y-8">
-              {articles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
+              {articlesLoading ? (
+                <p className="text-sm text-gray-500">Loading articles...</p>
+              ) : articles.length === 0 ? (
+                <div className="py-10 text-center text-gray-500">
+                  <FileText className="mx-auto mb-3 h-8 w-8 text-gray-300" />
+                  <p className="text-sm">No published articles yet.</p>
+                </div>
+              ) : (
+                articles.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
+                ))
+              )}
             </div>
           ) : (
             <div className="py-8">

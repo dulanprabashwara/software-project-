@@ -141,12 +141,14 @@ export default function PreviewPage() {
                       </h2>
 
                       {article.coverImage ? (
-                        <div className="mt-6 overflow-hidden rounded-lg border border-[#E5E7EB] bg-white">
-                          <img
-                            src={article.coverImage}
-                            alt="Cover"
-                            className="h-80 w-full object-cover"
-                          />
+                        <div className="mt-6 rounded-lg border border-[#E5E7EB] bg-white p-4">
+                          <div className="flex min-h-[220px] max-h-[420px] items-center justify-center overflow-hidden rounded-lg bg-white">
+                            <img
+                              src={article.coverImage}
+                              alt="Cover preview"
+                              className="max-h-[420px] max-w-full object-contain"
+                            />
+                          </div>
                         </div>
                       ) : null}
 

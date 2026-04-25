@@ -8,6 +8,7 @@ const API_ORIGIN =
 const API_PREFIX = "/api";
 const AUTH_READY_TIMEOUT_MS = 5000;
 
+// Custom API error wrapper for consistent frontend error handling
 class ApiError extends Error {
   constructor(message, status, details = null) {
     super(message);
@@ -17,6 +18,7 @@ class ApiError extends Error {
   }
 }
 
+// Build consistent backend API URLs from a single source
 function buildApiUrl(endpoint) {
   const normalizedEndpoint = endpoint.startsWith("/")
     ? endpoint
@@ -25,9 +27,11 @@ function buildApiUrl(endpoint) {
   return `${API_ORIGIN}${API_PREFIX}${normalizedEndpoint}`;
 }
 
+// Wait for Firebase auth to be ready before protected API calls
 async function waitForAuthenticatedUser() {
   const auth = getAuth();
 
+  // Reuse current authenticated user when already available
   if (auth.currentUser) {
     return auth.currentUser;
   }
@@ -41,6 +45,7 @@ async function waitForAuthenticatedUser() {
       unsubscribe();
     };
 
+    // Prevent infinite waiting if auth state takes too long
     const timeoutId = setTimeout(() => {
       if (finished) return;
       cleanup();
@@ -55,18 +60,20 @@ async function waitForAuthenticatedUser() {
         if (finished) return;
         cleanup();
 
+        // Reject protected requests when user is not logged in
         if (!user) {
           reject(
             new ApiError("Authentication required. Please log in again.", 401),
           );
           return;
         }
-
         resolve(user);
       },
       (error) => {
         if (finished) return;
         cleanup();
+
+        // Standardize auth initialization failures
         reject(
           new ApiError(
             error?.message || "Failed to initialize authentication.",
@@ -78,6 +85,7 @@ async function waitForAuthenticatedUser() {
   });
 }
 
+// Attach Firebase token for authenticated backend routes
 async function getAuthHeaders() {
   const user = await waitForAuthenticatedUser();
   const token = await user.getIdToken();
@@ -88,6 +96,7 @@ async function getAuthHeaders() {
   };
 }
 
+// Centralized API response parsing for consistent success/error handling
 async function parseResponse(response) {
   const contentType = response.headers.get("content-type") || "";
   const isJson = contentType.includes("application/json");
@@ -105,6 +114,7 @@ async function parseResponse(response) {
   return payload;
 }
 
+//Protected routes need Firebase tokens, so this helper keeps auth handling centralized.
 async function apiRequest(endpoint, options = {}) {
   const headers = await getAuthHeaders();
   const url = buildApiUrl(endpoint);
@@ -115,7 +125,25 @@ async function apiRequest(endpoint, options = {}) {
       ...headers,
       ...(options.headers || {}),
     },
+
+    // Prevent stale editor/article data from browser cache
     cache: options.cache || "no-store",
+  });
+
+  return parseResponse(response);
+}
+
+// Public API requests used for public profile/article pages since Public pages should work without user login.
+async function publicApiRequest(endpoint, options = {}) {
+  const url = buildApiUrl(endpoint);
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    cache: "no-store",
   });
 
   return parseResponse(response);
@@ -321,5 +349,17 @@ export async function discardEditAsNew(articleId) {
     {
       method: "POST",
     },
+  );
+}
+
+export async function getPublishedArticlesByUsername(username, page = 1, limit = 10) {
+  const query = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+
+  return publicApiRequest(
+    `/articles/author/${encodeURIComponent(username)}/published?${query.toString()}`,
+    { method: "GET" },
   );
 }
