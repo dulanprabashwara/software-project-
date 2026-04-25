@@ -15,18 +15,10 @@ import { useAutosave } from "../../../../hooks/articles/useAutoSave";
 import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
 import { useCoverImageUpload } from "../../../../hooks/articles/useCoverImageUpload";
 import { getArticleFromResponse } from "../../../../lib/articles/editorHelpers";
-import {
-  clearPreviewContext,
-  readPreviewContext,
-} from "../../../../lib/articles/previewContext";
+import {clearPreviewContext,readPreviewContext,} from "../../../../lib/articles/previewContext";
 
-import {
-  autosaveEditAsNew,
-  discardEditAsNew,
-  getDraftById,
-  saveEditAsNewAsDraft,
-  startEditAsNew,
-} from "../../../../lib/articles/api";
+import {autosaveEditAsNew,discardEditAsNew,getDraftById,saveEditAsNewAsDraft,startEditAsNew,} from "../../../../lib/articles/api";
+import { openPreviewSaveConfirm } from "../../../../lib/articles/previewConfirm";
 
 function normalizePlainText(value) {
   return String(value || "")
@@ -350,16 +342,22 @@ export default function EditAsNewPage() {
       return;
     }
 
-    try {
-      setInlineError("");
-      await saveArticle("editing", { content: htmlContent });
+    openPreviewSaveConfirm({
+      openModal,
+      closeModal,
+      onSaveAndPreview: async () => {
+        try {
+          setInlineError("");
+          await saveArticle("draft", { content: htmlContent });
 
-      router.push(`/write/preview?id=${editingArticleId}&mode=edit-as-new&sourceId=${sourceArticleId}`);
+          router.push(`/write/preview?id=${editingArticleId}&mode=edit-as-new&sourceId=${sourceArticleId}`);
       
-    } catch (error) {
-      console.error("Failed to prepare article preview:", error);
-      setInlineError("Failed to open preview.");
-    }
+        } catch (error) {
+          console.error("Failed to prepare article preview:", error);
+          setInlineError("Failed to open preview.");
+        }
+      },
+    });
   }, [
     editingArticleId,
     getEditorHtmlContent,
