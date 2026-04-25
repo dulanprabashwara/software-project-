@@ -35,6 +35,7 @@ export function EditorBottomActions({ actions }) {
           <button
             key={action.label}
             type="button"
+            data-keep-edit-backup={action.keepEditBackup ? "true" : undefined}
             onClick={action.onClick}
             disabled={action.disabled}
             className={`h-10 min-w-[100px] rounded-full px-5 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${

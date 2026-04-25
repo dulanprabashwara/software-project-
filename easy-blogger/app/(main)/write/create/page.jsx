@@ -14,23 +14,10 @@ import EditorInlineError from "../../../../components/article/EditorInlineError"
 import { useAutosave } from "../../../../hooks/articles/useAutoSave";
 import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
 import { useCoverImageUpload } from "../../../../hooks/articles/useCoverImageUpload";
-import {
-  buildArticlePayload,
-  getArticleFromResponse,
-  getArticleIdFromResponse,
-} from "../../../../lib/articles/editorHelpers";
-import {
-  clearPreviewContext,
-  readPreviewContext,
-  writePreviewContext,
-} from "../../../../lib/articles/previewContext";
-import {
-  createDraft,
-  deleteDraft,
-  getCurrentEditingDraft,
-  getDraftById,
-  updateDraft,
-} from "../../../../lib/articles/api";
+import {buildArticlePayload,getArticleFromResponse,getArticleIdFromResponse,} from "../../../../lib/articles/editorHelpers";
+import {clearPreviewContext,readPreviewContext,writePreviewContext,} from "../../../../lib/articles/previewContext";
+import {createDraft,deleteDraft,getCurrentEditingDraft,getDraftById,updateDraft,} from "../../../../lib/articles/api";
+import { openPreviewSaveConfirm } from "../../../../lib/articles/previewConfirm";
 
 function normalizePlainText(value) {
   return String(value || "")
@@ -410,16 +397,23 @@ export default function CreateArticlePage() {
       return;
     }
 
-    try {
-      setInlineError("");
-      const currentDraftId = await saveArticle("editing", { content: htmlContent });
+    openPreviewSaveConfirm({
+      openModal,
+      closeModal,
+      onSaveAndPreview: async () => {
+        try {
+          setInlineError("");
+          setArticleMode("draft");
+          const currentDraftId = await saveArticle("draft", { content: htmlContent });
 
-      router.push(`/write/preview?id=${currentDraftId}&mode=create`);
+          router.push(`/write/preview?id=${currentDraftId}&mode=create`);
       
-    } catch (error) {
-      console.error("Failed to prepare article preview:", error);
-      setInlineError("Failed to open preview.");
-    }
+        } catch (error) {
+          console.error("Failed to save article before preview:", error);
+          setInlineError("Failed to open preview.");
+        }
+      },
+    });
   }, [
     getEditorHtmlContent,
     getEditorPlainTextContent,

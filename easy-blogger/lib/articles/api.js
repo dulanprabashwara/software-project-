@@ -282,6 +282,33 @@ export async function saveEditExistingAsDraft(articleId, payload) {
   );
 }
 
+export async function saveEditExistingForPreview(articleId, payload) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-existing/preview`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function clearEditExistingBackup(articleId) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-existing/clear-backup`,
+    {
+      method: "PUT",
+    },
+  );
+}
+
 export async function discardEditExisting(articleId) {
   if (!articleId) {
     throw new ApiError("Article id is required.", 400);

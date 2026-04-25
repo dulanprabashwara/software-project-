@@ -1,3 +1,4 @@
+//easy-blogger\components\article\ConfirmDialog.jsx
 "use client";
 
 import { AlertTriangle, X } from "lucide-react";

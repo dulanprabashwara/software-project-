@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "../../../../components/layout/Header";
 import Sidebar from "../../../../components/layout/Sidebar";
@@ -8,7 +8,8 @@ import ConfirmDialog from "../../../../components/article/ConfirmDialog";
 import ArticleContentRenderer from "../../../../components/article/ArticleContentRenderer";
 import {EditorHeader,EditorBottomActions,} from "../../../../components/article/EditorSharedLayout";
 import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
-import { getDraftById, updateDraft } from "../../../../lib/articles/api";
+import { getDraftById, updateDraft, clearEditExistingBackup, } from "../../../../lib/articles/api";
+
 function getArticleFromResponse(response) {
   return response?.data ?? response?.article ?? response ?? null;
 }
@@ -26,6 +27,8 @@ export default function PreviewPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const { modalState, openModal, closeModal } = useConfirmDialog();
+
+  const isReplayingNavigationRef = useRef(false);
 
   useEffect(() => {
     const loadPreviewArticle = async () => {
@@ -63,44 +66,93 @@ export default function PreviewPage() {
     router.push("/home");
   };
 
-  const handlePublish = () => {
-    if (!article?.id) return;
+  const handlePublish = async () => {
+    if (!article?.id) 
+      return;
 
-    openModal({
-      title: "Save article?",
-      message: "Do you want to save this article before moving to publish page?",
-      confirmText: "Yes",
-      cancelText: "No",
-      onConfirm: async () => {
-        try {
-          await updateDraft(article.id, { status: "draft" });
-          closeModal();
-          router.push(`/write/publish?id=${article.id}`);
-        } catch (error) {
-          console.error("Failed to save article before publish:", error);
-          closeModal();
-        }
-      },
-      onCancel: async () => {
-        closeModal();
-      },
-      onClose: async () => {},
-    });
+    try {
+      await updateDraft(article.id, {
+        status: "draft",
+      });
+
+      router.push(`/write/publish?id=${article.id}&mode=${mode}`);
+    } catch (error) {
+      console.error("Failed to move to publish page:", error);
+    }
   };
 
-  const handleEditAgain = () => {
-    if (mode === "edit-existing" && articleId) {
-      router.push(`/write/edit-existing?id=${articleId}`);
+  const handleEditAgain = async () => {
+    if (!article?.id) 
       return;
-    }
 
-    if (mode === "edit-as-new" && sourceId) {
-      router.push(`/write/edit-as-new?id=${sourceId}`);
-      return;
-    }
+    try {
+      if (mode === "edit-existing" && articleId) {
+        router.push(`/write/edit-existing?id=${articleId}`);
+        return;
+      }
+      if (mode === "edit-as-new" && sourceId) {
+        router.push(`/write/edit-as-new?id=${sourceId}`);
+        return;
+      }
+      if (mode === "create" && articleId) {
+        await updateDraft(article.id, {
+          status: "editing",
+        });
 
-    router.push("/write/create");
+        router.push("/write/create");
+        return;
+      }
+      router.push("/write/create");
+    } catch (error) {
+      console.error("Failed to reopen article for editing:", error);
+      router.push("/write/create");
+    }
   };
+
+  useEffect(() => {
+    if (mode !== "edit-existing" || !articleId || modalState.isOpen) return;
+
+    const handleNavigationClick = async (event) => {
+      if (isReplayingNavigationRef.current) 
+        return;
+
+      const target = event.target;
+      if (!(target instanceof Element)) 
+        return;
+
+      const clickableElement = target.closest("button, a, [role='button']");
+      if (!clickableElement)
+        return;
+
+      if (clickableElement.closest("[data-keep-edit-backup='true']"))
+        return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      try {
+        await clearEditExistingBackup(articleId);
+      } catch (error) {
+        console.error("Failed to clear edit backup before leaving preview:", error);
+      }
+
+      isReplayingNavigationRef.current = true;
+
+      Promise.resolve().then(() => {
+        clickableElement.click();
+
+        setTimeout(() => {
+          isReplayingNavigationRef.current = false;
+        }, 0);
+      });
+    };
+
+    document.addEventListener("click", handleNavigationClick, true);
+
+    return () => {
+      document.removeEventListener("click", handleNavigationClick, true);
+    };
+  }, [mode, articleId, modalState.isOpen]);
 
   return (
     <>
@@ -175,10 +227,12 @@ export default function PreviewPage() {
                     label: "Publish",
                     onClick: handlePublish,
                     variant: "primary",
+                    keepEditBackup: true,
                   },
                   {
                     label: "Edit",
                     onClick: handleEditAgain,
+                    keepEditBackup: true,
                   },
                 ]}
               />
