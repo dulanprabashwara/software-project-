@@ -14,16 +14,25 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useSubscription } from "../../context/SubscriptionContext";
-import { fetchAPI } from "../../../lib/api";
 import InsightsSidebar from "../../../components/ai/InsightsSidebar";
 import TrendingArticleSlider from "../../../components/ai/TrendingArticleSlider";
 import "../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../styles/ai-article-generator/ai-article-generator-view2.css";
 import "../../../styles/ai-article-generator/articles-view.css";
 
-const AI_TIMEOUT_MS = 300000; // 5 minutes — AI generation can be slow
+const BACKEND_URL             = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const AI_TIMEOUT_MS           = 300000;  // 5 minutes — AI generation can be slow
+const WARNING_VISIBLE_MS      = 30000;   // 30 seconds — delete warning callout auto-hide
+const AUTH_TIMEOUT_MS         = 5000;    // Firebase re-auth wait before giving up
+const ERROR_DISPLAY_MS        = 3000;    // how long error messages stay visible
+const DRAFT_STATUS_CLEAR_MS   = 4000;    // how long "saved" / "error" feedback stays
+const COPY_FEEDBACK_MS        = 6000;    // how long "copied!" stays visible
+const RESTORE_POLL_MS         = 10000;   // how often the restore countdown updates
+const RESTORE_WINDOW_MS       = 3600000; // 1 hour — grace period before permanent delete
+const HOURLY_REFRESH_MS       = 3600000; // 1 hour — trending data refresh interval
+const MAX_KEYWORDS_SELECTABLE = 4;
+const MAX_PROMPT_WORDS        = 50;
 
-// Formats an ISO date string to "YYYY-MM-DD h:mm AM/PM".
 function formatDate(isoString) {
   if (!isoString) return "";
   const d    = new Date(isoString);
@@ -46,32 +55,35 @@ export default function AIArticleGeneratorPage() {
   const [userInput, setUserInput]     = useState("");
   const [inputError, setInputError]   = useState("");
 
-  // ── Prompt analysis results (from /api/ai/analyze) ────────────────────────
+  // ── Prompt analysis results ────────────────────────────────────────────────
   const [sessionId, setSessionId]                 = useState(null);
   const [aiKeywords, setAiKeywords]               = useState([]);
   const [hasLengthInPrompt, setHasLengthInPrompt] = useState(false);
   const [hasToneInPrompt, setHasToneInPrompt]     = useState(false);
   const [noKeywordsFound, setNoKeywordsFound]     = useState(false);
 
-  // ── Article settings state ─────────────────────────────────────────────────
+  // ── Article settings ───────────────────────────────────────────────────────
   const [selectedKeywords, setSelectedKeywords] = useState([]);
   const [articleLength, setArticleLength]       = useState("short");
   const [tone, setTone]                         = useState("professional");
   const [isDropdownOpen, setIsDropdownOpen]     = useState(false);
 
-  // ── Loading + error state ──────────────────────────────────────────────────
+  // ── Loading + error ────────────────────────────────────────────────────────
   const [isLoadingTransition, setIsLoadingTransition] = useState(false);
   const [transitionError, setTransitionError]         = useState(null);
   const [isGenerating, setIsGenerating]               = useState(false);
   const [generateError, setGenerateError]             = useState(null);
 
-  // ── Generated article state ────────────────────────────────────────────────
+  // ── Generated article ──────────────────────────────────────────────────────
   const [generatedArticle, setGeneratedArticle] = useState(null);
   const [isSavingDraft, setIsSavingDraft]       = useState(false);
   const [draftSaveStatus, setDraftSaveStatus]   = useState(null);
   const [isLoadingEditor, setIsLoadingEditor]   = useState(false);
 
-  // ── Preview overlay state ──────────────────────────────────────────────────
+  // userResponse for the current generation: null | "satisfied" | "dissatisfied"
+  const [userResponse, setUserResponse]         = useState(null);
+
+  // ── Preview overlay ────────────────────────────────────────────────────────
   const [showPreview, setShowPreview]                     = useState(false);
   const [isCursorInsidePreview, setIsCursorInsidePreview] = useState(false);
   const [isCopied, setIsCopied]                           = useState(false);
@@ -79,22 +91,28 @@ export default function AIArticleGeneratorPage() {
   // ── Delete / restore state ─────────────────────────────────────────────────
   const [deletedLog, setDeletedLog]             = useState(null);
   const [restoreCountdown, setRestoreCountdown] = useState(null);
-  const restoreTimerRef                         = useRef(null);
+  // showDeleteWarning: shows 30s warning text under restore button after a delete
+  const [showDeleteWarning, setShowDeleteWarning] = useState(false);
+  // pendingSecondDelete: the article the user wants to delete while one is in grace period
+  // Set when user hits delete with an existing deletedLog — triggers the overlay
+  const [pendingSecondDelete, setPendingSecondDelete] = useState(null);
 
-  // ── Article logs list (previous generations) ──────────────────────────────
+  const restoreTimerRef     = useRef(null);
+  const deleteWarningRef    = useRef(null); // clears the 30s warning text
+
+  // ── Article logs list ──────────────────────────────────────────────────────
   const [articles, setArticles]               = useState([]);
   const [articlesLoading, setArticlesLoading] = useState(false);
 
   // ── Sidebar data ───────────────────────────────────────────────────────────
   const [trendingArticles, setTrendingArticles] = useState([]);
   const [topAIArticles, setTopAIArticles]       = useState([]);
-  const [trendingKeywords, setTrendingKeywords]     = useState([]);
+  const [trendingKeywords, setTrendingKeywords] = useState([]);
 
-  // ── Refs for cleanup ───────────────────────────────────────────────────────
+  // ── Refs ───────────────────────────────────────────────────────────────────
   const analyzeTimeoutRef  = useRef(null);
   const generateTimeoutRef = useRef(null);
   const errorResetRef      = useRef(null);
-  // Prevents state updates after the component unmounts (e.g. refresh mid-generation).
   const isMountedRef       = useRef(true);
 
   useEffect(() => {
@@ -104,6 +122,7 @@ export default function AIArticleGeneratorPage() {
       clearTimeout(analyzeTimeoutRef.current);
       clearTimeout(generateTimeoutRef.current);
       clearTimeout(errorResetRef.current);
+      clearTimeout(deleteWarningRef.current);
       clearInterval(restoreTimerRef.current);
     };
   }, []);
@@ -120,7 +139,6 @@ export default function AIArticleGeneratorPage() {
   }, [isLoading, isGenerating]);
 
   // ── Auth helper ────────────────────────────────────────────────────────────
-  // Waits for Firebase to re-initialize after a browser refresh before reading the token.
   const getAuthHeaders = async () => {
     try {
       const auth = getAuth();
@@ -130,7 +148,7 @@ export default function AIArticleGeneratorPage() {
           unsub();
           u ? resolve(u) : reject(new Error("No authenticated user"));
         });
-        setTimeout(() => { unsub(); reject(new Error("Auth timeout")); }, 5000);
+        setTimeout(() => { unsub(); reject(new Error("Auth timeout")); }, AUTH_TIMEOUT_MS);
       });
       const token = await user.getIdToken();
       return { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
@@ -142,23 +160,23 @@ export default function AIArticleGeneratorPage() {
 
   // ── Data fetching ──────────────────────────────────────────────────────────
 
-  // Fetches trending articles (all articles by trendingScore) for the slider.
-  // Calls the dedicated trending endpoint — not the article-by-slug route.
+  // Fetches all articles sorted by trendingScore for the slider.
   const fetchTrendingArticles = async () => {
     try {
-      const res  = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/articles/trending`);
+      const res  = await fetch(`${BACKEND_URL}/api/trendingArticles/trendingArticles`);
       const data = await res.json();
-      if (data.success && data.articles) setTrendingArticles(data.articles);
+      const result = Array.isArray(data) ? data : data.articles || data.trending || [];
+      if (result.length) setTrendingArticles(result);
     } catch (err) {
-      console.error("[Slider] Failed to fetch trending articles:", err);
+      console.error("[Slider] Failed:", err);
     }
   };
 
-  // Fetches top AI-assisted articles for the Insights sidebar.
+  // Fetches top 5 AI-generated articles for the Insights sidebar.
   const fetchTopAIArticles = async () => {
     try {
       const headers = await getAuthHeaders();
-      const res     = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/ai/top-ai-articles`, { headers });
+      const res     = await fetch(`${BACKEND_URL}/api/ai/top-ai-articles`, { headers });
       const data    = await res.json();
       if (data.success && data.articles) setTopAIArticles(data.articles);
     } catch (err) {
@@ -170,20 +188,20 @@ export default function AIArticleGeneratorPage() {
   const fetchTrendingKeywords = async () => {
     try {
       const headers = await getAuthHeaders();
-      const res     = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/ai/trending-keywords`, { headers });
+      const res     = await fetch(`${BACKEND_URL}/api/ai/trending-keywords`, { headers });
       const data    = await res.json();
-      if (data.success) setTrendingKeywords(data.keywords|| []);
+      if (data.success) setTrendingKeywords(data.keywords || []);
     } catch (err) {
       console.error("[Insights] Failed to fetch trending keywords:", err);
     }
   };
 
-  // Fetches the user's previous AI article logs (unsaved drafts list).
+  // Fetches the user's previous AI article logs.
   const fetchArticleLogs = async () => {
     setArticlesLoading(true);
     try {
       const headers = await getAuthHeaders();
-      const res     = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/ai/logs`, { headers });
+      const res     = await fetch(`${BACKEND_URL}/api/ai/logs`, { headers });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.logs)) {
@@ -200,7 +218,6 @@ export default function AIArticleGeneratorPage() {
     }
   };
 
-  // Load all data once authentication is confirmed.
   useEffect(() => {
     if (isLoading || !isPremium) return;
     fetchTrendingArticles();
@@ -209,13 +226,13 @@ export default function AIArticleGeneratorPage() {
     fetchArticleLogs();
   }, [isLoading, isPremium]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Refresh trending slider and sidebar every hour (trending scores update hourly).
+  // Refresh slider and sidebar every hour — trendingScore updates hourly.
   useEffect(() => {
     if (isLoading || !isPremium) return;
     const hourlyRefresh = setInterval(() => {
       fetchTrendingArticles();
       fetchTopAIArticles();
-    }, 60 * 60 * 1000);
+    }, HOURLY_REFRESH_MS);
     return () => clearInterval(hourlyRefresh);
   }, [isLoading, isPremium]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -249,42 +266,109 @@ export default function AIArticleGeneratorPage() {
     return opts[articleLength] || opts.short;
   };
 
-  // ── Article log delete / restore ───────────────────────────────────────────
+  // ── User response (like / dislike) ─────────────────────────────────────────
 
-  // Soft-deletes an article log. The article disappears immediately (optimistic UI)
-  // and a 1-hour countdown begins during which it can be restored.
+  // Sends the user's reaction to the backend. Toggles off if same value sent again.
+  const handleUserResponse = async (value) => {
+    if (!generatedArticle?.logId) return;
+    const next = userResponse === value ? null : value;
+    setUserResponse(next); // optimistic
+    try {
+      const headers = await getAuthHeaders();
+      const res     = await fetch(`${BACKEND_URL}/api/ai/logs/${generatedArticle.logId}/response`, {
+        method: "PATCH", headers,
+        body: JSON.stringify({ response: next }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error("Response update failed");
+      setUserResponse(data.userResponse); // reconcile with server
+    } catch (err) {
+      console.error("[UserResponse] Failed:", err);
+      setUserResponse(userResponse); // revert on failure
+    }
+  };
+
+  // ── Delete / restore ───────────────────────────────────────────────────────
+
+  // Starts the 1-hour restore window, shows 30s warning text, sets the countdown interval.
+  const startRestoreWindow = (articleToDelete) => {
+    const deletedAt = Date.now();
+    setDeletedLog({ ...articleToDelete, deletedAt });
+    setRestoreCountdown(59);
+    setShowDeleteWarning(true);
+
+    clearTimeout(deleteWarningRef.current);
+    deleteWarningRef.current = setTimeout(() => {
+      if (isMountedRef.current) setShowDeleteWarning(false);
+    }, WARNING_VISIBLE_MS);
+
+    if (restoreTimerRef.current) clearInterval(restoreTimerRef.current);
+    restoreTimerRef.current = setInterval(() => {
+      const minutesLeft = Math.max(0, Math.floor((deletedAt + RESTORE_WINDOW_MS - Date.now()) / 60000));
+      if (!isMountedRef.current) { clearInterval(restoreTimerRef.current); return; }
+      setRestoreCountdown(minutesLeft);
+      if (minutesLeft === 0) {
+        clearInterval(restoreTimerRef.current);
+        setDeletedLog(null);
+        setRestoreCountdown(null);
+        setShowDeleteWarning(false);
+      }
+    }, RESTORE_POLL_MS);
+  };
+
+  // Handles a delete button click. If another article is already in the grace period,
+  // shows the "previous will be gone" overlay instead of deleting immediately.
   const handleDeleteArticle = async (articleId, e) => {
     e.stopPropagation();
     const articleToDelete = articles.find((a) => a.id === articleId);
     if (!articleToDelete) return;
 
-    setArticles(articles.filter((a) => a.id !== articleId));
+    if (deletedLog) {
+      // A previous delete is still in its grace window — warn the user before proceeding.
+      setPendingSecondDelete(articleToDelete);
+      return;
+    }
 
+    // No pending delete — proceed normally.
+    setArticles((prev) => prev.filter((a) => a.id !== articleId));
     try {
       const headers = await getAuthHeaders();
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/ai/logs/${articleId}`, {
-        method: "DELETE", headers,
-      });
-
-      const deletedAt = Date.now();
-      setDeletedLog({ ...articleToDelete, deletedAt });
-      setRestoreCountdown(59);
-
-      if (restoreTimerRef.current) clearInterval(restoreTimerRef.current);
-      restoreTimerRef.current = setInterval(() => {
-        const minutesLeft = Math.max(0, Math.floor((deletedAt + 3600000 - Date.now()) / 60000));
-        if (!isMountedRef.current) { clearInterval(restoreTimerRef.current); return; }
-        setRestoreCountdown(minutesLeft);
-        if (minutesLeft === 0) {
-          clearInterval(restoreTimerRef.current);
-          setDeletedLog(null);
-          setRestoreCountdown(null);
-        }
-      }, 10000);
+      await fetch(`${BACKEND_URL}/api/ai/logs/${articleId}`, { method: "DELETE", headers });
+      startRestoreWindow(articleToDelete);
     } catch (err) {
       console.error("[DeleteLog] Failed:", err);
       setArticles((prev) => [articleToDelete, ...prev]);
     }
+  };
+
+  // User confirmed the second delete on the warning overlay.
+  // This permanently abandons the first grace-period item and starts a new one for the second.
+  const handleConfirmSecondDelete = async () => {
+    if (!pendingSecondDelete) return;
+    const articleToDelete = pendingSecondDelete;
+    setPendingSecondDelete(null);
+
+    // Clear the first item's restore window.
+    clearInterval(restoreTimerRef.current);
+    clearTimeout(deleteWarningRef.current);
+    setDeletedLog(null);
+    setRestoreCountdown(null);
+    setShowDeleteWarning(false);
+
+    setArticles((prev) => prev.filter((a) => a.id !== articleToDelete.id));
+    try {
+      const headers = await getAuthHeaders();
+      await fetch(`${BACKEND_URL}/api/ai/logs/${articleToDelete.id}`, { method: "DELETE", headers });
+      startRestoreWindow(articleToDelete);
+    } catch (err) {
+      console.error("[DeleteLog second] Failed:", err);
+      setArticles((prev) => [articleToDelete, ...prev]);
+    }
+  };
+
+  // User cancelled the second delete warning — nothing changes in backend or UI.
+  const handleCancelSecondDelete = () => {
+    setPendingSecondDelete(null);
   };
 
   // Restores a previously deleted article log within the 1-hour window.
@@ -292,14 +376,16 @@ export default function AIArticleGeneratorPage() {
     if (!deletedLog) return;
     try {
       const headers = await getAuthHeaders();
-      const res     = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/ai/logs/${deletedLog.id}/restore`, {
+      const res     = await fetch(`${BACKEND_URL}/api/ai/logs/${deletedLog.id}/restore`, {
         method: "POST", headers,
       });
       if (!res.ok) throw new Error("Restore failed");
       setArticles((prev) => [{ id: deletedLog.id, title: deletedLog.title, date: deletedLog.date }, ...prev]);
       setDeletedLog(null);
       setRestoreCountdown(null);
+      setShowDeleteWarning(false);
       clearInterval(restoreTimerRef.current);
+      clearTimeout(deleteWarningRef.current);
     } catch (err) {
       console.error("[RestoreLog] Failed:", err);
     }
@@ -312,7 +398,7 @@ export default function AIArticleGeneratorPage() {
     try {
       await navigator.clipboard.writeText(`${generatedArticle.title}\n\n${generatedArticle.content}`);
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 6000);
+      setTimeout(() => setIsCopied(false), COPY_FEEDBACK_MS);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -328,25 +414,24 @@ export default function AIArticleGeneratorPage() {
 
   // ── Save draft ─────────────────────────────────────────────────────────────
 
-  // Saves the current generated article to the user's draft library.
   const handleSaveDraft = async () => {
     if (!generatedArticle?.logId) return;
     setIsSavingDraft(true);
     setDraftSaveStatus(null);
     try {
       const headers = await getAuthHeaders();
-      const res     = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/ai/save-draft`, {
+      const res     = await fetch(`${BACKEND_URL}/api/ai/save-draft`, {
         method: "POST", headers,
         body: JSON.stringify({ logId: generatedArticle.logId }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Save failed");
       setDraftSaveStatus(data.alreadySaved ? "already_saved" : "saved");
-      setTimeout(() => setDraftSaveStatus(null), 4000);
+      setTimeout(() => setDraftSaveStatus(null), DRAFT_STATUS_CLEAR_MS);
     } catch (err) {
       console.error("[SaveDraft] Failed:", err);
       setDraftSaveStatus("error");
-      setTimeout(() => setDraftSaveStatus(null), 4000);
+      setTimeout(() => setDraftSaveStatus(null), DRAFT_STATUS_CLEAR_MS);
     } finally {
       setIsSavingDraft(false);
     }
@@ -354,13 +439,12 @@ export default function AIArticleGeneratorPage() {
 
   // ── Load to editor ─────────────────────────────────────────────────────────
 
-  // Opens the generated article in the TinyMCE editor at /write/create.
   const handleEditInEditor = async () => {
     if (!generatedArticle?.logId) return;
     setIsLoadingEditor(true);
     try {
       const headers = await getAuthHeaders();
-      const res     = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/ai/load-to-editor`, {
+      const res     = await fetch(`${BACKEND_URL}/api/ai/load-to-editor`, {
         method: "POST", headers,
         body: JSON.stringify({ logId: generatedArticle.logId }),
       });
@@ -377,8 +461,6 @@ export default function AIArticleGeneratorPage() {
 
   // ── AI flow ────────────────────────────────────────────────────────────────
 
-  // Sends the user's prompt to the backend to extract keywords and detect length/tone.
-  // Transitions to the keywords view on success.
   const handleContinueToKeywords = async () => {
     if (!userInput.trim() || !validateUserInput(userInput)) return;
     setIsLoadingTransition(true);
@@ -393,12 +475,12 @@ export default function AIArticleGeneratorPage() {
         setIsLoadingTransition(false);
         setTransitionError(null);
         document.body.classList.remove("loading-transition");
-      }, 3000);
+      }, ERROR_DISPLAY_MS);
     }, AI_TIMEOUT_MS);
 
     try {
       const headers = await getAuthHeaders();
-      const res     = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/ai/analyze`, {
+      const res     = await fetch(`${BACKEND_URL}/api/ai/analyze`, {
         method: "POST", headers,
         body: JSON.stringify({ userInput }),
       });
@@ -416,6 +498,7 @@ export default function AIArticleGeneratorPage() {
       setNoKeywordsFound(!data.keywords?.length);
       setSelectedKeywords([]);
       setGeneratedArticle(null);
+      setUserResponse(null);
       setGenerateError(null);
       setDraftSaveStatus(null);
       setIsLoadingTransition(false);
@@ -429,15 +512,15 @@ export default function AIArticleGeneratorPage() {
         setIsLoadingTransition(false);
         setTransitionError(null);
         document.body.classList.remove("loading-transition");
-      }, 3000);
+      }, ERROR_DISPLAY_MS);
     }
   };
 
-  // Shared logic for both generate and regenerate — differs only in the endpoint and error text.
   const runGenerate = async (endpoint, errorText) => {
     setIsGenerating(true);
     setGenerateError(null);
     setGeneratedArticle(null);
+    setUserResponse(null);
     setDraftSaveStatus(null);
 
     let timedOut = false;
@@ -445,12 +528,12 @@ export default function AIArticleGeneratorPage() {
       timedOut = true;
       setIsGenerating(false);
       setGenerateError("The AI is taking too long. Please try again.");
-      errorResetRef.current = setTimeout(() => setGenerateError(null), 3000);
+      errorResetRef.current = setTimeout(() => setGenerateError(null), ERROR_DISPLAY_MS);
     }, AI_TIMEOUT_MS);
 
     try {
       const headers = await getAuthHeaders();
-      const res     = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${endpoint}`, {
+      const res     = await fetch(`${BACKEND_URL}${endpoint}`, {
         method: "POST", headers,
         body: JSON.stringify({ sessionId, userInput, selectedKeywords, articleLength, tone }),
       });
@@ -466,14 +549,14 @@ export default function AIArticleGeneratorPage() {
       clearTimeout(generateTimeoutRef.current);
       setIsGenerating(false);
       setGenerateError(`Failed to ${errorText.toLowerCase()}. Please try again.`);
-      errorResetRef.current = setTimeout(() => setGenerateError(null), 3000);
+      errorResetRef.current = setTimeout(() => setGenerateError(null), ERROR_DISPLAY_MS);
     } finally {
       if (!timedOut) setIsGenerating(false);
     }
   };
 
-  const handleGenerateArticle   = () => runGenerate("/api/ai/generate",    "Generate article");
-  const handleRegenerateArticle = () => runGenerate("/api/ai/regenerate",  "Regenerate");
+  const handleGenerateArticle   = () => runGenerate("/api/ai/generate",   "Generate article");
+  const handleRegenerateArticle = () => runGenerate("/api/ai/regenerate", "Regenerate");
 
   // ── Derived state ──────────────────────────────────────────────────────────
   const isContinueButtonDisabled = !userInput.trim() || inputError !== "";
@@ -494,15 +577,16 @@ export default function AIArticleGeneratorPage() {
 
   if (currentView === "articles") {
     return (
-      <div className="flex h-full">
-        <div className="ai-generator-main flex-1 overflow-y-auto">
+      <div className="flex min-h-full overflow-y-auto">
+        <div className="ai-generator-main flex-1">
           <div className="ai-content-wrapper">
+
             <div className="ai-generator-title justify-between">
               <div className="flex items-center gap-3">
                 <button onClick={() => setCurrentView("input")} className="p-2 hover:bg-[#F8FAFC] rounded-lg transition-colors duration-150">
                   <img src="/icons/menu icon.png" alt="Menu" className="ai-generator-menu-icon" />
                 </button>
-                <img src="/icons/Ai article generator icon teel color.png" alt="AI Article Generator" className="ai-generator-ai-icon" />
+                <img src="/icons/Ai article generator icon teel color.png" alt="AI" className="ai-generator-ai-icon" />
                 <h1 className="ai-generator-title-text">AI Article Generator</h1>
               </div>
             </div>
@@ -515,17 +599,27 @@ export default function AIArticleGeneratorPage() {
                 <span className="previous-generations-text">Previous Generations</span>
               </div>
               <div className="flex items-center gap-3">
+                {/* Restore button with warning tooltip below — same row as New Article */}
                 {deletedLog && (
-                  <button
-                    onClick={handleRestoreArticle}
-                    className="restore-article-btn"
-                    title={`Restore "${deletedLog.title}" (${restoreCountdown ?? 59}min left)`}
-                  >
-                    <img src="/icons/refresh-ccw-01.png" alt="Restore" className="w-4 h-4" />
-                    {restoreCountdown !== null && (
-                      <span style={{ fontSize: "11px", color: "#1ABC9C" }}>{restoreCountdown}m</span>
+                  <div className="restore-wrapper">
+                    <button
+                      onClick={handleRestoreArticle}
+                      className="restore-article-btn"
+                      title={`Restore "${deletedLog.title}" (${restoreCountdown ?? 59}min left)`}
+                    >
+                      <img src="/icons/refresh-ccw-01.png" alt="Restore" className="w-4 h-4" />
+                      {restoreCountdown !== null && (
+                        <span style={{ fontSize: "11px", color: "#1ABC9C" }}>{restoreCountdown}m</span>
+                      )}
+                    </button>
+                    {/* 30-second warning callout — appears below restore button, auto-hides */}
+                    {showDeleteWarning && (
+                      <div className="delete-warning-callout">
+                        <span className="delete-warning-icon">!</span>
+                        Restore within 1 hour or this article will be permanently deleted.
+                      </div>
                     )}
-                  </button>
+                  </div>
                 )}
                 <button onClick={() => setCurrentView("input")} className="new-article-button">
                   <span>+ New Article</span>
@@ -559,10 +653,10 @@ export default function AIArticleGeneratorPage() {
                         onClick={(e) => handleDeleteArticle(article.id, e)}
                         title="Delete"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="miter"/>
-                          <path d="M19 6V20C19 21 18 22 17 22H7C6 22 5 21 5 20V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="miter"/>
-                          <path d="M8 6V4C8 3 9 2 10 2H14C15 2 16 3 16 4V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="miter"/>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <path d="M3 6H5H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M19 6V20C19 21 18 22 17 22H7C6 22 5 21 5 20V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M8 6V4C8 3 9 2 10 2H14C15 2 16 3 16 4V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                         </svg>
                       </button>
                     </div>
@@ -574,6 +668,29 @@ export default function AIArticleGeneratorPage() {
         </div>
 
         <InsightsSidebar topAIArticles={topAIArticles} trendingKeywords={trendingKeywords} />
+
+        {/* Second-delete confirmation overlay — shown when user deletes while another is in grace period */}
+        {pendingSecondDelete && (
+          <div className="second-delete-overlay">
+            <div className="second-delete-modal">
+              <div className="second-delete-modal-header">
+                <span className="second-delete-modal-icon">!</span>
+                <h3 className="second-delete-modal-title">Permanent Deletion Warning</h3>
+              </div>
+              <p className="second-delete-modal-message">
+                Your previously deleted article is still in the restore window. Proceeding will permanently remove it. Are you sure?
+              </p>
+              <div className="second-delete-modal-actions">
+                <button className="second-delete-back" onClick={handleCancelSecondDelete}>
+                  Back
+                </button>
+                <button className="second-delete-proceed" onClick={handleConfirmSecondDelete}>
+                  Proceed
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -581,8 +698,8 @@ export default function AIArticleGeneratorPage() {
   // ── Main input + keywords view ─────────────────────────────────────────────
 
   return (
-    <div className="flex h-full">
-      <div className="ai-generator-main flex-1 overflow-y-auto">
+    <div className="flex min-h-full overflow-y-auto">
+      <div className="ai-generator-main flex-1">
         <div className="ai-content-wrapper">
 
           <div className="ai-generator-title justify-between">
@@ -594,12 +711,12 @@ export default function AIArticleGeneratorPage() {
               >
                 <img src="/icons/menu icon.png" alt="Menu" className="ai-generator-menu-icon" />
               </button>
-              <img src="/icons/Ai article generator icon teel color.png" alt="AI Article Generator" className="ai-generator-ai-icon" />
+              <img src="/icons/Ai article generator icon teel color.png" alt="AI" className="ai-generator-ai-icon" />
               <h1 className="ai-generator-title-text">AI Article Generator</h1>
             </div>
           </div>
 
-          {/* Trending articles slider — only shown on the input view */}
+          {/* Trending slider — View 1 only */}
           {currentView === "input" && trendingArticles.length > 0 && (
             <div className="trending-section">
               <div className="trending-header">
@@ -653,8 +770,8 @@ export default function AIArticleGeneratorPage() {
                         <button
                           key={keyword}
                           onClick={() => handleKeywordToggle(keyword)}
-                          className={`keyword-button ${selectedKeywords.includes(keyword) ? "selected" : ""} ${selectedKeywords.length >= 4 && !selectedKeywords.includes(keyword) ? "disabled" : ""}`}
-                          disabled={selectedKeywords.length >= 4 && !selectedKeywords.includes(keyword)}
+                          className={`keyword-button ${selectedKeywords.includes(keyword) ? "selected" : ""} ${selectedKeywords.length >= MAX_KEYWORDS_SELECTABLE && !selectedKeywords.includes(keyword) ? "disabled" : ""}`}
+                          disabled={selectedKeywords.length >= MAX_KEYWORDS_SELECTABLE && !selectedKeywords.includes(keyword)}
                         >
                           {keyword}
                         </button>
@@ -684,9 +801,9 @@ export default function AIArticleGeneratorPage() {
                       {isDropdownOpen && (
                         <div className="dropdown-menu">
                           {[
-                            { value: "short",        label: "Short",      range: "300-1000"  },
-                            { value: "mid-length",   label: "Mid-length", range: "1000-2000" },
-                            { value: "long",         label: "Long",       range: "2000+"     },
+                            { value: "short",      label: "Short",      range: "300-1000"  },
+                            { value: "mid-length", label: "Mid-length", range: "1000-2000" },
+                            { value: "long",       label: "Long",       range: "2000+"     },
                           ].map(({ value, label, range }) => (
                             <div
                               key={value}
@@ -739,7 +856,7 @@ export default function AIArticleGeneratorPage() {
                   {isGenerating && (
                     <div className="generate-loading-container">
                       <div className="loading-spinner">
-                        <svg className="spinner-svg" width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="spinner-svg" width="50" height="50" viewBox="0 0 50 50">
                           <circle className="spinner-circle"        cx="25" cy="25" r="20" fill="none" strokeWidth="5" stroke="#B4EFDD" strokeDasharray="125.6" strokeDashoffset="31.4" />
                           <circle className="spinner-circle-active" cx="25" cy="25" r="20" fill="none" strokeWidth="5" stroke="#1ABC9C" strokeDasharray="125.6" strokeDashoffset="31.4" />
                         </svg>
@@ -766,8 +883,9 @@ export default function AIArticleGeneratorPage() {
                           <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                         </svg>
                       </div>
+                      {/* Action icons: regenerate, like, dislike — copy removed (available in preview) */}
                       <div className="article-actions">
-                        <button className="back-button" onClick={() => { setGeneratedArticle(null); setCurrentView("input"); }}>
+                        <button className="back-button" onClick={() => { setGeneratedArticle(null); setUserResponse(null); setCurrentView("input"); }}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
                             <path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path>
                           </svg>
@@ -779,19 +897,31 @@ export default function AIArticleGeneratorPage() {
                             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
                           </svg>
                         </button>
-                        <button className="action-icon" title="Copy" onClick={handleCopyToClipboard}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                          </svg>
-                        </button>
-                        <button className="action-icon" title="Like">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        {/* Like — filled teal when satisfied */}
+                        <button
+                          className="action-icon"
+                          title="Like"
+                          onClick={() => handleUserResponse("satisfied")}
+                        >
+                          <svg
+                            width="16" height="16" viewBox="0 0 24 24" strokeWidth="2"
+                            fill={userResponse === "satisfied" ? "#1ABC9C" : "none"}
+                            stroke={userResponse === "satisfied" ? "#1ABC9C" : "currentColor"}
+                          >
                             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
                           </svg>
                         </button>
-                        <button className="action-icon" title="Dislike">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        {/* Dislike — filled teal when dissatisfied */}
+                        <button
+                          className="action-icon"
+                          title="Dislike"
+                          onClick={() => handleUserResponse("dissatisfied")}
+                        >
+                          <svg
+                            width="16" height="16" viewBox="0 0 24 24" strokeWidth="2"
+                            fill={userResponse === "dissatisfied" ? "#1ABC9C" : "none"}
+                            stroke={userResponse === "dissatisfied" ? "#1ABC9C" : "currentColor"}
+                          >
                             <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-3"></path>
                           </svg>
                         </button>
@@ -816,7 +946,7 @@ export default function AIArticleGeneratorPage() {
 
       <InsightsSidebar topAIArticles={topAIArticles} trendingKeywords={trendingKeywords} />
 
-      {/* Loading transition overlay — shown while /analyze is in progress */}
+      {/* Loading transition overlay */}
       {isLoadingTransition && (
         <div className="loading-transition-overlay">
           <div className="loading-spinner-container">

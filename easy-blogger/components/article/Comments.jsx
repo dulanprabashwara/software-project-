@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Star, Loader2 } from "lucide-react";
 import { useComments } from "../../hooks/useComments";
+// Import the ratings hook
+import { useArticleRatings } from "../../hooks/useArticleRatings";
 
-export const Comments = ({ articleId,token }) => {
+export const Comments = ({ articleId, token }) => {
   // 1. Guard against missing ID
   if (!articleId) {
     return (
@@ -14,21 +16,45 @@ export const Comments = ({ articleId,token }) => {
     );
   }
 
-  const { comments, loading, rating, addComment, submitRating } = useComments(articleId, token);
+  const { comments, loading, addComment, submitRating } = useComments(articleId, token);
+  const { articleRatings } = useArticleRatings(); // Fetch current user's ratings
+
   const [text, setText] = useState("");
   const [replyTo, setReplyTo] = useState(null);
   const [replyText, setReplyText] = useState("");
 
+  // Loading States
+  const [isPostingComment, setIsPostingComment] = useState(false);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+
+  // Local rating state for display and optimistic updates
+  const [localRating, setLocalRating] = useState(0);
+
   // Helper to check if we are actually logged in
   const isAuthenticated = !!token;
+
+  // Find the user's rating for THIS specific article when data loads
+  useEffect(() => {
+    if (articleRatings?.length > 0 && articleId) {
+      const existingRating = articleRatings.find(r => r.articleId === articleId);
+      if (existingRating) {
+        setLocalRating(existingRating.score);
+      }
+    }
+  }, [articleRatings, articleId]);
 
   // EXECUTE: Send main comment to backend
   const onPost = async () => {
     if (!text.trim()) return;
     if (!isAuthenticated) return alert("Please log in to comment");
     
-    const ok = await addComment(text); 
-    if (ok) setText(""); 
+    setIsPostingComment(true);
+    try {
+      const ok = await addComment(text); 
+      if (ok) setText(""); 
+    } finally {
+      setIsPostingComment(false);
+    }
   };
 
   // EXECUTE: Send reply to backend
@@ -36,69 +62,103 @@ export const Comments = ({ articleId,token }) => {
     if (!replyText.trim()) return;
     if (!isAuthenticated) return alert("Please log in to reply");
 
-    const ok = await addComment(replyText, parentId); 
-    if (ok) {
-      setReplyTo(null);
-      setReplyText(""); 
+    setIsPostingComment(true);
+    try {
+      const ok = await addComment(replyText, parentId); 
+      if (ok) {
+        setReplyTo(null);
+        setReplyText(""); 
+      }
+    } finally {
+      setIsPostingComment(false);
     }
   };
 
   // EXECUTE: Send rating (1-5) to backend
   const onRate = async (num) => {
     if (!isAuthenticated) return alert("Please log in to rate");
-    await submitRating(num); 
+    
+    // Optimistic UI update
+    const previousRating = localRating;
+    setLocalRating(num);
+    setIsSubmittingRating(true);
+    
+    try {
+      await submitRating(num); 
+    } catch (err) {
+      console.error("Rating failed:", err);
+      // Revert the stars if the backend request fails
+      setLocalRating(previousRating);
+    } finally {
+      setIsSubmittingRating(false);
+    }
   };
 
   return (
     <div className="space-y-8 py-6">
-      {/* RATING SECTION - Manual rendering to ensure stability */}
+      
+      {/* RATING SECTION */}
       <div className="flex items-center gap-4 p-4 border rounded-xl bg-gray-50">
         <span className="text-sm font-bold text-gray-600">Rate this article:</span>
         <div className="flex gap-1">
           <Star 
             size={24} 
             onClick={() => onRate(1)} 
-            className={`cursor-pointer transition ${rating >= 1 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
+            className={`cursor-pointer transition ${localRating >= 1 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
           />
           <Star 
             size={24} 
             onClick={() => onRate(2)} 
-            className={`cursor-pointer transition ${rating >= 2 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
+            className={`cursor-pointer transition ${localRating >= 2 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
           />
           <Star 
             size={24} 
             onClick={() => onRate(3)} 
-            className={`cursor-pointer transition ${rating >= 3 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
+            className={`cursor-pointer transition ${localRating >= 3 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
           />
           <Star 
             size={24} 
             onClick={() => onRate(4)} 
-            className={`cursor-pointer transition ${rating >= 4 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
+            className={`cursor-pointer transition ${localRating >= 4 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
           />
           <Star 
             size={24} 
             onClick={() => onRate(5)} 
-            className={`cursor-pointer transition ${rating >= 5 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
+            className={`cursor-pointer transition ${localRating >= 5 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
           />
         </div>
+        
+        {/* Rating Loading Message */}
+        {isSubmittingRating && (
+          <span className="text-xs text-teal-500 animate-pulse font-medium">Submitting rating...</span>
+        )}
       </div>
 
-      {/* POST COMMENT */}
-      <div className="flex gap-4">
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={isAuthenticated ? "Add a comment..." : "Log in to join the conversation"}
-          disabled={!isAuthenticated}
-          className="flex-1 border-b border-gray-300 p-2 outline-none focus:border-teal-500 disabled:bg-transparent disabled:placeholder-gray-400"
-        />
-        <button 
-          onClick={onPost}
-          disabled={!isAuthenticated || !text.trim()}
-          className="bg-teal-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-teal-600 transition disabled:bg-gray-300"
-        >
-          Post
-        </button>
+      {/* POST COMMENT SECTION */}
+      <div>
+        <div className="flex justify-between items-end mb-2">
+          {/* Comment Loading Message */}
+          {isPostingComment && (
+            <span className="text-sm text-teal-500 animate-pulse font-medium">Posting comment...</span>
+          )}
+        </div>
+        
+        <div className="flex gap-4">
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={isAuthenticated ? "Add a comment..." : "Log in to join the conversation"}
+            disabled={!isAuthenticated || isPostingComment}
+            className="flex-1 border-b border-gray-300 p-2 outline-none focus:border-teal-500 disabled:bg-transparent disabled:placeholder-gray-400"
+          />
+          <button 
+            onClick={onPost}
+            disabled={!isAuthenticated || !text.trim() || isPostingComment}
+            className="bg-teal-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-teal-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            Post
+          </button>
+        </div>
       </div>
 
       {/* COMMENTS LIST */}
@@ -140,12 +200,14 @@ export const Comments = ({ articleId,token }) => {
                       autoFocus
                       value={replyText} 
                       onChange={(e) => setReplyText(e.target.value)} 
+                      disabled={isPostingComment}
                       placeholder="Write a reply..."
-                      className="flex-1 text-sm border-b outline-none focus:border-teal-500"
+                      className="flex-1 text-sm border-b outline-none focus:border-teal-500 disabled:bg-transparent"
                     />
                     <button 
                       onClick={() => onReply(comment.id)}
-                      className="text-xs font-bold text-teal-600 hover:text-teal-700"
+                      disabled={!replyText.trim() || isPostingComment}
+                      className="text-xs font-bold text-teal-600 hover:text-teal-700 disabled:text-gray-400"
                     >
                       Send
                     </button>
