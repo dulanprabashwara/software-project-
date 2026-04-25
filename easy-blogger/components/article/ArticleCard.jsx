@@ -12,8 +12,7 @@ export default function ArticleCard({ article }) {
   const { user, profileLoading } = useAuth();
   const rawDate =
     article.status === "PUBLISHED"
-      ? article.publishedAt || article.createdAt
-      : article.updatedAt || article.createdAt;
+      ? article.publishedAt: "";
 
   const displayDate = rawDate
     ? new Date(rawDate).toLocaleDateString(undefined, {
@@ -118,13 +117,13 @@ export default function ArticleCard({ article }) {
         <div className="flex items-center gap-4 text-sm text-[#6B7280]">
           <button className="flex items-center gap-1.5 hover:text-[#1ABC9C] transition-colors duration-150">
             <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
-            <span>{article.commentCount || "-"}</span>
+            <span>{article.commentCount || "--"}</span>
           </button>
 
           <div className="flex items-center gap-1.5  ">
     <Star className="w-5 h-5 " strokeWidth={1.5} />
     <span className="font-medium">
-      {article.averageRating > 0 ? article.averageRating.toFixed(1) : "-"}
+      {article.averageRating > 0 ? article.averageRating.toFixed(1) : "--"}
     </span>
     <span className="text-[#6B7280]"> [{article.ratingCount || 0}]</span>
   
