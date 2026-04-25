@@ -1,16 +1,24 @@
 "use client";
 
- 
+// Import all three hooks
+import { useSavedArticles } from "../../hooks/useSavedArticles";
 import ArticleCard from "./ArticleCard";
 
 export default function MainFeed({ articles }) {
-  // Check: Is 'articles' actually an array here?
- 
-  if (!articles || articles.length === 0) return <p>No articles found.</p>;
-   return (
+  // 1. Fetch all user-specific context at the top level
+  const { savedArticles } = useSavedArticles();
+   
+  
+  if (!articles || articles.length === 0) return <p className="px-8 mt-4 text-gray-500">No articles found.</p>;
+
+  return (
     <div>
-      {articles.map((item) => (
-        <ArticleCard key={item.id || item._id} article={item} />
+      {articles.map((article) => (
+        <ArticleCard 
+          key={article.id} 
+          article={article}
+          savedArticles={savedArticles}
+        />
       ))}
     </div>
   );

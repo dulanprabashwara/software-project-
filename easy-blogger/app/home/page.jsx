@@ -22,7 +22,7 @@ import { Loader2 } from "lucide-react";
 // Import hooks for feeds (middle and right)
 import { useMainArticles } from "../../hooks/useMainArticles";
 import { useTrending } from "../../hooks/useTrendingTitles";
-
+import { useSavedArticles } from "../../hooks/useSavedArticles";
 //Components import
 import MainFeed from "../../components/article/MainFeed";
 import RightFeed from "../../components/article/RightFeed";
@@ -44,6 +44,7 @@ function HomeContent() {
   //for article data fetching
   const { articles, isLoading } = useMainArticles({ enabled: !isSearching });
   const { trending, isTrendingLoading } = useTrending();
+  const { savedArticles,savedLoading } = useSavedArticles();
 
   // Helper to save current scroll position
   const saveScroll = useCallback(() => {
@@ -92,7 +93,7 @@ function HomeContent() {
   }
 
   //Wait for article data fetch
-  if (isLoading && articles.length === 0) {
+  if (isLoading && articles.length === 0 || savedLoading || isTrendingLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
@@ -109,7 +110,9 @@ function HomeContent() {
           onScroll={saveScroll} // Continuously save scroll to handle all navigation types
           className="p-8 mx-auto h-full overflow-y-auto flex-1"
         >
-          <MainFeed articles={articles} />
+          <MainFeed 
+          articles={articles}
+          savedArticles={savedArticles} />
         </div>
 
         <div className="hidden lg:block w-80 flex-none h-full overflow-y-auto">

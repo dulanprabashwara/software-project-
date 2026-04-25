@@ -42,17 +42,10 @@ export default function ArticleCard({
 
   const authorName = article.author?.displayName || "Guest Writer"; 
   const authorAvatar = article.author?.avatarUrl || "https://ui-avatars.com/api/?name=Guest";
-<<<<<<< Updated upstream
-  const { user, profileLoading } = useAuth();
-  const rawDate =
-    article.status === "PUBLISHED"
-      ? article.publishedAt: "";
-=======
   
   const rawPublishDate = article.status === "PUBLISHED"
       ? article.publishedAt || article.createdAt
       : article.scheduledAt || article.updatedAt || article.createdAt;
->>>>>>> Stashed changes
 
   const displayDate = rawPublishDate
     ? new Date(rawPublishDate).toLocaleDateString(undefined, {
