@@ -17,7 +17,10 @@ import "../../../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../../../styles/ai-article-generator/ai-article-generator-view2.css";
 import "../../../../../styles/ai-article-generator/ai-article-generator-details.css";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+const BACKEND_URL          = process.env.NEXT_PUBLIC_API_URL;
+const COPY_FEEDBACK_MS     = 6000;   // how long "copied!" stays visible
+const DRAFT_STATUS_CLEAR_MS = 4000; // how long "saved" / "error" feedback stays
+const AUTH_TIMEOUT_MS      = 5000;   // Firebase re-auth wait before giving up
 
 const ARTICLE_LENGTH_LABELS = {
   short:        { left: "Short",      right: "300-1000"  },
@@ -126,7 +129,7 @@ export default function ArticleDetailsPage() {
     try {
       await navigator.clipboard.writeText(content);
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 6000);
+      setTimeout(() => setIsCopied(false), COPY_FEEDBACK_MS);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -165,11 +168,11 @@ export default function ArticleDetailsPage() {
       if (!res.ok || !data.success) throw new Error(data.message || "Save failed");
       setDraftSaveStatus(data.alreadySaved ? "already_saved" : "saved");
       if (!data.alreadySaved) setArticleData((prev) => ({ ...prev, savedToDraftId: data.draft.id }));
-      setTimeout(() => setDraftSaveStatus(null), 4000);
+      setTimeout(() => setDraftSaveStatus(null), DRAFT_STATUS_CLEAR_MS);
     } catch (err) {
       console.error("[SaveDraft] Failed:", err);
       setDraftSaveStatus("error");
-      setTimeout(() => setDraftSaveStatus(null), 4000);
+      setTimeout(() => setDraftSaveStatus(null), DRAFT_STATUS_CLEAR_MS);
     } finally {
       setIsSavingDraft(false);
     }
@@ -249,8 +252,8 @@ export default function ArticleDetailsPage() {
   const isAlreadySaved = !!articleData.savedToDraftId;
 
   return (
-    <div className="flex h-full">
-      <div className="ai-generator-main flex-1 overflow-y-auto article-details-page">
+    <div className="flex min-h-full overflow-y-auto">
+      <div className="ai-generator-main flex-1 article-details-page">
         <div className="ai-content-wrapper">
 
           <div className="ai-generator-title justify-between">
