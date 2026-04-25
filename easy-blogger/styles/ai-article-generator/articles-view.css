@@ -79,6 +79,15 @@
 .article-label-container:hover .delete-article-btn { opacity: 1; }
 .delete-article-btn:hover { background: rgba(0, 0, 0, 0.1); transform: scale(1.1); }
 
+/* ── Restore button wrapper — positions the warning callout below it ─────── */
+
+.restore-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 /* ── Restore button ──────────────────────────────────────────────────────── */
 
 .restore-article-btn {
@@ -105,6 +114,184 @@
   width: 16px;
   height: 16px;
 }
+
+/* ── 30-second warning callout — appears below restore button ────────────── */
+/* Styled as a speech bubble / tooltip pointing upward from the restore button */
+
+.delete-warning-callout {
+  position: absolute;
+  top: calc(100% + 10px);  /* sits just below the restore button */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.45;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 20;
+  text-align: center;
+  animation: callout-fade-in 0.2s ease;
+}
+
+/* Upward-pointing arrow on the callout */
+.delete-warning-callout::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 7px 7px 7px;
+  border-style: solid;
+  border-color: transparent transparent #e5e7eb transparent;
+}
+
+.delete-warning-callout::after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 6px 6px 6px;
+  border-style: solid;
+  border-color: transparent transparent #ffffff transparent;
+}
+
+/* Red ! icon inside the callout */
+.delete-warning-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background-color: #DC2626;
+  color: #ffffff;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: bold;
+  margin-right: 5px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+@keyframes callout-fade-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── Second-delete confirmation overlay ──────────────────────────────────── */
+/* Full-page dim overlay with centered modal — matching the project's theme */
+
+.second-delete-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: overlay-fade-in 0.15s ease;
+}
+
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.second-delete-modal {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 28px 32px;
+  width: 420px;
+  max-width: 90vw;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  animation: modal-slide-in 0.18s ease;
+}
+
+@keyframes modal-slide-in {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.second-delete-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.second-delete-modal-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: #FEE2E2;
+  color: #DC2626;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.second-delete-modal-title {
+  font-family: Georgia, serif;
+  font-size: 17px;
+  font-weight: bold;
+  color: #111827;
+  margin: 0;
+}
+
+.second-delete-modal-message {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: #4B5563;
+  line-height: 1.55;
+  margin: 0 0 24px 0;
+}
+
+.second-delete-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.second-delete-back {
+  padding: 8px 20px;
+  border: 2px solid #D1D5DB;
+  border-radius: 8px;
+  background: transparent;
+  color: #374151;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.second-delete-back:hover {
+  border-color: #9CA3AF;
+  background: #F9FAFB;
+}
+
+.second-delete-proceed {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #DC2626;
+  color: #ffffff;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.second-delete-proceed:hover { background: #B91C1C; }
 
 /* ── Previous generations header ─────────────────────────────────────────── */
 
@@ -161,6 +348,8 @@
   .article-label { width: 100%; min-height: auto; padding: 16px; }
   .article-title { font-size: 16px; }
   .previous-generations-text { font-size: 16px; }
+  .delete-warning-callout { width: 180px; font-size: 12px; }
+  .second-delete-modal { padding: 20px 18px; }
 }
 
 @media (max-width: 640px) {
