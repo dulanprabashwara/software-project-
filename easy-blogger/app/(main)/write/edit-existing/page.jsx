@@ -1,5 +1,3 @@
-//easy-blogger\app\(main)\write\edit-existing\page.jsx
-
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -13,7 +11,8 @@ import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
 import { useCoverImageUpload } from "../../../../hooks/articles/useCoverImageUpload";
 import { getArticleFromResponse } from "../../../../lib/articles/editorHelpers";
 import {clearPreviewContext,readPreviewContext,} from "../../../../lib/articles/previewContext";
-
+import {getEditorValidationError,isContentAtLimit,} from "../../../../lib/articles/articleEditorValidation";
+import { useEditorNavigationGuard } from "../../../../hooks/articles/useEditorNavigationGuard";
 import {autosaveEditExisting,discardEditExisting,getDraftById,saveEditExistingAsDraft,saveEditExistingForPreview,startEditExisting,}from "../../../../lib/articles/api";
 import { openPreviewSaveConfirm } from "../../../../lib/articles/previewConfirm";
 
@@ -42,6 +41,7 @@ export default function EditExistingPage() {
   const [zoom, setZoom] = useState(100);
   const [fontSize, setFontSize] = useState(16);
   const [inlineError, setInlineError] = useState("");
+  const [contentLimitError, setContentLimitError] = useState("");
   const [editorTextLength, setEditorTextLength] = useState(0);
   const [isHydrating, setIsHydrating] = useState(true);
 
@@ -50,9 +50,7 @@ export default function EditExistingPage() {
   const editorRef = useRef(null);
   const isSavingRef = useRef(false);
   const editingSectionRef = useRef(null);
-  const isNavigationPromptActiveRef = useRef(false);
-  const pendingExternalActionRef = useRef(null);
-  const bypassExternalActionGuardRef = useRef(false);
+  
 
   const coverImageUpload = useCoverImageUpload({
     onChange: setCoverImage,
@@ -72,7 +70,9 @@ export default function EditExistingPage() {
 
   const getEditorPlainTextContent = useCallback(() => {
     if (editorRef.current) {
-      return normalizePlainText(editorRef.current.getContent({ format: "text" }));
+      return normalizePlainText(
+        editorRef.current.getContent({ format: "text" }),
+      );
     }
 
     return stripHtmlToPlainText(content);
@@ -91,7 +91,10 @@ export default function EditExistingPage() {
     title.trim() || editorTextLength > 0 || coverImage,
   );
 
+  const isContentLimitReached = isContentAtLimit(editorTextLength);
   const hasRequiredContent = Boolean(title.trim() && editorTextLength > 0);
+  const hasValidContent =
+    hasRequiredContent && !contentLimitError && !isContentLimitReached;
 
   useEffect(() => {
     syncEditorDerivedState();
@@ -122,7 +125,9 @@ export default function EditExistingPage() {
             setTitle(article.title || "");
             setContent(article.content || "");
             setCoverImage(article.coverImage || null);
-            setLastSavedAt(article.updatedAt ? new Date(article.updatedAt) : null);
+            setLastSavedAt(
+              article.updatedAt ? new Date(article.updatedAt) : null,
+            );
             setIsHydrating(false);
             return;
           }
@@ -215,34 +220,21 @@ export default function EditExistingPage() {
     watchValues: [title, content, coverImage],
   });
 
-  const runPendingExternalAction = useCallback(() => {
-    const action = pendingExternalActionRef.current;
-    pendingExternalActionRef.current = null;
-
-    if (!action) return;
-
-    bypassExternalActionGuardRef.current = true;
-
-    Promise.resolve().then(() => {
-      action();
-
-      setTimeout(() => {
-        bypassExternalActionGuardRef.current = false;
-      }, 0);
-    });
-  }, []);
+  
 
   const saveDraftWithoutRedirect = useCallback(async () => {
     const plainTextContent = getEditorPlainTextContent();
     const htmlContent = getEditorHtmlContent();
 
-    if (!title.trim()) {
-      setInlineError("Title is required to save the article.");
-      return false;
-    }
+    const validationError = getEditorValidationError({
+      title,
+      plainTextContent,
+      contentLimitError,
+      isContentLimitReached,
+    });
 
-    if (!plainTextContent) {
-      setInlineError("Content is required to save the article.");
+    if (validationError) {
+      setInlineError(validationError);
       return false;
     }
 
@@ -256,7 +248,14 @@ export default function EditExistingPage() {
       setInlineError("Failed to save draft.");
       return false;
     }
-  }, [getEditorHtmlContent, getEditorPlainTextContent, saveArticle, title]);
+  }, [
+    contentLimitError,
+    getEditorHtmlContent,
+    getEditorPlainTextContent,
+    isContentLimitReached,
+    saveArticle,
+    title,
+  ]);
 
   const discardWithoutRedirect = useCallback(async () => {
     try {
@@ -269,6 +268,19 @@ export default function EditExistingPage() {
       return false;
     }
   }, [articleId]);
+
+  const { handleExternalActionAttempt, pendingExternalActionRef } =
+  useEditorNavigationGuard({
+    enabled: isClientReady,
+    isHydrating,
+    isSaving,
+    isModalOpen: modalState.isOpen,
+    editingSectionRef,
+    openModal,
+    closeModal,
+    onSaveBeforeLeave: saveDraftWithoutRedirect,
+    onDiscardBeforeLeave: discardWithoutRedirect,
+  });
 
   const handleSaveAsDraft = useCallback(async () => {
     const didSave = await saveDraftWithoutRedirect();
@@ -301,13 +313,15 @@ export default function EditExistingPage() {
     const plainTextContent = getEditorPlainTextContent();
     const htmlContent = getEditorHtmlContent();
 
-    if (!title.trim()) {
-      setInlineError("Title is required to preview the article.");
-      return;
-    }
+    const validationError = getEditorValidationError({
+      title,
+      plainTextContent,
+      contentLimitError,
+      isContentLimitReached,
+    });
 
-    if (!plainTextContent) {
-      setInlineError("Content is required to preview the article.");
+    if (validationError) {
+      setInlineError(validationError);
       return;
     }
 
@@ -324,7 +338,6 @@ export default function EditExistingPage() {
           });
 
           router.push(`/write/preview?id=${articleId}&mode=edit-existing`);
-      
         } catch (error) {
           console.error("Failed to prepare article preview:", error);
           setInlineError("Failed to open preview.");
@@ -333,141 +346,20 @@ export default function EditExistingPage() {
     });
   }, [
     articleId,
+    closeModal,
+    contentLimitError,
+    coverImage,
     getEditorHtmlContent,
     getEditorPlainTextContent,
+    isContentLimitReached,
+    openModal,
     router,
-    saveArticle,
     title,
   ]);
 
   const handleZoomChange = useCallback((delta) => {
     setZoom((prev) => Math.max(50, Math.min(200, prev + delta)));
   }, []);
-
-  const handleExternalActionAttempt = useCallback(() => {
-    if (isNavigationPromptActiveRef.current) {
-      return;
-    }
-
-    isNavigationPromptActiveRef.current = true;
-
-    openModal({
-      title: "Save article?",
-      message: "Do you want to save the article before leaving this page?",
-      confirmText: "Yes",
-      cancelText: "No",
-      onConfirm: async () => {
-        try {
-          const didSave = await saveDraftWithoutRedirect();
-
-          if (!didSave) {
-            pendingExternalActionRef.current = null;
-            closeModal();
-            return;
-          }
-
-          closeModal();
-          runPendingExternalAction();
-        } finally {
-          isNavigationPromptActiveRef.current = false;
-        }
-      },
-      onCancel: async () => {
-        try {
-          const didDiscard = await discardWithoutRedirect();
-
-          if (!didDiscard) {
-            pendingExternalActionRef.current = null;
-            return;
-          }
-
-          runPendingExternalAction();
-        } finally {
-          isNavigationPromptActiveRef.current = false;
-        }
-      },
-      onClose: async () => {
-        pendingExternalActionRef.current = null;
-        isNavigationPromptActiveRef.current = false;
-      },
-    });
-  }, [
-    closeModal,
-    discardWithoutRedirect,
-    openModal,
-    runPendingExternalAction,
-    saveDraftWithoutRedirect,
-  ]);
-
-  const isTinyMceUiElement = useCallback((element) => {
-    if (!(element instanceof Element)) return false;
-
-    return Boolean(
-      element.closest(
-        [
-          ".tox",
-          ".tox-tinymce-aux",
-          ".tox-dialog",
-          ".tox-dialog-wrap",
-          ".tox-menu",
-          ".tox-collection",
-          ".tox-toolbar",
-          ".tox-toolbar__group",
-          ".mce-content-body",
-        ].join(","),
-      ),
-    );
-  }, []);
-
-  useEffect(() => {
-    if (!isClientReady) {
-      return;
-    }
-
-    const handleDocumentClickCapture = (event) => {
-      if (
-        bypassExternalActionGuardRef.current ||
-        isHydrating ||
-        isSaving ||
-        modalState.isOpen
-      ) {
-        return;
-      }
-
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      if (isTinyMceUiElement(target)) return;
-
-      const clickableElement = target.closest("button, a, [role='button']");
-      if (!clickableElement) return;
-
-      if (clickableElement.closest("[data-skip-save-prompt='true']")) return;
-      if (editingSectionRef.current?.contains(clickableElement)) return;
-      if (isTinyMceUiElement(clickableElement)) return;
-
-      pendingExternalActionRef.current = () => {
-        clickableElement.click();
-      };
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      handleExternalActionAttempt();
-    };
-
-    document.addEventListener("click", handleDocumentClickCapture, true);
-
-    return () => {
-      document.removeEventListener("click", handleDocumentClickCapture, true);
-    };
-  }, [
-    handleExternalActionAttempt,
-    isClientReady,
-    isHydrating,
-    isSaving,
-    isTinyMceUiElement,
-    modalState.isOpen,
-  ]);
 
   if (!isClientReady) {
     return <div className="min-h-screen bg-white" />;
@@ -489,49 +381,52 @@ export default function EditExistingPage() {
 
       <div className="min-h-screen bg-white">
         <div className="px-8 pt-8">
-            <div className="max-w-5xl mx-auto" data-skip-save-prompt="true">
-              <EditorInlineError message={inlineError} />
-            </div>
+          <div className="max-w-5xl mx-auto" data-skip-save-prompt="true">
+            <EditorInlineError message={inlineError} />
           </div>
+        </div>
 
-          <div ref={editingSectionRef}>
-            <ArticleEditorShell
-              editorRef={editorRef}
-              title={title}
-              onTitleChange={setTitle}
-              content={content}
-              onContentChange={(value) => {
-                setContent(value);
-                setInlineError("");
-                setEditorTextLength(stripHtmlToPlainText(value).length);
-              }}
-              onEditorReady={syncEditorDerivedState}
-              coverImage={coverImage}
-              coverImageProps={coverImageUpload}
-              zoom={zoom}
-              onZoomChange={handleZoomChange}
-              fontSize={fontSize}
-              isHydrating={isHydrating}
-              isSaving={isSaving}
-              lastSavedAt={lastSavedAt}
-              headerTitle="Edit your Article"
-              headerSubtitle="Update your existing article here"
-              modeBadge="Editing Article"
-              onSaveAsDraft={handleSaveAsDraft}
-              onPreview={handlePreview}
-              onDiscard={handleDiscard}
-              onExit={() => {
-                pendingExternalActionRef.current = () => {
-                  router.push("/write/unpublished");
-                };
-                handleExternalActionAttempt();
-              }}
-              disableSaveAsDraft={!hasRequiredContent}
-              disablePreview={!hasRequiredContent}
-              disableDiscard={isSaving || isHydrating}
-              editorTextLength={editorTextLength}
-            />
-          </div>
+        <div ref={editingSectionRef}>
+          <ArticleEditorShell
+            editorRef={editorRef}
+            title={title}
+            onTitleChange={setTitle}
+            content={content}
+            onContentChange={(value) => {
+              setContent(value);
+              setInlineError("");
+              setContentLimitError("");
+              setEditorTextLength(stripHtmlToPlainText(value).length);
+            }}
+            onEditorReady={syncEditorDerivedState}
+            coverImage={coverImage}
+            coverImageProps={coverImageUpload}
+            zoom={zoom}
+            onZoomChange={handleZoomChange}
+            fontSize={fontSize}
+            isHydrating={isHydrating}
+            isSaving={isSaving}
+            lastSavedAt={lastSavedAt}
+            headerTitle="Edit your Article"
+            headerSubtitle="Update your existing article here"
+            modeBadge="Editing Article"
+            onSaveAsDraft={handleSaveAsDraft}
+            onPreview={handlePreview}
+            onDiscard={handleDiscard}
+            onExit={() => {
+              pendingExternalActionRef.current = () => {
+                router.push("/write/unpublished");
+              };
+              handleExternalActionAttempt();
+            }}
+            disableSaveAsDraft={!hasValidContent}
+            disablePreview={!hasValidContent}
+            disableDiscard={isSaving || isHydrating}
+            editorTextLength={editorTextLength}
+            contentLimitError={contentLimitError}
+            onContentLimitErrorChange={setContentLimitError}
+          />
+        </div>
       </div>
     </>
   );

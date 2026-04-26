@@ -12,10 +12,11 @@ import { useAutosave } from "../../../../hooks/articles/useAutoSave";
 import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
 import { useCoverImageUpload } from "../../../../hooks/articles/useCoverImageUpload";
 import {buildArticlePayload,getArticleFromResponse,getArticleIdFromResponse,} from "../../../../lib/articles/editorHelpers";
-import {clearPreviewContext,readPreviewContext,writePreviewContext,} from "../../../../lib/articles/previewContext";
+import {clearPreviewContext,readPreviewContext,} from "../../../../lib/articles/previewContext";
 import {createDraft,deleteDraft,getCurrentEditingDraft,getDraftById,updateDraft,} from "../../../../lib/articles/api";
 import { openPreviewSaveConfirm } from "../../../../lib/articles/previewConfirm";
-
+import {getEditorValidationError,isContentAtLimit,} from "../../../../lib/articles/articleEditorValidation";
+import { useEditorNavigationGuard } from "../../../../hooks/articles/useEditorNavigationGuard";
 function normalizePlainText(value) {
   return String(value || "")
     .replace(/\u00a0/g, " ")
@@ -30,7 +31,6 @@ function stripHtmlToPlainText(html) {
 export default function CreateArticlePage() {
   const router = useRouter();
   const editorRef = useRef(null);
-
   const [isClientReady, setIsClientReady] = useState(false);
   const [draftId, setDraftId] = useState(null);
   const [title, setTitle] = useState("");
@@ -40,20 +40,16 @@ export default function CreateArticlePage() {
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [articleMode, setArticleMode] = useState("new");
   const [zoom, setZoom] = useState(100);
-  const [fontSize, setFontSize] = useState(16);
+  const [fontSize] = useState(16);
   const [inlineError, setInlineError] = useState("");
+  const [contentLimitError, setContentLimitError] = useState("");
   const [editorTextLength, setEditorTextLength] = useState(0);
   const [isHydrating, setIsHydrating] = useState(true);
-
   const { modalState, openModal, closeModal } = useConfirmDialog();
-
   const isSavingRef = useRef(false);
   const hasHydratedRef = useRef(false);
   const lastSavedSnapshotRef = useRef("");
   const editingSectionRef = useRef(null);
-  const isNavigationPromptActiveRef = useRef(false);
-  const pendingExternalActionRef = useRef(null);
-  const bypassExternalActionGuardRef = useRef(false);
 
   const coverImageUpload = useCoverImageUpload({
     onChange: setCoverImage,
@@ -112,7 +108,9 @@ export default function CreateArticlePage() {
     title.trim() || editorTextLength > 0 || coverImage,
   );
 
+  const isContentLimitReached = isContentAtLimit(editorTextLength);
   const hasRequiredContent = Boolean(title.trim() && editorTextLength > 0);
+  const hasValidContent = hasRequiredContent && !contentLimitError && !isContentLimitReached;
 
   useEffect(() => {
     syncEditorDerivedState();
@@ -298,13 +296,15 @@ export default function CreateArticlePage() {
     const plainTextContent = getEditorPlainTextContent();
     const htmlContent = getEditorHtmlContent();
 
-    if (!title.trim()) {
-      setInlineError("Title is required to save the article.");
-      return false;
-    }
+    const validationError = getEditorValidationError({
+      title,
+      plainTextContent,
+      contentLimitError,
+      isContentLimitReached,
+    });
 
-    if (!plainTextContent) {
-      setInlineError("Content is required to save the article.");
+    if (validationError) {
+      setInlineError(validationError);
       return false;
     }
 
@@ -336,22 +336,18 @@ export default function CreateArticlePage() {
     }
   }, [draftId, resetEditorState]);
 
-  const runPendingExternalAction = useCallback(() => {
-    const action = pendingExternalActionRef.current;
-    pendingExternalActionRef.current = null;
-
-    if (!action) return;
-
-    bypassExternalActionGuardRef.current = true;
-
-    Promise.resolve().then(() => {
-      action();
-
-      setTimeout(() => {
-        bypassExternalActionGuardRef.current = false;
-      }, 0);
-    });
-  }, []);
+  const { handleExternalActionAttempt, pendingExternalActionRef } =
+  useEditorNavigationGuard({
+    enabled: isClientReady,
+    isHydrating,
+    isSaving,
+    isModalOpen: modalState.isOpen,
+    editingSectionRef,
+    openModal,
+    closeModal,
+    onSaveBeforeLeave: saveDraftWithoutRedirect,
+    onDiscardBeforeLeave: discardWithoutRedirect,
+  });
 
   const handleSaveAsDraft = useCallback(async () => {
     const didSave = await saveDraftWithoutRedirect();
@@ -383,13 +379,15 @@ export default function CreateArticlePage() {
     const plainTextContent = getEditorPlainTextContent();
     const htmlContent = getEditorHtmlContent();
 
-    if (!title.trim()) {
-      setInlineError("Title is required to preview the article.");
-      return;
-    }
+    const validationError = getEditorValidationError({
+      title,
+      plainTextContent,
+      contentLimitError,
+      isContentLimitReached,
+    });
 
-    if (!plainTextContent) {
-      setInlineError("Content is required to preview the article.");
+    if (validationError) {
+      setInlineError(validationError);
       return;
     }
 
@@ -416,136 +414,13 @@ export default function CreateArticlePage() {
     router,
     saveArticle,
     title,
+    contentLimitError,
+    isContentLimitReached,
   ]);
 
   const handleZoomChange = useCallback((delta) => {
     setZoom((prev) => Math.max(50, Math.min(200, prev + delta)));
   }, []);
-
-  const handleExternalActionAttempt = useCallback(() => {
-    if (isNavigationPromptActiveRef.current) {
-      return;
-    }
-
-    isNavigationPromptActiveRef.current = true;
-
-    openModal({
-      title: "Save article?",
-      message: "Do you want to save the article before leaving this page?",
-      confirmText: "Yes",
-      cancelText: "No",
-      onConfirm: async () => {
-        try {
-          const didSave = await saveDraftWithoutRedirect();
-
-          if (!didSave) {
-            pendingExternalActionRef.current = null;
-            closeModal();
-            return;
-          }
-
-          closeModal();
-          runPendingExternalAction();
-        } finally {
-          isNavigationPromptActiveRef.current = false;
-        }
-      },
-      onCancel: async () => {
-        try {
-          const didDiscard = await discardWithoutRedirect();
-
-          if (!didDiscard) {
-            pendingExternalActionRef.current = null;
-            return;
-          }
-
-          runPendingExternalAction();
-        } finally {
-          isNavigationPromptActiveRef.current = false;
-        }
-      },
-      onClose: async () => {
-        pendingExternalActionRef.current = null;
-        isNavigationPromptActiveRef.current = false;
-      },
-    });
-  }, [
-    closeModal,
-    discardWithoutRedirect,
-    openModal,
-    runPendingExternalAction,
-    saveDraftWithoutRedirect,
-  ]);
-
-  const isTinyMceUiElement = useCallback((element) => {
-    if (!(element instanceof Element)) return false;
-
-    return Boolean(
-      element.closest(
-        [
-          ".tox",
-          ".tox-tinymce-aux",
-          ".tox-dialog",
-          ".tox-dialog-wrap",
-          ".tox-menu",
-          ".tox-collection",
-          ".tox-toolbar",
-          ".tox-toolbar__group",
-          ".mce-content-body",
-        ].join(","),
-      ),
-    );
-  }, []);
-
-  useEffect(() => {
-    if (!isClientReady) {
-      return;
-    }
-
-    const handleDocumentClickCapture = (event) => {
-      if (
-        bypassExternalActionGuardRef.current ||
-        isHydrating ||
-        isSaving ||
-        modalState.isOpen
-      ) {
-        return;
-      }
-
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      if (isTinyMceUiElement(target)) return;
-
-      const clickableElement = target.closest("button, a, [role='button']");
-      if (!clickableElement) return;
-
-      if (clickableElement.closest("[data-skip-save-prompt='true']")) return;
-      if (editingSectionRef.current?.contains(clickableElement)) return;
-      if (isTinyMceUiElement(clickableElement)) return;
-
-      pendingExternalActionRef.current = () => {
-        clickableElement.click();
-      };
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      handleExternalActionAttempt();
-    };
-
-    document.addEventListener("click", handleDocumentClickCapture, true);
-
-    return () => {
-      document.removeEventListener("click", handleDocumentClickCapture, true);
-    };
-  }, [
-    handleExternalActionAttempt,
-    isClientReady,
-    isHydrating,
-    isSaving,
-    isTinyMceUiElement,
-    modalState.isOpen,
-  ]);
 
   if (!isClientReady) {
     return <div className="min-h-screen bg-white" />;
@@ -586,6 +461,7 @@ export default function CreateArticlePage() {
               content={content}
               onContentChange={(value) => {
                 setInlineError("");
+                setContentLimitError("");
                 setContent(value);
                 setEditorTextLength(stripHtmlToPlainText(value).length);
               }}
@@ -610,10 +486,12 @@ export default function CreateArticlePage() {
                 };
                 handleExternalActionAttempt();
               }}
-              disableSaveAsDraft={!hasRequiredContent}
-              disablePreview={!hasRequiredContent}
+              disableSaveAsDraft={!hasValidContent}
+              disablePreview={!hasValidContent}
               disableDiscard={isSaving || isHydrating}
               editorTextLength={editorTextLength}
+              contentLimitError={contentLimitError}
+              onContentLimitErrorChange={setContentLimitError}
             />
           </div>
       </div>

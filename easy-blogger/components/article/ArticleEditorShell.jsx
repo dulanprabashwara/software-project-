@@ -64,6 +64,8 @@ export default function ArticleEditorShell({
   disablePreview,
   disableDiscard,
   editorTextLength = 0,
+  contentLimitError = "",
+  onContentLimitErrorChange,
 }) {
   const lastAppliedContentRef = useRef(content || ""); // Save last valid editor content for restore on limit exceed
   const hasInitializedEditorRef = useRef(false); // Avoid editor reset before TinyMCE is ready
@@ -215,9 +217,13 @@ export default function ArticleEditorShell({
 
                   // TinyMCE needs manual content limit handling since it allows pasting large content that exceeds limits
                   if (plainText.length > CONTENT_MAX_LENGTH) {
+                    onContentLimitErrorChange?.(
+                      `Content cannot exceed ${CONTENT_MAX_LENGTH.toLocaleString()} characters.`,
+                    );
                     editor.setContent(lastAppliedContentRef.current);
                     return;
                   }
+                  onContentLimitErrorChange?.("");
                   lastAppliedContentRef.current = value;
                   onContentChange(value);
                 }}
@@ -228,8 +234,8 @@ export default function ArticleEditorShell({
 
             <FieldMeta
               required={isContentRequired}
-              limitReached={isContentLimitReached}
-              limitMessage="Maximum content length reached."
+              limitReached={Boolean(contentLimitError) || isContentLimitReached}
+              limitMessage={contentLimitError || "Maximum content length reached."}
               items={[
                 `${editorTextLength}/${CONTENT_MAX_LENGTH.toLocaleString()} characters`,
               ]}
