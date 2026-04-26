@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../app/context/AuthContext"; 
+import { getInteractedArticlesApi } from "../app/api/userInteractions.api";
 
 export function useInteractedArticles() {
   const { user, profileLoading } = useAuth();
@@ -14,26 +15,12 @@ export function useInteractedArticles() {
     }
 
     setIsLoading(true);
-
     try {
       const token = await user.getIdToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/interactedArticles`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      });
-
-      const json = await res.json();
-      
-      if (json.success) {
-        setInteractedArticles(json.data || []);
-      } else {
-        console.error(json.message);
-      }
+      const data = await getInteractedArticlesApi(token);
+      setInteractedArticles(data);
     } catch (error) {
-      console.error(error);
+      console.error("Hook Error:", error.message);
     } finally {
       setIsLoading(false);
     }
@@ -41,7 +28,6 @@ export function useInteractedArticles() {
 
   useEffect(() => {
     if (profileLoading) return;
-    
     fetchInteractedArticles();
   }, [profileLoading, fetchInteractedArticles]);
 

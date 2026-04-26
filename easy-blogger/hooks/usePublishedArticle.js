@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../app/context/AuthContext"; // Adjust path as needed
+import { useAuth } from "../app/app/context/AuthContext"; 
+import { getPublishedArticlesApi } from "@/api/userHistory.api";
 
 export function usePublishedArticles() {
   const { user, profileLoading } = useAuth();
-  const [publishedArticles, setPublishedArticles] = useState([]);
+  const [publishedArticles, setPublishedArticles] = useState([]); // Fixed state name
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchSavedArticles = useCallback(async () => {
-    // If no user is logged in, they have no saved articles.
+  const fetchPublishedArticles = useCallback(async () => {
     if (!user) {
       setPublishedArticles([]);
       setIsLoading(false);
@@ -15,39 +15,22 @@ export function usePublishedArticles() {
     }
 
     setIsLoading(true);
-
     try {
       const token = await user.getIdToken(); 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/saveArticle`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      });
-
-      const json = await res.json();
-      
-      if (json.success) {
-        setPublishedArticles(json.data || []);
-      } else {
-        console.error("Backend error:", json.message);
-      }
+      const data = await getPublishedArticlesApi(token);
+      setPublishedArticles(data);
     } catch (error) {
-      console.error("Failed to fetch saved articles:", error);
+      console.error("Hook Error:", error.message);
     } finally {
       setIsLoading(false);
     }
-  }, [user]); // Re-create function only if the user changes
+  }, [user]); 
 
   useEffect(() => {
-    // Wait until Firebase resolves the auth state
     if (profileLoading) return;
-    
-    fetchSavedArticles();
-  }, [profileLoading, fetchSavedArticles]);
+    fetchPublishedArticles(); // Fixed function call
+  }, [profileLoading, fetchPublishedArticles]); // Fixed dependency
 
-  // We return 'refetch' so you can manually trigger an update 
-  // (e.g., if they unsave an article directly from the Saved Page)
-  return { savedArticles, isLoading, refetch: fetchSavedArticles };
+  // Fixed return statement variables
+  return { publishedArticles, isLoading, refetch: fetchPublishedArticles }; 
 }

@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
+import { getTrendingArticlesApi } from "../app/api/trending.api";
 
-// Cache persists for the entire SPA session, regardless of who logs in/out
-let cachedTrending = null;
+let cachedTrendingArticles = null; // Renamed to avoid clashes
 
 export function useTrendingArticles() {
-  const [trending, setTrending] = useState(cachedTrending || []);
-  const [isTrendingLoading, setIsTrendingLoading] = useState(!cachedTrending);
+  const [trending, setTrending] = useState(cachedTrendingArticles || []);
+  const [isTrendingLoading, setIsTrendingLoading] = useState(!cachedTrendingArticles);
 
   useEffect(() => {
-    // 1. If we already have the global trending data, skip the fetch
-    if (cachedTrending) {
-      setTrending(cachedTrending);
+    if (cachedTrendingArticles) {
+      setTrending(cachedTrendingArticles);
       setIsTrendingLoading(false);
       return;
     }
@@ -18,23 +17,18 @@ export function useTrendingArticles() {
     const fetchTrending = async () => {
       setIsTrendingLoading(true);
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/trendingArticles/trendingArticles`);
-        const data = await response.json();
-        
-        const result = Array.isArray(data) ? data : data.trending || [];
-        
-        // 2. Save it to the global cache
-        cachedTrending = result;
+        const result = await getTrendingArticlesApi();
+        cachedTrendingArticles = result;
         setTrending(result);
       } catch (error) {
-        console.error("Trending Fetch error:", error);
+        console.error("Trending Articles Fetch error:", error);
       } finally {
         setIsTrendingLoading(false);
       }
     };
 
     fetchTrending();
-  }, []); // Empty array is fine here since it never depends on auth state
+  }, []);
 
   return { trending, isTrendingLoading };
 }

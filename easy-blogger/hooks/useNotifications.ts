@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 import { useAuth } from '../app/context/AuthContext'; 
+import { getNotificationsApi, markNotificationReadApi } from '../app/api/notification.api';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-let socket: Socket;
+let socket;
 
-export function useNotifications(userId: string | undefined) {
-  const [notifications, setNotifications] = useState<any[]>([]);
+export function useNotifications(userId) {
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Get the firebase 'user' object from your AuthContext
   const { user } = useAuth(); 
 
   useEffect(() => {
@@ -17,15 +16,11 @@ export function useNotifications(userId: string | undefined) {
 
     const setupNotifications = async () => {
       try {
-        // Get the fresh token for the initial fetch and socket auth
         const token = await user.getIdToken();
 
-        // 1. Fetch historical notifications
-        const res = await fetch(`${SOCKET_URL}/api/notifications`, {
-          headers: { Authorization: `Bearer ${token}` } 
-        });
-        const json = await res.json();
-        if (json.success) setNotifications(json.data);
+        // 1. Fetch historical data via API Service
+        const data = await getNotificationsApi(token);
+        setNotifications(data);
 
         // 2. Initialize Socket Connection
         if (!socket || !socket.connected) {
@@ -41,7 +36,7 @@ export function useNotifications(userId: string | undefined) {
         });
 
       } catch (error) {
-        console.error("Failed to setup notifications:", error);
+        console.error("Hook Error:", error.message);
       } finally {
         setLoading(false);
       }
@@ -54,36 +49,20 @@ export function useNotifications(userId: string | undefined) {
         socket.off('notification:receive');
       }
     };
-  }, [userId, user]); // Added user to dependencies
+  }, [userId, user]); 
 
-  /**
-   * Deletes notification(s) from DB and removes from local UI.
-   */
-  const markAsRead = async (id?: string) => {
+  const markAsRead = async (id = null) => {
     try {
-      // 1. Get a fresh token from the context user
-      if (!user) {
-        console.error("User not authenticated");
-        return;
-      }
+      if (!user) return;
       const token = await user.getIdToken();
 
-      // 2. Optimistic Update: Remove from UI immediately
+      // Optimistic Update
       setNotifications(prev => id ? prev.filter(n => n.id !== id) : []);
       
-      // 3. Send the delete request to the backend
-      console.log("Full Request URL:", `${SOCKET_URL}/api/notifications/delete`);
-      await fetch(`${SOCKET_URL}/api/notifications/mark-read`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ notificationId: id }),
-      });
+      // API Service Call
+      await markNotificationReadApi(id, token);
     } catch (err) {
-      console.error("Failed to delete notification:", err);
-      // Optional: Refetch on error to restore UI if deletion failed on server
+      console.error("Failed to delete notification:", err.message);
     }
   };
 
