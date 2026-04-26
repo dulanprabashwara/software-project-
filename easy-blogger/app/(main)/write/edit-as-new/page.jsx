@@ -4,9 +4,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
-import Header from "../../../../components/layout/Header";
-import Sidebar from "../../../../components/layout/Sidebar";
 import ArticleEditorShell from "../../../../components/article/ArticleEditorShell";
 import ConfirmDialog from "../../../../components/article/ConfirmDialog";
 import EditorInlineError from "../../../../components/article/EditorInlineError";
@@ -43,7 +40,6 @@ export default function EditAsNewPage() {
   const [editingArticleId, setEditingArticleId] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [fontSize, setFontSize] = useState(16);
   const [inlineError, setInlineError] = useState("");
@@ -518,15 +514,7 @@ export default function EditAsNewPage() {
       />
 
       <div className="min-h-screen bg-white">
-        <Header onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
-        <Sidebar isOpen={sidebarOpen} />
-
-        <main
-          className={`pt-16 transition-all duration-300 ease-in-out ${
-            sidebarOpen ? "ml-60" : "ml-0"
-          }`}
-        >
-          <div className="px-8 pt-8">
+        <div className="px-8 pt-8">
             <div className="max-w-5xl mx-auto" data-skip-save-prompt="true">
               <EditorInlineError
                 title="Content required"
@@ -575,7 +563,6 @@ export default function EditAsNewPage() {
               editorTextLength={editorTextLength}
             />
           </div>
-        </main>
       </div>
     </>
   );
