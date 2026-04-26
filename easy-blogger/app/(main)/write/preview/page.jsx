@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Header from "../../../../components/layout/Header";
-import Sidebar from "../../../../components/layout/Sidebar";
 import ConfirmDialog from "../../../../components/article/ConfirmDialog";
 import ArticleContentRenderer from "../../../../components/article/ArticleContentRenderer";
 import {EditorHeader,EditorBottomActions,} from "../../../../components/article/EditorSharedLayout";
@@ -22,7 +20,6 @@ export default function PreviewPage() {
   const mode = searchParams.get("mode");
   const sourceId = searchParams.get("sourceId");
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [article, setArticle] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -57,11 +54,7 @@ export default function PreviewPage() {
 
     void loadPreviewArticle();
   }, [articleId, mode, router]);
-
-  const mainClassName = `pt-3 min-h-screen transition-all duration-300 ease-in-out ${
-    sidebarOpen ? "ml-60" : "ml-0"
-  }`;
-
+  
   const handleExitEditor = () => {
     router.push("/home");
   };
@@ -169,10 +162,8 @@ export default function PreviewPage() {
       />
 
       <div className="min-h-screen bg-white">
-        <Header onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
-        <Sidebar isOpen={sidebarOpen} />
 
-        <main className={mainClassName}>
+        <main className="min-h-screen pt-3">
           <EditorHeader
             title="Preview your Article"
             subtitle="Review the saved article before publishing or editing again"
