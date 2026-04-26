@@ -1,105 +1,99 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
 import ArticleEditorShell from "../../../../components/article/ArticleEditorShell";
 import ConfirmDialog from "../../../../components/article/ConfirmDialog";
 import EditorInlineError from "../../../../components/article/EditorInlineError";
 
 import { useAutosave } from "../../../../hooks/articles/useAutoSave";
 import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
-import { useCoverImageUpload } from "../../../../hooks/articles/useCoverImageUpload";
-import { getArticleFromResponse } from "../../../../lib/articles/editorHelpers";
-import {clearPreviewContext,readPreviewContext,} from "../../../../lib/articles/previewContext";
-import {getEditorValidationError,isContentAtLimit,} from "../../../../lib/articles/articleEditorValidation";
 import { useEditorNavigationGuard } from "../../../../hooks/articles/useEditorNavigationGuard";
-import {autosaveEditExisting,discardEditExisting,getDraftById,saveEditExistingAsDraft,saveEditExistingForPreview,startEditExisting,}from "../../../../lib/articles/api";
+import { useArticleEditorController } from "../../../../hooks/articles/useArticleEditorController";
+
+import {
+  getArticleFromResponse,
+  getPlainTextFromHtml,
+} from "../../../../lib/articles/editorHelpers";
+import {
+  clearPreviewContext,
+  readPreviewContext,
+} from "../../../../lib/articles/previewContext";
+import { getEditorValidationError } from "../../../../lib/articles/articleEditorValidation";
+import {
+  autosaveEditExisting,
+  discardEditExisting,
+  getDraftById,
+  saveEditExistingAsDraft,
+  saveEditExistingForPreview,
+  startEditExisting,
+} from "../../../../lib/articles/api";
 import { openPreviewSaveConfirm } from "../../../../lib/articles/previewConfirm";
-
-function normalizePlainText(value) {
-  return String(value || "")
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function stripHtmlToPlainText(html) {
-  return normalizePlainText(String(html || "").replace(/<[^>]*>/g, " "));
-}
 
 export default function EditExistingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const articleId = searchParams.get("id");
 
-  const [isClientReady, setIsClientReady] = useState(false);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [coverImage, setCoverImage] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [lastSavedAt, setLastSavedAt] = useState(null);
-  const [zoom, setZoom] = useState(100);
-  const [fontSize, setFontSize] = useState(16);
-  const [inlineError, setInlineError] = useState("");
-  const [contentLimitError, setContentLimitError] = useState("");
-  const [editorTextLength, setEditorTextLength] = useState(0);
-  const [isHydrating, setIsHydrating] = useState(true);
+  // Centralizes shared editor state so create/edit pages stay consistent.
+  const {
+    editorRef,
+    isSavingRef,
+    editingSectionRef,
+
+    isClientReady,
+
+    title,
+    setTitle,
+    handleTitleChange,
+
+    content,
+    setContent,
+    handleContentChange,
+
+    coverImage,
+    setCoverImage,
+    coverImageUpload,
+
+    isSaving,
+    setIsSaving,
+    lastSavedAt,
+    setLastSavedAt,
+
+    zoom,
+    handleZoomChange,
+    fontSize,
+
+    inlineError,
+    setInlineError,
+
+    contentLimitError,
+    setContentLimitError,
+
+    editorTextLength,
+    setEditorTextLength,
+
+    isHydrating,
+    setIsHydrating,
+
+    getEditorHtmlContent,
+    getEditorPlainTextContent,
+    syncEditorDerivedState,
+
+    hasAnyContent,
+    hasValidContent,
+    isContentLimitReached,
+  } = useArticleEditorController();
 
   const { modalState, openModal, closeModal } = useConfirmDialog();
 
-  const editorRef = useRef(null);
-  const isSavingRef = useRef(false);
-  const editingSectionRef = useRef(null);
-  
-
-  const coverImageUpload = useCoverImageUpload({
-    onChange: setCoverImage,
-  });
-
-  useEffect(() => {
-    setIsClientReady(true);
-  }, []);
-
-  const getEditorHtmlContent = useCallback(() => {
-    if (editorRef.current) {
-      return editorRef.current.getContent() || "";
-    }
-
-    return content || "";
-  }, [content]);
-
-  const getEditorPlainTextContent = useCallback(() => {
-    if (editorRef.current) {
-      return normalizePlainText(
-        editorRef.current.getContent({ format: "text" }),
-      );
-    }
-
-    return stripHtmlToPlainText(content);
-  }, [content]);
-
-  const syncEditorDerivedState = useCallback(() => {
-    const plainText = getEditorPlainTextContent();
-    setEditorTextLength(plainText.length);
-
-    if (plainText) {
-      setInlineError("");
-    }
-  }, [getEditorPlainTextContent]);
-
-  const hasAnyContent = Boolean(
-    title.trim() || editorTextLength > 0 || coverImage,
-  );
-
-  const isContentLimitReached = isContentAtLimit(editorTextLength);
-  const hasRequiredContent = Boolean(title.trim() && editorTextLength > 0);
-  const hasValidContent =
-    hasRequiredContent && !contentLimitError && !isContentLimitReached;
-
+  // Keeps derived editor values in sync with content changes.
   useEffect(() => {
     syncEditorDerivedState();
   }, [content, syncEditorDerivedState]);
 
+  // Restores preview-return state before starting a fresh edit session.
   useEffect(() => {
     if (!isClientReady) {
       return;
@@ -156,6 +150,7 @@ export default function EditExistingPage() {
     void hydrateEditor();
   }, [articleId, isClientReady, router]);
 
+  // Uses one save path for autosave and draft save to avoid duplicate persistence logic.
   const saveArticle = useCallback(
     async (mode, overrides = {}) => {
       if (!articleId || isSavingRef.current) {
@@ -171,7 +166,7 @@ export default function EditExistingPage() {
       const nextCoverImage =
         overrides.coverImage !== undefined ? overrides.coverImage : coverImage;
 
-      const nextPlainText = stripHtmlToPlainText(nextContent);
+      const nextPlainText = getPlainTextFromHtml(nextContent);
       const canSave = Boolean(
         nextTitle.trim() || nextPlainText || nextCoverImage,
       );
@@ -196,6 +191,7 @@ export default function EditExistingPage() {
             : await autosaveEditExisting(articleId, payload);
 
         const article = getArticleFromResponse(response);
+
         setLastSavedAt(
           article?.updatedAt ? new Date(article.updatedAt) : new Date(),
         );
@@ -208,9 +204,20 @@ export default function EditExistingPage() {
         isSavingRef.current = false;
       }
     },
-    [articleId, title, coverImage, getEditorHtmlContent],
+    [
+      articleId,
+      coverImage,
+      getEditorHtmlContent,
+      isSavingRef,
+      setContent,
+      setEditorTextLength,
+      setIsSaving,
+      setLastSavedAt,
+      title,
+    ],
   );
 
+  // Saves in-progress edits automatically so users do not lose work.
   useAutosave({
     enabled: isClientReady && !isHydrating && hasAnyContent,
     onSave: () =>
@@ -220,8 +227,7 @@ export default function EditExistingPage() {
     watchValues: [title, content, coverImage],
   });
 
-  
-
+  // Validates before saving because drafts should be complete enough to continue later.
   const saveDraftWithoutRedirect = useCallback(async () => {
     const plainTextContent = getEditorPlainTextContent();
     const htmlContent = getEditorHtmlContent();
@@ -254,9 +260,11 @@ export default function EditExistingPage() {
     getEditorPlainTextContent,
     isContentLimitReached,
     saveArticle,
+    setInlineError,
     title,
   ]);
 
+  // Delegates discard to the backend so the original article can be restored safely.
   const discardWithoutRedirect = useCallback(async () => {
     try {
       await discardEditExisting(articleId);
@@ -267,21 +275,23 @@ export default function EditExistingPage() {
       setInlineError("Failed to discard changes.");
       return false;
     }
-  }, [articleId]);
+  }, [articleId, setInlineError]);
 
+  // Protects users from losing edits when they navigate outside the editor.
   const { handleExternalActionAttempt, pendingExternalActionRef } =
-  useEditorNavigationGuard({
-    enabled: isClientReady,
-    isHydrating,
-    isSaving,
-    isModalOpen: modalState.isOpen,
-    editingSectionRef,
-    openModal,
-    closeModal,
-    onSaveBeforeLeave: saveDraftWithoutRedirect,
-    onDiscardBeforeLeave: discardWithoutRedirect,
-  });
-
+    useEditorNavigationGuard({
+      enabled: isClientReady,
+      isHydrating,
+      isSaving,
+      isModalOpen: modalState.isOpen,
+      editingSectionRef,
+      openModal,
+      closeModal,
+      onSaveBeforeLeave: saveDraftWithoutRedirect,
+      onDiscardBeforeLeave: discardWithoutRedirect,
+    });
+  
+  // Redirects only after a successful draft save to avoid showing stale unpublished data.
   const handleSaveAsDraft = useCallback(async () => {
     const didSave = await saveDraftWithoutRedirect();
     if (!didSave) return false;
@@ -290,6 +300,7 @@ export default function EditExistingPage() {
     return true;
   }, [router, saveDraftWithoutRedirect]);
 
+  // Confirms destructive action because edit-existing can overwrite saved article changes.
   const handleDiscard = useCallback(async () => {
     openModal({
       title: "Discard changes?",
@@ -309,6 +320,7 @@ export default function EditExistingPage() {
     });
   }, [closeModal, discardWithoutRedirect, openModal, router]);
 
+  // Saves a preview-safe version so preview always shows the latest editor content.
   const handlePreview = useCallback(async () => {
     const plainTextContent = getEditorPlainTextContent();
     const htmlContent = getEditorHtmlContent();
@@ -354,12 +366,9 @@ export default function EditExistingPage() {
     isContentLimitReached,
     openModal,
     router,
+    setInlineError,
     title,
   ]);
-
-  const handleZoomChange = useCallback((delta) => {
-    setZoom((prev) => Math.max(50, Math.min(200, prev + delta)));
-  }, []);
 
   if (!isClientReady) {
     return <div className="min-h-screen bg-white" />;
@@ -387,17 +396,13 @@ export default function EditExistingPage() {
         </div>
 
         <div ref={editingSectionRef}>
+          {/* Keeps page logic here while the reusable shell handles editor UI. */} 
           <ArticleEditorShell
             editorRef={editorRef}
             title={title}
-            onTitleChange={setTitle}
+            onTitleChange={handleTitleChange}
             content={content}
-            onContentChange={(value) => {
-              setContent(value);
-              setInlineError("");
-              setContentLimitError("");
-              setEditorTextLength(stripHtmlToPlainText(value).length);
-            }}
+            onContentChange={handleContentChange}
             onEditorReady={syncEditorDerivedState}
             coverImage={coverImage}
             coverImageProps={coverImageUpload}

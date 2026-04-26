@@ -4,20 +4,14 @@ import { useEffect, useRef } from "react";
 import { Editor } from "@tinymce/tinymce-react";
 
 import { getTinyMceConfig } from "../../lib/editor/tinymceConfig";
+import {
+  CONTENT_MAX_LENGTH,
+  TITLE_MAX_LENGTH,
+} from "../../lib/articles/editorConstants";
+import { getPlainTextFromHtml } from "../../lib/articles/editorHelpers";
 import CoverImageField from "./CoverImageField";
 import { EditorHeader, EditorBottomActions } from "./EditorSharedLayout";
 
-const TITLE_MAX_LENGTH = 100;
-const CONTENT_MAX_LENGTH = 20000;
-
-// Count only readable text, not HTML tags
-function stripHtmlToPlainText(html) {
-  return String(html || "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 // Reuse the same UI for required state and counters
 function FieldMeta({ required, limitReached, limitMessage, items = [] }) {
@@ -213,7 +207,7 @@ export default function ArticleEditorShell({
                   onEditorReady?.();
                 }}
                 onEditorChange={(value, editor) => {
-                  const plainText = stripHtmlToPlainText(value);
+                  const plainText = getPlainTextFromHtml(value);
 
                   // TinyMCE needs manual content limit handling since it allows pasting large content that exceeds limits
                   if (plainText.length > CONTENT_MAX_LENGTH) {
@@ -225,7 +219,10 @@ export default function ArticleEditorShell({
                   }
                   onContentLimitErrorChange?.("");
                   lastAppliedContentRef.current = value;
-                  onContentChange(value);
+                  onContentChange(value, {
+                    plainText,
+                    textLength: plainText.length,
+                  });
                 }}
                 apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
                 init={getTinyMceConfig({ fontSize })}

@@ -1,13 +1,15 @@
+import { CONTENT_MAX_LENGTH } from "./editorConstants";
+
 export const ARTICLE_EDITOR_LIMITS = {
-  CONTENT_MAX_LENGTH: 20000,
+  CONTENT_MAX_LENGTH,
 };
 
 export function getContentLimitMessage() {
-  return `Content cannot exceed ${ARTICLE_EDITOR_LIMITS.CONTENT_MAX_LENGTH.toLocaleString()} characters.`;
+  return `Content cannot exceed ${CONTENT_MAX_LENGTH.toLocaleString()} characters.`;
 }
 
 export function isContentAtLimit(length) {
-  return length >= ARTICLE_EDITOR_LIMITS.CONTENT_MAX_LENGTH;
+  return length >= CONTENT_MAX_LENGTH;
 }
 
 export function getEditorValidationError({

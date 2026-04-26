@@ -2,106 +2,100 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
 import ArticleEditorShell from "../../../../components/article/ArticleEditorShell";
 import ConfirmDialog from "../../../../components/article/ConfirmDialog";
 import EditorInlineError from "../../../../components/article/EditorInlineError";
 
 import { useAutosave } from "../../../../hooks/articles/useAutoSave";
 import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
-import { useCoverImageUpload } from "../../../../hooks/articles/useCoverImageUpload";
-import { getArticleFromResponse } from "../../../../lib/articles/editorHelpers";
-import {clearPreviewContext,readPreviewContext,} from "../../../../lib/articles/previewContext";
-
-import {autosaveEditAsNew,discardEditAsNew,getDraftById,saveEditAsNewAsDraft,startEditAsNew,} from "../../../../lib/articles/api";
-import { openPreviewSaveConfirm } from "../../../../lib/articles/previewConfirm";
-import {getEditorValidationError,isContentAtLimit,} from "../../../../lib/articles/articleEditorValidation";
 import { useEditorNavigationGuard } from "../../../../hooks/articles/useEditorNavigationGuard";
-function normalizePlainText(value) {
-  return String(value || "")
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+import { useArticleEditorController } from "../../../../hooks/articles/useArticleEditorController";
 
-function stripHtmlToPlainText(html) {
-  return normalizePlainText(String(html || "").replace(/<[^>]*>/g, " "));
-}
+import {
+  getArticleFromResponse,
+  getPlainTextFromHtml,
+} from "../../../../lib/articles/editorHelpers";
+import {
+  clearPreviewContext,
+  readPreviewContext,
+} from "../../../../lib/articles/previewContext";
+import {
+  autosaveEditAsNew,
+  discardEditAsNew,
+  getDraftById,
+  saveEditAsNewAsDraft,
+  startEditAsNew,
+} from "../../../../lib/articles/api";
+import { openPreviewSaveConfirm } from "../../../../lib/articles/previewConfirm";
+import { getEditorValidationError } from "../../../../lib/articles/articleEditorValidation";
 
 export default function EditAsNewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sourceArticleId = searchParams.get("id");
 
-  const [isClientReady, setIsClientReady] = useState(false);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [coverImage, setCoverImage] = useState(null);
+  // Reuses shared editor state so all editor flows behave consistently.
+  const {
+    editorRef,
+    isSavingRef,
+    editingSectionRef,
+
+    isClientReady,
+
+    title,
+    setTitle,
+    handleTitleChange,
+
+    content,
+    setContent,
+    handleContentChange,
+
+    coverImage,
+    setCoverImage,
+    coverImageUpload,
+
+    isSaving,
+    setIsSaving,
+    lastSavedAt,
+    setLastSavedAt,
+
+    zoom,
+    handleZoomChange,
+    fontSize,
+
+    inlineError,
+    setInlineError,
+
+    contentLimitError,
+    setContentLimitError,
+
+    editorTextLength,
+    setEditorTextLength,
+
+    isHydrating,
+    setIsHydrating,
+
+    getEditorHtmlContent,
+    getEditorPlainTextContent,
+    syncEditorDerivedState,
+
+    hasAnyContent,
+    hasValidContent,
+    isContentLimitReached,
+  } = useArticleEditorController();
+
   const [editingArticleId, setEditingArticleId] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [lastSavedAt, setLastSavedAt] = useState(null);
-  const [zoom, setZoom] = useState(100);
-  const [fontSize, setFontSize] = useState(16);
-  const [inlineError, setInlineError] = useState("");
-  const [contentLimitError, setContentLimitError] = useState("");
-  const [editorTextLength, setEditorTextLength] = useState(0);
-  const [isHydrating, setIsHydrating] = useState(true);
 
   const { modalState, openModal, closeModal } = useConfirmDialog();
+  const hasStartedRef = useRef(false); // Prevents duplicate edit-as-new draft creation during re-renders or React strict-mode effects.
 
-  const editorRef = useRef(null);
-  const isSavingRef = useRef(false);
-  const hasStartedRef = useRef(false);
-  const editingSectionRef = useRef(null);
-  
-
-  const coverImageUpload = useCoverImageUpload({
-    onChange: setCoverImage,
-  });
-
-  useEffect(() => {
-    setIsClientReady(true);
-  }, []);
-
-  const getEditorHtmlContent = useCallback(() => {
-    if (editorRef.current) {
-      return editorRef.current.getContent() || "";
-    }
-
-    return content || "";
-  }, [content]);
-
-  const getEditorPlainTextContent = useCallback(() => {
-    if (editorRef.current) {
-      return normalizePlainText(
-        editorRef.current.getContent({ format: "text" }),
-      );
-    }
-
-    return stripHtmlToPlainText(content);
-  }, [content]);
-
-  const syncEditorDerivedState = useCallback(() => {
-    const plainText = getEditorPlainTextContent();
-    setEditorTextLength(plainText.length);
-
-    if (plainText) {
-      setInlineError("");
-    }
-  }, [getEditorPlainTextContent]);
-
-  const hasAnyContent = Boolean(
-    title.trim() || editorTextLength > 0 || coverImage,
-  );
-
-  const isContentLimitReached = isContentAtLimit(editorTextLength);
-  const hasRequiredContent = Boolean(title.trim() && editorTextLength > 0);
-  const hasValidContent =
-    hasRequiredContent && !contentLimitError && !isContentLimitReached;
-
+  // Keeps derived editor values synced when content changes.
   useEffect(() => {
     syncEditorDerivedState();
   }, [content, syncEditorDerivedState]);
 
+  // Restores preview-return state first to avoid creating duplicate copied drafts.
   useEffect(() => {
     if (!isClientReady) {
       return;
@@ -117,11 +111,11 @@ export default function EditAsNewPage() {
     }
 
     hasStartedRef.current = true;
-
+    // Resume an existing preview draft when possible; otherwise create a new copy from the source article.
     const hydrateEditor = async () => {
       try {
         const previewContext = readPreviewContext();
-
+        // Returning from preview should reuse the same copied draft instead of starting another copy.
         if (
           previewContext?.mode === "edit-as-new" &&
           previewContext?.sourceId === sourceArticleId &&
@@ -166,6 +160,7 @@ export default function EditAsNewPage() {
     void hydrateEditor();
   }, [isClientReady, router, sourceArticleId]);
 
+  // Saves only to the copied draft so the original article always remains untouched.
   const saveArticle = useCallback(
     async (mode, overrides = {}) => {
       if (!editingArticleId || isSavingRef.current) {
@@ -181,11 +176,12 @@ export default function EditAsNewPage() {
       const nextCoverImage =
         overrides.coverImage !== undefined ? overrides.coverImage : coverImage;
 
-      const nextPlainText = stripHtmlToPlainText(nextContent);
+      const nextPlainText = getPlainTextFromHtml(nextContent);
+
+      // Avoid empty writes if the copied article somehow has no editable content.
       const canSave = Boolean(
         nextTitle.trim() || nextPlainText || nextCoverImage,
       );
-
       if (!canSave) {
         return null;
       }
@@ -206,6 +202,7 @@ export default function EditAsNewPage() {
             : await autosaveEditAsNew(editingArticleId, payload);
 
         const article = getArticleFromResponse(response);
+
         setLastSavedAt(
           article?.updatedAt ? new Date(article.updatedAt) : new Date(),
         );
@@ -218,9 +215,20 @@ export default function EditAsNewPage() {
         isSavingRef.current = false;
       }
     },
-    [editingArticleId, title, coverImage, getEditorHtmlContent],
+    [
+      coverImage,
+      editingArticleId,
+      getEditorHtmlContent,
+      isSavingRef,
+      setContent,
+      setEditorTextLength,
+      setIsSaving,
+      setLastSavedAt,
+      title,
+    ],
   );
 
+  // Autosave persists changes to the copied draft after the initial copy has loaded.
   useAutosave({
     enabled: isClientReady && !isHydrating && hasAnyContent,
     onSave: () =>
@@ -230,6 +238,7 @@ export default function EditAsNewPage() {
     watchValues: [title, content, coverImage],
   });
 
+  // Validates editor content before converting the copied article into a visible draft.
   const saveDraftWithoutRedirect = useCallback(async () => {
     const plainTextContent = getEditorPlainTextContent();
     const htmlContent = getEditorHtmlContent();
@@ -262,9 +271,11 @@ export default function EditAsNewPage() {
     getEditorPlainTextContent,
     isContentLimitReached,
     saveArticle,
+    setInlineError,
     title,
   ]);
 
+  // Discard deletes only the copied draft and leaves the original article untouched.
   const discardWithoutRedirect = useCallback(async () => {
     if (!editingArticleId) {
       clearPreviewContext();
@@ -291,21 +302,22 @@ export default function EditAsNewPage() {
       setInlineError("Failed to discard changes.");
       return false;
     }
-  }, [editingArticleId]);
+  }, [editingArticleId, setInlineError]);
 
+  // Leaving the editor should ask whether to keep or delete the copied draft.
   const { handleExternalActionAttempt, pendingExternalActionRef } =
-  useEditorNavigationGuard({
-    enabled: isClientReady,
-    isHydrating,
-    isSaving,
-    isModalOpen: modalState.isOpen,
-    editingSectionRef,
-    openModal,
-    closeModal,
-    onSaveBeforeLeave: saveDraftWithoutRedirect,
-    onDiscardBeforeLeave: discardWithoutRedirect,
-  });
-
+    useEditorNavigationGuard({
+      enabled: isClientReady,
+      isHydrating,
+      isSaving,
+      isModalOpen: modalState.isOpen,
+      editingSectionRef,
+      openModal,
+      closeModal,
+      onSaveBeforeLeave: saveDraftWithoutRedirect,
+      onDiscardBeforeLeave: discardWithoutRedirect,
+    });
+  // Redirects only after save succeeds so unpublished always shows the latest draft.
   const handleSaveAsDraft = useCallback(async () => {
     const didSave = await saveDraftWithoutRedirect();
     if (!didSave) return;
@@ -313,6 +325,7 @@ export default function EditAsNewPage() {
     router.push("/write/unpublished");
   }, [router, saveDraftWithoutRedirect]);
 
+  // Confirm discard because edit-as-new creates a separate draft copy that will be removed.
   const handleDiscard = useCallback(async () => {
     if (!editingArticleId) return;
 
@@ -333,6 +346,7 @@ export default function EditAsNewPage() {
     });
   }, [closeModal, discardWithoutRedirect, editingArticleId, openModal, router]);
 
+  // Save the copied draft before preview so preview reads the latest copy by id.
   const handlePreview = useCallback(async () => {
     const plainTextContent = getEditorPlainTextContent();
     const htmlContent = getEditorHtmlContent();
@@ -348,6 +362,7 @@ export default function EditAsNewPage() {
       setInlineError(validationError);
       return;
     }
+
     openPreviewSaveConfirm({
       openModal,
       closeModal,
@@ -375,13 +390,10 @@ export default function EditAsNewPage() {
     openModal,
     router,
     saveArticle,
+    setInlineError,
     sourceArticleId,
     title,
   ]);
-
-  const handleZoomChange = useCallback((delta) => {
-    setZoom((prev) => Math.max(50, Math.min(200, prev + delta)));
-  }, []);
 
   if (!isClientReady) {
     return <div className="min-h-screen bg-white" />;
@@ -412,19 +424,15 @@ export default function EditAsNewPage() {
         </div>
 
         <div ref={editingSectionRef}>
+          {/* Keeps page logic separate while the shared shell handles reusable editor UI. */} 
           <ArticleEditorShell
             editorRef={editorRef}
             title={title}
-            onTitleChange={setTitle}
-            titleReadOnly
+            onTitleChange={handleTitleChange}
+            titleReadOnly // The title stays locked because edit-as-new reuses the original article's title by design.
             titleHelperText="This title is copied from the original article and cannot be changed."
             content={content}
-            onContentChange={(value) => {
-              setContent(value);
-              setInlineError("");
-              setContentLimitError("");
-              setEditorTextLength(stripHtmlToPlainText(value).length);
-            }}
+            onContentChange={handleContentChange}
             onEditorReady={syncEditorDerivedState}
             coverImage={coverImage}
             coverImageProps={coverImageUpload}
@@ -446,8 +454,8 @@ export default function EditAsNewPage() {
               };
               handleExternalActionAttempt();
             }}
-            disableSaveAsDraft={!hasValidContent}
-            disablePreview={!hasValidContent}
+            disableSaveAsDraft={!hasValidContent || !editingArticleId}
+            disablePreview={!hasValidContent || !editingArticleId}
             disableDiscard={isSaving || isHydrating || !editingArticleId}
             editorTextLength={editorTextLength}
             contentLimitError={contentLimitError}
