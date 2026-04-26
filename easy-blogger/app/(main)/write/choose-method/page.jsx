@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Newspaper, FileEdit, ArrowRight } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
+import CreateArticleTypeModal from "../../../../components/article/CreateArticleTypeModal";
 
 function ChooseOptionCard({
   title,
@@ -121,6 +122,7 @@ function HeroBrand() {
 export default function ChooseMethodPage() {
   const router = useRouter();
   const { userProfile: user, profileLoading: isLoading } = useAuth();
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const options = useMemo(
     () => [
@@ -128,7 +130,7 @@ export default function ChooseMethodPage() {
         title: "Create a New Article",
         description: "Start fresh and write a new story from the beginning.",
         icon: Newspaper,
-        onClick: () => router.push("/write/create"),
+        onClick: () => setShowCreateModal(true),
         variant: "primary",
       },
       {
@@ -210,6 +212,12 @@ export default function ChooseMethodPage() {
           </div>
         </div>
       </div>
+      <CreateArticleTypeModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onUseAi={() => router.push("/ai-generate")}
+        onRegular={() => router.push("/write/create")}
+      />
     </div>
   );
 }
