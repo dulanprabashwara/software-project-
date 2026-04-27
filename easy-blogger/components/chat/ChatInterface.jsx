@@ -562,6 +562,8 @@ export default function ChatInterface() {
   // when select a conversation clear unread badge + tell the app to switch the middle screen to show specific conversation
   const handleSelectConversation = (convId) => {
     setActiveConversationId(convId);
+    // clear old messages immediately so stale messages don't flash while new ones are loading
+    setMessages([]);
     setConversations((prev) =>
       prev.map((c) => (c.id === convId ? { ...c, unreadCount: 0 } : c)),
     );
