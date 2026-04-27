@@ -1,106 +1,99 @@
-//easy-blogger\app\(main)\write\edit-existing\page.jsx
-
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import Header from "../../../../components/layout/Header";
-import Sidebar from "../../../../components/layout/Sidebar";
 import ArticleEditorShell from "../../../../components/article/ArticleEditorShell";
 import ConfirmDialog from "../../../../components/article/ConfirmDialog";
 import EditorInlineError from "../../../../components/article/EditorInlineError";
 
 import { useAutosave } from "../../../../hooks/articles/useAutoSave";
 import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
-import { useCoverImageUpload } from "../../../../hooks/articles/useCoverImageUpload";
-import { getArticleFromResponse } from "../../../../lib/articles/editorHelpers";
-import {clearPreviewContext,readPreviewContext,} from "../../../../lib/articles/previewContext";
+import { useEditorNavigationGuard } from "../../../../hooks/articles/useEditorNavigationGuard";
+import { useArticleEditorController } from "../../../../hooks/articles/useArticleEditorController";
 
-import {autosaveEditExisting,discardEditExisting,getDraftById,saveEditExistingAsDraft,saveEditExistingForPreview,startEditExisting,}from "../../../../lib/articles/api";
+import {
+  getArticleFromResponse,
+  getPlainTextFromHtml,
+} from "../../../../lib/articles/editorHelpers";
+import {
+  clearPreviewContext,
+  readPreviewContext,
+} from "../../../../lib/articles/previewContext";
+import { getEditorValidationError } from "../../../../lib/articles/articleEditorValidation";
+import {
+  autosaveEditExisting,
+  discardEditExisting,
+  getDraftById,
+  saveEditExistingAsDraft,
+  saveEditExistingForPreview,
+  startEditExisting,
+} from "../../../../lib/articles/api";
 import { openPreviewSaveConfirm } from "../../../../lib/articles/previewConfirm";
-
-function normalizePlainText(value) {
-  return String(value || "")
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function stripHtmlToPlainText(html) {
-  return normalizePlainText(String(html || "").replace(/<[^>]*>/g, " "));
-}
 
 export default function EditExistingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const articleId = searchParams.get("id");
 
-  const [isClientReady, setIsClientReady] = useState(false);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [coverImage, setCoverImage] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [lastSavedAt, setLastSavedAt] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [zoom, setZoom] = useState(100);
-  const [fontSize, setFontSize] = useState(16);
-  const [inlineError, setInlineError] = useState("");
-  const [editorTextLength, setEditorTextLength] = useState(0);
-  const [isHydrating, setIsHydrating] = useState(true);
+  // Centralizes shared editor state so create/edit pages stay consistent.
+  const {
+    editorRef,
+    isSavingRef,
+    editingSectionRef,
+
+    isClientReady,
+
+    title,
+    setTitle,
+    handleTitleChange,
+
+    content,
+    setContent,
+    handleContentChange,
+
+    coverImage,
+    setCoverImage,
+    coverImageUpload,
+
+    isSaving,
+    setIsSaving,
+    lastSavedAt,
+    setLastSavedAt,
+
+    zoom,
+    handleZoomChange,
+    fontSize,
+
+    inlineError,
+    setInlineError,
+
+    contentLimitError,
+    setContentLimitError,
+
+    editorTextLength,
+    setEditorTextLength,
+
+    isHydrating,
+    setIsHydrating,
+
+    getEditorHtmlContent,
+    getEditorPlainTextContent,
+    syncEditorDerivedState,
+
+    hasAnyContent,
+    hasValidContent,
+    isContentLimitReached,
+  } = useArticleEditorController();
 
   const { modalState, openModal, closeModal } = useConfirmDialog();
 
-  const editorRef = useRef(null);
-  const isSavingRef = useRef(false);
-  const editingSectionRef = useRef(null);
-  const isNavigationPromptActiveRef = useRef(false);
-  const pendingExternalActionRef = useRef(null);
-  const bypassExternalActionGuardRef = useRef(false);
-
-  const coverImageUpload = useCoverImageUpload({
-    onChange: setCoverImage,
-  });
-
-  useEffect(() => {
-    setIsClientReady(true);
-  }, []);
-
-  const getEditorHtmlContent = useCallback(() => {
-    if (editorRef.current) {
-      return editorRef.current.getContent() || "";
-    }
-
-    return content || "";
-  }, [content]);
-
-  const getEditorPlainTextContent = useCallback(() => {
-    if (editorRef.current) {
-      return normalizePlainText(editorRef.current.getContent({ format: "text" }));
-    }
-
-    return stripHtmlToPlainText(content);
-  }, [content]);
-
-  const syncEditorDerivedState = useCallback(() => {
-    const plainText = getEditorPlainTextContent();
-    setEditorTextLength(plainText.length);
-
-    if (plainText) {
-      setInlineError("");
-    }
-  }, [getEditorPlainTextContent]);
-
-  const hasAnyContent = Boolean(
-    title.trim() || editorTextLength > 0 || coverImage,
-  );
-
-  const hasRequiredContent = Boolean(title.trim() && editorTextLength > 0);
-
+  // Keeps derived editor values in sync with content changes.
   useEffect(() => {
     syncEditorDerivedState();
   }, [content, syncEditorDerivedState]);
 
+  // Restores preview-return state before starting a fresh edit session.
   useEffect(() => {
     if (!isClientReady) {
       return;
@@ -126,7 +119,9 @@ export default function EditExistingPage() {
             setTitle(article.title || "");
             setContent(article.content || "");
             setCoverImage(article.coverImage || null);
-            setLastSavedAt(article.updatedAt ? new Date(article.updatedAt) : null);
+            setLastSavedAt(
+              article.updatedAt ? new Date(article.updatedAt) : null,
+            );
             setIsHydrating(false);
             return;
           }
@@ -155,6 +150,7 @@ export default function EditExistingPage() {
     void hydrateEditor();
   }, [articleId, isClientReady, router]);
 
+  // Uses one save path for autosave and draft save to avoid duplicate persistence logic.
   const saveArticle = useCallback(
     async (mode, overrides = {}) => {
       if (!articleId || isSavingRef.current) {
@@ -170,7 +166,7 @@ export default function EditExistingPage() {
       const nextCoverImage =
         overrides.coverImage !== undefined ? overrides.coverImage : coverImage;
 
-      const nextPlainText = stripHtmlToPlainText(nextContent);
+      const nextPlainText = getPlainTextFromHtml(nextContent);
       const canSave = Boolean(
         nextTitle.trim() || nextPlainText || nextCoverImage,
       );
@@ -195,6 +191,7 @@ export default function EditExistingPage() {
             : await autosaveEditExisting(articleId, payload);
 
         const article = getArticleFromResponse(response);
+
         setLastSavedAt(
           article?.updatedAt ? new Date(article.updatedAt) : new Date(),
         );
@@ -207,9 +204,20 @@ export default function EditExistingPage() {
         isSavingRef.current = false;
       }
     },
-    [articleId, title, coverImage, getEditorHtmlContent],
+    [
+      articleId,
+      coverImage,
+      getEditorHtmlContent,
+      isSavingRef,
+      setContent,
+      setEditorTextLength,
+      setIsSaving,
+      setLastSavedAt,
+      title,
+    ],
   );
 
+  // Saves in-progress edits automatically so users do not lose work.
   useAutosave({
     enabled: isClientReady && !isHydrating && hasAnyContent,
     onSave: () =>
@@ -219,34 +227,20 @@ export default function EditExistingPage() {
     watchValues: [title, content, coverImage],
   });
 
-  const runPendingExternalAction = useCallback(() => {
-    const action = pendingExternalActionRef.current;
-    pendingExternalActionRef.current = null;
-
-    if (!action) return;
-
-    bypassExternalActionGuardRef.current = true;
-
-    Promise.resolve().then(() => {
-      action();
-
-      setTimeout(() => {
-        bypassExternalActionGuardRef.current = false;
-      }, 0);
-    });
-  }, []);
-
+  // Validates before saving because drafts should be complete enough to continue later.
   const saveDraftWithoutRedirect = useCallback(async () => {
     const plainTextContent = getEditorPlainTextContent();
     const htmlContent = getEditorHtmlContent();
 
-    if (!title.trim()) {
-      setInlineError("Title is required to save the article.");
-      return false;
-    }
+    const validationError = getEditorValidationError({
+      title,
+      plainTextContent,
+      contentLimitError,
+      isContentLimitReached,
+    });
 
-    if (!plainTextContent) {
-      setInlineError("Content is required to save the article.");
+    if (validationError) {
+      setInlineError(validationError);
       return false;
     }
 
@@ -260,8 +254,17 @@ export default function EditExistingPage() {
       setInlineError("Failed to save draft.");
       return false;
     }
-  }, [getEditorHtmlContent, getEditorPlainTextContent, saveArticle, title]);
+  }, [
+    contentLimitError,
+    getEditorHtmlContent,
+    getEditorPlainTextContent,
+    isContentLimitReached,
+    saveArticle,
+    setInlineError,
+    title,
+  ]);
 
+  // Delegates discard to the backend so the original article can be restored safely.
   const discardWithoutRedirect = useCallback(async () => {
     try {
       await discardEditExisting(articleId);
@@ -272,8 +275,23 @@ export default function EditExistingPage() {
       setInlineError("Failed to discard changes.");
       return false;
     }
-  }, [articleId]);
+  }, [articleId, setInlineError]);
 
+  // Protects users from losing edits when they navigate outside the editor.
+  const { handleExternalActionAttempt, pendingExternalActionRef } =
+    useEditorNavigationGuard({
+      enabled: isClientReady,
+      isHydrating,
+      isSaving,
+      isModalOpen: modalState.isOpen,
+      editingSectionRef,
+      openModal,
+      closeModal,
+      onSaveBeforeLeave: saveDraftWithoutRedirect,
+      onDiscardBeforeLeave: discardWithoutRedirect,
+    });
+  
+  // Redirects only after a successful draft save to avoid showing stale unpublished data.
   const handleSaveAsDraft = useCallback(async () => {
     const didSave = await saveDraftWithoutRedirect();
     if (!didSave) return false;
@@ -282,6 +300,7 @@ export default function EditExistingPage() {
     return true;
   }, [router, saveDraftWithoutRedirect]);
 
+  // Confirms destructive action because edit-existing can overwrite saved article changes.
   const handleDiscard = useCallback(async () => {
     openModal({
       title: "Discard changes?",
@@ -301,17 +320,20 @@ export default function EditExistingPage() {
     });
   }, [closeModal, discardWithoutRedirect, openModal, router]);
 
+  // Saves a preview-safe version so preview always shows the latest editor content.
   const handlePreview = useCallback(async () => {
     const plainTextContent = getEditorPlainTextContent();
     const htmlContent = getEditorHtmlContent();
 
-    if (!title.trim()) {
-      setInlineError("Title is required to preview the article.");
-      return;
-    }
+    const validationError = getEditorValidationError({
+      title,
+      plainTextContent,
+      contentLimitError,
+      isContentLimitReached,
+    });
 
-    if (!plainTextContent) {
-      setInlineError("Content is required to preview the article.");
+    if (validationError) {
+      setInlineError(validationError);
       return;
     }
 
@@ -328,7 +350,6 @@ export default function EditExistingPage() {
           });
 
           router.push(`/write/preview?id=${articleId}&mode=edit-existing`);
-      
         } catch (error) {
           console.error("Failed to prepare article preview:", error);
           setInlineError("Failed to open preview.");
@@ -337,140 +358,16 @@ export default function EditExistingPage() {
     });
   }, [
     articleId,
+    closeModal,
+    contentLimitError,
+    coverImage,
     getEditorHtmlContent,
     getEditorPlainTextContent,
-    router,
-    saveArticle,
-    title,
-  ]);
-
-  const handleZoomChange = useCallback((delta) => {
-    setZoom((prev) => Math.max(50, Math.min(200, prev + delta)));
-  }, []);
-
-  const handleExternalActionAttempt = useCallback(() => {
-    if (isNavigationPromptActiveRef.current) {
-      return;
-    }
-
-    isNavigationPromptActiveRef.current = true;
-
-    openModal({
-      title: "Save article?",
-      message: "Do you want to save the article before leaving this page?",
-      confirmText: "Yes",
-      cancelText: "No",
-      onConfirm: async () => {
-        try {
-          const didSave = await saveDraftWithoutRedirect();
-
-          if (!didSave) {
-            pendingExternalActionRef.current = null;
-            closeModal();
-            return;
-          }
-
-          closeModal();
-          runPendingExternalAction();
-        } finally {
-          isNavigationPromptActiveRef.current = false;
-        }
-      },
-      onCancel: async () => {
-        try {
-          const didDiscard = await discardWithoutRedirect();
-
-          if (!didDiscard) {
-            pendingExternalActionRef.current = null;
-            return;
-          }
-
-          runPendingExternalAction();
-        } finally {
-          isNavigationPromptActiveRef.current = false;
-        }
-      },
-      onClose: async () => {
-        pendingExternalActionRef.current = null;
-        isNavigationPromptActiveRef.current = false;
-      },
-    });
-  }, [
-    closeModal,
-    discardWithoutRedirect,
+    isContentLimitReached,
     openModal,
-    runPendingExternalAction,
-    saveDraftWithoutRedirect,
-  ]);
-
-  const isTinyMceUiElement = useCallback((element) => {
-    if (!(element instanceof Element)) return false;
-
-    return Boolean(
-      element.closest(
-        [
-          ".tox",
-          ".tox-tinymce-aux",
-          ".tox-dialog",
-          ".tox-dialog-wrap",
-          ".tox-menu",
-          ".tox-collection",
-          ".tox-toolbar",
-          ".tox-toolbar__group",
-          ".mce-content-body",
-        ].join(","),
-      ),
-    );
-  }, []);
-
-  useEffect(() => {
-    if (!isClientReady) {
-      return;
-    }
-
-    const handleDocumentClickCapture = (event) => {
-      if (
-        bypassExternalActionGuardRef.current ||
-        isHydrating ||
-        isSaving ||
-        modalState.isOpen
-      ) {
-        return;
-      }
-
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      if (isTinyMceUiElement(target)) return;
-
-      const clickableElement = target.closest("button, a, [role='button']");
-      if (!clickableElement) return;
-
-      if (clickableElement.closest("[data-skip-save-prompt='true']")) return;
-      if (editingSectionRef.current?.contains(clickableElement)) return;
-      if (isTinyMceUiElement(clickableElement)) return;
-
-      pendingExternalActionRef.current = () => {
-        clickableElement.click();
-      };
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      handleExternalActionAttempt();
-    };
-
-    document.addEventListener("click", handleDocumentClickCapture, true);
-
-    return () => {
-      document.removeEventListener("click", handleDocumentClickCapture, true);
-    };
-  }, [
-    handleExternalActionAttempt,
-    isClientReady,
-    isHydrating,
-    isSaving,
-    isTinyMceUiElement,
-    modalState.isOpen,
+    router,
+    setInlineError,
+    title,
   ]);
 
   if (!isClientReady) {
@@ -492,59 +389,49 @@ export default function EditExistingPage() {
       />
 
       <div className="min-h-screen bg-white">
-        <Header onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
-        <Sidebar isOpen={sidebarOpen} />
-
-        <main
-          className={`pt-16 transition-all duration-300 ease-in-out ${
-            sidebarOpen ? "ml-60" : "ml-0"
-          }`}
-        >
-          <div className="px-8 pt-8">
-            <div className="max-w-5xl mx-auto" data-skip-save-prompt="true">
-              <EditorInlineError message={inlineError} />
-            </div>
+        <div className="px-8 pt-8">
+          <div className="max-w-5xl mx-auto" data-skip-save-prompt="true">
+            <EditorInlineError message={inlineError} />
           </div>
+        </div>
 
-          <div ref={editingSectionRef}>
-            <ArticleEditorShell
-              editorRef={editorRef}
-              title={title}
-              onTitleChange={setTitle}
-              content={content}
-              onContentChange={(value) => {
-                setContent(value);
-                setInlineError("");
-                setEditorTextLength(stripHtmlToPlainText(value).length);
-              }}
-              onEditorReady={syncEditorDerivedState}
-              coverImage={coverImage}
-              coverImageProps={coverImageUpload}
-              zoom={zoom}
-              onZoomChange={handleZoomChange}
-              fontSize={fontSize}
-              isHydrating={isHydrating}
-              isSaving={isSaving}
-              lastSavedAt={lastSavedAt}
-              headerTitle="Edit your Article"
-              headerSubtitle="Update your existing article here"
-              modeBadge="Editing Article"
-              onSaveAsDraft={handleSaveAsDraft}
-              onPreview={handlePreview}
-              onDiscard={handleDiscard}
-              onExit={() => {
-                pendingExternalActionRef.current = () => {
-                  router.push("/write/unpublished");
-                };
-                handleExternalActionAttempt();
-              }}
-              disableSaveAsDraft={!hasRequiredContent}
-              disablePreview={!hasRequiredContent}
-              disableDiscard={isSaving || isHydrating}
-              editorTextLength={editorTextLength}
-            />
-          </div>
-        </main>
+        <div ref={editingSectionRef}>
+          {/* Keeps page logic here while the reusable shell handles editor UI. */} 
+          <ArticleEditorShell
+            editorRef={editorRef}
+            title={title}
+            onTitleChange={handleTitleChange}
+            content={content}
+            onContentChange={handleContentChange}
+            onEditorReady={syncEditorDerivedState}
+            coverImage={coverImage}
+            coverImageProps={coverImageUpload}
+            zoom={zoom}
+            onZoomChange={handleZoomChange}
+            fontSize={fontSize}
+            isHydrating={isHydrating}
+            isSaving={isSaving}
+            lastSavedAt={lastSavedAt}
+            headerTitle="Edit your Article"
+            headerSubtitle="Update your existing article here"
+            modeBadge="Editing Article"
+            onSaveAsDraft={handleSaveAsDraft}
+            onPreview={handlePreview}
+            onDiscard={handleDiscard}
+            onExit={() => {
+              pendingExternalActionRef.current = () => {
+                router.push("/write/unpublished");
+              };
+              handleExternalActionAttempt();
+            }}
+            disableSaveAsDraft={!hasValidContent}
+            disablePreview={!hasValidContent}
+            disableDiscard={isSaving || isHydrating}
+            editorTextLength={editorTextLength}
+            contentLimitError={contentLimitError}
+            onContentLimitErrorChange={setContentLimitError}
+          />
+        </div>
       </div>
     </>
   );

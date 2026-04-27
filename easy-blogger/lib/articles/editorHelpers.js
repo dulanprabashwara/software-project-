@@ -15,9 +15,13 @@ export function buildArticlePayload({ title, content, coverImage, status }) {
   };
 }
 
-export function getPlainTextFromHtml(html = "") {
-  return String(html)
-    .replace(/<[^>]*>/g, " ")
+export function normalizeEditorPlainText(value = "") {
+  return String(value)
+    .replace(/\u00a0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+export function getPlainTextFromHtml(html = "") {
+  return normalizeEditorPlainText(String(html).replace(/<[^>]*>/g, " "));
 }
