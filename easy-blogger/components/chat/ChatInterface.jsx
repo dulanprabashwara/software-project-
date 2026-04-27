@@ -41,7 +41,7 @@ export default function ChatInterface() {
     //fetch the conversations of user
     const fetchConversations = async () => {
       try {
-        const token = await user.getIdToken(true); // force-refresh to avoid stale token 500 errors
+        const token = await user.getIdToken(); // only refresh if expired, not force-refresh on every load
         const res = await api.getConversations(token);
 
         // formats and sorts the conversation list to show in the left side bar
@@ -134,11 +134,15 @@ export default function ChatInterface() {
   // 2. Fetch messages when active conversation changes
   useEffect(() => {
     if (!user || !activeConversationId) return;
+    let ignore = false;
     const fetchMessages = async () => {
       setMessagesLoading(true);
+      setMessages([]);
       try {
-        const token = await user.getIdToken(true);
+        const token = await user.getIdToken();
         const res = await api.getMessages(activeConversationId, token);
+
+        if (ignore) return;
 
         // gets the array of messages in res.data
         const rawMessages = Array.isArray(res?.data)
@@ -192,13 +196,16 @@ export default function ChatInterface() {
           return prev;
         });
       } catch (err) {
-        console.error("Failed to fetch messages:", err);
+        if (!ignore) console.error("Failed to fetch messages:", err);
       } finally {
-        setMessagesLoading(false);
+        if (!ignore) setMessagesLoading(false);
       }
     };
     fetchMessages();
-  }, [activeConversationId, user, socket]);
+    return () => {
+      ignore = true;
+    };
+  }, [activeConversationId, user]);
 
   // 3. Socket Event Listeners
   useEffect(() => {
@@ -575,7 +582,7 @@ export default function ChatInterface() {
     }
   };
 
-  if (loading || !currentUser) {
+  if (loading) {
     return (
       <div className="flex h-full items-center justify-center bg-white border rounded-2xl shadow-sm text-gray-400">
         Loading chats...
@@ -632,6 +639,10 @@ export default function ChatInterface() {
             {messagesLoading ? (
               <div className="flex-1 flex items-center justify-center text-gray-400">
                 Loading messages...
+              </div>
+            ) : !currentUser ? (
+              <div className="flex-1 flex items-center justify-center text-gray-400">
+                Loading profile...
               </div>
             ) : (
               <MessageList
