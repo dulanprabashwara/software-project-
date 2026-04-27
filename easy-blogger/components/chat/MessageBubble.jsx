@@ -37,7 +37,7 @@ export default function MessageBubble({
         className={`relative max-w-[70%] px-4 py-2 rounded-2xl ${bubbleClasses}`}
       >
         <p className="text-sm leading-relaxed">{text}</p>
-        //change the text color accoding to isOwnMessage
+        {/*change the text color accoding to isOwnMessage*/}
         <div
           className={`text-[10px] mt-1 ${
             isOwnMessage ? "text-white/80" : "text-gray-500"
@@ -48,7 +48,7 @@ export default function MessageBubble({
             <span className="ml-2">{isRead ? "Seen" : "Sent"}</span>
           )}
         </div>
-        //show the delete button only when isOwnMessage true
+        {/*show the delete button only when isOwnMessage true*/}
         {isOwnMessage && (
           <button
             onClick={(e) => {
