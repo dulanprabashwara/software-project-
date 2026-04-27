@@ -12,8 +12,7 @@ import { getPlainTextFromHtml } from "../../lib/articles/editorHelpers";
 import CoverImageField from "./CoverImageField";
 import { EditorHeader, EditorBottomActions } from "./EditorSharedLayout";
 
-
-// Reuse the same UI for required state and counters
+// // Keeps validation metadata consistent across editor fields.
 function FieldMeta({ required, limitReached, limitMessage, items = [] }) {
   return (
     <div className="mt-2 flex items-start justify-between gap-4 text-xs">
@@ -61,9 +60,9 @@ export default function ArticleEditorShell({
   contentLimitError = "",
   onContentLimitErrorChange,
 }) {
-  const lastAppliedContentRef = useRef(content || ""); // Save last valid editor content for restore on limit exceed
-  const hasInitializedEditorRef = useRef(false); // Avoid editor reset before TinyMCE is ready
-  const isTitleRequired = !titleReadOnly && title.trim().length === 0; // Keep validation conditions clean and reusable
+  const lastAppliedContentRef = useRef(content || ""); // Preserves the last valid content when pasted text exceeds the limit.
+  const hasInitializedEditorRef = useRef(false); // Prevents external sync before TinyMCE is ready.
+  const isTitleRequired = !titleReadOnly && title.trim().length === 0; // Keeps field validation readable in JSX.
   const isContentRequired = editorTextLength === 0;
   const isTitleLimitReached = title.length === TITLE_MAX_LENGTH;
   const isContentLimitReached = editorTextLength === CONTENT_MAX_LENGTH;
@@ -114,6 +113,13 @@ export default function ArticleEditorShell({
           </>
         }
       />
+
+      {(isSaving || isHydrating) ? (
+        <div
+          className="fixed inset-0 z-[9998] cursor-wait bg-transparent"
+          aria-hidden="true"
+        />
+      ) : null}
 
       <div className="px-6 py-4">
         <div
@@ -246,17 +252,18 @@ export default function ArticleEditorShell({
           {
             label: "Exit Editor",
             onClick: onExit,
+            disabled: isSaving || isHydrating,
           },
           {
             label: "Preview",
             onClick: onPreview,
-            disabled: disablePreview || isHydrating,
+            disabled: disablePreview || isHydrating || isSaving,
             variant: "primary",
           },
           {
             label: "Discard",
             onClick: onDiscard,
-            disabled: disableDiscard,
+            disabled: disableDiscard || isSaving,
           },
         ]}
       />
