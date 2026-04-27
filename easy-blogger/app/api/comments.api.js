@@ -7,6 +7,7 @@ export const getArticleCommentsApi = async (articleId) => {
 };
 
 export const addCommentApi = async (articleId, content, parentId, token) => {
+console.log("reavhed here");
   const res = await fetch(`${API_URL}/api/comments`, {
     method: "POST",
     headers: {

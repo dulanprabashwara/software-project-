@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/app/context/AuthContext"; 
+import { useAuth } from "../app/context/AuthContext"; 
 import { getReadHistoryApi } from "../app/api/userHistory.api";
 
 export function useReadHistory() {

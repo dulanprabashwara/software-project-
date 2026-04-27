@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BadgeCheck, MessageCircle, Star, Bookmark, MoreHorizontal, BookOpen,Sparkles } from "lucide-react";
+import { BadgeCheck, MessageCircle, Star, Bookmark, MoreHorizontal, BookOpen,Sparkles,Clock } from "lucide-react";
 import { useAuth } from "../../app/context/AuthContext";  
 
 export default function ArticleCard({ 
@@ -31,6 +31,7 @@ export default function ArticleCard({
 
   const readMatch = readHistory.find((obj) => obj.articleId === article.id);
   const rawReadDate = article.interactedAt || readMatch?.lastReadAt; 
+  const isPublished = article.status;
   
   const readDateDisplay = rawReadDate
     ? new Date(rawReadDate).toLocaleDateString(undefined, {
@@ -45,15 +46,29 @@ export default function ArticleCard({
   
   const rawPublishDate = article.status === "PUBLISHED"
       ? article.publishedAt || article.createdAt
-      : article.scheduledAt || article.updatedAt || article.createdAt;
+      :article.updatedAt || article.createdAt;
+  const rawScheduledDate = article.status === "SCHEDULED"
+      ? article.scheduledAt: ""
 
+    
   const displayDate = rawPublishDate
     ? new Date(rawPublishDate).toLocaleDateString(undefined, {
       year: "numeric",
       month: "short",
       day: "numeric",
     })
-  : "Recent";
+  : "Published_date_unknown";
+
+  const scheduledDate = rawScheduledDate
+  ? new Date(rawPublishDate).toLocaleString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",  // Adds the hour (e.g., "14")
+      minute: "2-digit", // Adds the minute (e.g., "30")
+      hour12: false,     // Forces 24-hour format instead of AM/PM
+    })
+  : "Scheduled_date_unknown";
 
   const toggleBookmark = async () => {
     if (!user) {
@@ -97,7 +112,26 @@ export default function ArticleCard({
 
          {article.author?.isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" title="Premium Author" />}
 
-        <span className="text-sm text-[#6B7280]">· {displayDate}</span>
+        <span className="text-sm text-[#6B7280]"> 
+          
+          {isPublished === "PUBLISHED" ?
+            (
+            <span>
+              {displayDate}
+            </span>
+            ) 
+            : 
+            isPublished === "SCHEDULED"?
+            ( <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {scheduledDate}
+              </span>
+            )
+            :
+            "date_unknown"
+            }
+
+        </span>
 
         {article.isAiGenerated && (
           <span className="flex items-center gap-1 ml-2 text-[10px] font-semibold border border-[#1ABC9C]  text-[#1ABC9C] bg-purple-50  px-2 py-0.5 rounded-full">

@@ -1,12 +1,12 @@
 "use client";
 
 import ArticleCard from "../../../../components/article/ArticleCard";
-import { useSavedArticles } from "../../../../hooks/useSavedArticles";
+import { useSavedList } from "../../../../hooks/useSavedArticles";
 // Import the other two hooks so the cards display correctly
 import { useInteractedArticles } from "../../../../hooks/useInteractedArticles";
  
 export default function Saved() {
-  const { savedArticles, isLoading: savedLoading } = useSavedArticles();
+  const { savedList, isLoading: savedLoading } = useSavedList();
   const { interactedArticles, isLoading: interactedLoading } = useInteractedArticles();
  
   // Wait for all data to finish loading to prevent flashing UI
@@ -14,7 +14,7 @@ export default function Saved() {
 
   if (isLoading) return <p className="px-8 mt-4">Loading your interactions...</p>;
 
-  if (savedArticles.length === 0) return <p className="px-8 mt-4 text-gray-500">You haven't saved any articles yet.</p>;
+  if (interactedArticles.length === 0) return <div><p className="px-8 mt-4 text-gray-500">You haven't Rated or Commented any article.</p></div>;
 
   return (
     <section className="px-8 min-w-0">
@@ -23,7 +23,7 @@ export default function Saved() {
           <ArticleCard 
             key={article.id} 
             article={article} 
-            savedArticles={savedArticles}
+            savedArticles={savedList}
             interactedArticles={interactedArticles}
            />
         ))}
