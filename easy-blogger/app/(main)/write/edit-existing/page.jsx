@@ -19,6 +19,7 @@ import {
 import {
   clearPreviewContext,
   readPreviewContext,
+  writePreviewContext,
 } from "../../../../lib/articles/previewContext";
 import { getEditorValidationError } from "../../../../lib/articles/articleEditorValidation";
 import {
@@ -347,6 +348,11 @@ export default function EditExistingPage() {
             title,
             content: htmlContent,
             coverImage,
+          });
+
+          writePreviewContext({
+            mode: "edit-existing",
+            id: articleId,
           });
 
           router.push(`/write/preview?id=${articleId}&mode=edit-existing`);
