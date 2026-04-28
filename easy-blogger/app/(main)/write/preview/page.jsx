@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ConfirmDialog from "../../../../components/article/ConfirmDialog";
 import ArticleContentRenderer from "../../../../components/article/ArticleContentRenderer";
-import {EditorHeader,EditorBottomActions,} from "../../../../components/article/EditorSharedLayout";
+import {
+  EditorHeader,
+  EditorBottomActions,
+} from "../../../../components/article/EditorSharedLayout";
 import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
-import { getDraftById, updateDraft, clearEditExistingBackup, } from "../../../../lib/articles/api";
+import { useClearBackupOnLayoutNavigation } from "../../../../hooks/articles/useClearBackupOnLayoutNavigation";
+import { getDraftById, updateDraft } from "../../../../lib/articles/api";
 
 function getArticleFromResponse(response) {
   return response?.data ?? response?.article ?? response ?? null;
@@ -23,9 +27,12 @@ export default function PreviewPage() {
   const [article, setArticle] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const { modalState, openModal, closeModal } = useConfirmDialog();
+  const { modalState } = useConfirmDialog();
 
-  const isReplayingNavigationRef = useRef(false);
+  const { isEditExistingFlow } = useClearBackupOnLayoutNavigation({
+    mode,
+    articleId,
+  });
 
   useEffect(() => {
     const loadPreviewArticle = async () => {
@@ -54,14 +61,13 @@ export default function PreviewPage() {
 
     void loadPreviewArticle();
   }, [articleId, mode, router]);
-  
+
   const handleExitEditor = () => {
     router.push("/home");
   };
 
   const handlePublish = async () => {
-    if (!article?.id) 
-      return;
+    if (!article?.id) return;
 
     try {
       await updateDraft(article.id, {
@@ -75,18 +81,19 @@ export default function PreviewPage() {
   };
 
   const handleEditAgain = async () => {
-    if (!article?.id) 
-      return;
+    if (!article?.id) return;
 
     try {
-      if (mode === "edit-existing" && articleId) {
+      if (isEditExistingFlow && articleId) {
         router.push(`/write/edit-existing?id=${articleId}`);
         return;
       }
+
       if (mode === "edit-as-new" && sourceId) {
         router.push(`/write/edit-as-new?id=${sourceId}`);
         return;
       }
+
       if (mode === "create" && articleId) {
         await updateDraft(article.id, {
           status: "editing",
@@ -95,57 +102,13 @@ export default function PreviewPage() {
         router.push("/write/create");
         return;
       }
+
       router.push("/write/create");
     } catch (error) {
       console.error("Failed to reopen article for editing:", error);
       router.push("/write/create");
     }
   };
-
-  useEffect(() => {
-    if (mode !== "edit-existing" || !articleId || modalState.isOpen) return;
-
-    const handleNavigationClick = async (event) => {
-      if (isReplayingNavigationRef.current) 
-        return;
-
-      const target = event.target;
-      if (!(target instanceof Element)) 
-        return;
-
-      const clickableElement = target.closest("button, a, [role='button']");
-      if (!clickableElement)
-        return;
-
-      if (clickableElement.closest("[data-keep-edit-backup='true']"))
-        return;
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      try {
-        await clearEditExistingBackup(articleId);
-      } catch (error) {
-        console.error("Failed to clear edit backup before leaving preview:", error);
-      }
-
-      isReplayingNavigationRef.current = true;
-
-      Promise.resolve().then(() => {
-        clickableElement.click();
-
-        setTimeout(() => {
-          isReplayingNavigationRef.current = false;
-        }, 0);
-      });
-    };
-
-    document.addEventListener("click", handleNavigationClick, true);
-
-    return () => {
-      document.removeEventListener("click", handleNavigationClick, true);
-    };
-  }, [mode, articleId, modalState.isOpen]);
 
   return (
     <>
@@ -162,7 +125,6 @@ export default function PreviewPage() {
       />
 
       <div className="min-h-screen bg-white">
-
         <main className="min-h-screen pt-3">
           <EditorHeader
             title="Preview your Article"

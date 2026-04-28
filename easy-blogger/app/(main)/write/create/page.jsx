@@ -32,6 +32,7 @@ import { openPreviewSaveConfirm } from "../../../../lib/articles/previewConfirm"
 import {
   clearPreviewContext,
   readPreviewContext,
+  writePreviewContext,
 } from "../../../../lib/articles/previewContext";
 
 export default function CreateArticlePage() {
@@ -118,7 +119,7 @@ export default function CreateArticlePage() {
 
     const hydrateEditor = async () => {
       try {
-        const previewContext = readPreviewContext(); // Preview navigation stores context in session storage so returning to edit keeps the same draft.
+        const previewContext = readPreviewContext(); // Keeps preview-return navigation attached to the same draft.
 
         if (previewContext?.mode === "create" && previewContext?.id) {
           const response = await getDraftById(previewContext.id);
@@ -443,6 +444,11 @@ export default function CreateArticlePage() {
 
           const currentDraftId = await saveArticle("draft", {
             content: htmlContent,
+          });
+
+          writePreviewContext({
+            mode: "create",
+            id: currentDraftId,
           });
 
           router.push(`/write/preview?id=${currentDraftId}&mode=create`);
