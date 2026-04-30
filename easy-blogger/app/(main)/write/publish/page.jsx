@@ -1,12 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Calendar, Clock } from "lucide-react";
 import Image from "next/image";
-import { useAuth } from "../../../context/AuthContext"; // WordPress: get Firebase user
-import { API_BASE_URL } from "../../../../lib/api";     // WordPress: backend base URL
-import {clearEditExistingBackup, getDraftById,publishArticle as publishEasyBloggerArticle,} from "../../../../lib/articles/api";
+import { useAuth } from "../../../context/AuthContext"; // Required for authenticated WordPress publishing
+import { API_BASE_URL } from "../../../../lib/api"; // Backend API for WordPress integration
+import { useClearBackupOnLayoutNavigation } from "../../../../hooks/articles/useClearBackupOnLayoutNavigation";
+import {
+  getDraftById,
+  publishArticle as publishEasyBloggerArticle,
+} from "../../../../lib/articles/api";
 
 const MAX_TAGS = 5;
 
@@ -60,15 +64,6 @@ function Radio({ checked }) {
   );
 }
 
-function buildSelectedPlatforms({ shareLinkedIn, shareWordPress }) {
-  const platforms = ["Easy Blogger"];
-
-  if (shareLinkedIn) platforms.push("LinkedIn");
-  if (shareWordPress) platforms.push("WordPress");
-
-  return platforms;
-}
-
 function formatDateToInput(dateValue) {
   if (!dateValue) return "";
 
@@ -102,14 +97,14 @@ export default function PublishArticlePage() {
   const { user: firebaseUser } = useAuth();
 
   const articleId = searchParams.get("id") || "";
-
   const mode = searchParams.get("mode") || "";
-  const isEditExistingFlow = mode === "edit-existing";
-  const isLeavingRef = useRef(false);
-  const isReplayingNavigationRef = useRef(false);
+
+  useClearBackupOnLayoutNavigation({
+    mode,
+    articleId,
+  });
 
   const [isPageLoading, setIsPageLoading] = useState(true);
-  const [articleTitle, setArticleTitle] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState(defaultDraft.tags);
   const [timing, setTiming] = useState(defaultDraft.timing);
@@ -121,10 +116,14 @@ export default function PublishArticlePage() {
   const [tpMinute, setTpMinute] = useState("30");
   const [tpPeriod, setTpPeriod] = useState("AM");
   const [shareLinkedIn, setShareLinkedIn] = useState(defaultDraft.shareLinkedIn);
-  const [shareWordPress, setShareWordPress] = useState(defaultDraft.shareWordPress);
+  const [shareWordPress, setShareWordPress] = useState(
+    defaultDraft.shareWordPress
+  );
   const [shareText, setShareText] = useState("");
   const [showShareText, setShowShareText] = useState(false);
-  const [linkedinCaption, setLinkedinCaption] = useState(defaultDraft.linkedinCaption);
+  const [linkedinCaption, setLinkedinCaption] = useState(
+    defaultDraft.linkedinCaption
+  );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [publishError, setPublishError] = useState("");
@@ -179,7 +178,9 @@ export default function PublishArticlePage() {
 
     if (!trimmedTag) return;
     if (tags.length >= MAX_TAGS) return;
-    if (tags.some((tag) => tag.toLowerCase() === trimmedTag.toLowerCase())) return;
+    if (tags.some((tag) => tag.toLowerCase() === trimmedTag.toLowerCase())) {
+      return;
+    }
 
     setTags((previousTags) => [...previousTags, trimmedTag]);
   };
@@ -208,66 +209,6 @@ export default function PublishArticlePage() {
   };
 
   useEffect(() => {
-    if (!isEditExistingFlow || !articleId) return;
-
-    const handleNavigationClick = async (event) => {
-      if (isReplayingNavigationRef.current) return;
-
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-
-      const clickableElement = target.closest(
-        "button, a, [role='button']"
-      );
-
-      if (!clickableElement) return;
-
-      // Allow buttons inside publish flow
-      if (
-        clickableElement.closest("[data-keep-edit-backup='true']")
-      ) {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      try {
-        await clearEditExistingBackup(articleId);
-      } catch (error) {
-        console.error(
-          "Failed to clear edit-existing backup:",
-          error
-        );
-      }
-
-      isReplayingNavigationRef.current = true;
-
-      Promise.resolve().then(() => {
-        clickableElement.click();
-
-        setTimeout(() => {
-          isReplayingNavigationRef.current = false;
-        }, 0);
-      });
-    };
-
-    document.addEventListener(
-      "click",
-      handleNavigationClick,
-      true
-    );
-
-    return () => {
-      document.removeEventListener(
-        "click",
-        handleNavigationClick,
-        true
-      );
-    };
-  }, [articleId, isEditExistingFlow]);
-
-  useEffect(() => {
     const loadArticle = async () => {
       if (!articleId) {
         router.replace("/write/create");
@@ -276,6 +217,7 @@ export default function PublishArticlePage() {
 
       try {
         setIsPageLoading(true);
+
         const response = await getDraftById(articleId);
         const article = response?.data ?? response?.article ?? response ?? null;
 
@@ -283,8 +225,6 @@ export default function PublishArticlePage() {
           router.replace("/write/create");
           return;
         }
-
-        setArticleTitle(article.title || "");
 
         if (Array.isArray(article.tags) && article.tags.length > 0) {
           setTags(article.tags.slice(0, MAX_TAGS));
@@ -341,6 +281,7 @@ export default function PublishArticlePage() {
     };
 
     syncCurrentDateTime();
+
     const intervalId = setInterval(syncCurrentDateTime, 30_000);
 
     return () => clearInterval(intervalId);
@@ -371,7 +312,10 @@ export default function PublishArticlePage() {
     };
 
     window.addEventListener("mousedown", handleOutsideClick);
-    return () => window.removeEventListener("mousedown", handleOutsideClick);
+
+    return () => {
+      window.removeEventListener("mousedown", handleOutsideClick);
+    };
   }, []);
 
   useEffect(() => {
@@ -388,7 +332,9 @@ export default function PublishArticlePage() {
     }
 
     setShareText(
-      `This article will be shared on ${selectedPlatforms.join(" and ")} when it is published`
+      `This article will be shared on ${selectedPlatforms.join(
+        " and "
+      )} when it is published`
     );
     setShowShareText(true);
   }, [shareLinkedIn, shareWordPress]);
@@ -396,13 +342,15 @@ export default function PublishArticlePage() {
   useEffect(() => {
     if (!shareWordPress || !firebaseUser || wpCheckDone) return;
 
-    const checkWp = async () => {
+    const checkWordPressConnection = async () => {
       try {
         const token = await firebaseUser.getIdToken();
-        const res = await fetch(`${API_BASE_URL}/api/wordpress/status`, {
+
+        const response = await fetch(`${API_BASE_URL}/api/wordpress/status`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await res.json();
+
+        const data = await response.json();
 
         if (data?.data?.connected) {
           setWpConnected(true);
@@ -417,11 +365,13 @@ export default function PublishArticlePage() {
       }
     };
 
-    checkWp();
+    void checkWordPressConnection();
   }, [shareWordPress, firebaseUser, wpCheckDone]);
 
   const handleWordPressPublish = async (currentArticleId) => {
-    if (!shareWordPress || !wpConnected || !currentArticleId || !firebaseUser) return;
+    if (!shareWordPress || !wpConnected || !currentArticleId || !firebaseUser) {
+      return;
+    }
 
     try {
       const token = await firebaseUser.getIdToken();
@@ -431,16 +381,19 @@ export default function PublishArticlePage() {
           ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString()
           : null;
 
-      const res = await fetch(`${API_BASE_URL}/api/wordpress/publish`, {
+      const response = await fetch(`${API_BASE_URL}/api/wordpress/publish`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ articleId: currentArticleId, scheduledAt }),
+        body: JSON.stringify({
+          articleId: currentArticleId,
+          scheduledAt,
+        }),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
       if (!data.success) {
         const message = data?.data?.message || "WordPress publish failed.";
@@ -451,25 +404,66 @@ export default function PublishArticlePage() {
     }
   };
 
+  const handlePublishArticle = async () => {
+    if (!articleId) {
+      setPublishError("Article id is missing.");
+      return;
+    }
+
+    try {
+      setPublishError("");
+      setWpPublishError("");
+      setIsSubmitting(true);
+
+      const payload = {
+        tags,
+        timing,
+        scheduledAt: buildScheduledAt(),
+      };
+
+      const response = await publishEasyBloggerArticle(articleId, payload);
+      const publishedArticle =
+        response?.data ?? response?.article ?? response ?? null;
+
+      await handleWordPressPublish(articleId);
+
+      if (timing === "schedule") {
+        router.push(
+          `/write/articlescheduled?id=${publishedArticle?.id || articleId}`
+        );
+        return;
+      }
+
+      router.push(
+        `/write/articlepublished?id=${publishedArticle?.id || articleId}`
+      );
+    } catch (error) {
+      console.error("Failed to publish article:", error);
+      setPublishError(error?.message || "Failed to publish article.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (isPageLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-emerald-50 flex items-center justify-center p-6">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-white to-emerald-50 p-6">
         <p className="text-sm text-gray-500">Loading publish details...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-white to-emerald-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-2xl bg-white rounded-xl shadow-sm border border-gray-100">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-b from-white to-emerald-50 p-6">
+      <div className="w-full max-w-2xl rounded-xl border border-gray-100 bg-white shadow-sm">
         <div className="p-10 text-center">
-          <h1 className="text-4xl font-serif font-bold text-[#111827]">
+          <h1 className="font-serif text-4xl font-bold text-[#111827]">
             Publish your Article
           </h1>
-          <p className="text-[#6B7280] mt-1">
+          <p className="mt-1 text-[#6B7280]">
             You can publish now or schedule a time to
           </p>
-          <p className="text-[#6B7280] mt-1">publish</p>
+          <p className="mt-1 text-[#6B7280]">publish</p>
         </div>
 
         <div className="flex justify-center">
@@ -482,7 +476,7 @@ export default function PublishArticlePage() {
               value={tagInput}
               onChange={(event) => setTagInput(event.target.value)}
               placeholder="Add a tag"
-              className="w-full h-11 rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
+              className="h-11 w-full rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
                   event.preventDefault();
@@ -511,7 +505,7 @@ export default function PublishArticlePage() {
                   <button
                     type="button"
                     onClick={() => removeTag(tag)}
-                    className="text-gray-700 hover:text-black leading-none"
+                    className="leading-none text-gray-700 hover:text-black"
                   >
                     ✕
                   </button>
@@ -561,22 +555,22 @@ export default function PublishArticlePage() {
                     setDateOpen((previousValue) => !previousValue);
                     setTimeOpen(false);
                   }}
-                  className="w-full h-11 rounded-md border border-gray-200 bg-white px-4 pr-10 text-left text-sm disabled:bg-gray-50"
+                  className="h-11 w-full rounded-md border border-gray-200 bg-white px-4 pr-10 text-left text-sm disabled:bg-gray-50"
                 >
                   {scheduledDate
                     ? formatDateMMDDYYYY(scheduledDate)
                     : "Pick a date"}
                 </button>
 
-                <Calendar className="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <Calendar className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
 
                 {dateOpen && timing === "schedule" && (
-                  <div className="absolute right-0 mt-2 w-full rounded-md border border-gray-200 bg-white p-3 shadow-lg z-20">
+                  <div className="absolute right-0 z-20 mt-2 w-full rounded-md border border-gray-200 bg-white p-3 shadow-lg">
                     <input
                       type="date"
                       value={scheduledDate}
                       onChange={(event) => setScheduledDate(event.target.value)}
-                      className="w-full h-10 rounded-md border border-gray-200 px-3 text-sm"
+                      className="h-10 w-full rounded-md border border-gray-200 px-3 text-sm"
                     />
 
                     <div className="mt-3 flex justify-end">
@@ -601,22 +595,22 @@ export default function PublishArticlePage() {
                     setTimeOpen((previousValue) => !previousValue);
                     setDateOpen(false);
                   }}
-                  className="w-full h-11 rounded-md border border-gray-200 bg-white px-4 pr-10 text-left text-sm disabled:bg-gray-50"
+                  className="h-11 w-full rounded-md border border-gray-200 bg-white px-4 pr-10 text-left text-sm disabled:bg-gray-50"
                 >
                   {scheduledTime ? to12Hour(scheduledTime) : "Pick a time"}
                 </button>
 
-                <Clock className="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <Clock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
 
                 {timeOpen && timing === "schedule" && (
-                  <div className="absolute right-0 mt-2 w-full rounded-md border border-gray-200 bg-white p-3 shadow-lg z-20">
+                  <div className="absolute right-0 z-20 mt-2 w-full rounded-md border border-gray-200 bg-white p-3 shadow-lg">
                     <div className="grid grid-cols-3 gap-2">
                       <div>
                         <label className="text-xs text-gray-500">Hour</label>
                         <select
                           value={tpHour}
                           onChange={(event) => setTpHour(event.target.value)}
-                          className="mt-1 w-full h-10 rounded-md border border-gray-200 px-2 text-sm"
+                          className="mt-1 h-10 w-full rounded-md border border-gray-200 px-2 text-sm"
                         >
                           {Array.from({ length: 12 }, (_, index) =>
                             String(index + 1)
@@ -633,7 +627,7 @@ export default function PublishArticlePage() {
                         <select
                           value={tpMinute}
                           onChange={(event) => setTpMinute(event.target.value)}
-                          className="mt-1 w-full h-10 rounded-md border border-gray-200 px-2 text-sm"
+                          className="mt-1 h-10 w-full rounded-md border border-gray-200 px-2 text-sm"
                         >
                           {Array.from({ length: 60 }, (_, index) =>
                             String(index).padStart(2, "0")
@@ -650,7 +644,7 @@ export default function PublishArticlePage() {
                         <select
                           value={tpPeriod}
                           onChange={(event) => setTpPeriod(event.target.value)}
-                          className="mt-1 w-full h-10 rounded-md border border-gray-200 px-2 text-sm"
+                          className="mt-1 h-10 w-full rounded-md border border-gray-200 px-2 text-sm"
                         >
                           <option value="AM">AM</option>
                           <option value="PM">PM</option>
@@ -687,7 +681,8 @@ export default function PublishArticlePage() {
             <div className="mt-6 text-sm">
               <p className="text-gray-600">This article will be published on</p>
               <p className="mt-1 font-semibold text-gray-900">
-                {formatDateMMDDYYYY(scheduledDate)} at {to12Hour(scheduledTime)}
+                {formatDateMMDDYYYY(scheduledDate)} at{" "}
+                {to12Hour(scheduledTime)}
               </p>
             </div>
           )}
@@ -703,6 +698,7 @@ export default function PublishArticlePage() {
               <div className="flex items-center">
                 <Toggle enabled={shareLinkedIn} setEnabled={setShareLinkedIn} />
               </div>
+
               <div className="flex items-center">
                 <p className="text-sm font-semibold text-gray-900">
                   Share on LinkedIn
@@ -713,12 +709,12 @@ export default function PublishArticlePage() {
                 <div
                   className={`grid grid-cols-[48px_1fr] items-center transition-all duration-300 ease-out ${
                     shareLinkedIn
-                      ? "opacity-100 translate-y-0 max-h-20"
-                      : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                      ? "max-h-20 translate-y-0 opacity-100"
+                      : "max-h-0 -translate-y-1 overflow-hidden opacity-0"
                   }`}
                 >
                   <div className="flex items-center justify-center">
-                    <div className="h-12 w-12 flex items-center justify-center">
+                    <div className="flex h-12 w-12 items-center justify-center">
                       <Image
                         src="/icons/linkedin.png"
                         alt="LinkedIn"
@@ -747,6 +743,7 @@ export default function PublishArticlePage() {
                   }}
                 />
               </div>
+
               <div className="flex items-center">
                 <p className="text-sm font-semibold text-gray-900">
                   Share on WordPress
@@ -757,12 +754,12 @@ export default function PublishArticlePage() {
                 <div
                   className={`grid grid-cols-[48px_1fr] items-center transition-all duration-300 ease-out ${
                     shareWordPress
-                      ? "opacity-100 translate-y-0 max-h-20"
-                      : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                      ? "max-h-20 translate-y-0 opacity-100"
+                      : "max-h-0 -translate-y-1 overflow-hidden opacity-0"
                   }`}
                 >
                   <div className="flex items-center justify-center">
-                    <div className="h-12 w-12 flex items-center justify-center">
+                    <div className="flex h-12 w-12 items-center justify-center">
                       <Image
                         src="/icons/wordpress.png"
                         alt="WordPress"
@@ -797,7 +794,7 @@ export default function PublishArticlePage() {
                 </div>
 
                 {wpPublishError && shareWordPress && (
-                  <div className="mt-2 text-sm text-red-500 flex items-center gap-1">
+                  <div className="mt-2 flex items-center gap-1 text-sm text-red-500">
                     <span>⚠</span>
                     <span>{wpPublishError}</span>
                   </div>
@@ -808,8 +805,8 @@ export default function PublishArticlePage() {
             <div
               className={`transition-all duration-300 ease-out ${
                 showShareText
-                  ? "opacity-100 translate-y-0 max-h-20"
-                  : "opacity-0 -translate-y-1 max-h-0 overflow-hidden"
+                  ? "max-h-20 translate-y-0 opacity-100"
+                  : "max-h-0 -translate-y-1 overflow-hidden opacity-0"
               }`}
             >
               {shareText && <p className="text-sm text-gray-500">{shareText}</p>}
@@ -830,15 +827,21 @@ export default function PublishArticlePage() {
                   value={linkedinCaption}
                   onChange={(event) => setLinkedinCaption(event.target.value)}
                   placeholder="Write a caption for LinkedIn..."
-                  className="w-full h-11 rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
+                  className="h-11 w-full rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
                 />
 
                 <div className="flex items-center gap-6 text-sm">
-                  <button className="text-gray-600 hover:text-gray-900">
+                  <button
+                    type="button"
+                    className="text-gray-600 hover:text-gray-900"
+                  >
                     Change account
                   </button>
 
-                  <button className="text-red-500 hover:text-red-600">
+                  <button
+                    type="button"
+                    className="text-red-500 hover:text-red-600"
+                  >
                     Disconnect
                   </button>
                 </div>
@@ -861,12 +864,12 @@ export default function PublishArticlePage() {
           </div>
         ) : null}
 
-        <div className="p-8 flex items-center justify-center gap-40">
+        <div className="flex items-center justify-center gap-40 p-8">
           <button
             type="button"
             data-keep-edit-backup="true"
             onClick={() => router.back()}
-            className="px-8 py-3 rounded-full bg-black text-white"
+            className="rounded-full bg-black px-8 py-3 text-white"
           >
             Back
           </button>
@@ -874,46 +877,11 @@ export default function PublishArticlePage() {
           <button
             type="button"
             data-keep-edit-backup="true"
-            onClick={async () => {
-              if (!articleId) {
-                setPublishError("Article id is missing.");
-                return;
-              }
-
-              try {
-                setPublishError("");
-                setWpPublishError("");
-                setIsSubmitting(true);
-
-                const payload = {
-                  tags,
-                  timing,
-                  scheduledAt: buildScheduledAt(),
-                };
-
-                const response = await publishEasyBloggerArticle(articleId, payload);
-                const publishedArticle =
-                  response?.data ?? response?.article ?? response ?? null;
-
-                await handleWordPressPublish(articleId);
-
-                if (timing === "schedule") {
-                  router.push(`/write/articlescheduled?id=${publishedArticle?.id || articleId}`);
-                  return;
-                }
-
-                router.push(`/write/articlepublished?id=${publishedArticle?.id || articleId}`);
-              } catch (error) {
-                console.error("Failed to publish article:", error);
-                setPublishError(error?.message || "Failed to publish article.");
-              } finally {
-                setIsSubmitting(false);
-              }
-            }}
+            onClick={handlePublishArticle}
             disabled={isSubmitting || (timing === "schedule" && isPastDateTime())}
-            className={`px-8 py-3 rounded-full text-white transition ${
+            className={`rounded-full px-8 py-3 text-white transition ${
               isSubmitting || (timing === "schedule" && isPastDateTime())
-                ? "bg-gray-400 cursor-not-allowed"
+                ? "cursor-not-allowed bg-gray-400"
                 : "bg-emerald-500 hover:bg-emerald-600"
             }`}
           >

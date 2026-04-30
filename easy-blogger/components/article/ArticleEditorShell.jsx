@@ -4,22 +4,15 @@ import { useEffect, useRef } from "react";
 import { Editor } from "@tinymce/tinymce-react";
 
 import { getTinyMceConfig } from "../../lib/editor/tinymceConfig";
+import {
+  CONTENT_MAX_LENGTH,
+  TITLE_MAX_LENGTH,
+} from "../../lib/articles/editorConstants";
+import { getPlainTextFromHtml } from "../../lib/articles/editorHelpers";
 import CoverImageField from "./CoverImageField";
 import { EditorHeader, EditorBottomActions } from "./EditorSharedLayout";
 
-const TITLE_MAX_LENGTH = 100;
-const CONTENT_MAX_LENGTH = 20000;
-
-// Count only readable text, not HTML tags
-function stripHtmlToPlainText(html) {
-  return String(html || "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-// Reuse the same UI for required state and counters
+// // Keeps validation metadata consistent across editor fields.
 function FieldMeta({ required, limitReached, limitMessage, items = [] }) {
   return (
     <div className="mt-2 flex items-start justify-between gap-4 text-xs">
@@ -64,10 +57,12 @@ export default function ArticleEditorShell({
   disablePreview,
   disableDiscard,
   editorTextLength = 0,
+  contentLimitError = "",
+  onContentLimitErrorChange,
 }) {
-  const lastAppliedContentRef = useRef(content || ""); // Save last valid editor content for restore on limit exceed
-  const hasInitializedEditorRef = useRef(false); // Avoid editor reset before TinyMCE is ready
-  const isTitleRequired = !titleReadOnly && title.trim().length === 0; // Keep validation conditions clean and reusable
+  const lastAppliedContentRef = useRef(content || ""); // Preserves the last valid content when pasted text exceeds the limit.
+  const hasInitializedEditorRef = useRef(false); // Prevents external sync before TinyMCE is ready.
+  const isTitleRequired = !titleReadOnly && title.trim().length === 0; // Keeps field validation readable in JSX.
   const isContentRequired = editorTextLength === 0;
   const isTitleLimitReached = title.length === TITLE_MAX_LENGTH;
   const isContentLimitReached = editorTextLength === CONTENT_MAX_LENGTH;
@@ -118,6 +113,13 @@ export default function ArticleEditorShell({
           </>
         }
       />
+
+      {(isSaving || isHydrating) ? (
+        <div
+          className="fixed inset-0 z-[9998] cursor-wait bg-transparent"
+          aria-hidden="true"
+        />
+      ) : null}
 
       <div className="px-6 py-4">
         <div
@@ -211,15 +213,22 @@ export default function ArticleEditorShell({
                   onEditorReady?.();
                 }}
                 onEditorChange={(value, editor) => {
-                  const plainText = stripHtmlToPlainText(value);
+                  const plainText = getPlainTextFromHtml(value);
 
                   // TinyMCE needs manual content limit handling since it allows pasting large content that exceeds limits
                   if (plainText.length > CONTENT_MAX_LENGTH) {
+                    onContentLimitErrorChange?.(
+                      `Content cannot exceed ${CONTENT_MAX_LENGTH.toLocaleString()} characters.`,
+                    );
                     editor.setContent(lastAppliedContentRef.current);
                     return;
                   }
+                  onContentLimitErrorChange?.("");
                   lastAppliedContentRef.current = value;
-                  onContentChange(value);
+                  onContentChange(value, {
+                    plainText,
+                    textLength: plainText.length,
+                  });
                 }}
                 apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
                 init={getTinyMceConfig({ fontSize })}
@@ -228,8 +237,8 @@ export default function ArticleEditorShell({
 
             <FieldMeta
               required={isContentRequired}
-              limitReached={isContentLimitReached}
-              limitMessage="Maximum content length reached."
+              limitReached={Boolean(contentLimitError) || isContentLimitReached}
+              limitMessage={contentLimitError || "Maximum content length reached."}
               items={[
                 `${editorTextLength}/${CONTENT_MAX_LENGTH.toLocaleString()} characters`,
               ]}
@@ -243,17 +252,18 @@ export default function ArticleEditorShell({
           {
             label: "Exit Editor",
             onClick: onExit,
+            disabled: isSaving || isHydrating,
           },
           {
             label: "Preview",
             onClick: onPreview,
-            disabled: disablePreview || isHydrating,
+            disabled: disablePreview || isHydrating || isSaving,
             variant: "primary",
           },
           {
             label: "Discard",
             onClick: onDiscard,
-            disabled: disableDiscard,
+            disabled: disableDiscard || isSaving,
           },
         ]}
       />
