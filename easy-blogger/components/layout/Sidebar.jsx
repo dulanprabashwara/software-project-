@@ -34,7 +34,7 @@ export default function Sidebar({ isOpen }) {
     setPortalLoading(true);
     try {
       const token = await user.getIdToken();
-      const res = await api.createStripePortalSession(token);
+      const res = await api.createPortalSession(token);
       const data = res.data || res;
       if (data.url) {
         window.location.href = data.url;
