@@ -104,10 +104,16 @@ export function useArticleEditorWorkflow(mode) {
 
         // 1. Handle returning from Preview
         if (previewContext?.mode === mode && previewContext?.id) {
+          /* 
+           We must verify the ID matches the URL. If a user publishes article A 
+          and then immediately edits article B, the 'edit-existing' mode in sessionStorage 
+           might still point to article A. This check prevents loading the wrong data.
+           */
+          const isCorrectArticle = mode !== "edit-existing" || previewContext.id === articleIdFromParams;
           // Additional check for edit-as-new sourceId
           const isCorrectSource = mode !== "edit-as-new" || previewContext.sourceId === sourceIdFromParams;
 
-          if (isCorrectSource) {
+          if (isCorrectArticle && isCorrectSource) {
             const response = await getDraftById(previewContext.id);
             const article = getArticleFromResponse(response);
             if (article) {
