@@ -313,7 +313,7 @@ export default function Header({ onToggleSidebar }) {
               data-skip-save-prompt="true"
               onClick={() => setOpen((prev) => !prev)}
               className={`block w-9 h-9 rounded-full border-2 overflow-hidden transition-all ${
-                isPremium ? "border-[#1ABC9C]" : "border-transparent"
+                isPremium ? "border-amber-400" : "border-transparent"
               }`}
               aria-label="User menu"
             >
@@ -335,7 +335,7 @@ export default function Header({ onToggleSidebar }) {
             <div className="absolute right-0 mt-2 w-56 bg-white border border-[#e5e7eb] rounded-xl shadow-xl py-2 animate-in fade-in zoom-in-95 duration-100">
               <div className="relative mx-auto w-16 h-16">
                 <div
-                  className={`w-full h-full rounded-full border-2 overflow-hidden ${isPremium ? "border-[#1ABC9C]" : "border-transparent"}`}
+                  className={`w-full h-full rounded-full border-2 overflow-hidden ${isPremium ? "border-amber-400" : "border-transparent"}`}
                 >
                   <img
                     src={avatarUrl}

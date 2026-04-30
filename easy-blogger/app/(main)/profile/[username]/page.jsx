@@ -355,7 +355,7 @@ export default function UserProfilePage({ params }) {
               alt={displayName}
               referrerPolicy="no-referrer"
               className={`w-24 h-24 rounded-full object-cover border-2 transition-all ${
-                isPremium ? "border-[#1ABC9C]" : "border-transparent"
+                isPremium ? "border-[#F59E0B]" : "border-transparent"
               }`}
             />
           </div>

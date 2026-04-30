@@ -447,7 +447,7 @@ export default function EditProfilePage() {
             <div className="relative">
               <div
                 className={`w-32 h-32 rounded-full overflow-hidden border-4 shadow-lg ${
-                  isPremium ? "border-[#1ABC9C]" : "border-white"
+                  isPremium ? "border-[#F59E0B]" : "border-white"
                 } ${profileLoading && !userProfile ? "bg-gray-200 animate-pulse" : "bg-[#F3F4F6]"}`}
               >
                 {!(profileLoading && !userProfile) && (

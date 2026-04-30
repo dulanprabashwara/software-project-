@@ -464,7 +464,7 @@ export default function ProfilePage() {
                 referrerPolicy="no-referrer"
                 className={`w-20 h-20 rounded-full object-cover border-2 transition-all ${
                   isPremium
-                    ? "border-[#1ABC9C]"
+                    ? "border-[#F59E0B]"
                     : "border-[#E5E7EB]"
                 }`}
               />
