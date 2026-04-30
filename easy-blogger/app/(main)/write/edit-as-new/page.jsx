@@ -19,6 +19,7 @@ import {
 import {
   clearPreviewContext,
   readPreviewContext,
+  writePreviewContext,
 } from "../../../../lib/articles/previewContext";
 import {
   autosaveEditAsNew,
@@ -83,12 +84,14 @@ export default function EditAsNewPage() {
     hasAnyContent,
     hasValidContent,
     isContentLimitReached,
+    resetEditorCoreState,
   } = useArticleEditorController();
 
   const [editingArticleId, setEditingArticleId] = useState(null);
 
   const { modalState, openModal, closeModal } = useConfirmDialog();
-  const hasStartedRef = useRef(false); // Prevents duplicate edit-as-new draft creation during re-renders or React strict-mode effects.
+  const hasStartedRef = useRef(false); // Prevents duplicate copied drafts.
+  const hasDiscardedCopyRef = useRef(false); // Blocks late autosave from recreating the copied draft after discard.
 
   // Keeps derived editor values synced when content changes.
   useEffect(() => {
@@ -111,6 +114,7 @@ export default function EditAsNewPage() {
     }
 
     hasStartedRef.current = true;
+    hasDiscardedCopyRef.current = false;
     // Resume an existing preview draft when possible; otherwise create a new copy from the source article.
     const hydrateEditor = async () => {
       try {
@@ -163,7 +167,11 @@ export default function EditAsNewPage() {
   // Saves only to the copied draft so the original article always remains untouched.
   const saveArticle = useCallback(
     async (mode, overrides = {}) => {
-      if (!editingArticleId || isSavingRef.current) {
+      if (
+        !editingArticleId ||
+        isSavingRef.current ||
+        hasDiscardedCopyRef.current
+      ) {
         return null;
       }
 
@@ -230,7 +238,12 @@ export default function EditAsNewPage() {
 
   // Autosave persists changes to the copied draft after the initial copy has loaded.
   useAutosave({
-    enabled: isClientReady && !isHydrating && hasAnyContent,
+    enabled:
+      isClientReady &&
+      !isHydrating &&
+      hasAnyContent &&
+      Boolean(editingArticleId) &&
+      !hasDiscardedCopyRef.current,
     onSave: () =>
       saveArticle("editing", {
         content: getEditorHtmlContent(),
@@ -277,14 +290,19 @@ export default function EditAsNewPage() {
 
   // Discard deletes only the copied draft and leaves the original article untouched.
   const discardWithoutRedirect = useCallback(async () => {
+    hasDiscardedCopyRef.current = true;
+
     if (!editingArticleId) {
       clearPreviewContext();
+      resetEditorCoreState();
       return true;
     }
 
     try {
       await discardEditAsNew(editingArticleId);
       clearPreviewContext();
+      setEditingArticleId(null);
+      resetEditorCoreState();
       return true;
     } catch (error) {
       const message = error?.message || error?.response?.data?.message || "";
@@ -295,14 +313,17 @@ export default function EditAsNewPage() {
 
       if (isAlreadyGone) {
         clearPreviewContext();
+        setEditingArticleId(null);
+        resetEditorCoreState();
         return true;
       }
 
+      hasDiscardedCopyRef.current = false;
       console.error("Failed to discard edit-as-new article:", error);
       setInlineError("Failed to discard changes.");
       return false;
     }
-  }, [editingArticleId, setInlineError]);
+  }, [editingArticleId, resetEditorCoreState, setInlineError]);
 
   // Leaving the editor should ask whether to keep or delete the copied draft.
   const { handleExternalActionAttempt, pendingExternalActionRef } =
@@ -370,6 +391,12 @@ export default function EditAsNewPage() {
         try {
           setInlineError("");
           await saveArticle("draft", { content: htmlContent });
+
+          writePreviewContext({
+            mode: "edit-as-new",
+            id: editingArticleId,
+            sourceId: sourceArticleId,
+          });
 
           router.push(
             `/write/preview?id=${editingArticleId}&mode=edit-as-new&sourceId=${sourceArticleId}`,
