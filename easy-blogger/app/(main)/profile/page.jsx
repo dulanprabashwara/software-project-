@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { X, Loader2, MessageCircle } from "lucide-react";
+import { X, Loader2, MessageCircle, BadgeCheck } from "lucide-react";
 import { useSubscription } from "../../context/SubscriptionContext";
 import { useAuth } from "../../context/AuthContext";
 import ArticleCard from "../../../components/article/ArticleCard";
@@ -462,9 +462,9 @@ export default function ProfilePage() {
                 src={avatarUrl}
                 alt={displayName}
                 referrerPolicy="no-referrer"
-                className={`w-20 h-20 rounded-full object-cover border-2 ${
-                  userProfile?.isPremium
-                    ? "border-[#F59E0B]"
+                className={`w-20 h-20 rounded-full object-cover border-2 transition-all ${
+                  isPremium
+                    ? "border-[#1ABC9C]"
                     : "border-[#E5E7EB]"
                 }`}
               />
@@ -472,6 +472,7 @@ export default function ProfilePage() {
 
             <h2 className="text-base font-bold text-[#111827] mb-2 flex items-center gap-2">
               {displayName}
+              {isPremium && <BadgeCheck className="w-5 h-5 shrink-0" fill="#1ABC9C" stroke="white" strokeWidth="1.5" />}
             </h2>
 
             <p className="text-sm text-[#6B7280] mb-1">

@@ -8,6 +8,7 @@ import {
   UserPlus,
   FileText,
   Loader2,
+  BadgeCheck,
 } from "lucide-react";
 import ArticleCard from "../../../../components/article/ArticleCard";
 import { useAuth } from "../../../context/AuthContext";
@@ -348,17 +349,20 @@ export default function UserProfilePage({ params }) {
       {/* Right Sidebar - User Info */}
       <div className="w-90 shrink-0 overflow-y-auto border-l border-[#F2F2F2] px-8 py-10">
         <div className="sticky top-10">
-          <div className="mb-4">
+          <div className="mb-4 relative inline-block">
             <img
               src={avatarUrl}
               alt={displayName}
               referrerPolicy="no-referrer"
-              className="w-24 h-24 rounded-full object-cover"
+              className={`w-24 h-24 rounded-full object-cover border-2 transition-all ${
+                isPremium ? "border-[#1ABC9C]" : "border-transparent"
+              }`}
             />
           </div>
 
-          <h2 className="text-base font-bold text-[#111827] mb-1 font-serif">
+          <h2 className="text-base font-bold text-[#111827] mb-1 font-serif flex items-center gap-2">
             {displayName}
+            {isPremium && <BadgeCheck className="w-5 h-5 shrink-0" fill="#1ABC9C" stroke="white" strokeWidth="1.5" />}
           </h2>
 
           <div className="flex items-center gap-1 text-[13px] text-gray-500 mb-3">

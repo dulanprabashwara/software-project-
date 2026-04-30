@@ -307,13 +307,13 @@ export default function Header({ onToggleSidebar }) {
 
         {/* Avatar + Dropdown */}
         <div className="relative" ref={menuRef}>
-          <div>
+          <div className="relative inline-block">
             <button
               suppressHydrationWarning
               data-skip-save-prompt="true"
               onClick={() => setOpen((prev) => !prev)}
-              className={`w-9 h-9 rounded-full border-2 overflow-hidden ${
-                isPremium ? "border-amber-400" : "border-transparent"
+              className={`block w-9 h-9 rounded-full border-2 overflow-hidden transition-all ${
+                isPremium ? "border-[#1ABC9C]" : "border-transparent"
               }`}
               aria-label="User menu"
             >
@@ -325,32 +325,34 @@ export default function Header({ onToggleSidebar }) {
               />
             </button>
             {isPremium && (
-              <div className="absolute -bottom-1 -right-1 drop-shadow-md z-10">
-                <BadgeCheck className="w-5 h-5 text-[#1ABC9C]" />
+              <div className="absolute -bottom-0.5 -right-0.5 z-10 bg-white rounded-full flex items-center justify-center p-px shadow-sm pointer-events-none">
+                <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" fill="#1ABC9C" stroke="white" strokeWidth="1.5" />
               </div>
             )}
           </div>
 
           {mounted && open && (
             <div className="absolute right-0 mt-2 w-56 bg-white border border-[#e5e7eb] rounded-xl shadow-xl py-2 animate-in fade-in zoom-in-95 duration-100">
-              <div
-                className={`w-17 h-17 rounded-full border-2 overflow-hidden mx-auto ${isPremium ? "border-amber-400" : "border-transparent"}`}
-              >
-                <img
-                  src={avatarUrl}
-                  alt="User"
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative mx-auto w-16 h-16">
+                <div
+                  className={`w-full h-full rounded-full border-2 overflow-hidden ${isPremium ? "border-[#1ABC9C]" : "border-transparent"}`}
+                >
+                  <img
+                    src={avatarUrl}
+                    alt="User"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
               <div className="px-4 py-2 border-none text-sm mb-0">
                 <p className="font-bold">
                   <Link
                     href="/profile"
-                    className="flex items-center justify-between"
+                    className="flex items-center justify-between hover:text-[#1ABC9C] transition-colors"
                   >
                     <span className="truncate">{displayName}</span>
-                    {isPremium && <BadgeCheck className="w-5 h-5 text-[#1ABC9C] shrink-0 ml-2" />}
+                    {isPremium && <BadgeCheck className="w-5 h-5 shrink-0 ml-2" fill="#1ABC9C" stroke="white" strokeWidth="1.5" />}
                   </Link>
                 </p>
                 <p className="text-gray-500 text-xs truncate">{displayEmail}</p>
