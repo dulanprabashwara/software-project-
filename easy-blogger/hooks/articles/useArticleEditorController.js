@@ -9,6 +9,13 @@ import {
 } from "../../lib/articles/editorHelpers";
 import { isContentAtLimit } from "../../lib/articles/articleEditorValidation";
 
+/*
+ useArticleEditorController
+ 
+ This hook manages the raw, local UI state of the editor (title, content, zoom, etc.).
+ It doesn't know about API calls or modes; it simply provides the state and 
+ change handlers that the workflow hook and UI components use.
+ */
 export function useArticleEditorController({ initialFontSize = 16 } = {}) {
   const editorRef = useRef(null);
   const isSavingRef = useRef(false);

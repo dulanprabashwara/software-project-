@@ -1,112 +1,29 @@
 "use client";
 
+/*
+ SUCCESS PAGE: Article Scheduled
+ This page confirms that an article has been successfully queued for future publication.
+ It displays the precise timing and the platforms targeted for the scheduled release.
+ */
+
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BookOpen, CalendarDays, Clock, Share2, Tag } from "lucide-react";
-import { useAuth } from "../../../context/AuthContext";
-import { API_BASE_URL } from "../../../../lib/api";
-import { getDraftById } from "../../../../lib/articles/api";
+import { usePublishStatus } from "../../../../hooks/articles/usePublishStatus";
+import { formatFullDate, formatFullTime } from "../../../../lib/articles/utils";
 import InfoCard from "../../../../components/article/InfoCard";
 import PlatformItem from "../../../../components/article/PlatformItem";
 import PublishStatusLayout from "../../../../components/article/PublishStatusLayout";
 
-function buildPlatforms({ wpConnected }) {
-  const platforms = ["Easy Blogger"];
-  if (wpConnected) platforms.push("WordPress");
-  return platforms;
-}
-
-function formatScheduledDate(dateValue) {
-  if (!dateValue) return "";
-
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return "";
-
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatScheduledTime(dateValue) {
-  if (!dateValue) return "";
-
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return "";
-
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 export default function ArticleScheduledPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { user: firebaseUser } = useAuth();
+  const {
+    article,
+    loading,
+    wpConnected,
+    router,
+  } = usePublishStatus();
 
-  const articleId = searchParams.get("id") || "";
-
-  const [article, setArticle] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [wpConnected, setWpConnected] = useState(false);
-
-  useEffect(() => {
-    const loadScheduledArticle = async () => {
-      if (!articleId) {
-        router.replace("/write/create");
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-
-        const response = await getDraftById(articleId);
-        const fetchedArticle =
-          response?.data ?? response?.article ?? response ?? null;
-
-        if (!fetchedArticle) {
-          router.replace("/write/create");
-          return;
-        }
-
-        setArticle(fetchedArticle);
-      } catch (error) {
-        console.error("Failed to load scheduled article:", error);
-        router.replace("/write/create");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void loadScheduledArticle();
-  }, [articleId, router]);
-
-  useEffect(() => {
-    const checkWordPressStatus = async () => {
-      if (!firebaseUser) return;
-
-      try {
-        const token = await firebaseUser.getIdToken();
-        const res = await fetch(`${API_BASE_URL}/api/wordpress/status`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await res.json();
-        setWpConnected(Boolean(data?.data?.connected));
-      } catch {
-        setWpConnected(false);
-      }
-    };
-
-    void checkWordPressStatus();
-  }, [firebaseUser]);
-
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6">
         <p className="text-sm text-gray-500">Loading scheduled article...</p>
@@ -116,9 +33,17 @@ export default function ArticleScheduledPage() {
 
   if (!article) return null;
 
-  const platforms = buildPlatforms({ wpConnected });
-  const scheduledDate = formatScheduledDate(article.scheduledAt);
-  const scheduledTime = formatScheduledTime(article.scheduledAt);
+  /*
+   List of platforms where the article is scheduled to appear.
+   WHY: We always show 'Easy Blogger' as the primary platform, 
+   and dynamically add 'WordPress' only if the user has an active connection.
+   */
+  const platforms = ["Easy Blogger"];
+  if (wpConnected) platforms.push("WordPress");
+
+  // Format the date and time from the article's scheduledAt field for the UI
+  const scheduledDate = formatFullDate(article.scheduledAt);
+  const scheduledTime = formatFullTime(article.scheduledAt);
 
   return (
     <PublishStatusLayout
@@ -137,15 +62,15 @@ export default function ArticleScheduledPage() {
       onButtonClick={() => router.push("/home")}
     >
       <InfoCard icon={BookOpen} title="Article title">
-        <p className="mt-1 text-2xl text-gray-700">{article.title}</p>
+        <p className="mt-1 text-xl font-bold text-gray-800 leading-tight tracking-tight">{article.title}</p>
       </InfoCard>
-
+      
       <InfoCard icon={Tag} title="Tags">
         <div className="mt-3 flex flex-wrap gap-2">
           {(article.tags || []).map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-gray-300 bg-gray-50 px-4 py-1 text-sm text-gray-600"
+              className="rounded-full border border-gray-100 bg-white px-5 py-1.5 text-sm font-semibold text-gray-600 shadow-xs"
             >
               {tag}
             </span>
@@ -154,18 +79,18 @@ export default function ArticleScheduledPage() {
       </InfoCard>
 
       <InfoCard icon={CalendarDays} title="Scheduled for">
-        <p className="mt-1 text-gray-700">
+        <p className="mt-1 text-lg font-semibold text-gray-800">
           {scheduledDate} at {scheduledTime}
         </p>
       </InfoCard>
 
       <InfoCard icon={Share2} title="Will also share to">
-        <div className="mt-3 flex flex-wrap items-center gap-5 text-lg text-gray-600">
+        <div className="mt-4 space-y-4 w-full">
           {platforms.map((platform) => (
-            <PlatformItem key={platform} platform={platform} />
+            <PlatformItem key={platform} name={platform} />
           ))}
         </div>
       </InfoCard>
     </PublishStatusLayout>
   );
-}
+}

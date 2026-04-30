@@ -11,16 +11,20 @@ export default function InfoCard({ icon: Icon, title, children }) {
   return (
     <motion.div
       variants={fadeUp}
-      className="rounded-3xl border border-gray-200 bg-white px-5 py-5 shadow-md"
+      className="group rounded-[32px] border border-gray-100 bg-white/60 p-6 shadow-sm backdrop-blur-sm transition-all hover:border-emerald-200 hover:bg-white hover:shadow-md"
     >
-      <div className="flex items-start gap-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
-          <Icon size={20} />
+      <div className="flex items-start gap-6">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-100">
+          <Icon size={28} strokeWidth={1.5} />
         </div>
 
-        <div className="flex-1">
-          <p className="text-sm text-gray-500">{title}</p>
-          {children}
+        <div className="flex-1 overflow-hidden">
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+            {title}
+          </p>
+          <div className="mt-1">
+            {children}
+          </div>
         </div>
       </div>
     </motion.div>
