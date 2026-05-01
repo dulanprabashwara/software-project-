@@ -63,6 +63,10 @@ export default function EditProfilePage() {
   const [wpSiteUrl, setWpSiteUrl] = useState("");
   const [wpError, setWpError] = useState("");
   const [wpLoading, setWpLoading] = useState(false);
+  // LinkedIn connection state
+  const [liUsername, setLiUsername] = useState("");
+  const [liError, setLiError] = useState("");
+  const [liLoading, setLiLoading] = useState(false);
   const fileInputRef = useRef(null);
 
   // Password change state
@@ -116,6 +120,56 @@ export default function EditProfilePage() {
 
     checkWpConnection();
   }, [firebaseUser]);
+
+  // Fetch LinkedIn connection status on load
+  useEffect(() => {
+    if (!firebaseUser) return;
+
+    const checkLiConnection = async () => {
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/linkedin/status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data?.data?.connected) {
+          setLinkedInConnected(true);
+          setLiUsername(data.data.liUsername || "");
+        }
+      } catch {
+        // silently ignore
+      }
+    };
+
+    checkLiConnection();
+  }, [firebaseUser]);
+
+  // Reads ?li_status query param set by the OAuth callback redirect
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const liStatus = params.get("li_status");
+    if (!liStatus) return;
+
+    if (liStatus === "connected") {
+      setLinkedInConnected(true);
+      setLiUsername(params.get("li_username") || "");
+      setLiError("");
+    } else if (liStatus === "error") {
+      setLiError(
+        params.get("li_message") ||
+          "LinkedIn connection failed. Please try again.",
+      );
+    }
+
+    // clean params
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("li_status");
+    cleanUrl.searchParams.delete("li_username");
+    cleanUrl.searchParams.delete("li_message");
+    window.history.replaceState({}, "", cleanUrl.toString());
+  }, []);
 
   // Reads ?wp_status query param set by the OAuth callback redirect
   useEffect(() => {
@@ -346,13 +400,51 @@ export default function EditProfilePage() {
     }
   };
 
-  const handleLinkedInToggle = () => {
+  const handleLinkedInToggle = async () => {
+    if (!firebaseUser) return;
+
     if (linkedInConnected) {
-      if (confirm("Do you want to disconnect from LinkedIn?")) {
+      if (!confirm("Do you want to disconnect from LinkedIn?")) return;
+      setLiLoading(true);
+      setLiError("");
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/linkedin/disconnect`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.message || "Disconnect request failed.");
+        }
         setLinkedInConnected(false);
+        setLiUsername("");
+      } catch (err) {
+        setLiError(
+          err.message || "Failed to disconnect LinkedIn. Please try again.",
+        );
+      } finally {
+        setLiLoading(false);
       }
     } else {
-      setLinkedInConnected(true);
+      setLiLoading(true);
+      setLiError("");
+      try {
+        const token = await firebaseUser.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/linkedin/auth`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok || !data?.data?.authUrl) {
+          throw new Error(
+            data?.message || "Could not get LinkedIn authorization URL.",
+          );
+        }
+        window.location.href = data.data.authUrl;
+      } catch (err) {
+        setLiError(err.message || "Authentication failed. Please try again.");
+        setLiLoading(false);
+      }
     }
   };
 
@@ -909,6 +1001,13 @@ export default function EditProfilePage() {
             </div>
           </div>
 
+          {/* Error banner — shown on connect/disconnect failure */}
+          {liError && (
+            <div className="mb-3 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
+              {liError}
+            </div>
+          )}
+
           <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#0077B5] rounded-lg flex items-center justify-center">
@@ -922,20 +1021,27 @@ export default function EditProfilePage() {
                 </p>
                 <p className="text-sm text-[#6B7280]">
                   {linkedInConnected
-                    ? "Share articles directly to your LinkedIn profile"
+                    ? `Connected as ${liUsername || "LinkedIn User"}`
                     : "Connect to share articles"}
                 </p>
               </div>
             </div>
             <button
               onClick={handleLinkedInToggle}
-              className={`text-sm font-medium transition-colors ${
+              disabled={liLoading}
+              className={`text-sm font-medium transition-colors disabled:opacity-50 ${
                 linkedInConnected
                   ? "text-red-500 hover:text-red-600"
                   : "text-[#0077B5] hover:text-[#006097]"
               }`}
             >
-              {linkedInConnected ? "Disconnect" : "Connect"}
+              {liLoading
+                ? linkedInConnected
+                  ? "Disconnecting..."
+                  : "Connecting..."
+                : linkedInConnected
+                  ? "Disconnect"
+                  : "Connect"}
             </button>
           </div>
         </div>
