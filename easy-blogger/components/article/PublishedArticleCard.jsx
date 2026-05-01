@@ -4,15 +4,16 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { 
   BadgeCheck, MessageCircle, Star, Bookmark, 
-  MoreHorizontal, BookOpen, Sparkles, Clock, Flag 
+  MoreHorizontal, BookOpen, Sparkles, Clock, Trash2 
 } from "lucide-react";
 import { useAuth } from "../../app/context/AuthContext";  
 
-export default function ArticleCard({ 
+export default function PublishedArticleCard({ 
   article, 
   savedArticles = [], 
   interactedArticles = [], 
-  readHistory = [] 
+  readHistory = [],
+  onDeleteSuccess // Optional: Pass a function from the parent page to refresh the list!
 }) {
   const router = useRouter();
   const { user, profileLoading } = useAuth();
@@ -21,28 +22,21 @@ export default function ArticleCard({
   // 1. COMPONENT STATE
   // ==========================================
 
-  // Bookmark State
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  // Dropdown Menu State
   const [moreOptions, setMoreOptions] = useState(false);
 
-  // Report Modal State
-  const [isReportOpen, setIsReportOpen] = useState(false);
-  const [reportReason, setReportReason] = useState("");
-  const [reportDescription, setReportDescription] = useState("");
-  const [isReporting, setIsReporting] = useState(false);
+  // Delete Modal State
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // ==========================================
   // 2. EFFECTS & INITIALIZATION
   // ==========================================
 
-  // Check if article is already bookmarked on load
   useEffect(() => {
     if (savedArticles.length > 0) {
-      const isSavedInDb = savedArticles.some((obj) => obj.id === article.id);
-      setSaved(isSavedInDb);
+      setSaved(savedArticles.some((obj) => obj.id === article.id));
     }
   }, [savedArticles, article.id]);
 
@@ -50,37 +44,31 @@ export default function ArticleCard({
   // 3. DATA CALCULATIONS & FORMATTING
   // ==========================================
 
-  // User Interaction Checks
   const userInteraction = interactedArticles.find((obj) => obj.id === article.id);
   const hasCommented = userInteraction ? userInteraction.commentStatus : false;
   const hasRated = userInteraction ? userInteraction.rateStatus : false;
 
-  // Reading History
   const readMatch = readHistory.find((obj) => obj.articleId === article.id);
   const rawReadDate = article.interactedAt || readMatch?.lastReadAt; 
   const readDateDisplay = rawReadDate
     ? new Date(rawReadDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
     : null;
 
-  // Author Details
   const authorName = article.author?.displayName || "Guest Writer"; 
   const authorAvatar = article.author?.avatarUrl || "https://ui-avatars.com/api/?name=Guest";
   
-  // Date Formatting
   const isPublished = article.status;
   const rawPublishDate = isPublished === "PUBLISHED"
       ? article.publishedAt || article.createdAt
       : article.updatedAt || article.createdAt;
-  const rawScheduledDate = isPublished === "SCHEDULED" ? article.scheduledAt : "";
-
+      
   const displayDate = rawPublishDate
     ? new Date(rawPublishDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
     : "Date unknown";
 
-  const scheduledDate = rawScheduledDate
-    ? new Date(rawPublishDate).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })
+  const scheduledDate = isPublished === "SCHEDULED" && article.scheduledAt
+    ? new Date(article.scheduledAt).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })
     : "Scheduled date unknown";
-
 
   // ==========================================
   // 4. API HANDLERS
@@ -88,15 +76,11 @@ export default function ArticleCard({
 
   const toggleMoreOptions = () => setMoreOptions(!moreOptions);
 
-  // Handle Bookmarking
   const toggleBookmark = async () => {
-    if (!user) {
-      alert("Please log in to save articles!");
-      return; 
-    }
+    if (!user) return alert("Please log in to save articles!");
 
     const nextState = !saved;
-    setSaved(nextState); // Optimistic UI update
+    setSaved(nextState);
     setSaving(true);
 
     try {
@@ -112,54 +96,49 @@ export default function ArticleCard({
 
       if (!res.ok) throw new Error("Failed to sync bookmark.");
     } catch (err) {
-      setSaved(!nextState); // Revert on failure
+      setSaved(!nextState);
       alert(err.message || "Failed to sync bookmark.");
     } finally {
       setSaving(false);
     }
   };
 
-  // Handle Submitting the Report
-  const handleReportSubmit = async () => {
-    if (!user) {
-      alert("You must be logged in to report an article.");
-      return; 
-    }
+  // --- DELETE HANDLER ---
+  const handleDeleteSubmit = async () => {
+    if (!user) return alert("You must be logged in.");
 
-    setIsReporting(true);
+    setIsDeleting(true);
 
     try {
       const token = await user.getIdToken();
       
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articleReports`, {
-        method: "POST",
+      // Notice we pass the article.id directly in the URL path parameters
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${article.id}`, {
+        method: "DELETE",
         headers: {
-          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          articleId: article.id,
-          reason: reportReason,
-          description: reportDescription 
-        }),
+        }
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to submit report");
+        throw new Error(errorData.message || "Failed to delete article");
       }
 
-      // Success Reset
-      alert("Thank you. The report has been sent to our team.");
-      setIsReportOpen(false);
-      setReportReason("");
-      setReportDescription("");
+      setIsDeleteOpen(false);
+      
+      // If the parent page passed a refresh function, call it so the deleted article disappears!
+      if (onDeleteSuccess) {
+        onDeleteSuccess(article.id);
+      } else {
+        alert("Article deleted successfully.");
+      }
 
     } catch (err) {
       console.error(err);
       alert(err.message || "Something went wrong.");
     } finally {
-      setIsReporting(false);
+      setIsDeleting(false);
     }
   };
 
@@ -171,11 +150,11 @@ export default function ArticleCard({
     <div className="relative"> 
       <article className="py-6 border-b border-[#E5E7EB] last:border-0 relative">
         
-        {/* --- Author & Date Header --- */}
+        {/* Header */}
         <div className="flex items-center gap-2 mb-3">
           <img src={authorAvatar} alt={authorName} className="w-8 h-8 rounded-full object-cover" />
           <span className="text-sm font-medium text-[#111827]">{authorName}</span>
-          {article.author?.isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" title="Premium Author" />}
+          {article.author?.isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" />}
 
           <span className="text-sm text-[#6B7280]"> 
             {isPublished === "PUBLISHED" ? (
@@ -194,7 +173,7 @@ export default function ArticleCard({
           )}
         </div>
 
-        {/* --- Article Title & Content Snippet --- */}
+        {/* Content */}
         <div className="flex gap-6 justify-between">
           <div className="flex-1">
             <div className="h-14">
@@ -205,7 +184,6 @@ export default function ArticleCard({
                 {article.title || "Untitled Article"}
               </h2>
             </div>
-            
             <div className="line-clamp-3 h-18 text-gray-500 text-[16px] leading-6"
                  dangerouslySetInnerHTML={{ __html: article.content || "<p>No content available.</p>" }}
             />
@@ -218,10 +196,9 @@ export default function ArticleCard({
           )}
         </div>
 
-        {/* --- Interaction Footer --- */}
+        {/* Footer */}
         <div className="flex items-center justify-between mt-4 relative">
           <div className="flex items-center gap-4 text-sm text-[#6B7280]">
-            
             <button className={`flex items-center gap-1.5 transition-colors duration-150 ${hasCommented ? 'text-[#1ABC9C]' : 'hover:text-[#1ABC9C]'}`}>
               <MessageCircle className={`w-5 h-5 ${hasCommented ? 'fill-[#1ABC9C]' : ''}`} strokeWidth={1.5} />
               <span>{article.commentCount || "-"}</span>
@@ -246,12 +223,10 @@ export default function ArticleCard({
               onClick={toggleBookmark}
               disabled={saving || profileLoading} 
               className={`group p-2 rounded-full transition-colors duration-150 ${saved ? "bg-white" : "hover:bg-[#E8F8F5]"} ${(saving || profileLoading) ? "opacity-70 cursor-not-allowed" : ""}`}
-              title={saved ? "Saved" : "Save"}
             >
               <Bookmark className={`w-5 h-5 transition-colors duration-150 ${saved ? "text-[#1abc9c] fill-[#1abc9c]" : "text-[#1abc9c] group-hover:text-[#1ABC9C]"}`} strokeWidth={1.5} />
             </button>
 
-            {/* More Options Button */}
             <button 
               className="group p-2 hover:bg-[#E8F8F5] rounded-full transition-colors duration-150"
               onClick={toggleMoreOptions}
@@ -264,13 +239,13 @@ export default function ArticleCard({
               <div className="absolute right-0 top-full mt-1 flex flex-col bg-white w-36 border border-[#e5e7eb] rounded-xl drop-shadow-lg z-50 overflow-hidden">
                 <button 
                   onClick={() => {
-                    setIsReportOpen(true);
-                    setMoreOptions(false); // Close dropdown when opening modal
+                    setIsDeleteOpen(true);
+                    setMoreOptions(false); 
                   }}
                   className="flex items-center gap-3 w-full h-10 px-4 hover:bg-red-50 transition-colors"
                 >
-                  <Flag className="w-4 h-4 text-red-500" />
-                  <span className="text-sm font-medium text-red-500">Report</span>
+                  <Trash2 className="w-4 h-4 text-red-600" />
+                  <span className="text-sm font-medium text-red-600">Delete</span>
                 </button>
               </div>
             )}
@@ -282,41 +257,37 @@ export default function ArticleCard({
           6. MODALS
           ========================================== */}
       
-      {isReportOpen && (
+      {/* Delete Confirmation Modal */}
+      {isDeleteOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-bold mb-4 text-gray-900">Report Article</h3>
-
-            <input 
-              type="text"
-              className="w-full border border-gray-200 rounded-lg p-2 mb-3 focus:ring-2 focus:ring-red-500 outline-none"
-              placeholder="Reason (e.g. Spam, Harassment)"
-              value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
-            />
-
-            <textarea 
-              className="w-full border border-gray-200 rounded-lg p-2 mb-4 h-24 focus:ring-2 focus:ring-red-500 outline-none resize-none" 
-              placeholder="Provide details..."
-              value={reportDescription}
-              onChange={(e) => setReportDescription(e.target.value)}
-            />
-
-            <div className="flex gap-2 justify-end">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+            
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <Trash2 className="w-6 h-6 text-red-600" />
+            </div>
+            
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Article?</h3>
+            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
+              This action is permanent and cannot be undone. All comments and ratings associated with this article will be lost forever.
+            </p>
+            
+            <div className="flex gap-3">
               <button 
-                onClick={() => setIsReportOpen(false)}
-                className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+                onClick={() => setIsDeleteOpen(false)} 
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
               >
                 Cancel
               </button>
               <button 
-                onClick={handleReportSubmit}
-                disabled={isReporting || !reportReason}
-                className="px-4 py-2 bg-red-500 text-white font-bold rounded-lg disabled:opacity-50 hover:bg-red-600 transition-colors"
+                onClick={handleDeleteSubmit} 
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-all disabled:opacity-50"
               >
-                {isReporting ? "Sending..." : "Submit"}
+                {isDeleting ? "Deleting..." : "Delete"}
               </button>
             </div>
+
           </div>
         </div>
       )}
