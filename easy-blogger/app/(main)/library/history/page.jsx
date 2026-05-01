@@ -3,14 +3,14 @@
 import { useState } from "react";
 import ArticleCard from "../../../../components/article/ArticleCard";
 import { useReadHistory } from "../../../../hooks/useReadHistory";
-import { useSavedArticles } from "../../../../hooks/useSavedArticles";
+import { useSavedList } from "../../../../hooks/useSavedArticles";
 import { Loader2 } from "lucide-react";
 
 export default function History() {
   const { readHistory, isLoading: historyLoading } = useReadHistory();
-  const { savedArticles, isLoading: savedLoading } = useSavedArticles();
+  const { savedList} = useSavedList();
 
-  const isLoading = historyLoading || savedLoading;
+  const isLoading = historyLoading;
 
   if (isLoading) {
     return (
@@ -35,10 +35,9 @@ export default function History() {
         {readHistory.map((item) => (
           <ArticleCard 
             key={item.id} 
-            // We pass the nested article object from the history record
-            article={item.article} 
+             article={item.article} 
             readHistory={readHistory} 
-            savedArticles={savedArticles}
+            savedArticles={savedList}
           />
         ))}
       </div>

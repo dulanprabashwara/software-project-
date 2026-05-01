@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../app/context/AuthContext"; 
+import { getArticleRatingsApi } from "../app/api/userInteractions.api";
 
 export function useArticleRatings() {
   const { user, profileLoading } = useAuth();
@@ -14,27 +15,12 @@ export function useArticleRatings() {
     }
 
     setIsLoading(true);
-
     try {
       const token = await user.getIdToken();
-      // Adjust the endpoint if your backend route is named differently
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articleRatings`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      });
-
-      const json = await res.json();
-      
-      if (json.success) {
-        setArticleRatings(json.data || []);
-      } else {
-        console.error("Backend error:", json.message);
-      }
+      const data = await getArticleRatingsApi(token);
+      setArticleRatings(data);
     } catch (error) {
-      console.error("Failed to fetch article ratings:", error);
+      console.error("Hook Error:", error.message);
     } finally {
       setIsLoading(false);
     }

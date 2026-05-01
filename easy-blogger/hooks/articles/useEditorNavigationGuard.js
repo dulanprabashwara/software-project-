@@ -2,32 +2,11 @@
 
 import { useCallback, useEffect, useRef } from "react";
 
-function isTinyMceUiElement(element) {
-  if (!(element instanceof Element)) return false;
-
-  return Boolean(
-    element.closest(
-      [
-        ".tox",
-        ".tox-tinymce-aux",
-        ".tox-dialog",
-        ".tox-dialog-wrap",
-        ".tox-menu",
-        ".tox-collection",
-        ".tox-toolbar",
-        ".tox-toolbar__group",
-        ".mce-content-body",
-      ].join(","),
-    ),
-  );
-}
 
 export function useEditorNavigationGuard({
   enabled,
   isHydrating,
   isSaving,
-  isModalOpen,
-  editingSectionRef,
   openModal,
   closeModal,
   onSaveBeforeLeave,
@@ -41,7 +20,8 @@ export function useEditorNavigationGuard({
     const action = pendingExternalActionRef.current;
     pendingExternalActionRef.current = null;
 
-    if (!action) return;
+    if (!action)
+      return;
 
     bypassExternalActionGuardRef.current = true;
 
@@ -55,7 +35,8 @@ export function useEditorNavigationGuard({
   }, []);
 
   const handleExternalActionAttempt = useCallback(() => {
-    if (isPromptActiveRef.current) return;
+    if (isPromptActiveRef.current)
+      return;
 
     isPromptActiveRef.current = true;
 
@@ -108,52 +89,40 @@ export function useEditorNavigationGuard({
   ]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || isHydrating || isSaving) return;
 
-    const handleDocumentClickCapture = (event) => {
-      if (
-        bypassExternalActionGuardRef.current ||
-        isHydrating ||
-        isSaving ||
-        isModalOpen
-      ) {
-        return;
-      }
+    // Push a dummy state to history so that the back button has something to pop without immediately leaving the current page.
+    window.history.pushState({ guarded: true }, "");
 
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      if (isTinyMceUiElement(target)) return;
+    const handlePopState = (event) => {
+      if (bypassExternalActionGuardRef.current || isHydrating || isSaving) return;
 
-      const clickableElement = target.closest("button, a, [role='button']");
-      if (!clickableElement) return;
+      // The user clicked back, which popped our dummy state.
+      // We push it back immediately to "stay" on the page while the modal is open.
+      window.history.pushState({ guarded: true }, "");
 
-      if (clickableElement.closest("[data-skip-save-prompt='true']")) return;
-      if (editingSectionRef.current?.contains(clickableElement)) return;
-      if (isTinyMceUiElement(clickableElement)) return;
-
+      // Define the action to take if the user confirms leaving.
+      // We need to go back twice: 
+      // 1. To clear the dummy state we just pushed.
+      // 2. To actually perform the original back navigation.
       pendingExternalActionRef.current = () => {
-        clickableElement.click();
+        window.history.go(-2);
       };
-
-      event.preventDefault();
-      event.stopPropagation();
 
       handleExternalActionAttempt();
     };
 
-    document.addEventListener("click", handleDocumentClickCapture, true);
+    window.addEventListener("popstate", handlePopState);
 
     return () => {
-      document.removeEventListener("click", handleDocumentClickCapture, true);
+      window.removeEventListener("popstate", handlePopState);
+
+      // If we are unmounting and still have our dummy state, clean it up to avoid polluting the history stack.
+      if (window.history.state?.guarded) {
+        window.history.back();
+      }
     };
-  }, [
-    enabled,
-    editingSectionRef,
-    handleExternalActionAttempt,
-    isHydrating,
-    isModalOpen,
-    isSaving,
-  ]);
+  }, [enabled, isHydrating, isSaving, handleExternalActionAttempt]);
 
   return {
     handleExternalActionAttempt,

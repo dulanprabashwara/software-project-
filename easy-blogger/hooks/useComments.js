@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
+import { getArticleCommentsApi, addCommentApi, rateArticleApi } from "../app/api/comments.api";
 
 export const useComments = (articleId, token) => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [rating, setRating] = useState(0); // This keeps stars colored
+  const [rating, setRating] = useState(0); 
 
   const fetchComments = async () => {
     try {
-const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments/${articleId}`);      
-const data = await res.json();
+      const data = await getArticleCommentsApi(articleId);
       setComments(data);
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error("Hook Error:", err.message);
     } finally {
       setLoading(false);
     }
@@ -24,44 +24,25 @@ const data = await res.json();
   const addComment = async (content, parentId = null) => {
     if (!token) return false;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ articleId, content, parentId }),
-      });
-      if (res.ok) {
-        await fetchComments();
-        return true;
-      }
+      await addCommentApi(articleId, content, parentId, token);
+      await fetchComments(); // Refresh list automatically
+      return true;
     } catch (err) {
-      console.error(err);
+      console.error("Hook Error:", err.message);
+      return false;
     }
-    return false;
   };
 
-  const submitRating = async (num) => { // 'num' is defined here
+  const submitRating = async (num) => { 
     if (!token) return false;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments/${articleId}/rate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ rating: num }), // 'num' is used here
-      });
-
-      if (res.ok) {
-        setRating(num); // Update local state to keep stars colored
-        return true;
-      }
+      await rateArticleApi(articleId, num, token);
+      setRating(num); 
+      return true;
     } catch (err) {
-      console.error("Rating Error:", err);
+      console.error("Hook Error:", err.message);
+      return false;
     }
-    return false;
   };
 
   return { comments, loading, rating, addComment, submitRating };

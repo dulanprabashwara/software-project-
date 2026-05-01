@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getPopularTagsApi } from "../app/api/topics.api";
 
 export function usePopularTags(limit = 10) {
   const [tags, setTags] = useState([]);
@@ -9,17 +10,11 @@ export function usePopularTags(limit = 10) {
     const fetchTags = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/popularTopics?limit=${limit}`);
-        const json = await res.json();
-
-        if (json.success) {
-          setTags(json.data);
-        } else {
-          throw new Error(json.message);
-        }
+        const data = await getPopularTagsApi(limit);
+        setTags(data);
       } catch (err) {
         setError(err.message);
-        console.error("Failed to fetch popular tags:", err);
+        console.error("Hook Error:", err.message);
       } finally {
         setIsLoading(false);
       }

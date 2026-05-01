@@ -4,10 +4,19 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bot, FileText } from "lucide-react";
-import { getMyDrafts } from "../../../../lib/articles/api";
+import {
+  Bot,
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
+  Edit,
+  User,
+  AlertCircle
+} from "lucide-react";
+import { getMyDrafts, deleteDraft } from "../../../../lib/articles/api";
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 20; // Load more at once for the slider
 
 const FILTERS = {
   REGULAR: "regular",
@@ -85,6 +94,12 @@ export default function UnpublishedArticlesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  // Track which article is being deleted to show the inline confirmation prompt
+  const [deletingId, setDeletingId] = useState(null);
+  // Track which article is being edited to show the 'As New' vs 'Existing' options
+  const [editingId, setEditingId] = useState(null);
+  // Controls the starting index of the horizontal carousel view
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const toggleSelect = useCallback((id) => {
     setSelectedId((prev) => (prev === id ? null : id));
@@ -144,7 +159,22 @@ export default function UnpublishedArticlesPage() {
   );
 
   useEffect(() => {
+    // We use a global click listener to automatically close any open edit or delete 
+    // confirmation menus when the user clicks elsewhere, providing a cleaner UX.
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".interactive-controls")) {
+        setEditingId(null);
+        setDeletingId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
     setSelectedId(null);
+    setCurrentIndex(0);
     void loadDrafts(1, activeFilter);
   }, [activeFilter, loadDrafts]);
 
@@ -162,6 +192,7 @@ export default function UnpublishedArticlesPage() {
       hasCover: Boolean(article.coverImage),
       isEdited: Boolean(article.isEdited),
       isEditAsNew: Boolean(article.isEditAsNew),
+      isAiGenerated: Boolean(article.isAiGenerated),
       profileImage:
         article.author?.avatarUrl || "/images/Unpublished_IMG/profile.jpg",
     }));
@@ -196,252 +227,259 @@ export default function UnpublishedArticlesPage() {
     router.push("/write/choose-method");
   }, [router]);
 
-  return (
-    <div className="min-h-screen bg-linear-to-br from-[#E8F5F1] via-[#F0F9FF] to-[#FDF4FF] flex items-center justify-center p-6">
-      <div className="w-full max-w-6xl">
-        <div className="bg-white rounded-2xl shadow-2xl p-12">
-          <div className="mb-6 flex justify-start">
-            <button
-              onClick={() => router.push("/stories")}
-              className="rounded-full bg-[#10B981] px-6 py-2 text-white shadow-md hover:bg-[#0EA371] transition"
-            >
-              Go to Stories
-            </button>
-          </div>
+  const handleDelete = async (id) => {
+    try {
+      await deleteDraft(id);
+      setDraftArticles((prev) => prev.filter((a) => a.id !== id));
+      setDeletingId(null);
+      // If we delete the last visible article, move the slider back to prevent an empty view
+      if (currentIndex > 0 && currentIndex >= draftArticles.length - 1) {
+        setCurrentIndex((prev) => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      showError(error.message || "Failed to delete article");
+    }
+  };
 
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-serif font-bold text-[#111827] mb-3">
+  const nextSlide = () => {
+    // Ensures we don't scroll past the end of the article list (showing max 4 per view)
+    if (currentIndex + 4 < displayedArticles.length) {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  };
+
+  const prevSlide = () => {
+    // Prevents negative indexing when scrolling back
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header same as Currently Developed Page (Stories) */}
+      <header className="px-8 pt-10 pb-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold font-[Georgia] text-[#111827] mb-2">
               Unpublished Articles
             </h1>
-            <p className="text-[#9CA3AF] text-base">
-              You can edit your Unpublished Articles
+            <p className="text-gray-400 text-sm">
+              You can edit your Unpublished Articles here
             </p>
-
-            <div className="mt-10 flex justify-center">
-              <div className="w-full max-w-4xl">
-                <div className="flex items-end justify-between px-16">
-                  <button
-                    type="button"
-                    onClick={() => setActiveFilter(FILTERS.REGULAR)}
-                    className={`px-12 py-3 rounded-t-xl text-base font-medium transition ${
-                      activeFilter === FILTERS.REGULAR
-                        ? "bg-[#E9FFF7] text-[#10B981]"
-                        : "text-[#10B981]/70 hover:text-[#10B981]"
-                    }`}
-                  >
-                    Regular Articles
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveFilter(FILTERS.AI)}
-                    className={`px-12 py-3 rounded-t-xl text-base font-medium transition ${
-                      activeFilter === FILTERS.AI
-                        ? "bg-[#E9FFF7] text-[#10B981]"
-                        : "text-[#10B981]/70 hover:text-[#10B981]"
-                    }`}
-                  >
-                    AI Generated Articles
-                  </button>
-                </div>
-
-                <div className="mt-1 border-t-2 border-[#99F6E4]" />
-              </div>
-            </div>
           </div>
 
-          {errorMsg ? (
-            <div className="mb-6 rounded-lg bg-red-100 px-4 py-3 text-red-700">
-              {errorMsg}
+          {/* Filter Section centered and styled as per image */}
+          <div className="mt-12 flex flex-col items-center">
+            <div className="flex gap-65 w-full max-w-4xl justify-center px-10">
+              <button
+                type="button"
+                onClick={() => setActiveFilter(FILTERS.REGULAR)}
+                className={`px-8 py-3 rounded-t-2xl font-bold text-sm transition-all ${activeFilter === FILTERS.REGULAR
+                  ? "bg-[#E9FFF7] text-[#10B981]"
+                  : "text-[#10B981]/60 hover:text-[#10B981]"
+                  }`}
+              >
+                Regular Articles
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveFilter(FILTERS.AI)}
+                className={`px-8 py-3 rounded-t-2xl font-bold text-sm transition-all ${activeFilter === FILTERS.AI
+                  ? "bg-[#E9FFF7] text-[#10B981]"
+                  : "text-[#10B981]/60 hover:text-[#10B981]"
+                  }`}
+              >
+                AI Generated Articles
+              </button>
             </div>
-          ) : null}
-
-          {isLoading ? (
-            <div className="py-16 text-center text-[#6B7280]">
-              Loading drafts...
-            </div>
-          ) : displayedArticles.length === 0 ? (
-            <EmptyState type={activeFilter} onCreate={handleCreateArticle} />
-          ) : (
-            <>
-              <div className="mt-10 space-y-10">
-                {displayedArticles.map((article, index) => {
-                  const isActive = article.id === selectedId;
-
-                  return (
-                    <div key={article.id}>
-                      <button
-                        type="button"
-                        onClick={() => toggleSelect(article.id)}
-                        className="w-full text-left"
-                      >
-                        <div className="flex items-start gap-10">
-                          <div className="w-14 shrink-0 flex justify-center">
-                            {!isActive ? (
-                              <div className="mt-1 h-10 w-10 rounded bg-gray-200 border border-gray-400" />
-                            ) : (
-                              <div className="mt-1 h-10 w-10 rounded-full bg-[#22C55E] flex items-center justify-center">
-                                <svg
-                                  width="22"
-                                  height="22"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    d="M20 6L9 17L4 12"
-                                    stroke="white"
-                                    strokeWidth="3"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex flex-1 items-start justify-between gap-10">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-3 text-sm text-[#6B7280]">
-                                <img
-                                  src={article.profileImage}
-                                  alt={article.author}
-                                  className="h-8 w-8 rounded-full object-cover border border-black/10"
-                                />
-                                <span className="font-medium">
-                                  {article.author}
-                                </span>
-                                <span className="opacity-60">·</span>
-                                <span>{article.date}</span>
-                              </div>
-
-                              <div className="mt-4 flex items-center gap-3">
-                                <h2 className="text-3xl font-serif font-bold text-[#111827]">
-                                  {article.title}
-                                </h2>
-
-                                {article.isEdited ? (
-                                  <span className="rounded-full bg-[#FEF3C7] px-3 py-1 text-xs font-medium text-[#92400E]">
-                                    Edited
-                                  </span>
-                                ) : null}
-
-                                {article.isEditAsNew ? (
-                                  <span className="rounded-full bg-[#DBEAFE] px-3 py-1 text-xs font-medium text-[#1D4ED8]">
-                                    Recreated
-                                  </span>
-                                ) : null}
-                              </div>
-
-                              <p className="mt-3 text-[#6B7280] leading-relaxed max-w-2xl">
-                                {article.desc}
-                              </p>
-                            </div>
-
-                            <div className="w-55 shrink-0 flex justify-end">
-                              <div className="h-28 w-40 overflow-hidden rounded-md bg-black/10 flex items-center justify-center">
-                                {article.hasCover ? (
-                                  <img
-                                    src={article.image}
-                                    alt={article.title}
-                                    className="h-full w-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="flex flex-col items-center gap-2 text-[#6B7280]">
-                                    <svg
-                                      width="28"
-                                      height="28"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                      <path
-                                        d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                      />
-                                      <path
-                                        d="M3 17l5-5a2 2 0 0 1 3 0l3 3"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                      />
-                                      <path
-                                        d="M14 15l1-1a2 2 0 0 1 3 0l3 3"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                      />
-                                      <circle
-                                        cx="9"
-                                        cy="8"
-                                        r="1.5"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                      />
-                                    </svg>
-
-                                    <span className="text-[11px]">
-                                      Add cover later
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-
-                      {index !== displayedArticles.length - 1 ? (
-                        <div className="mt-10 border-t border-black/10" />
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {hasMore ? (
-                <div className="mt-10 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={handleSeeMore}
-                    disabled={isLoadingMore}
-                    className="rounded-full bg-[#6B7280] px-8 py-3 text-white shadow-md transition hover:bg-[#4B5563] disabled:opacity-60"
-                  >
-                    {isLoadingMore ? "Loading..." : "See more"}
-                  </button>
-                </div>
-              ) : null}
-            </>
-          )}
-
-          <div className="mt-10 border-t-2 border-black" />
-
-          <div className="mt-8 flex items-center justify-between px-6">
-            <button
-              onClick={handleEditAsNew}
-              className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90"
-            >
-              Edit as New
-            </button>
-
-            <button
-              onClick={() => router.push("/write/choose-method")}
-              className="rounded-full bg-[#10B981] px-14 py-4 text-white font-medium shadow-lg hover:bg-[#0EA371]"
-            >
-              Back
-            </button>
-
-            <button
-              onClick={handleEditExisting}
-              className="rounded-full bg-black px-10 py-4 text-white shadow-lg hover:opacity-90"
-            >
-              Edit Existing
-            </button>
+            <div className="w-full max-w-7xl h-[2px] bg-[#99F6E4]" />
           </div>
         </div>
-      </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-8 py-12">
+        {errorMsg && (
+          <div className="mb-6 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-red-600 border border-red-100 animate-in fade-in slide-in-from-top-1">
+            <AlertCircle className="w-5 h-5" />
+            <span className="text-sm font-medium">{errorMsg}</span>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-32 gap-4">
+            <div className="w-10 h-10 border-4 border-[#10B981] border-t-transparent rounded-full animate-spin" />
+            <p className="text-gray-500 font-medium">Loading your drafts...</p>
+          </div>
+        ) : displayedArticles.length === 0 ? (
+          <EmptyState type={activeFilter} onCreate={handleCreateArticle} />
+        ) : (
+          <div className="relative group">
+            {/* Slider Controls */}
+            {currentIndex > 0 && (
+              <button
+                onClick={prevSlide}
+                className="absolute left-[-20px] top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-400 hover:text-black hover:scale-110 transition-all"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+
+            {currentIndex + 4 < displayedArticles.length && (
+              <button
+                onClick={nextSlide}
+                className="absolute right-[-20px] top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-400 hover:text-black hover:scale-110 transition-all"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+
+            {/* Slider Content */}
+            <div className="overflow-hidden">
+              <div
+                className="flex gap-6 transition-transform duration-500 ease-out"
+                style={{ transform: `translateX(-${currentIndex * (100 / 4)}%)` }}
+              >
+                {displayedArticles.map((article) => (
+                  <div
+                    key={article.id}
+                    className="min-w-[calc(25%-18px)] max-w-[calc(25%-18px)] flex-shrink-0"
+                  >
+                    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col h-full group/card">
+                      {/* We display the author and date prominently to help users identify their drafts quickly */}
+                      <div className="p-4 flex items-center gap-3">
+                        <img
+                          src={article.profileImage}
+                          alt={article.author}
+                          className="h-8 w-8 rounded-full object-cover bg-gray-100"
+                        />
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-sm font-semibold text-gray-900 truncate">
+                            {article.author}
+                          </span>
+                          <span className="text-[11px] text-gray-400">
+                            {article.date}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Card Image */}
+                      <div className="relative aspect-video w-full bg-gray-50 overflow-hidden">
+                        {article.hasCover ? (
+                          <img
+                            src={article.image}
+                            alt={article.title}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
+                            <FileText className="w-8 h-8" />
+                            <span className="text-[10px] font-medium uppercase tracking-wider">No Cover Image</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Card Content */}
+                      <div className="p-4 flex-1 flex flex-col">
+                        <div className="flex items-start gap-2 mb-2">
+                          <h2 className="text-lg font-bold text-gray-900 leading-tight line-clamp-2 font-serif group-hover/card:text-[#10B981] transition-colors">
+                            {article.title}
+                          </h2>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {/* 
+                             Badges provide immediate visual feedback on the article's 
+                             origin (AI vs Human) and its current lifecycle state.
+                          */}
+                          {article.isEdited && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-100 uppercase tracking-tighter">
+                              Edited
+                            </span>
+                          )}
+                          {article.isEditAsNew && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100 uppercase tracking-tighter">
+                              Recreated
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed mb-4">
+                          {article.desc}
+                        </p>
+
+                        <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between interactive-controls">
+                          {/* 
+                            Inline confirmation prevents accidental deletions 
+                            without requiring a disruptive modal popup. 
+                          */}
+                          {deletingId === article.id ? (
+                            <div className="w-full animate-in fade-in zoom-in duration-200">
+                              <p className="text-[11px] font-bold text-red-600 mb-2">
+                                Do you want to delete this article?
+                              </p>
+                              <div className="flex gap-4 items-center mt-2">
+                                <button
+                                  onClick={() => handleDelete(article.id)}
+                                  className="text-[11px] font-bold bg-red-600 text-white px-4 py-1.5 rounded-lg shadow-md hover:bg-red-700 transition-all active:scale-95"
+                                >
+                                  Confirm
+                                </button>
+                                <button
+                                  onClick={() => setDeletingId(null)}
+                                  className="text-[11px] font-bold text-gray-500 hover:text-black transition-colors"
+                                >
+                                  No
+                                </button>
+                              </div>
+                            </div>
+                          ) : editingId === article.id ? (
+                            /* 
+                              Split edit options allow the user to choose their 
+                              preferred workflow (cloning vs modifying) directly from the card. 
+                            */
+                            <div className="flex w-full gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                              <button
+                                onClick={() => router.push(`/write/edit-as-new?id=${article.id}`)}
+                                className="flex-1 bg-black text-white text-[10px] font-bold py-2 rounded-lg hover:bg-gray-800 transition-colors"
+                              >
+                                EDIT AS NEW
+                              </button>
+                              <button
+                                onClick={() => router.push(`/write/edit-existing?id=${article.id}`)}
+                                className="flex-1 border border-black text-black text-[10px] font-bold py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                              >
+                                EDIT EXISTING
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => setEditingId(article.id)}
+                                className="flex items-center gap-2 text-sm font-bold text-black hover:text-[#10B981] transition-colors"
+                              >
+                                <Edit className="w-4 h-4" />
+                                <span>EDIT</span>
+                              </button>
+                              <button
+                                onClick={() => setDeletingId(article.id)}
+                                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

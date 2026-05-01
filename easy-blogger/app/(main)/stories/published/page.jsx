@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ArticleCard from "../../../../components/article/ArticleCard";
+import PublishedArticleCard from "../../../../components/article/PublishedArticleCard";
 import { getMyPublishedArticles } from "../../../../lib/articles/api";
+import { useSavedList } from "../../../../hooks/useSavedArticles";
+
 
 export default function Published() {
   const [articles, setArticles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+    const { savedList} = useSavedList();
+
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -34,7 +38,10 @@ export default function Published() {
           </p>
         ) : (
           articles.map((article) => (
-            <ArticleCard key={article.id} article={article} />
+            <PublishedArticleCard key={article.id} 
+            article={article}
+            savedArticles={savedList}
+            />
           ))
         )}
       </div>

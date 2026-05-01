@@ -3,11 +3,13 @@
 
 import ArticleCard from './ArticleCard';
 import { useTrendingArticles } from '../../hooks/useTrendingArticles';
+import { useSavedList } from '../../hooks/useSavedArticles';
 import { Loader2 } from 'lucide-react';
-
+ 
 export default function TrendingArticles() {
-  const { trending, isTrendingLoading } = useTrendingArticles();
 
+const { trending, isTrendingLoading } = useTrendingArticles();
+const{savedList} = useSavedList();
   if (isTrendingLoading && trending.length === 0) {
     return (
       <div className="flex w-full items-center justify-center py-10">
@@ -25,7 +27,10 @@ export default function TrendingArticles() {
           key={article.id} 
           className="bg-white w-160 shrink-0 px-4 border-2 rounded-2xl border-[#e5e7eb] h-fit"
         >
-          <ArticleCard article={article} />
+          <ArticleCard 
+          article={article}
+          savedArticles={savedList}
+          />
         </div>
       ))}  
     </div>
