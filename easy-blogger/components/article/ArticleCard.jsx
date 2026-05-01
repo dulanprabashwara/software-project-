@@ -65,6 +65,7 @@ export default function ArticleCard({
   // Author Details
   const authorName = article.author?.displayName || "Guest Writer"; 
   const authorAvatar = article.author?.avatarUrl || "https://ui-avatars.com/api/?name=Guest";
+  const authorUsername = article.author.username || "guestAuthor"
   
   // Date Formatting
   const isPublished = article.status;
@@ -169,12 +170,15 @@ export default function ArticleCard({
 
   return (
     <div className="relative"> 
-      <article className="py-6 border-b border-[#E5E7EB] last:border-0 relative">
+      <article className="py-6 border-b border-[#E5E7EB]  relative">
         
         {/* --- Author & Date Header --- */}
         <div className="flex items-center gap-2 mb-3">
           <img src={authorAvatar} alt={authorName} className="w-8 h-8 rounded-full object-cover" />
-          <span className="text-sm font-medium text-[#111827]">{authorName}</span>
+          <span className="text-xl font-medium text-[#111827]">
+            {authorName}
+            <span className="text-xs text-gray-500"> @{authorUsername}</span>
+            </span>
           {article.author?.isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" title="Premium Author" />}
 
           <span className="text-sm text-[#6B7280]"> 
