@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Editor } from "@tinymce/tinymce-react";
 
 import { getTinyMceConfig } from "../../lib/editor/tinymceConfig";
@@ -69,7 +69,7 @@ export default function ArticleEditorShell({
   onContentLimitErrorChange,
 }) {
   const lastAppliedContentRef = useRef(content || ""); // Preserves the last valid content when pasted text exceeds the limit.
-  const hasInitializedEditorRef = useRef(false); // Prevents external sync before TinyMCE is ready.
+  const [isEditorReady, setIsEditorReady] = useState(false); // Ensures React picks up editor readiness to sync content.
   const isTitleRequired = !titleReadOnly && title.trim().length === 0; // Keeps field validation readable in JSX.
   const isContentRequired = editorTextLength === 0;
   const isTitleLimitReached = title.length === TITLE_MAX_LENGTH;
@@ -79,7 +79,9 @@ export default function ArticleEditorShell({
   useEffect(() => {
     const editor = editorRef.current;
 
-    if (!editor || !hasInitializedEditorRef.current) return;
+    // We must wait for the editor to be ready before trying to set its content.
+    // Using isEditorReady state instead of a Ref ensures this effect re-runs when ready.
+    if (!editor || !isEditorReady) return;
 
     const nextContent = content || "";
 
@@ -88,7 +90,7 @@ export default function ArticleEditorShell({
       lastAppliedContentRef.current = nextContent;
       onEditorReady?.();
     }
-  }, [content, editorRef, onEditorReady]);
+  }, [content, isEditorReady, editorRef, onEditorReady]);
 
   return (
     <>
@@ -212,7 +214,7 @@ export default function ArticleEditorShell({
               <Editor
                 onInit={(_, editor) => {
                   editorRef.current = editor;
-                  hasInitializedEditorRef.current = true;
+                  setIsEditorReady(true);
 
                   const initialContent = content || "";
                   editor.setContent(initialContent);

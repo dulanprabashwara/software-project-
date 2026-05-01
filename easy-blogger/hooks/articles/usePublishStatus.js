@@ -54,7 +54,8 @@ export function usePublishStatus() {
 
   // Checks the global WordPress connection status for the current user
   const checkWordPress = useCallback(async () => {
-    if (!firebaseUser) return;
+    if (!firebaseUser)
+      return;
 
     try {
       const token = await firebaseUser.getIdToken();
