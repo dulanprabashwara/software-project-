@@ -8,7 +8,7 @@ import {
   CONTENT_MAX_LENGTH,
   TITLE_MAX_LENGTH,
 } from "../../lib/articles/editorConstants";
-import { getPlainTextFromHtml } from "../../lib/articles/editorHelpers";
+import { getPlainTextFromHtml, normalizeEditorPlainText } from "../../lib/articles/editorHelpers";
 import CoverImageField from "./CoverImageField";
 import { EditorHeader, EditorBottomActions } from "./EditorSharedLayout";
 
@@ -29,6 +29,14 @@ function FieldMeta({ required, limitReached, limitMessage, items = [] }) {
   );
 }
 
+/*
+ ArticleEditorShell
+ 
+ This is the primary UI layout for the editor. It handles the visual 
+ arrangement of the title, cover image, and TinyMCE editor, while 
+ keeping the actual business logic (saving/discarding) decoupled 
+ via props.
+ */
 export default function ArticleEditorShell({
   editorRef,
   title,
@@ -213,7 +221,9 @@ export default function ArticleEditorShell({
                   onEditorReady?.();
                 }}
                 onEditorChange={(value, editor) => {
-                  const plainText = getPlainTextFromHtml(value);
+                  const plainText = normalizeEditorPlainText(
+                    editor.getContent({ format: "text" }),
+                  );
 
                   // TinyMCE needs manual content limit handling since it allows pasting large content that exceeds limits
                   if (plainText.length > CONTENT_MAX_LENGTH) {
