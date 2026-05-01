@@ -95,7 +95,14 @@ export function useArticleEditorWorkflow(mode) {
 
   // Hydration logic (Initial Load)
   useEffect(() => {
-    if (!mode || !isClientReady || hasHydratedRef.current) return;
+    if (!mode || !isClientReady || hasHydratedRef.current)
+      return;
+
+    // For non-create modes, we must wait for the article ID from searchParams to be available.
+    // Next.js may take a brief moment to populate searchParams on initial mount.
+    if (mode !== "create" && !articleIdFromParams)
+      return;
+
     hasHydratedRef.current = true;
 
     const hydrateEditor = async () => {
@@ -161,7 +168,8 @@ export function useArticleEditorWorkflow(mode) {
           }
           const response = await config.startFn(articleIdFromParams);
           const article = getArticleFromResponse(response);
-          if (!article) throw new Error("Article not found.");
+          if (!article)
+            throw new Error("Article not found.");
 
           setDraftId(article.id);
           setTitle(article.title || "");
@@ -178,7 +186,8 @@ export function useArticleEditorWorkflow(mode) {
       } catch (error) {
         console.error(`Failed to hydrate ${mode} editor:`, error);
         setInlineError("Failed to load the article.");
-        if (mode !== "create") router.push("/write/unpublished");
+        if (mode !== "create")
+          router.push("/write/unpublished");
       } finally {
         setIsHydrating(false);
       }
@@ -190,7 +199,8 @@ export function useArticleEditorWorkflow(mode) {
   // Unified Save Logic
   const saveArticle = useCallback(
     async (status, overrides = {}, options = {}) => {
-      if (isSavingRef.current || hasDiscardedCopyRef.current) return draftId;
+      if (isSavingRef.current || hasDiscardedCopyRef.current)
+        return draftId;
 
       const nextTitle = typeof overrides.title === "string" ? overrides.title : title;
       const nextContent = typeof overrides.content === "string" ? overrides.content : getEditorHtmlContent();
@@ -198,10 +208,12 @@ export function useArticleEditorWorkflow(mode) {
       const nextPlainText = getPlainTextFromHtml(nextContent);
 
       const hasContentToSave = Boolean(nextTitle.trim() || nextPlainText || nextCoverImage);
-      if (!hasContentToSave) return draftId;
+      if (!hasContentToSave)
+        return draftId;
 
       const currentSnapshot = getSnapshot({ title: nextTitle, content: nextContent, coverImage: nextCoverImage });
-      if (status === "editing" && currentSnapshot === lastSavedSnapshotRef.current) return draftId;
+      if (status === "editing" && currentSnapshot === lastSavedSnapshotRef.current)
+        return draftId;
 
       try {
         isSavingRef.current = true;
@@ -282,13 +294,15 @@ export function useArticleEditorWorkflow(mode) {
 
   const handleSaveAsDraft = useCallback(async () => {
     const didSave = await saveDraftWithoutRedirect();
-    if (didSave) router.push(config.exitPath);
+    if (didSave)
+      router.push(config.exitPath);
   }, [saveDraftWithoutRedirect, router, config.exitPath]);
 
   // Discard Action
   const discardWithoutRedirect = useCallback(async () => {
     try {
-      if (mode === "edit-as-new") hasDiscardedCopyRef.current = true;
+      if (mode === "edit-as-new")
+        hasDiscardedCopyRef.current = true;
 
       const targetId = draftId || articleIdFromParams;
       if (targetId && config.discardFn) {

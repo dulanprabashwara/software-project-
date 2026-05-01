@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef } from "react";
 
 function isTinyMceUiElement(element) {
-  if (!(element instanceof Element)) return false;
+  if (!(element instanceof Element))
+    return false;
 
   return Boolean(
     element.closest(
@@ -41,7 +42,8 @@ export function useEditorNavigationGuard({
     const action = pendingExternalActionRef.current;
     pendingExternalActionRef.current = null;
 
-    if (!action) return;
+    if (!action)
+      return;
 
     bypassExternalActionGuardRef.current = true;
 
@@ -55,7 +57,8 @@ export function useEditorNavigationGuard({
   }, []);
 
   const handleExternalActionAttempt = useCallback(() => {
-    if (isPromptActiveRef.current) return;
+    if (isPromptActiveRef.current)
+      return;
 
     isPromptActiveRef.current = true;
 
@@ -121,15 +124,21 @@ export function useEditorNavigationGuard({
       }
 
       const target = event.target;
-      if (!(target instanceof Element)) return;
-      if (isTinyMceUiElement(target)) return;
+      if (!(target instanceof Element))
+        return;
+      if (isTinyMceUiElement(target))
+        return;
 
       const clickableElement = target.closest("button, a, [role='button']");
-      if (!clickableElement) return;
+      if (!clickableElement)
+        return;
 
-      if (clickableElement.closest("[data-skip-save-prompt='true']")) return;
-      if (editingSectionRef.current?.contains(clickableElement)) return;
-      if (isTinyMceUiElement(clickableElement)) return;
+      if (clickableElement.closest("[data-skip-save-prompt='true']"))
+        return;
+      if (editingSectionRef.current?.contains(clickableElement))
+        return;
+      if (isTinyMceUiElement(clickableElement))
+        return;
 
       pendingExternalActionRef.current = () => {
         clickableElement.click();

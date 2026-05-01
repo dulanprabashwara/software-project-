@@ -97,7 +97,8 @@ export function useCoverImageUpload({ onChange }) {
       event.preventDefault();
 
       const file = event.dataTransfer.files?.[0];
-      if (!file) return;
+      if (!file)
+        return;
 
       handleImageUpload({ target: { files: [file] } });
     },
