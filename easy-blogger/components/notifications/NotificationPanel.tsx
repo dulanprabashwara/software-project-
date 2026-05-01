@@ -49,7 +49,7 @@ function getNotificationDetails(notification: any) {
       return {
         title: "New Article",
         message: `${actorName} published: "${articleTitle}".`,
-        link: `/article?id=${articleId}`,
+        link: `/home/read?id=${articleId}`,
       };
     default:
       return {
