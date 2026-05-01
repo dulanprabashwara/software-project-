@@ -35,8 +35,8 @@ export default function PublishStatusLayout({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.35 }}
-      className="min-h-screen bg-linear-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6 overflow-hidden"
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-linear-to-br from-white via-emerald-50/30 to-blue-50/20 flex items-center justify-center p-6 overflow-hidden"
     >
       <FloatingConfetti />
 
@@ -44,53 +44,75 @@ export default function PublishStatusLayout({
         variants={container}
         initial="hidden"
         animate="visible"
-        className="relative w-full max-w-142.5 overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-xl"
+        className="relative w-full max-w-2xl overflow-hidden rounded-[40px] border border-white bg-white/80 backdrop-blur-xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)]"
       >
-        <div className="relative bg-linear-to-br from-[#21c4a7] to-[#18af98] px-8 py-10 text-center">
+        <div className="relative overflow-hidden bg-linear-to-br from-[#10b981] to-[#059669] px-10 py-16 text-center">
+          {/* Subtle background pattern */}
+          <div className="absolute inset-0 opacity-10 mix-blend-overlay">
+            <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
+            </svg>
+          </div>
+
           <button
             onClick={() => router.push("/home")}
-            className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-gray-700"
+            className="absolute right-8 top-8 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition-all hover:bg-white/30"
           >
-            <X size={18} />
+            <X size={22} />
           </button>
 
           <motion.div
             variants={fadeUp}
-            className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full border-2 border-white/60 text-white"
+            className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-white/20 text-white shadow-inner backdrop-blur-md"
           >
-            <HeaderIcon size={40} />
+            <HeaderIcon size={48} strokeWidth={1.5} />
           </motion.div>
 
-          <motion.h1 variants={fadeUp} className="font-serif text-5xl text-white">
+          <motion.h1 
+            variants={fadeUp} 
+            className="font-serif text-5xl font-bold tracking-tight text-white leading-tight"
+          >
             {title}
           </motion.h1>
 
-          <motion.p variants={fadeUp} className="mt-4 text-lg text-[#17352f]">
+          <motion.p 
+            variants={fadeUp} 
+            className="mt-4 text-xl text-emerald-50 font-medium opacity-90"
+          >
             {subtitle}
           </motion.p>
 
           <motion.div
             variants={fadeUp}
-            className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-2 text-sm font-semibold text-white"
+            className="mx-auto mt-8 inline-flex items-center gap-3 rounded-2xl bg-black/10 px-6 py-2.5 text-sm font-semibold text-white backdrop-blur-sm"
           >
             {dateLabel}
           </motion.div>
         </div>
 
-        <div className="space-y-5 bg-[#f7f8f8] p-8">
-          {children}
+        <div className="space-y-6 bg-white/40 p-10 backdrop-blur-sm">
+          <div className="space-y-4">
+            {children}
+          </div>
 
           <motion.button
             variants={fadeUp}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.01, translateY: -2 }}
+            whileTap={{ scale: 0.99 }}
             onClick={onButtonClick}
-            className="w-full rounded-3xl bg-[#21c4a7] py-4 text-xl font-semibold text-white shadow-md hover:bg-[#1ab89d]"
+            className="mt-4 w-full rounded-[24px] bg-[#10b981] py-5 text-xl font-bold text-white shadow-[0_20px_40px_-12px_rgba(16,185,129,0.3)] transition-all hover:bg-[#0d9668] hover:shadow-[0_25px_50px_-12px_rgba(16,185,129,0.4)]"
           >
             {buttonText}
           </motion.button>
+          
+          <motion.p 
+            variants={fadeUp}
+            className="text-center text-sm text-gray-400 font-medium"
+          >
+            Press <span className="text-gray-600">Esc</span> to return home
+          </motion.p>
         </div>
       </motion.div>
     </motion.div>
   );
-}
+}

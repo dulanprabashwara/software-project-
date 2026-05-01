@@ -11,10 +11,7 @@ import {
 import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
 import { useClearBackupOnLayoutNavigation } from "../../../../hooks/articles/useClearBackupOnLayoutNavigation";
 import { getDraftById, updateDraft } from "../../../../lib/articles/api";
-
-function getArticleFromResponse(response) {
-  return response?.data ?? response?.article ?? response ?? null;
-}
+import { getArticleFromResponse } from "../../../../lib/articles/utils";
 
 export default function PreviewPage() {
   const router = useRouter();
@@ -29,12 +26,14 @@ export default function PreviewPage() {
 
   const { modalState } = useConfirmDialog();
 
+  // Ensures state consistency by clearing temporary backups when moving between editor stages
   const { isEditExistingFlow } = useClearBackupOnLayoutNavigation({
     mode,
     articleId,
   });
 
   useEffect(() => {
+    // Fetches the latest saved draft to ensure the preview accurately reflects the current state
     const loadPreviewArticle = async () => {
       if (!articleId || !mode) {
         router.replace("/write/create");
@@ -70,6 +69,7 @@ export default function PreviewPage() {
     if (!article?.id) return;
 
     try {
+      // Moves the article to 'draft' status to prepare it for the final publishing step
       await updateDraft(article.id, {
         status: "draft",
       });
@@ -84,17 +84,21 @@ export default function PreviewPage() {
     if (!article?.id) return;
 
     try {
+      // Path 1: User is editing an existing published or draft article
       if (isEditExistingFlow && articleId) {
         router.push(`/write/edit-existing?id=${articleId}`);
         return;
       }
 
+      // Path 2: User is using an existing article as a template for a new one
       if (mode === "edit-as-new" && sourceId) {
         router.push(`/write/edit-as-new?id=${sourceId}`);
         return;
       }
 
+      // Path 3: User is creating a brand new article
       if (mode === "create" && articleId) {
+        // Mark as 'editing' to ensure the auto-save system picks up the changes
         await updateDraft(article.id, {
           status: "editing",
         });
@@ -103,6 +107,7 @@ export default function PreviewPage() {
         return;
       }
 
+      // Default fallback to the creation page
       router.push("/write/create");
     } catch (error) {
       console.error("Failed to reopen article for editing:", error);
@@ -132,21 +137,21 @@ export default function PreviewPage() {
           />
 
           {isLoading ? (
-            <div className="flex flex-1 items-center justify-center px-8">
-              <p className="text-[#6B7280]">Loading preview...</p>
+            <div className="flex flex-1 items-center justify-center px-8 py-20">
+              <p className="text-gray-500">Loading preview...</p>
             </div>
           ) : !article ? null : (
             <>
               <div className="px-8 py-6">
                 <div className="mx-auto max-w-4xl pb-6">
-                  <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-md">
-                    <div className="bg-emerald-100/60 px-8 py-8">
-                      <h2 className="font-serif text-3xl leading-tight text-[#111827]">
+                  <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
+                    <div className="bg-emerald-50/60 px-8 py-8">
+                      <h2 className="font-serif text-3xl leading-tight text-gray-900">
                         {article.title}
                       </h2>
 
                       {article.coverImage ? (
-                        <div className="mt-6 rounded-lg border border-[#E5E7EB] bg-white p-4">
+                        <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4">
                           <div className="flex min-h-[220px] max-h-[420px] items-center justify-center overflow-hidden rounded-lg bg-white">
                             <img
                               src={article.coverImage}
@@ -157,7 +162,7 @@ export default function PreviewPage() {
                         </div>
                       ) : null}
 
-                      <hr className="my-8 border-black/20" />
+                      <hr className="my-8 border-gray-200" />
 
                       <div className="rounded-lg bg-white px-8 py-8">
                         <ArticleContentRenderer
@@ -195,4 +200,4 @@ export default function PreviewPage() {
       </div>
     </>
   );
-}
+}

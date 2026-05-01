@@ -1,451 +1,46 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Calendar, Clock } from "lucide-react";
-import Image from "next/image";
-import { useAuth } from "../../../context/AuthContext"; // Required for authenticated WordPress publishing
-import { API_BASE_URL } from "../../../../lib/api"; // Backend API for WordPress integration
 import { useClearBackupOnLayoutNavigation } from "../../../../hooks/articles/useClearBackupOnLayoutNavigation";
+import { usePublishArticle } from "../../../../hooks/articles/usePublishArticle";
 import {
-  getDraftById,
-  publishArticle as publishEasyBloggerArticle,
-} from "../../../../lib/articles/api";
-
-const MAX_TAGS = 5;
-
-const createDefaultPublishDraft = () => ({
-  tags: ["Technology", "Design", "Blogging"],
-  timing: "now",
-  scheduledDate: "",
-  scheduledTime: "",
-  shareLinkedIn: true,
-  shareWordPress: true,
-  linkedinCaption: "",
-});
-
-function Section({ title, children }) {
-  return (
-    <div className="p-10">
-      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-      <div className="mt-5">{children}</div>
-    </div>
-  );
-}
-
-function Toggle({ enabled, setEnabled }) {
-  return (
-    <button
-      type="button"
-      onClick={() => setEnabled((value) => !value)}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-        enabled ? "bg-emerald-500" : "bg-gray-300"
-      }`}
-      aria-pressed={enabled}
-    >
-      <span
-        className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-          enabled ? "translate-x-6" : "translate-x-1"
-        }`}
-      />
-    </button>
-  );
-}
-
-function Radio({ checked }) {
-  return (
-    <span
-      className={`inline-flex h-4 w-4 items-center justify-center rounded-full border ${
-        checked ? "border-emerald-500" : "border-gray-300"
-      }`}
-    >
-      {checked && <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />}
-    </span>
-  );
-}
-
-function formatDateToInput(dateValue) {
-  if (!dateValue) return "";
-
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function formatTimeToInput(dateValue) {
-  if (!dateValue) return "";
-
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${hours}:${minutes}`;
-}
+  TagSection,
+  TimingSection,
+  SocialSharingSection,
+  LinkedInCaptionSection,
+} from "./PublishSections";
 
 export default function PublishArticlePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const defaultDraft = useMemo(() => createDefaultPublishDraft(), []);
-
-  const { user: firebaseUser } = useAuth();
 
   const articleId = searchParams.get("id") || "";
   const mode = searchParams.get("mode") || "";
 
+  // Ensures stale article backups are cleared when navigating away from the workflow
   useClearBackupOnLayoutNavigation({
     mode,
     articleId,
   });
 
-  const [isPageLoading, setIsPageLoading] = useState(true);
-  const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState(defaultDraft.tags);
-  const [timing, setTiming] = useState(defaultDraft.timing);
-  const [scheduledDate, setScheduledDate] = useState(defaultDraft.scheduledDate);
-  const [scheduledTime, setScheduledTime] = useState(defaultDraft.scheduledTime);
-  const [dateOpen, setDateOpen] = useState(false);
-  const [timeOpen, setTimeOpen] = useState(false);
-  const [tpHour, setTpHour] = useState("10");
-  const [tpMinute, setTpMinute] = useState("30");
-  const [tpPeriod, setTpPeriod] = useState("AM");
-  const [shareLinkedIn, setShareLinkedIn] = useState(defaultDraft.shareLinkedIn);
-  const [shareWordPress, setShareWordPress] = useState(
-    defaultDraft.shareWordPress
-  );
-  const [shareText, setShareText] = useState("");
-  const [showShareText, setShowShareText] = useState(false);
-  const [linkedinCaption, setLinkedinCaption] = useState(
-    defaultDraft.linkedinCaption
-  );
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [publishError, setPublishError] = useState("");
-
-  const [wpConnected, setWpConnected] = useState(false);
-  const [wpUsername, setWpUsername] = useState("");
-  const [wpCheckDone, setWpCheckDone] = useState(false);
-  const [wpPublishError, setWpPublishError] = useState("");
-
-  const pad2 = (value) => String(value).padStart(2, "0");
-
-  const to12Hour = (hhmm) => {
-    if (!hhmm) return "";
-
-    const parts = hhmm.split(":");
-    if (parts.length !== 2) return "";
-
-    const [hh, mm] = parts.map(Number);
-    if (Number.isNaN(hh) || Number.isNaN(mm)) return "";
-
-    const period = hh >= 12 ? "PM" : "AM";
-    const h12 = hh % 12 === 0 ? 12 : hh % 12;
-
-    return `${h12}:${pad2(mm)} ${period}`;
-  };
-
-  const to24Hour = (hour12, minute, period) => {
-    let hours = parseInt(hour12, 10);
-    const minutes = parseInt(minute, 10);
-
-    if (period === "AM") {
-      if (hours === 12) hours = 0;
-    } else if (hours !== 12) {
-      hours += 12;
-    }
-
-    return `${pad2(hours)}:${pad2(minutes)}`;
-  };
-
-  const formatDateMMDDYYYY = (yyyyMmDd) => {
-    if (!yyyyMmDd) return "";
-
-    const parts = yyyyMmDd.split("-");
-    if (parts.length !== 3) return "";
-
-    const [year, month, day] = parts;
-    return `${month}/${day}/${year}`;
-  };
-
-  const addTag = (rawValue) => {
-    const trimmedTag = rawValue.trim();
-
-    if (!trimmedTag) return;
-    if (tags.length >= MAX_TAGS) return;
-    if (tags.some((tag) => tag.toLowerCase() === trimmedTag.toLowerCase())) {
-      return;
-    }
-
-    setTags((previousTags) => [...previousTags, trimmedTag]);
-  };
-
-  const removeTag = (tagToRemove) => {
-    setTags((previousTags) =>
-      previousTags.filter((tag) => tag !== tagToRemove)
-    );
-  };
-
-  const isPastDateTime = () => {
-    if (!scheduledDate || !scheduledTime) return false;
-
-    const selected = new Date(`${scheduledDate}T${scheduledTime}`);
-    const now = new Date();
-
-    return selected < now;
-  };
-
-  const buildScheduledAt = () => {
-    if (timing !== "schedule" || !scheduledDate || !scheduledTime) {
-      return null;
-    }
-
-    return new Date(`${scheduledDate}T${scheduledTime}`).toISOString();
-  };
+  // Centralizes all publishing state and business logic to keep the UI component clean
+  const { state, actions } = usePublishArticle(articleId);
 
   useEffect(() => {
-    const loadArticle = async () => {
-      if (!articleId) {
-        router.replace("/write/create");
-        return;
-      }
-
-      try {
-        setIsPageLoading(true);
-
-        const response = await getDraftById(articleId);
-        const article = response?.data ?? response?.article ?? response ?? null;
-
-        if (!article) {
-          router.replace("/write/create");
-          return;
-        }
-
-        if (Array.isArray(article.tags) && article.tags.length > 0) {
-          setTags(article.tags.slice(0, MAX_TAGS));
-        }
-
-        if (article.status === "SCHEDULED" && article.scheduledAt) {
-          setTiming("schedule");
-          setScheduledDate(formatDateToInput(article.scheduledAt));
-          setScheduledTime(formatTimeToInput(article.scheduledAt));
-
-          const scheduled = new Date(article.scheduledAt);
-          const currentHour = scheduled.getHours();
-          const period = currentHour >= 12 ? "PM" : "AM";
-          const hour12 = currentHour % 12 === 0 ? 12 : currentHour % 12;
-
-          setTpHour(String(hour12));
-          setTpMinute(pad2(scheduled.getMinutes()));
-          setTpPeriod(period);
-        }
-      } catch (error) {
-        console.error("Failed to load publish article:", error);
-        setPublishError("Failed to load article data.");
-      } finally {
-        setIsPageLoading(false);
-      }
-    };
-
-    void loadArticle();
-  }, [articleId, router]);
-
-  useEffect(() => {
-    if (timing !== "now") return;
-
-    const syncCurrentDateTime = () => {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = pad2(now.getMonth() + 1);
-      const day = pad2(now.getDate());
-      const hours = pad2(now.getHours());
-      const minutes = pad2(now.getMinutes());
-
-      setScheduledDate(`${year}-${month}-${day}`);
-      setScheduledTime(`${hours}:${minutes}`);
-      setDateOpen(false);
-      setTimeOpen(false);
-
-      const currentHour = now.getHours();
-      const period = currentHour >= 12 ? "PM" : "AM";
-      const hour12 = currentHour % 12 === 0 ? 12 : currentHour % 12;
-
-      setTpHour(String(hour12));
-      setTpMinute(pad2(now.getMinutes()));
-      setTpPeriod(period);
-    };
-
-    syncCurrentDateTime();
-
-    const intervalId = setInterval(syncCurrentDateTime, 30_000);
-
-    return () => clearInterval(intervalId);
-  }, [timing]);
-
-  useEffect(() => {
-    if (timing !== "schedule") return;
-    if (scheduledDate && scheduledTime) return;
-
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = pad2(now.getMonth() + 1);
-    const day = pad2(now.getDate());
-
-    setScheduledDate(`${year}-${month}-${day}`);
-    setScheduledTime("10:30");
-    setTpHour("10");
-    setTpMinute("30");
-    setTpPeriod("AM");
-  }, [timing, scheduledDate, scheduledTime]);
-
-  useEffect(() => {
+    // Closes date/time pickers when clicking outside to ensure a smooth, non-intrusive UX
     const handleOutsideClick = (event) => {
       if (!event.target.closest?.("[data-picker]")) {
-        setDateOpen(false);
-        setTimeOpen(false);
+        actions.setDateOpen(false);
+        actions.setTimeOpen(false);
       }
     };
 
     window.addEventListener("mousedown", handleOutsideClick);
+    return () => window.removeEventListener("mousedown", handleOutsideClick);
+  }, [actions]);
 
-    return () => {
-      window.removeEventListener("mousedown", handleOutsideClick);
-    };
-  }, []);
-
-  useEffect(() => {
-    const selectedPlatforms = [];
-
-    if (shareLinkedIn) selectedPlatforms.push("LinkedIn");
-    if (shareWordPress) selectedPlatforms.push("WordPress");
-
-    if (selectedPlatforms.length === 0) {
-      setShowShareText(false);
-
-      const timeoutId = setTimeout(() => setShareText(""), 200);
-      return () => clearTimeout(timeoutId);
-    }
-
-    setShareText(
-      `This article will be shared on ${selectedPlatforms.join(
-        " and "
-      )} when it is published`
-    );
-    setShowShareText(true);
-  }, [shareLinkedIn, shareWordPress]);
-
-  useEffect(() => {
-    if (!shareWordPress || !firebaseUser || wpCheckDone) return;
-
-    const checkWordPressConnection = async () => {
-      try {
-        const token = await firebaseUser.getIdToken();
-
-        const response = await fetch(`${API_BASE_URL}/api/wordpress/status`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const data = await response.json();
-
-        if (data?.data?.connected) {
-          setWpConnected(true);
-          setWpUsername(data.data.wpUsername || "");
-        } else {
-          setWpConnected(false);
-        }
-      } catch {
-        setWpConnected(false);
-      } finally {
-        setWpCheckDone(true);
-      }
-    };
-
-    void checkWordPressConnection();
-  }, [shareWordPress, firebaseUser, wpCheckDone]);
-
-  const handleWordPressPublish = async (currentArticleId) => {
-    if (!shareWordPress || !wpConnected || !currentArticleId || !firebaseUser) {
-      return;
-    }
-
-    try {
-      const token = await firebaseUser.getIdToken();
-
-      const scheduledAt =
-        timing === "schedule" && scheduledDate && scheduledTime
-          ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString()
-          : null;
-
-      const response = await fetch(`${API_BASE_URL}/api/wordpress/publish`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          articleId: currentArticleId,
-          scheduledAt,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!data.success) {
-        const message = data?.data?.message || "WordPress publish failed.";
-        setWpPublishError(message);
-      }
-    } catch {
-      setWpPublishError("Could not reach server for WordPress publish.");
-    }
-  };
-
-  const handlePublishArticle = async () => {
-    if (!articleId) {
-      setPublishError("Article id is missing.");
-      return;
-    }
-
-    try {
-      setPublishError("");
-      setWpPublishError("");
-      setIsSubmitting(true);
-
-      const payload = {
-        tags,
-        timing,
-        scheduledAt: buildScheduledAt(),
-      };
-
-      const response = await publishEasyBloggerArticle(articleId, payload);
-      const publishedArticle =
-        response?.data ?? response?.article ?? response ?? null;
-
-      await handleWordPressPublish(articleId);
-
-      if (timing === "schedule") {
-        router.push(
-          `/write/articlescheduled?id=${publishedArticle?.id || articleId}`
-        );
-        return;
-      }
-
-      router.push(
-        `/write/articlepublished?id=${publishedArticle?.id || articleId}`
-      );
-    } catch (error) {
-      console.error("Failed to publish article:", error);
-      setPublishError(error?.message || "Failed to publish article.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (isPageLoading) {
+  if (state.isPageLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-white to-emerald-50 p-6">
         <p className="text-sm text-gray-500">Loading publish details...</p>
@@ -461,406 +56,83 @@ export default function PublishArticlePage() {
             Publish your Article
           </h1>
           <p className="mt-1 text-[#6B7280]">
-            You can publish now or schedule a time to
+            You can publish now or schedule a time to publish
           </p>
-          <p className="mt-1 text-[#6B7280]">publish</p>
         </div>
 
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
 
-        <Section title="Tags">
-          <div className="space-y-3">
-            <input
-              value={tagInput}
-              onChange={(event) => setTagInput(event.target.value)}
-              placeholder="Add a tag"
-              className="h-11 w-full rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  addTag(tagInput);
-                  setTagInput("");
-                }
-
-                if (
-                  event.key === "Backspace" &&
-                  tagInput.length === 0 &&
-                  tags.length > 0
-                ) {
-                  setTags((previousTags) => previousTags.slice(0, -1));
-                }
-              }}
-              disabled={tags.length >= MAX_TAGS}
-            />
-
-            <div className="flex flex-wrap items-center gap-3">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-gray-100 px-3 py-1 text-xs text-gray-700"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                    className="leading-none text-gray-700 hover:text-black"
-                  >
-                    ✕
-                  </button>
-                </span>
-              ))}
-
-              <span className="text-sm text-gray-400">
-                Add up to {MAX_TAGS} tags
-              </span>
-            </div>
-          </div>
-        </Section>
+        <TagSection
+          tagInput={state.tagInput}
+          setTagInput={actions.setTagInput}
+          tags={state.tags}
+          setTags={actions.setTags}
+          addTag={actions.addTag}
+          removeTag={actions.removeTag}
+          MAX_TAGS={state.MAX_TAGS}
+        />
 
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
 
-        <Section title="Publish Timing">
-          <div className="flex items-start justify-between gap-8">
-            <div className="space-y-3 pt-1">
-              <button
-                type="button"
-                onClick={() => setTiming("now")}
-                className="flex items-center gap-3 text-sm text-gray-700"
-              >
-                <Radio checked={timing === "now"} />
-                Publish now
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setTiming("schedule")}
-                className="flex items-center gap-3 text-sm text-gray-700"
-              >
-                <Radio checked={timing === "schedule"} />
-                Schedule for later
-              </button>
-            </div>
-
-            <div className="w-72 space-y-3">
-              <div className="relative" data-picker>
-                <button
-                  type="button"
-                  disabled={timing !== "schedule"}
-                  onClick={() => {
-                    if (timing !== "schedule") return;
-                    setDateOpen((previousValue) => !previousValue);
-                    setTimeOpen(false);
-                  }}
-                  className="h-11 w-full rounded-md border border-gray-200 bg-white px-4 pr-10 text-left text-sm disabled:bg-gray-50"
-                >
-                  {scheduledDate
-                    ? formatDateMMDDYYYY(scheduledDate)
-                    : "Pick a date"}
-                </button>
-
-                <Calendar className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-
-                {dateOpen && timing === "schedule" && (
-                  <div className="absolute right-0 z-20 mt-2 w-full rounded-md border border-gray-200 bg-white p-3 shadow-lg">
-                    <input
-                      type="date"
-                      value={scheduledDate}
-                      onChange={(event) => setScheduledDate(event.target.value)}
-                      className="h-10 w-full rounded-md border border-gray-200 px-3 text-sm"
-                    />
-
-                    <div className="mt-3 flex justify-end">
-                      <button
-                        type="button"
-                        className="text-sm text-gray-600 hover:text-gray-900"
-                        onClick={() => setDateOpen(false)}
-                      >
-                        Done
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="relative" data-picker>
-                <button
-                  type="button"
-                  disabled={timing !== "schedule"}
-                  onClick={() => {
-                    if (timing !== "schedule") return;
-                    setTimeOpen((previousValue) => !previousValue);
-                    setDateOpen(false);
-                  }}
-                  className="h-11 w-full rounded-md border border-gray-200 bg-white px-4 pr-10 text-left text-sm disabled:bg-gray-50"
-                >
-                  {scheduledTime ? to12Hour(scheduledTime) : "Pick a time"}
-                </button>
-
-                <Clock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-
-                {timeOpen && timing === "schedule" && (
-                  <div className="absolute right-0 z-20 mt-2 w-full rounded-md border border-gray-200 bg-white p-3 shadow-lg">
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <label className="text-xs text-gray-500">Hour</label>
-                        <select
-                          value={tpHour}
-                          onChange={(event) => setTpHour(event.target.value)}
-                          className="mt-1 h-10 w-full rounded-md border border-gray-200 px-2 text-sm"
-                        >
-                          {Array.from({ length: 12 }, (_, index) =>
-                            String(index + 1)
-                          ).map((hour) => (
-                            <option key={hour} value={hour}>
-                              {hour}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-xs text-gray-500">Minute</label>
-                        <select
-                          value={tpMinute}
-                          onChange={(event) => setTpMinute(event.target.value)}
-                          className="mt-1 h-10 w-full rounded-md border border-gray-200 px-2 text-sm"
-                        >
-                          {Array.from({ length: 60 }, (_, index) =>
-                            String(index).padStart(2, "0")
-                          ).map((minute) => (
-                            <option key={minute} value={minute}>
-                              {minute}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-xs text-gray-500">AM/PM</label>
-                        <select
-                          value={tpPeriod}
-                          onChange={(event) => setTpPeriod(event.target.value)}
-                          className="mt-1 h-10 w-full rounded-md border border-gray-200 px-2 text-sm"
-                        >
-                          <option value="AM">AM</option>
-                          <option value="PM">PM</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 flex justify-end">
-                      <button
-                        type="button"
-                        className="text-sm text-gray-600 hover:text-gray-900"
-                        onClick={() => {
-                          const time24 = to24Hour(tpHour, tpMinute, tpPeriod);
-                          setScheduledTime(time24);
-                          setTimeOpen(false);
-                        }}
-                      >
-                        Done
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {timing === "schedule" && isPastDateTime() && (
-                <p className="mt-3 text-sm text-red-500">
-                  You cannot schedule an article in the past.
-                </p>
-              )}
-            </div>
-          </div>
-
-          {scheduledDate && scheduledTime && (
-            <div className="mt-6 text-sm">
-              <p className="text-gray-600">This article will be published on</p>
-              <p className="mt-1 font-semibold text-gray-900">
-                {formatDateMMDDYYYY(scheduledDate)} at{" "}
-                {to12Hour(scheduledTime)}
-              </p>
-            </div>
-          )}
-        </Section>
+        <TimingSection
+          timing={state.timing}
+          setTiming={actions.setTiming}
+          scheduledDate={state.scheduledDate}
+          setScheduledDate={actions.setScheduledDate}
+          scheduledTime={state.scheduledTime}
+          setScheduledTime={actions.setScheduledTime}
+          dateOpen={state.dateOpen}
+          setDateOpen={actions.setDateOpen}
+          timeOpen={state.timeOpen}
+          setTimeOpen={actions.setTimeOpen}
+          tpHour={state.tpHour}
+          setTpHour={actions.setTpHour}
+          tpMinute={state.tpMinute}
+          setTpMinute={actions.setTpMinute}
+          tpPeriod={state.tpPeriod}
+          setTpPeriod={actions.setTpPeriod}
+          isPastDateTime={actions.isPastDateTime}
+        />
 
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
 
-        <Section title="Social Sharing">
-          <div className="space-y-6">
-            <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
-              <div className="flex items-center">
-                <Toggle enabled={shareLinkedIn} setEnabled={setShareLinkedIn} />
-              </div>
-
-              <div className="flex items-center">
-                <p className="text-sm font-semibold text-gray-900">
-                  Share on LinkedIn
-                </p>
-              </div>
-
-              <div className="col-span-2">
-                <div
-                  className={`grid grid-cols-[48px_1fr] items-center transition-all duration-300 ease-out ${
-                    shareLinkedIn
-                      ? "max-h-20 translate-y-0 opacity-100"
-                      : "max-h-0 -translate-y-1 overflow-hidden opacity-0"
-                  }`}
-                >
-                  <div className="flex items-center justify-center">
-                    <div className="flex h-12 w-12 items-center justify-center">
-                      <Image
-                        src="/icons/linkedin.png"
-                        alt="LinkedIn"
-                        width={48}
-                        height={48}
-                        className="object-contain"
-                      />
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-gray-700">
-                    Connected as{" "}
-                    <span className="font-semibold">Emma Richardson</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
-              <div className="flex items-center">
-                <Toggle
-                  enabled={shareWordPress}
-                  setEnabled={(value) => {
-                    setShareWordPress(value);
-                    if (value) setWpCheckDone(false);
-                  }}
-                />
-              </div>
-
-              <div className="flex items-center">
-                <p className="text-sm font-semibold text-gray-900">
-                  Share on WordPress
-                </p>
-              </div>
-
-              <div className="col-span-2">
-                <div
-                  className={`grid grid-cols-[48px_1fr] items-center transition-all duration-300 ease-out ${
-                    shareWordPress
-                      ? "max-h-20 translate-y-0 opacity-100"
-                      : "max-h-0 -translate-y-1 overflow-hidden opacity-0"
-                  }`}
-                >
-                  <div className="flex items-center justify-center">
-                    <div className="flex h-12 w-12 items-center justify-center">
-                      <Image
-                        src="/icons/wordpress.png"
-                        alt="WordPress"
-                        width={48}
-                        height={48}
-                        className="object-contain"
-                      />
-                    </div>
-                  </div>
-
-                  {!wpCheckDone && shareWordPress ? (
-                    <p className="text-sm text-gray-400">
-                      Checking WordPress connection...
-                    </p>
-                  ) : wpConnected ? (
-                    <p className="text-sm text-gray-700">
-                      Connected as{" "}
-                      <span className="font-semibold">
-                        {wpUsername || "WordPress User"}
-                      </span>
-                    </p>
-                  ) : (
-                    <p className="text-sm text-gray-700">
-                      <a
-                        href="/profile/edit"
-                        className="text-[#21759B] underline hover:text-[#1A5F7A]"
-                      >
-                        Connect to WordPress
-                      </a>
-                    </p>
-                  )}
-                </div>
-
-                {wpPublishError && shareWordPress && (
-                  <div className="mt-2 flex items-center gap-1 text-sm text-red-500">
-                    <span>⚠</span>
-                    <span>{wpPublishError}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div
-              className={`transition-all duration-300 ease-out ${
-                showShareText
-                  ? "max-h-20 translate-y-0 opacity-100"
-                  : "max-h-0 -translate-y-1 overflow-hidden opacity-0"
-              }`}
-            >
-              {shareText && <p className="text-sm text-gray-500">{shareText}</p>}
-            </div>
-          </div>
-        </Section>
+        <SocialSharingSection
+          shareLinkedIn={state.shareLinkedIn}
+          setShareLinkedIn={actions.setShareLinkedIn}
+          shareWordPress={state.shareWordPress}
+          setShareWordPress={actions.setShareWordPress}
+          setWpCheckDone={actions.setWpCheckDone}
+          wpCheckDone={state.wpCheckDone}
+          wpConnected={state.wpConnected}
+          wpUsername={state.wpUsername}
+          wpPublishError={state.wpPublishError}
+          showShareText={state.showShareText}
+          shareText={state.shareText}
+        />
 
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
 
-        <Section title="LinkedIn Caption (Optional)">
-          <div className="space-y-3">
-            {shareLinkedIn ? (
-              <>
-                <input
-                  type="text"
-                  value={linkedinCaption}
-                  onChange={(event) => setLinkedinCaption(event.target.value)}
-                  placeholder="Write a caption for LinkedIn..."
-                  className="h-11 w-full rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
-                />
-
-                <div className="flex items-center gap-6 text-sm">
-                  <button
-                    type="button"
-                    className="text-gray-600 hover:text-gray-900"
-                  >
-                    Change account
-                  </button>
-
-                  <button
-                    type="button"
-                    className="text-red-500 hover:text-red-600"
-                  >
-                    Disconnect
-                  </button>
-                </div>
-              </>
-            ) : (
-              <p className="text-sm text-gray-400">
-                Enable LinkedIn sharing to add a caption.
-              </p>
-            )}
-          </div>
-        </Section>
+        <LinkedInCaptionSection
+          shareLinkedIn={state.shareLinkedIn}
+          linkedinCaption={state.linkedinCaption}
+          setLinkedinCaption={actions.setLinkedinCaption}
+        />
 
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
         </div>
 
-        {publishError ? (
-          <div className="px-10 pb-2">
-            <p className="text-sm text-red-500">{publishError}</p>
+        {state.publishError ? (
+          <div className="px-10 pb-2 pt-4">
+            <p className="text-sm text-red-500">{state.publishError}</p>
           </div>
         ) : null}
 
@@ -869,7 +141,7 @@ export default function PublishArticlePage() {
             type="button"
             data-keep-edit-backup="true"
             onClick={() => router.back()}
-            className="rounded-full bg-black px-8 py-3 text-white"
+            className="rounded-full bg-black px-8 py-3 text-white transition-colors hover:bg-gray-800"
           >
             Back
           </button>
@@ -877,17 +149,17 @@ export default function PublishArticlePage() {
           <button
             type="button"
             data-keep-edit-backup="true"
-            onClick={handlePublishArticle}
-            disabled={isSubmitting || (timing === "schedule" && isPastDateTime())}
-            className={`rounded-full px-8 py-3 text-white transition ${
-              isSubmitting || (timing === "schedule" && isPastDateTime())
+            onClick={actions.handlePublishArticle}
+            disabled={state.isSubmitting || (state.timing === "schedule" && actions.isPastDateTime())}
+            className={`rounded-full px-8 py-3 text-white transition-all ${
+              state.isSubmitting || (state.timing === "schedule" && actions.isPastDateTime())
                 ? "cursor-not-allowed bg-gray-400"
-                : "bg-emerald-500 hover:bg-emerald-600"
+                : "bg-emerald-500 hover:bg-emerald-600 shadow-md hover:shadow-lg"
             }`}
           >
-            {isSubmitting
+            {state.isSubmitting
               ? "Processing..."
-              : timing === "schedule"
+              : state.timing === "schedule"
                 ? "Schedule post"
                 : "Publish now"}
           </button>
