@@ -10,7 +10,7 @@ export default function ConversationList({
   onSelectConversation,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
-
+  //filter the conversations according to the search name
   const filteredConversations = conversations.filter((conv) =>
     conv.user.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );

@@ -9,11 +9,11 @@ export default function MessageList({
   onDeleteMessage,
 }) {
   const messagesEndRef = useRef(null);
-
+  //scroll to the bottom of the messages when a new message is received
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
+  //trigger the scrollToBottom function when the messages array is updated
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
