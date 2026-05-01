@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../app/context/AuthContext"; 
+import { getReadHistoryApi } from "../app/api/userHistory.api";
 
 export function useReadHistory() {
   const { user, profileLoading } = useAuth();
@@ -14,26 +15,12 @@ export function useReadHistory() {
     }
 
     setIsLoading(true);
-
     try {
       const token = await user.getIdToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/readHistory`, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      });
-
-      const json = await res.json();
-      
-      if (json.success) {
-        setReadHistory(json.data || []);
-      } else {
-        console.error("Backend error:", json.message);
-      }
+      const data = await getReadHistoryApi(token);
+      setReadHistory(data);
     } catch (error) {
-      console.error("Failed to fetch read history:", error);
+      console.error("Hook Error:", error.message);
     } finally {
       setIsLoading(false);
     }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
 
+//make the text box at the bottom of the chat interface
 export default function ChatInput({
   onSendMessage,
   onTypingStart,
@@ -13,6 +14,7 @@ export default function ChatInput({
   const typingTimeoutRef = useRef(null);
   const isTypingRef = useRef(false);
 
+  //clear typing timeout if the user is not typing
   const clearTypingTimeout = () => {
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
@@ -20,6 +22,7 @@ export default function ChatInput({
     }
   };
 
+  //if user stop typing clear the typing timeout and send typing stop event
   const stopTyping = () => {
     if (isTypingRef.current) {
       onTypingStop?.();
@@ -29,6 +32,7 @@ export default function ChatInput({
     clearTypingTimeout();
   };
 
+  //if user submit message send message to chatInterface by onSendMessage(message) props and clear typing timeout and send stop event
   const handleSubmit = (e) => {
     e.preventDefault();
     if (message.trim()) {
@@ -38,6 +42,7 @@ export default function ChatInput({
     }
   };
 
+  //if user typing update the message and send typing event and clear the typing timeout
   const handleChange = (e) => {
     const nextValue = e.target.value;
     setMessage(nextValue);
@@ -62,6 +67,7 @@ export default function ChatInput({
     }, 1200);
   };
 
+  //if the user click back button stop typing event and clear typing timeout
   useEffect(() => {
     return () => {
       stopTyping();
@@ -69,6 +75,7 @@ export default function ChatInput({
   }, []);
 
   return (
+    //display message input field with a send button at the bottom
     <div className="p-4 border-t border-gray-200 bg-white">
       <form onSubmit={handleSubmit} className="flex gap-2 items-center">
         <input

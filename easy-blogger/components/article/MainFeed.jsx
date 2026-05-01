@@ -3,12 +3,14 @@
 import { useMainArticles } from "../../hooks/useMainArticles";
 import { useSavedArticles } from "../../hooks/useSavedArticles";
 import ArticleCard from "./ArticleCard";
+import InfiniteScroll from "../ui/InfiniteScroll"; // Adjust path as needed
 import { Loader2 } from "lucide-react";
 
 export default function MainFeed() {
-  const { articles, isLoading } = useMainArticles();
+  const { articles, isLoading, isFetchingMore, hasMore, loadMore } = useMainArticles();
   const { savedArticles } = useSavedArticles();
 
+  // Initial full-page loading state
   if (isLoading) {
     return (
       <div className="flex justify-center p-10">
@@ -17,19 +19,27 @@ export default function MainFeed() {
     );
   }
 
+  // Empty state
   if (!articles || articles.length === 0) {
     return <p className="mt-4 text-gray-500">No articles found.</p>;
   }
 
   return (
-    <div className="space-y-2">
-      {articles.map((article) => (
-        <ArticleCard 
-          key={article.id} 
-          article={article}
-          savedArticles={savedArticles}
-        />
-      ))}
-    </div>
+    <InfiniteScroll 
+      loadMore={loadMore} 
+      hasMore={hasMore} 
+      isFetchingMore={isFetchingMore}
+      endMessage="You've reached the end of your feed."
+    >
+      <div className="space-y-4 pb-10">
+        {articles.map((article) => (
+          <ArticleCard 
+            key={article.id} 
+            article={article}
+            savedArticles={savedArticles}
+          />
+        ))}
+      </div>
+    </InfiniteScroll>
   );
 }

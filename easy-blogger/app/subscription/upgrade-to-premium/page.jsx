@@ -26,7 +26,7 @@ export default function UpgradeToPremiumPage() {
   useEffect(() => {
     fetchOffers();
   }, []);
-
+  //fetch the active offers from the api
   const fetchOffers = async () => {
     try {
       const res = await api.getActiveOffers();
@@ -39,6 +39,7 @@ export default function UpgradeToPremiumPage() {
     }
   };
 
+  //handle the checkout process to direct user to stripe checkout page by passing the selected offerid and jwt token to backend
   const handleCheckout = async () => {
     if (!user) {
       router.push("/login");
@@ -50,7 +51,7 @@ export default function UpgradeToPremiumPage() {
       const token = await user.getIdToken();
       const res = await api.createCheckoutSession(
         selectedOffer?.id || null,
-        token
+        token,
       );
       const data = res.data || res;
 
@@ -67,6 +68,7 @@ export default function UpgradeToPremiumPage() {
     }
   };
 
+  //calculate the discounted price
   const discountedPrice = selectedOffer
     ? MONTHLY_PRICE * (1 - selectedOffer.discount_percent / 100)
     : MONTHLY_PRICE;
@@ -121,7 +123,7 @@ export default function UpgradeToPremiumPage() {
                       key={offer.id}
                       onClick={() =>
                         setSelectedOffer(
-                          selectedOffer?.id === offer.id ? null : offer
+                          selectedOffer?.id === offer.id ? null : offer,
                         )
                       }
                       className={`w-full text-left p-5 rounded-xl border-2 transition-all ${
@@ -197,8 +199,7 @@ export default function UpgradeToPremiumPage() {
                 ) : (
                   <>
                     <Zap className="w-5 h-5" />
-                    Proceed to Checkout — $
-                    {discountedPrice.toFixed(2)}/mo
+                    Proceed to Checkout — ${discountedPrice.toFixed(2)}/mo
                   </>
                 )}
               </button>

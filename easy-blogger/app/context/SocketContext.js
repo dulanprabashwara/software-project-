@@ -8,6 +8,7 @@ const SocketContext = createContext({ socket: null, isConnected: false });
 
 export const useSocket = () => useContext(SocketContext);
 
+// create socket connection to the socket.io backend server
 export function SocketProvider({ children }) {
   const { user } = useAuth();
   const [socket, setSocket] = useState(null);
@@ -15,19 +16,20 @@ export function SocketProvider({ children }) {
 
   useEffect(() => {
     let newSocket;
-
+    // connect to the socket.io server
     const connectSocket = async () => {
       if (user) {
         try {
           const token = await user.getIdToken();
-          const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
+          const backendUrl =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          //make the connection with the socket.io server
           newSocket = io(backendUrl, {
             auth: { token },
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
           });
-
+          // log when connected to the socket.io server
           newSocket.on("connect", () => {
             console.log("🟢 Connected to Socket.IO Server");
             setIsConnected(true);

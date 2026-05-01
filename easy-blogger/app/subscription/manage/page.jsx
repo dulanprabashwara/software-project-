@@ -14,6 +14,7 @@ import { api } from "../../../lib/api";
  * Auto-redirects premium users to the Stripe Customer Portal.
  * Non-premium users are sent to the upgrade page.
  */
+
 export default function ManageSubscriptionPage() {
   const router = useRouter();
   const { user } = useAuth();
@@ -33,7 +34,7 @@ export default function ManageSubscriptionPage() {
     const redirectToPortal = async () => {
       try {
         const token = await user.getIdToken();
-        const res = await api.createStripePortalSession(token);
+        const res = await api.createPortalSession(token);
         const data = res.data || res;
         if (data.url) {
           window.location.href = data.url;

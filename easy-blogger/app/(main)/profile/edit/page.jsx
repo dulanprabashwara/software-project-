@@ -554,7 +554,7 @@ export default function EditProfilePage() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={profileLoading && !userProfile}
-                className="absolute bottom-0 right-0 w-10 h-10 bg-[#1ABC9C] hover:bg-[#17a589] rounded-full flex items-center justify-center shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute bottom-0 right-0 w-10 h-10 bg-[#1ABC9C] hover:bg-[#17a589] rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Camera className="w-5 h-5 text-white" />
               </button>
@@ -566,12 +566,12 @@ export default function EditProfilePage() {
                 className="hidden"
               />
 
-              {/* Verified Badge for Premium - Fixed overlap */}
+              {/* Verified Badge for Premium */}
               {isPremium && (
-                <div className="absolute top-0 right-0 drop-shadow-md">
+                <div className="absolute top-1 -right-1 bg-white rounded-full flex items-center justify-center p-1 shadow-sm pointer-events-none">
                   <svg
-                    width="32"
-                    height="32"
+                    width="26"
+                    height="26"
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"

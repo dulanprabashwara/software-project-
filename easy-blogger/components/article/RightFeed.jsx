@@ -5,6 +5,7 @@ import { useTrending } from "../../hooks/useTrendingTitles";
 import { usePopularTags } from "../../hooks/usePopularTags";
 import { Loader2 } from "lucide-react";
 import { DATA } from "./ArticleList"; // Assuming DATA contains usersToFollow
+import Link from "next/link";
 
 export default function RightFeed() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function RightFeed() {
     <aside className="border-l border-[#e5e7eb] shrink-0 p-8">
       {/* Trending Section */}
       <div className="mb-10">
-        <h3 className="font-bold mb-4 font-serif">Trending</h3>
+       <Link href='/stats/public'> <h3 className="font-bold mb-4 font-serif">Trending</h3></Link>
         {isTrendingLoading ? (
           <Loader2 className="w-4 h-4 animate-spin text-gray-300" />
         ) : (
@@ -49,7 +50,7 @@ export default function RightFeed() {
             tags.map((tag) => (
               <button
                 key={tag.name}
-                onClick={() => router.push(`/home/search?tag=${tag.name}`)}
+                onClick={() => router.push(`/home?q=${tag.name}`)}
                 className="px-3 py-1 bg-gray-50 border rounded-full text-xs hover:bg-teal-500 hover:text-white transition capitalize"
               >
                 {tag.name}

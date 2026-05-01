@@ -36,20 +36,20 @@ function getNotificationDetails(notification: any) {
     case "RATE":
       return {
         title: "New Rating",
-        message: `${actorName} rated "${articleTitle}".`,
+        message: `${articleTitle}`,
         link: link,
       };
     case "FOLLOW":
       return {
         title: "New Follower",
-        message: `${actorName} started following you.`,
+        message: `"${actorName}" started following you.`,
         link: `/profile?id=${notification.sourceUserId}`,
       };
     case "NEW_ARTICLE":
       return {
         title: "New Article",
         message: `${actorName} published: "${articleTitle}".`,
-        link: `/article?id=${articleId}`,
+        link: link,
       };
     default:
       return {
@@ -143,8 +143,8 @@ export default function NotificationPanel({
                         <p className="text-sm font-bold text-gray-900">
                           {title}
                         </p>
-                        <p className="text-xs text-gray-500 mt-0.5 italic line-clamp-2">
-                          "{message}"
+                        <p className="text-xs  mt-0.5  line-clamp-2">
+                          [{message}]
                         </p>
                         <p className="text-[10px] text-emerald-400 font-bold mt-2 uppercase">
                           {timeAgo(n.createdAt)}
