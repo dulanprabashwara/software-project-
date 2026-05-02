@@ -14,6 +14,7 @@ import {
   pad2,
   to24Hour,
 } from "../../lib/articles/utils";
+import { clearPreviewContext } from "../../lib/articles/previewContext";
 
 const MAX_TAGS = 5;
 
@@ -319,6 +320,7 @@ export function usePublishArticle(articleId) {
 
       // Determine the final destination based on whether it was published immediately or scheduled
       const redirectPath = timing === "schedule" ? "articlescheduled" : "articlepublished";
+      clearPreviewContext();
       router.push(`/write/${redirectPath}?id=${publishedArticle?.id || articleId}`);
     } catch (error) {
       console.error("Failed to publish article:", error);
