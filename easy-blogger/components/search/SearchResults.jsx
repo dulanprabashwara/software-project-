@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../app/context/AuthContext";
+import { useSavedArticles } from "../../hooks/useSavedArticles";
 import { searchArticles, searchUsers } from "../../lib/searchApi";
 import SearchArticleCard from "./SearchArticleCard";
 import UserCard from "./UserCard";
@@ -13,8 +14,11 @@ import { Loader2, SearchX } from "lucide-react";
 // The initialTab prop controls which tab is active on first render —
 // "profiles" when navigated from a person autocomplete suggestion.
 export default function SearchResults({ query, initialTab = "articles" }) {
-  const [activeTab, setActiveTab] = useState(initialTab);
-  const { user: firebaseUser }    = useAuth();
+  const [activeTab,       setActiveTab]       = useState(initialTab);
+  const { user: firebaseUser }                = useAuth();
+
+  // savedArticles is fetched once for the logged-in user and passed to every
+  const { savedArticles } = useSavedArticles();
 
   const [articles,        setArticles]        = useState([]);
   const [articlesTotal,   setArticlesTotal]   = useState(0);
@@ -86,7 +90,6 @@ export default function SearchResults({ query, initialTab = "articles" }) {
     <div className="flex h-full overflow-hidden">
 
       <div className="p-8 mx-auto h-full overflow-y-auto flex-1">
-
         <p className="text-sm text-[#6B7280] mb-5">
           Results for <span className="font-semibold text-[#111827]">"{query}"</span>
         </p>
@@ -116,7 +119,11 @@ export default function SearchResults({ query, initialTab = "articles" }) {
               />
             )}
             {articles.map((article) => (
-              <SearchArticleCard key={article.id} article={article} />
+              <SearchArticleCard
+                key={article.id}
+                article={article}
+                savedArticles={savedArticles}
+              />
             ))}
           </>
         )}
