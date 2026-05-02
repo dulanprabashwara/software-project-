@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { MessageCircle, Star, Clock, Bookmark, MoreHorizontal } from "lucide-react";
 import { useAuth } from "../../app/context/AuthContext";
-import { toggleArticleSave } from "../../lib/searchApi";
 import { useRouter } from "next/navigation";
 
 const SLIDE_INTERVAL_MS = 15000;
@@ -63,17 +62,26 @@ export default function TrendingArticleSlider({ articles = [] }) {
 
   const handleArticleClick = (id) => router.push(`/home/read?id=${id}`);
 
+  // Saves or unsaves an article using the same endpoint as ArticleCard and SearchArticleCard.
   const handleBookmarkToggle = async (articleId) => {
     if (!firebaseUser || savingMap[articleId]) return;
+
     const next = !savedMap[articleId];
-    setSavedMap((prev) => ({ ...prev, [articleId]: next }));
+    setSavedMap((prev)  => ({ ...prev, [articleId]: next }));
     setSavingMap((prev) => ({ ...prev, [articleId]: true }));
+
     try {
       const token = await firebaseUser.getIdToken();
-      const res   = await toggleArticleSave(articleId, token);
-      if (res?.saved !== undefined) {
-        setSavedMap((prev) => ({ ...prev, [articleId]: res.saved }));
-      }
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/savedArticle`, {
+        method:  next ? "POST" : "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ articleId }),
+      });
+
+      if (!res.ok) throw new Error("Failed to sync bookmark.");
     } catch (err) {
       setSavedMap((prev) => ({ ...prev, [articleId]: !next }));
       console.error("Bookmark toggle failed:", err.message || err);
@@ -88,26 +96,20 @@ export default function TrendingArticleSlider({ articles = [] }) {
   const isSaved  = savedMap[article.id] ?? false;
   const isSaving = savingMap[article.id] ?? false;
 
-  // Show max 5 dots regardless of how many articles exist
   const DOT_COUNT = Math.min(articles.length, 5);
 
   return (
     <div className="trending-slider">
 
-      {/* Left chevron */}
       <button onClick={() => handleSlide("prev")} className="slider-chevron slider-chevron-left">
         <img src="/icons/doble chevron icon  (2).png" alt="Previous" />
       </button>
 
-      {/* ── Outer column: top row (text + image) then stats then dots ── */}
       <div className="slider-body">
 
-        {/* Top row — text left, image right */}
         <div className="slider-content">
-
           <div className="slider-left-content">
 
-            {/* Author row */}
             <div className="author-info">
               {article.author?.avatarUrl ? (
                 <img
@@ -130,7 +132,6 @@ export default function TrendingArticleSlider({ articles = [] }) {
               </div>
             </div>
 
-            {/* Title */}
             <h3
               className="slider-article-title"
               onClick={() => handleArticleClick(article.id)}
@@ -138,14 +139,12 @@ export default function TrendingArticleSlider({ articles = [] }) {
               {article.title}
             </h3>
 
-            {/* Summary */}
             {article.summary && (
               <p className="article-description line-clamp-3">{article.summary}</p>
             )}
 
           </div>
 
-          {/* Cover image */}
           <div className="slider-right-content">
             {article.coverImage ? (
               <img src={article.coverImage} alt="Article cover" className="cover-image" />
@@ -158,20 +157,15 @@ export default function TrendingArticleSlider({ articles = [] }) {
               </div>
             )}
           </div>
-
         </div>
-        {/* ── End top row ── */}
 
-        {/* Stats row — full width, always below both text and image */}
         <div className="article-stats">
 
-          {/* Comments */}
           <button className="stat-item stat-button">
             <MessageCircle className="stat-icon-lucide" strokeWidth={1.5} />
             <span className="stat-number">{article.commentCount ?? 0}</span>
           </button>
 
-          {/* Rating */}
           <div className="stat-item stat-rating">
             <Star className="stat-icon-lucide stat-icon-rating" strokeWidth={1.5} />
             <span className="stat-number stat-number-rating">
@@ -184,7 +178,6 @@ export default function TrendingArticleSlider({ articles = [] }) {
             </span>
           </div>
 
-          {/* Reading time */}
           {article.readingTime > 0 && (
             <div className="stat-item stat-button">
               <Clock className="stat-icon-lucide" strokeWidth={1.5} />
@@ -192,7 +185,6 @@ export default function TrendingArticleSlider({ articles = [] }) {
             </div>
           )}
 
-          {/* Bookmark + More — pushed right */}
           <div className="slider-actions-right">
             <button
               className={`slider-icon-btn${isSaved ? " slider-icon-btn--saved" : ""}`}
@@ -212,9 +204,7 @@ export default function TrendingArticleSlider({ articles = [] }) {
           </div>
 
         </div>
-        {/* ── End stats row ── */}
 
-        {/* Dot indicators — centered under stats row */}
         {articles.length > 1 && (
           <div className="slider-dots">
             {Array.from({ length: DOT_COUNT }).map((_, i) => (
@@ -229,9 +219,7 @@ export default function TrendingArticleSlider({ articles = [] }) {
         )}
 
       </div>
-      {/* ── End slider-body ── */}
 
-      {/* Right chevron */}
       <button onClick={() => handleSlide("next")} className="slider-chevron slider-chevron-right">
         <img src="/icons/doble chevron icon  (1).png" alt="Next" />
       </button>
