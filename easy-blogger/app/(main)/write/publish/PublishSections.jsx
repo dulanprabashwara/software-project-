@@ -281,6 +281,10 @@ export function SocialSharingSection({
   wpConnected,
   wpUsername,
   wpPublishError,
+  setLiCheckDone,
+  liCheckDone,
+  liConnected,
+  liUsername,
   showShareText,
   shareText,
 }) {
@@ -290,7 +294,13 @@ export function SocialSharingSection({
         {/* LinkedIn Toggle */}
         <div className="grid grid-cols-[48px_1fr] grid-rows-2 gap-y-0">
           <div className="flex items-center">
-            <Toggle enabled={shareLinkedIn} setEnabled={setShareLinkedIn} />
+            <Toggle
+              enabled={shareLinkedIn}
+              setEnabled={(val) => {
+                setShareLinkedIn(val);
+                if (val) setLiCheckDone(false);
+              }}
+            />
           </div>
           <div className="flex items-center">
             <p className="text-sm font-semibold text-gray-900">Share on LinkedIn</p>
@@ -301,9 +311,19 @@ export function SocialSharingSection({
               <div className="flex items-center justify-center">
                 <Image src="/icons/linkedin.png" alt="LinkedIn" width={48} height={48} className="object-contain" />
               </div>
-              <p className="text-sm text-gray-700">
-                Connected as <span className="font-semibold">Emma Richardson</span>
-              </p>
+              {!liCheckDone && shareLinkedIn ? (
+                <p className="text-sm text-gray-400">Checking LinkedIn connection...</p>
+              ) : liConnected ? (
+                <p className="text-sm text-gray-700">
+                  Connected as <span className="font-semibold">{liUsername || "LinkedIn User"}</span>
+                </p>
+              ) : (
+                <p className="text-sm text-gray-700">
+                  <a href="/profile/edit" className="text-[#0077B5] underline hover:text-[#005582]">
+                    Connect to LinkedIn
+                  </a>
+                </p>
+              )}
             </div>
           </div>
         </div>
