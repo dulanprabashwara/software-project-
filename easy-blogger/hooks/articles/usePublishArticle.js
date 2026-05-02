@@ -14,6 +14,7 @@ import {
   pad2,
   to24Hour,
 } from "../../lib/articles/utils";
+import { clearPreviewContext } from "../../lib/articles/previewContext";
 
 const MAX_TAGS = 5;
 
@@ -62,6 +63,11 @@ export function usePublishArticle(articleId) {
   const [wpCheckDone, setWpCheckDone] = useState(false);
   const [wpPublishError, setWpPublishError] = useState("");
 
+  // LinkedIn Connection State
+  const [liConnected, setLiConnected] = useState(false);
+  const [liUsername, setLiUsername] = useState("");
+  const [liCheckDone, setLiCheckDone] = useState(false);
+
   // Helpers
   const isPastDateTime = () => {
     if (!scheduledDate || !scheduledTime) return false;
@@ -80,11 +86,11 @@ export function usePublishArticle(articleId) {
   // Validates tag uniqueness and length constraints before adding
   const addTag = (rawValue) => {
     const trimmedTag = rawValue.trim();
-    if (!trimmedTag || tags.length >= MAX_TAGS) return;
-    
+    if (!trimmedTag || tags.length >= MAX_TAGS)
+      return;
     // Case-insensitive check to prevent duplicate tags
-    if (tags.some((tag) => tag.toLowerCase() === trimmedTag.toLowerCase())) return;
-    
+    if (tags.some((tag) => tag.toLowerCase() === trimmedTag.toLowerCase()))
+      return;
     setTags((prev) => [...prev, trimmedTag]);
   };
 
@@ -144,7 +150,8 @@ export function usePublishArticle(articleId) {
 
   // Keeps the schedule time in sync with the current real-world time when 'Publish Now' is selected
   useEffect(() => {
-    if (timing !== "now") return;
+    if (timing !== "now")
+      return;
 
     const syncCurrentDateTime = () => {
       const now = new Date();
@@ -174,8 +181,10 @@ export function usePublishArticle(articleId) {
   }, [timing]);
 
   useEffect(() => {
-    if (timing !== "schedule") return;
-    if (scheduledDate && scheduledTime) return;
+    if (timing !== "schedule")
+      return;
+    if (scheduledDate && scheduledTime)
+      return;
 
     const now = new Date();
     setScheduledDate(`${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`);
@@ -188,8 +197,10 @@ export function usePublishArticle(articleId) {
   // Generates a descriptive message about selected platforms to improve user transparency
   useEffect(() => {
     const selectedPlatforms = [];
-    if (shareLinkedIn) selectedPlatforms.push("LinkedIn");
-    if (shareWordPress) selectedPlatforms.push("WordPress");
+    if (shareLinkedIn)
+      selectedPlatforms.push("LinkedIn");
+    if (shareWordPress)
+      selectedPlatforms.push("WordPress");
 
     if (selectedPlatforms.length === 0) {
       setShowShareText(false);
@@ -229,8 +240,37 @@ export function usePublishArticle(articleId) {
     void checkWordPressConnection();
   }, [shareWordPress, firebaseUser, wpCheckDone]);
 
+  // Verifies LinkedIn connection status
+  useEffect(() => {
+    if (!shareLinkedIn || !firebaseUser || liCheckDone) return;
+
+    const checkLinkedInConnection = async () => {
+      try {
+        const token = await firebaseUser.getIdToken();
+        const response = await fetch(`${API_BASE_URL}/api/linkedin/status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+
+        if (data?.data?.connected) {
+          setLiConnected(true);
+          setLiUsername(data.data.liUsername || "");
+        } else {
+          setLiConnected(false);
+        }
+      } catch {
+        setLiConnected(false);
+      } finally {
+        setLiCheckDone(true);
+      }
+    };
+
+    void checkLinkedInConnection();
+  }, [shareLinkedIn, firebaseUser, liCheckDone]);
+
   const handleWordPressPublish = async (currentArticleId) => {
-    if (!shareWordPress || !wpConnected || !currentArticleId || !firebaseUser) return;
+    if (!shareWordPress || !wpConnected || !currentArticleId || !firebaseUser)
+      return;
 
     try {
       const token = await firebaseUser.getIdToken();
@@ -269,6 +309,8 @@ export function usePublishArticle(articleId) {
         tags,
         timing,
         scheduledAt: buildScheduledAt(),
+        linkedinSync: shareLinkedIn,
+        linkedinCaption: linkedinCaption,
       };
 
       const response = await publishEasyBloggerArticle(articleId, payload);
@@ -278,6 +320,7 @@ export function usePublishArticle(articleId) {
 
       // Determine the final destination based on whether it was published immediately or scheduled
       const redirectPath = timing === "schedule" ? "articlescheduled" : "articlepublished";
+      clearPreviewContext();
       router.push(`/write/${redirectPath}?id=${publishedArticle?.id || articleId}`);
     } catch (error) {
       console.error("Failed to publish article:", error);
@@ -311,6 +354,9 @@ export function usePublishArticle(articleId) {
       wpUsername,
       wpCheckDone,
       wpPublishError,
+      liConnected,
+      liUsername,
+      liCheckDone,
       MAX_TAGS,
     },
     actions: {
@@ -328,6 +374,7 @@ export function usePublishArticle(articleId) {
       setTpMinute,
       setTpPeriod,
       setWpCheckDone,
+      setLiCheckDone,
       addTag,
       removeTag,
       handlePublishArticle,

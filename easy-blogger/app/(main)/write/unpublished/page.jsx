@@ -198,31 +198,6 @@ export default function UnpublishedArticlesPage() {
     }));
   }, [draftArticles]);
 
-  const hasMore = totalDrafts > draftArticles.length;
-
-  const handleSeeMore = useCallback(() => {
-    if (!hasMore || isLoadingMore) return;
-    void loadDrafts(page + 1, activeFilter);
-  }, [activeFilter, hasMore, isLoadingMore, loadDrafts, page]);
-
-  const handleEditAsNew = useCallback(() => {
-    if (!selectedId) {
-      showError("Select an article before editing.");
-      return;
-    }
-
-    router.push(`/write/edit-as-new?id=${selectedId}`);
-  }, [router, selectedId, showError]);
-
-  const handleEditExisting = useCallback(() => {
-    if (!selectedId) {
-      showError("Select an article before editing.");
-      return;
-    }
-
-    router.push(`/write/edit-existing?id=${selectedId}`);
-  }, [router, selectedId, showError]);
-
   const handleCreateArticle = useCallback(() => {
     router.push("/write/choose-method");
   }, [router]);

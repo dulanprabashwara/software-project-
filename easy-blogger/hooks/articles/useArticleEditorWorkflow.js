@@ -123,7 +123,9 @@ export function useArticleEditorWorkflow(mode) {
           if (isCorrectArticle && isCorrectSource) {
             const response = await getDraftById(previewContext.id);
             const article = getArticleFromResponse(response);
-            if (article) {
+            const isWorkInProgress = article?.status === "DRAFT" || article?.status === "EDITING";
+
+            if (article && (mode !== "create" || isWorkInProgress)) {
               setDraftId(article.id);
               setTitle(article.title || "");
               setContent(article.content || "");
@@ -145,7 +147,9 @@ export function useArticleEditorWorkflow(mode) {
         if (mode === "create") {
           const response = await getCurrentEditingDraft();
           const article = getArticleFromResponse(response);
-          if (article) {
+          const isWorkInProgress = article?.status === "DRAFT" || article?.status === "EDITING";
+
+          if (article && isWorkInProgress) {
             setDraftId(article.id);
             setTitle(article.title || "");
             setContent(article.content || "");

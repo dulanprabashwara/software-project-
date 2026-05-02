@@ -112,6 +112,10 @@ export default function PublishArticlePage() {
           wpConnected={state.wpConnected}
           wpUsername={state.wpUsername}
           wpPublishError={state.wpPublishError}
+          setLiCheckDone={actions.setLiCheckDone}
+          liCheckDone={state.liCheckDone}
+          liConnected={state.liConnected}
+          liUsername={state.liUsername}
           showShareText={state.showShareText}
           shareText={state.shareText}
         />

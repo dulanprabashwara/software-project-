@@ -8,18 +8,18 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../app/context/AuthContext";  
 
+
+//Article card may use saved, interacted, read history depending on the context displayed
 export default function ArticleCard({ 
   article, 
   savedArticles = [], 
   interactedArticles = [], 
   readHistory = [] 
 }) {
-  const router = useRouter();
-  const { user, profileLoading } = useAuth();
 
-  // ==========================================
-  // 1. COMPONENT STATE
-  // ==========================================
+
+const router = useRouter();
+const { user, profileLoading } = useAuth();
 
   // Bookmark State
   const [saved, setSaved] = useState(false);
