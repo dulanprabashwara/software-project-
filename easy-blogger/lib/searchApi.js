@@ -21,13 +21,3 @@ export const getSearchSuggestions = async (query) => {
   const res = await fetchAPI(`/api/search/suggestions?${params}`);
   return res?.data ?? res;
 };
-
-// Toggles the saved/bookmarked state of an article for the logged-in user.
-// Calls the engagement endpoint which handles both save and unsave as a toggle.
-export const toggleArticleSave = async (articleId, token) => {
-  const res = await fetchAPI(`/api/articles/${articleId}/save`, {
-    method: "POST",
-    token,
-  });
-  return res?.data ?? res;
-};
