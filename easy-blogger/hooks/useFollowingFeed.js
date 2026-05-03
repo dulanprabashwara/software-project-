@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../app/context/AuthContext";
-import { getMainFeedApi } from "../app/api/homefeed.api";
+import { getFollowingFeedApi } from "../app/api/followingFeed.api";
 
 // Cache an object now: { articles: [...], page: 3, hasMore: true }
 const articleCache = {};
 
-export function useMainArticles() {
+export function useFollowingArticles() {
   const { user, profileLoading } = useAuth();
   
   const [articles, setArticles] = useState([]);
@@ -29,12 +29,12 @@ export function useMainArticles() {
       return;
     }
 
-    //fetch the forst set of articles
+    //fetch the first set of articles
     const fetchInitialData = async () => {
       setIsLoading(true);
       try {
         const token = user ? await user.getIdToken() : null;
-        const initialBatch = await getMainFeedApi(1, token);
+        const initialBatch = await getFollowingFeedApi(1, token);
 
         const isMore = initialBatch.length === 10;
         
@@ -61,7 +61,7 @@ export function useMainArticles() {
     setIsFetchingMore(true);
     try {
       const token = user ? await user.getIdToken() : null;
-      const nextBatch = await getMainFeedApi(page, token);
+      const nextBatch = await getFollowingFeedApi(page, token);
 
       if (nextBatch.length === 0) {
         setHasMore(false);

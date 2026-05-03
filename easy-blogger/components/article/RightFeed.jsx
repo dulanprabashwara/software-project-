@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useTrending } from "../../hooks/useTrendingTitles";
 import { usePopularTags } from "../../hooks/usePopularTags";
 import { Loader2 } from "lucide-react";
-import { DATA } from "./ArticleList"; // Assuming DATA contains usersToFollow
 import Link from "next/link";
 
 export default function RightFeed() {
@@ -48,43 +47,19 @@ export default function RightFeed() {
              <Loader2 className="w-4 h-4 animate-spin text-gray-300" />
           ) : (
             tags.map((tag) => (
-              <button
-                key={tag.name}
-                onClick={() => router.push(`/home?q=${tag.name}`)}
-                className="px-3 py-1 bg-gray-50 border rounded-full text-xs hover:bg-teal-500 hover:text-white transition capitalize"
-              >
-                {tag.name}
-              </button>
+              <Link
+  key={tag.name}
+  href={`/home?q=${tag.name}`}
+  className="px-3 py-1 bg-gray-50 border rounded-full text-xs hover:bg-teal-500 hover:text-white transition capitalize inline-block"
+>
+  {tag.name}
+</Link>
             ))
           )}
         </div>
       </div>
 
-      {/* Who to Follow Section */}
-      <div>
-        <h3 className="font-bold mb-4 font-serif">Who to follow</h3>
-        {DATA.usersToFollow.map((user, i) => (
-          <div key={i} className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <img
-                src={user.avatar}
-                className="w-8 h-8 rounded-full object-cover shrink-0"
-                alt=""
-              />
-              <div className="truncate">
-                <p className="text-sm font-bold truncate">{user.name}</p>
-                <p className="text-xs text-gray-500 truncate">{user.bio}</p>
-              </div>
-            </div>
-            <button
-              onClick={(e) => e.stopPropagation()} 
-              className="text-xs border border-teal-500 text-teal-500 px-3 py-1 rounded-full hover:bg-teal-500 hover:text-white transition-colors"
-            >
-              Follow
-            </button>
-          </div>
-        ))}
-      </div>
+      
     </aside>
   );
 }
