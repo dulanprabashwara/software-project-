@@ -76,7 +76,10 @@ export const api = {
   getFollowing: (userId, token) =>
     fetchAPI(`/api/users/${userId}/following`, token ? { token } : {}),
 
-  getAdminDashboard: (token) => fetchAPI("/api/admin/dashboard", { token }),
+  getAdminDashboard: (token) => 
+    fetchAPI("/api/admin/dashboard", { token }),
+  getEngagementAnalytics: (token, days) => 
+    fetchAPI(`/api/admin/engagement?days=${days}`, { token }),
 
   getOffers: (token) => fetchAPI("/api/admin/offers", { token }),
 
