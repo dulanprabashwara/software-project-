@@ -65,6 +65,7 @@ export default function EditProfilePage() {
   const [wpLoading, setWpLoading] = useState(false);
   // LinkedIn connection state
   const [liUsername, setLiUsername] = useState("");
+  const [liPicture, setLiPicture] = useState("");
   const [liError, setLiError] = useState("");
   const [liLoading, setLiLoading] = useState(false);
   const fileInputRef = useRef(null);
@@ -135,6 +136,7 @@ export default function EditProfilePage() {
         if (data?.data?.connected) {
           setLinkedInConnected(true);
           setLiUsername(data.data.liUsername || "");
+          setLiPicture(data.data.liPicture || "");
         }
       } catch {
         // silently ignore
@@ -155,6 +157,7 @@ export default function EditProfilePage() {
     if (liStatus === "connected") {
       setLinkedInConnected(true);
       setLiUsername(params.get("li_username") || "");
+      setLiPicture(params.get("li_picture") || "");
       setLiError("");
     } else if (liStatus === "error") {
       setLiError(
@@ -167,6 +170,7 @@ export default function EditProfilePage() {
     const cleanUrl = new URL(window.location.href);
     cleanUrl.searchParams.delete("li_status");
     cleanUrl.searchParams.delete("li_username");
+    cleanUrl.searchParams.delete("li_picture");
     cleanUrl.searchParams.delete("li_message");
     window.history.replaceState({}, "", cleanUrl.toString());
   }, []);
@@ -1010,8 +1014,12 @@ export default function EditProfilePage() {
 
           <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#0077B5] rounded-lg flex items-center justify-center">
-                <Linkedin className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-[#0077B5] rounded-lg flex items-center justify-center overflow-hidden border border-blue-100 shadow-sm">
+                {linkedInConnected && liPicture ? (
+                  <img src={liPicture} alt="LinkedIn Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <Linkedin className="w-6 h-6 text-white" />
+                )}
               </div>
               <div>
                 <p className="font-medium text-[#111827]">
