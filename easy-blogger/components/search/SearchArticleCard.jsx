@@ -231,8 +231,8 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
             </button>
 
             <div className="flex items-center gap-1.5">
-              <Star className="w-5 h-5 fill-[#1ABC9C] text-[#1ABC9C]" strokeWidth={1.5} />
-              <span className="font-medium text-[#1ABC9C]">
+              <Star className="w-5 h-5" strokeWidth={1.5} />
+              <span className="font-medium">
                 {averageRating > 0 ? averageRating.toFixed(1) : "-"}
               </span>
               <span className="text-[#6B7280]">[{ratingCount || 0}]</span>
