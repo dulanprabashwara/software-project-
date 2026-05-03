@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTrending } from "../../hooks/useTrendingTitles";
 import { usePopularTags } from "../../hooks/usePopularTags";
 import { Loader2 } from "lucide-react";
+import { DATA } from "./ArticleList"; // Assuming DATA contains usersToFollow
 import Link from "next/link";
 
 export default function RightFeed() {
@@ -47,13 +48,13 @@ export default function RightFeed() {
              <Loader2 className="w-4 h-4 animate-spin text-gray-300" />
           ) : (
             tags.map((tag) => (
-              <Link
-  key={tag.name}
-  href={`/home?q=${tag.name}`}
-  className="px-3 py-1 bg-gray-50 border rounded-full text-xs hover:bg-teal-500 hover:text-white transition capitalize inline-block"
->
-  {tag.name}
-</Link>
+              <button
+                key={tag.name}
+                onClick={() => router.push(`/home?q=${tag.name}`)}
+                className="px-3 py-1 bg-gray-50 border rounded-full text-xs hover:bg-teal-500 hover:text-white transition capitalize"
+              >
+                {tag.name}
+              </button>
             ))
           )}
         </div>
