@@ -79,7 +79,7 @@ const { user, profileLoading } = useAuth();
     : "Date unknown";
 
   const scheduledDate = rawScheduledDate
-    ? new Date(rawPublishDate).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })
+    ? new Date(rawScheduledDate).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })
     : "Scheduled date unknown";
 
 

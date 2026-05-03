@@ -13,6 +13,7 @@ export function useMainArticles() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const articleLimit =5;
 
   // 1. Initial Load
   useEffect(() => {
@@ -36,7 +37,7 @@ export function useMainArticles() {
         const token = user ? await user.getIdToken() : null;
         const initialBatch = await getMainFeedApi(1, token);
 
-        const isMore = initialBatch.length === 10;
+        const isMore = initialBatch.length === articleLimit;
         
         setArticles(initialBatch);
         setPage(2);
@@ -74,7 +75,7 @@ export function useMainArticles() {
           
           // Update cache with the new massive list
           const cacheKey = user ? user.uid : "guest";
-          articleCache[cacheKey] = { articles: combined, page: page + 1, hasMore: nextBatch.length === 10 };
+          articleCache[cacheKey] = { articles: combined, page: page + 1, hasMore: nextBatch.length === articleLimit };
           
           return combined;
         });

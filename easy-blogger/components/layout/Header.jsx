@@ -28,10 +28,9 @@ export default function Header({ onToggleSidebar }) {
   const { isPremium } = useSubscription();
   const { user, userProfile, logout } = useAuth(); // get user + logout from backend/auth
 
-  const [open, setOpen] = useState(false);
-  // notiOpen removed — NotificationPanel handles its own open/close state
+  const [userMenuOpen, setUserMenuOpen] = useState(false); //for user menu open and close check
   const [mounted, setMounted] = useState(false);
-  const menuRef = useRef(null);
+  const menuRef = useRef(null); //for outside clicks for user menu
 
   // ── Search state ──────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,29 +44,21 @@ export default function Header({ onToggleSidebar }) {
   }, []);
 
   // derive user display values
-  const displayName =
-    userProfile?.displayName ||
-    user?.displayName ||
-    user?.email?.split("@")[0] ||
-    "User";
+  const displayName = userProfile?.displayName ||  user?.displayName || user?.email?.split("@")[0] ||  "User";
   const displayEmail = user?.email || "";
-  const avatarUrl =
-    userProfile?.avatarUrl ||
-    user?.photoURL ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      displayName,
-    )}&background=1ABC9C&color=fff`;
+  const avatarUrl =  userProfile?.avatarUrl ||  user?.photoURL ||  `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName,)}&background=1ABC9C&color=fff`;
 
   // Close avatar dropdown on outside click
   useEffect(() => {
-    if (!open) return;
+    if (!userMenuOpen) return;
+
     const onDown = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target))
-        setOpen(false);
+        setUserMenuOpen(false);
     };
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
-  }, [open]);
+  }, [userMenuOpen]);
 
   // Close suggestion dropdown on outside click
   useEffect(() => {
@@ -130,7 +121,7 @@ export default function Header({ onToggleSidebar }) {
   const [portalLoading, setPortalLoading] = useState(false);
 
   const handleMembershipClick = async (e) => {
-    setOpen(false);
+    setUserMenuOpen(false);
     if (!isPremium) return;
     e.preventDefault();
     if (!user) return;
@@ -153,7 +144,7 @@ export default function Header({ onToggleSidebar }) {
 
   const handleSignOut = async () => {
     try {
-      setOpen(false);
+      setUserMenuOpen(false);
       await logout();
       router.push("/");
     } catch (err) {
@@ -311,7 +302,7 @@ export default function Header({ onToggleSidebar }) {
             <button
               suppressHydrationWarning
               data-skip-save-prompt="true"
-              onClick={() => setOpen((prev) => !prev)}
+              onClick={() => setUserMenuOpen((prev) => !prev)}
               className={`block w-9 h-9 rounded-full border-2 overflow-hidden transition-all ${
                 isPremium ? "border-amber-400" : "border-transparent"
               }`}
@@ -331,7 +322,7 @@ export default function Header({ onToggleSidebar }) {
             )}
           </div>
 
-          {mounted && open && (
+          {mounted && userMenuOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-white border border-[#e5e7eb] rounded-xl shadow-xl py-2 animate-in fade-in zoom-in-95 duration-100">
               <div className="relative mx-auto w-16 h-16">
                 <div
@@ -360,14 +351,14 @@ export default function Header({ onToggleSidebar }) {
               <div className="border-t border-[#e5e7eb] my-1" />
               <Link
                 href="#"
-                onClick={() => setOpen(false)}
+                onClick={() => setUserMenuOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
               >
                 <HelpCircle size={16} /> Help
               </Link>
               <Link
                 href="/chat"
-                onClick={() => setOpen(false)}
+                onClick={() => setUserMenuOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
               >
                 <MessageCircle size={16} /> Messages
