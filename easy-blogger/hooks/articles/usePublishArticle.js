@@ -68,6 +68,14 @@ export function usePublishArticle(articleId) {
   const [liUsername, setLiUsername] = useState("");
   const [liCheckDone, setLiCheckDone] = useState(false);
 
+  // LinkedIn word count logic
+  const linkedinWordCount = useMemo(() => {
+    if (!linkedinCaption) return 0;
+    return linkedinCaption.trim().split(/\s+/).filter(Boolean).length;
+  }, [linkedinCaption]);
+
+  const isLiCaptionOverLimit = linkedinWordCount >= 200;
+
   // Helpers
   const isPastDateTime = () => {
     if (!scheduledDate || !scheduledTime) return false;
@@ -303,6 +311,12 @@ export function usePublishArticle(articleId) {
     try {
       setPublishError("");
       setWpPublishError("");
+
+      if (shareLinkedIn && isLiCaptionOverLimit) {
+        setPublishError("LinkedIn caption must be less than 200 words.");
+        return;
+      }
+
       setIsSubmitting(true);
 
       const payload = {
@@ -357,6 +371,8 @@ export function usePublishArticle(articleId) {
       liConnected,
       liUsername,
       liCheckDone,
+      linkedinWordCount,
+      isLiCaptionOverLimit,
       MAX_TAGS,
     },
     actions: {
