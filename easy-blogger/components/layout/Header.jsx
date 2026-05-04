@@ -138,8 +138,9 @@ export default function Header({ onToggleSidebar }) {
     }
   };
 
+  //membership link store
   const membership = isPremium
-    ? { label: "Manage Membership", href: "#" }
+    ? { label: "Manage Membership", href: "/subscription/upgrade" }
     : { label: "Become a Member", href: "/subscription/upgrade" };
 
   const handleSignOut = async () => {

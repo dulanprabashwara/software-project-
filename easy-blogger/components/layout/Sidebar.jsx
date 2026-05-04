@@ -62,7 +62,7 @@ export default function Sidebar({ isOpen }) {
     { label: "Following", href: "/profile?modal=following", icon: Users },
     {
       label: "Membership",
-      href: isPremium ? "#" : "/subscription/upgrade",
+      href: "/subscription/upgrade",
       icon: CreditCard,
       onClick: handleMembershipClick,
     },
