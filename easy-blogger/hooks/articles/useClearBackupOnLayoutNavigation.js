@@ -1,19 +1,24 @@
 import { useCallback, useEffect, useRef } from "react";
 import { clearEditExistingBackup } from "../../lib/articles/api";
+import { clearPreviewContext } from "../../lib/articles/previewContext";
 
 export function useClearBackupOnLayoutNavigation({ mode, articleId }) {
   const isReplayingNavigationRef = useRef(false);
   const isEditExistingFlow = mode === "edit-existing";
 
   const clearBackupBeforeLeaving = useCallback(async () => {
+    // 1. Always clear the temporary frontend preview context
+    clearPreviewContext();
+
+    // 2. Only clear the server-side edit-existing backup if applicable
     if (!isEditExistingFlow || !articleId) return;
 
     await clearEditExistingBackup(articleId);
   }, [articleId, isEditExistingFlow]);
 
   useEffect(() => {
-    if (!isEditExistingFlow || !articleId) return;
-
+    // We attach the listener regardless of mode to ensure previewContext is always
+    // cleared when leaving the editor/preview workflow via layout navigation.
     const handleDocumentClickCapture = (event) => {
       if (isReplayingNavigationRef.current) return;
 
@@ -41,7 +46,7 @@ export function useClearBackupOnLayoutNavigation({ mode, articleId }) {
 
       void clearBackupBeforeLeaving()
         .catch((error) => {
-          console.error("Failed to clear edit-existing backup:", error);
+          console.error("Failed to clear editor session data:", error);
         })
         .finally(replayNavigation);
     };
@@ -51,7 +56,7 @@ export function useClearBackupOnLayoutNavigation({ mode, articleId }) {
     return () => {
       document.removeEventListener("click", handleDocumentClickCapture, true);
     };
-  }, [articleId, clearBackupBeforeLeaving, isEditExistingFlow]);
+  }, [clearBackupBeforeLeaving]);
 
   return { isEditExistingFlow, clearBackupBeforeLeaving };
 }
