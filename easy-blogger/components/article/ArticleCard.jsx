@@ -79,7 +79,7 @@ const { user, profileLoading } = useAuth();
     : "Date unknown";
 
   const scheduledDate = rawScheduledDate
-    ? new Date(rawScheduledDate).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })
+    ? new Date(raw).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })
     : "Scheduled date unknown";
 
 
@@ -211,7 +211,7 @@ const { user, profileLoading } = useAuth();
             </div>
             
             <div className="line-clamp-3 h-18 text-gray-500 text-[16px] leading-6"
-                 dangerouslySetInnerHTML={{ __html: article.content || "<p>No content available.</p>" }}
+                 dangerouslySetInnerHTML={{ __html: article.summary || "<p>No content available.</p>" }}
             />
           </div>
 

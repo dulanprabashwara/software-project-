@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import PublishedArticleCard from "../../../../components/article/PublishedArticleCard";
+import ArticleCard from "../../../../components/article/ArticleCard";
 import { getMyPublishedArticles } from "../../../../lib/articles/api";
 import { useSavedList } from "../../../../hooks/useSavedArticles";
 
@@ -28,8 +28,8 @@ export default function Published() {
   }, []);
 
   return (
-    <section className="px-8 min-w-0">
-      <div className="max-w-3xl w-full">
+    <section className="px-8 min-w-0 w-full">
+      <div className="w-full">
         {isLoading ? (
           <p className="text-sm text-gray-500">Loading published articles...</p>
         ) : articles.length === 0 ? (
@@ -38,7 +38,7 @@ export default function Published() {
           </p>
         ) : (
           articles.map((article) => (
-            <PublishedArticleCard key={article.id} 
+            <ArticleCard key={article.id} 
             article={article}
             savedArticles={savedList}
             />
