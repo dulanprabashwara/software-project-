@@ -50,11 +50,7 @@ export default function Layout({ children }) {
 
       {/* Right */}
       <aside className="hidden lg:block w-80 overflow-y-auto ml-auto">
-        <RightFeed
-          trending={DATA.trending}
-          topics={DATA.topics}
-          usersToFollow={DATA.usersToFollow}
-        />
+        <RightFeed/>
       </aside>
 
     </div>

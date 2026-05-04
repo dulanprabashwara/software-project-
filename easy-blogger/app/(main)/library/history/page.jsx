@@ -30,9 +30,8 @@ export default function History() {
 
   return (
     <section className="px-8 min-w-0">
-      <div className="max-w-3xl w-full">
-        <h1 className="text-2xl font-black font-serif mb-6 mt-6">Reading History</h1>
-        {readHistory.map((item) => (
+      <div className=" w-full">
+         {readHistory.map((item) => (
           <ArticleCard 
             key={item.id} 
              article={item.article} 

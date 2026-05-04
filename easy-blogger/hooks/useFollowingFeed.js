@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../app/context/AuthContext";
-import { getMainFeedApi } from "../app/api/homefeed.api";
+import { getFollowingFeedApi } from "../app/api/followingFeed.api";
 
 // Cache an object now: { articles: [...], page: 3, hasMore: true }
-  const articleCache = {};
+const articleCache = {};
 
-export function useMainArticles() {
+export function useFollowingArticles() {
   const { user, profileLoading } = useAuth();
   
   const [articles, setArticles] = useState([]);
@@ -13,7 +13,7 @@ export function useMainArticles() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const articleLimit =5;
+  const articleLimit = 5;
 
   // 1. Initial Load
   useEffect(() => {
@@ -30,12 +30,12 @@ export function useMainArticles() {
       return;
     }
 
-    //fetch the forst set of articles
+    //fetch the first set of articles
     const fetchInitialData = async () => {
       setIsLoading(true);
       try {
         const token = user ? await user.getIdToken() : null;
-        const initialBatch = await getMainFeedApi(1, token);
+        const initialBatch = await getFollowingFeedApi(1, token);
 
         const isMore = initialBatch.length === articleLimit;
         
@@ -55,14 +55,14 @@ export function useMainArticles() {
     fetchInitialData();
   }, [user, profileLoading]); 
 
-  // 2. Load More (Triggered by Scrolling)
+  // 2. Load More (Triggered by Scroll)
   const loadMore = useCallback(async () => {
     if (isFetchingMore || !hasMore || isLoading) return;
 
     setIsFetchingMore(true);
     try {
       const token = user ? await user.getIdToken() : null;
-      const nextBatch = await getMainFeedApi(page, token);
+      const nextBatch = await getFollowingFeedApi(page, token);
 
       if (nextBatch.length === 0) {
         setHasMore(false);
@@ -73,7 +73,7 @@ export function useMainArticles() {
         setArticles((prev) => {
           const combined = [...prev, ...nextBatch];
           
-          // Update cache with the new list
+          // Update cache with the new massive list
           const cacheKey = user ? user.uid : "guest";
           articleCache[cacheKey] = { articles: combined, page: page + 1, hasMore: nextBatch.length === articleLimit };
           
@@ -86,7 +86,7 @@ export function useMainArticles() {
     } finally {
       setIsFetchingMore(false);
     }
-  },[page, isFetchingMore, hasMore, isLoading, user]);
+  }, [page, isFetchingMore, hasMore, isLoading, user]);
 
-  return { articles, isLoading, isFetchingMore, hasMore,  loadMore };
+  return { articles, isLoading, isFetchingMore, hasMore, loadMore };
 }

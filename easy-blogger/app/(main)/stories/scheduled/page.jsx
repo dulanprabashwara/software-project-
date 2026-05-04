@@ -25,7 +25,7 @@ export default function Scheduled() {
 
   return (
     <section className="px-8 min-w-0">
-      <div className="max-w-3xl w-full">
+      <div className="w-full">
         {isLoading ? (
           <p className="text-sm text-gray-500">Loading scheduled articles...</p>
         ) : articles.length === 0 ? (
@@ -34,7 +34,9 @@ export default function Scheduled() {
           </p>
         ) : (
           articles.map((article) => (
-            <ArticleCard key={article.id} article={article} />
+            <ArticleCard 
+            key={article.id} 
+            article={article} />
           ))
         )}
       </div>
