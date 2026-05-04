@@ -29,7 +29,7 @@ export default function MainFeed() {
       loadMore={loadMore} 
       hasMore={hasMore} 
       isFetchingMore={isFetchingMore}
-      endMessage="You've reached the end of your feed."
+      endMessage="You've reached the end of New Article Feed."
     >
       <div className="space-y-4 pb-10">
         {articles.map((article) => (

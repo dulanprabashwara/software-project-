@@ -3,7 +3,7 @@ import { useAuth } from "../app/context/AuthContext";
 import { getMainFeedApi } from "../app/api/homefeed.api";
 
 // Cache an object now: { articles: [...], page: 3, hasMore: true }
-const articleCache = {};
+  const articleCache = {};
 
 export function useMainArticles() {
   const { user, profileLoading } = useAuth();
@@ -55,7 +55,7 @@ export function useMainArticles() {
     fetchInitialData();
   }, [user, profileLoading]); 
 
-  // 2. Load More (Triggered by Scroll)
+  // 2. Load More (Triggered by Scrolling)
   const loadMore = useCallback(async () => {
     if (isFetchingMore || !hasMore || isLoading) return;
 
@@ -73,7 +73,7 @@ export function useMainArticles() {
         setArticles((prev) => {
           const combined = [...prev, ...nextBatch];
           
-          // Update cache with the new massive list
+          // Update cache with the new list
           const cacheKey = user ? user.uid : "guest";
           articleCache[cacheKey] = { articles: combined, page: page + 1, hasMore: nextBatch.length === articleLimit };
           
@@ -86,7 +86,7 @@ export function useMainArticles() {
     } finally {
       setIsFetchingMore(false);
     }
-  }, [page, isFetchingMore, hasMore, isLoading, user]);
+  },[page, isFetchingMore, hasMore, isLoading, user]);
 
-  return { articles, isLoading, isFetchingMore, hasMore, loadMore };
+  return { articles, isLoading, isFetchingMore, hasMore,  loadMore };
 }

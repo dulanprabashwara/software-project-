@@ -143,6 +143,7 @@ export default function Header({ onToggleSidebar }) {
     ? { label: "Manage Membership", href: "/subscription/upgrade" }
     : { label: "Become a Member", href: "/subscription/upgrade" };
 
+  //handle signnig out
   const handleSignOut = async () => {
     try {
       setUserMenuOpen(false);
@@ -292,9 +293,7 @@ export default function Header({ onToggleSidebar }) {
           <span className="hidden sm:inline">Write</span>
         </Link>
 
-        {/* Replaced the manual button wrapper with the NotificationPanel component.
-          It handles its own Bell icon and dropdown logic! 
-        */}
+        {/* Place Notificatin panel*/}
         <NotificationPanel userId={user?.uid || user?.id} />
 
         {/* Avatar + Dropdown */}

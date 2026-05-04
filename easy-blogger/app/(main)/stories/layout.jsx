@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import RightFeed from "../../../components/article/RightFeed";
-import { DATA } from "../../../components/article/ArticleList";
-
+ 
 export default function Layout({ children }) {
   const pathname = usePathname();
 
@@ -50,11 +49,7 @@ export default function Layout({ children }) {
 
       {/* Right */}
       <aside className="hidden lg:block w-80 overflow-y-auto ml-auto">
-        <RightFeed
-          trending={DATA.trending}
-          topics={DATA.topics}
-          usersToFollow={DATA.usersToFollow}
-        />
+        <RightFeed/>
       </aside>
 
     </div>
