@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useNotifications } from "../../hooks/useNotifications";
-import { Bell, Check, Circle, Loader2, Info, EyeOff, Eye } from "lucide-react";
+import { Bell, Circle, Loader2, Info, EyeOff, Eye } from "lucide-react";
 import Link from "next/link";
 
 function timeAgo(dateString: string) {
