@@ -18,7 +18,7 @@ export default function Saved() {
 
   return (
     <section className="px-8 min-w-0">
-      <div className="max-w-3xl w-full">
+      <div className= "w-full">
         {interactedArticles.map((article) => (
           <ArticleCard 
             key={article.id} 

@@ -60,31 +60,7 @@ export default function RightFeed() {
         </div>
       </div>
 
-      {/* Who to Follow Section */}
-      <div>
-        <h3 className="font-bold mb-4 font-serif">Who to follow</h3>
-        {DATA.usersToFollow.map((user, i) => (
-          <div key={i} className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <img
-                src={user.avatar}
-                className="w-8 h-8 rounded-full object-cover shrink-0"
-                alt=""
-              />
-              <div className="truncate">
-                <p className="text-sm font-bold truncate">{user.name}</p>
-                <p className="text-xs text-gray-500 truncate">{user.bio}</p>
-              </div>
-            </div>
-            <button
-              onClick={(e) => e.stopPropagation()} 
-              className="text-xs border border-teal-500 text-teal-500 px-3 py-1 rounded-full hover:bg-teal-500 hover:text-white transition-colors"
-            >
-              Follow
-            </button>
-          </div>
-        ))}
-      </div>
+      
     </aside>
   );
 }

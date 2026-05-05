@@ -1,7 +1,8 @@
-
+//get the homefeed articles (new feed)
 export const getMainFeedApi = async (page = 1, token = null) => { 
   const headers = {};
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (token) 
+    {headers["Authorization"] = `Bearer ${token}`;}
 
   
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homefeed/main?page=${page}`, { headers });

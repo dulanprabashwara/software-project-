@@ -61,6 +61,7 @@ export function useArticleEditorWorkflow(mode) {
     getEditorPlainTextContent,
     hasAnyContent,
     isContentLimitReached,
+    isTitleLimitReached,
     contentLimitError,
     isSavingRef,
     isClientReady,
@@ -276,6 +277,7 @@ export function useArticleEditorWorkflow(mode) {
       plainTextContent,
       contentLimitError,
       isContentLimitReached,
+      isTitleLimitReached,
     });
 
     if (validationError) {
@@ -356,6 +358,7 @@ export function useArticleEditorWorkflow(mode) {
       plainTextContent,
       contentLimitError,
       isContentLimitReached,
+      isTitleLimitReached,
     });
 
     if (validationError) {

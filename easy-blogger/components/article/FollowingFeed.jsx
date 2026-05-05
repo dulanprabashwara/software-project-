@@ -1,13 +1,13 @@
 "use client";
 
-import { useMainArticles } from "../../hooks/useMainArticles";
+import { useFollowingArticles } from "../../hooks/useFollowingFeed";
 import { useSavedArticles } from "../../hooks/useSavedArticles";
 import ArticleCard from "./ArticleCard";
 import InfiniteScroll from "../ui/InfiniteScroll"; // Adjust path as needed
 import { Loader2 } from "lucide-react";
 
-export default function MainFeed() {
-  const { articles, isLoading, isFetchingMore, hasMore, loadMore } = useMainArticles();
+export default function NewFeed() {
+  const { articles, isLoading, isFetchingMore, hasMore, loadMore } = useFollowingArticles();
   const { savedArticles } = useSavedArticles();
 
   // Initial full-page loading state
@@ -29,7 +29,7 @@ export default function MainFeed() {
       loadMore={loadMore} 
       hasMore={hasMore} 
       isFetchingMore={isFetchingMore}
-      endMessage="You've reached the end of New Article Feed."
+      endMessage="You've reached the end of your feed."
     >
       <div className="space-y-4 pb-10">
         {articles.map((article) => (

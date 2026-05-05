@@ -380,22 +380,36 @@ export function SocialSharingSection({
   );
 }
 
-export function LinkedInCaptionSection({ shareLinkedIn, linkedinCaption, setLinkedinCaption }) {
+export function LinkedInCaptionSection({
+  shareLinkedIn,
+  linkedinCaption,
+  setLinkedinCaption,
+  linkedinWordCount,
+  isLiCaptionOverLimit
+}) {
   return (
     <Section title="LinkedIn Caption (Optional)">
       <div className="space-y-3">
         {shareLinkedIn ? (
           <>
-            <input
-              type="text"
+            <textarea
               value={linkedinCaption}
               onChange={(e) => setLinkedinCaption(e.target.value)}
-              placeholder="Write a caption for LinkedIn..."
-              className="h-11 w-full rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
+              placeholder="Write a multi-line caption for your LinkedIn post..."
+              rows={4}
+              className={`w-full rounded-md border p-4 text-sm outline-none transition-all focus:ring-2 ${isLiCaptionOverLimit
+                ? "border-red-300 bg-red-50 focus:ring-red-200"
+                : "border-gray-200 focus:ring-emerald-200"
+                }`}
             />
-            <div className="flex items-center gap-6 text-sm">
-              <button type="button" className="text-gray-600 hover:text-gray-900">Change account</button>
-              <button type="button" className="text-red-500 hover:text-red-600">Disconnect</button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-6 text-sm">
+                <button type="button" className="text-gray-600 hover:text-gray-900">Change account</button>
+                <button type="button" className="text-red-500 hover:text-red-600">Disconnect</button>
+              </div>
+              <p className={`text-xs ${isLiCaptionOverLimit ? "font-semibold text-red-500" : "text-gray-400"}`}>
+                {linkedinWordCount} / 200 words
+              </p>
             </div>
           </>
         ) : (
