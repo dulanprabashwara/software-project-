@@ -41,7 +41,7 @@ body {
   overflow: hidden;
 }
 
-/* Custom animations */
+/* Starts an element completely transparent (opacity: 0) and pushed down 20 pixels and smoothly transitions it to full visibility (opacity: 1) at its normal position. */
 @keyframes fade-in-up {
   0% {
     opacity: 0;
@@ -52,7 +52,7 @@ body {
     transform: translateY(0);
   }
 }
-
+/* Smoothly moves an element up and down by 10 pixels */
 @keyframes float {
   0%,
   100% {
@@ -63,6 +63,7 @@ body {
   }
 }
 
+/* creates a smooth, continuous "floating" or "bobbing" motion, but with a slightly different rhythm */
 @keyframes float-delayed {
   0%,
   100% {
@@ -72,7 +73,7 @@ body {
     transform: translateY(-8px);
   }
 }
-
+/* Continuously rotates the circle 360 degrees over 20 seconds. */
 @keyframes spin-slow {
   from {
     transform: rotate(0deg);
@@ -136,12 +137,11 @@ button:hover {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
-
 /* See More Button Style */
 .see-more-btn {
   padding: 1rem 3.5rem;
   border-radius: 9999px;
-  background-color: #D1D5DB;
+  background-color: #d1d5db;
   color: #111827;
   font-size: 1.125rem;
   font-weight: 500;
@@ -153,11 +153,10 @@ button:hover {
 }
 
 .see-more-btn:hover {
-  background-color: #C7CDD3;
+  background-color: #c7cdd3;
   transform: translateY(-4px);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
-
 
 /* app/globals.css */
 
@@ -231,7 +230,8 @@ button:hover {
   border: 1px solid #e5e7eb !important;
 }
 
-.prose td, .prose th {
+.prose td,
+.prose th {
   border: 1px solid #e5e7eb !important;
   padding: 0.75rem !important;
 }
