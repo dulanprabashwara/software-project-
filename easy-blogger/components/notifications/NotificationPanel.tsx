@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useNotifications } from "../../hooks/useNotifications";
 import { Bell, Circle, Loader2, Info, EyeOff, Eye } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "../../app/context/AuthContext";
 
 function timeAgo(dateString: string) {
   const date = new Date(dateString);
@@ -16,6 +17,7 @@ function timeAgo(dateString: string) {
   if (hours < 24) return `${hours}h ago`;
   return date.toLocaleDateString();
 }
+const { user } = useAuth(); // get user + logout from backend/auth
 
 function getNotificationDetails(notification: any) {
   const actorName =
