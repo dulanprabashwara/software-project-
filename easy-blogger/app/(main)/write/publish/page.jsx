@@ -128,6 +128,8 @@ export default function PublishArticlePage() {
           shareLinkedIn={state.shareLinkedIn}
           linkedinCaption={state.linkedinCaption}
           setLinkedinCaption={actions.setLinkedinCaption}
+          linkedinWordCount={state.linkedinWordCount}
+          isLiCaptionOverLimit={state.isLiCaptionOverLimit}
         />
 
         <div className="flex justify-center">

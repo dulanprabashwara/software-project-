@@ -7,7 +7,10 @@ import {
   getPlainTextFromHtml,
   normalizeEditorPlainText,
 } from "../../lib/articles/editorHelpers";
-import { isContentAtLimit } from "../../lib/articles/articleEditorValidation";
+import {
+  isContentAtLimit,
+  isTitleAtLimit,
+} from "../../lib/articles/articleEditorValidation";
 
 /*
  useArticleEditorController
@@ -114,9 +117,10 @@ export function useArticleEditorController({ initialFontSize = 16 } = {}) {
   );
 
   const isContentLimitReached = isContentAtLimit(editorTextLength);
+  const isTitleLimitReached = isTitleAtLimit(title.length);
   const hasRequiredContent = Boolean(title.trim() && editorTextLength > 0);
   const hasValidContent =
-    hasRequiredContent && !contentLimitError && !isContentLimitReached;
+    hasRequiredContent && !contentLimitError && !isContentLimitReached && !isTitleLimitReached;
 
   return {
     editorRef,
@@ -167,6 +171,7 @@ export function useArticleEditorController({ initialFontSize = 16 } = {}) {
     hasAnyContent,
     hasValidContent,
     isContentLimitReached,
+    isTitleLimitReached,
 
     resetEditorCoreState,
   };
