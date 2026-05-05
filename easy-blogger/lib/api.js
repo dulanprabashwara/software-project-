@@ -181,4 +181,7 @@ export const api = {
 
   getDefaultKeywords: (token) =>
     fetchAPI(`/api/admin/scraping/default-keywords`, { token }),
+
+  getAdminMetrics: (token) => 
+    fetchAPI(`/api/admin/metrics`, { token }),
 };
