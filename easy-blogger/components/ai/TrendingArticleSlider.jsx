@@ -14,6 +14,14 @@ function formatPublishDate(isoString) {
   });
 }
 
+// Truncates plain text at the last word boundary before maxChars.
+function truncateAtWordBoundary(text, maxChars = 200) {
+  if (!text || text.length <= maxChars) return text;
+  const cut = text.slice(0, maxChars);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut) + "...";
+}
+
 // Rotating slider that displays one trending article at a time.
 export default function TrendingArticleSlider({ articles = [], savedArticles = [] }) {
   const router = useRouter();
@@ -178,9 +186,16 @@ export default function TrendingArticleSlider({ articles = [], savedArticles = [
               {article.title}
             </h3>
 
-            {article.summary && (
-              <p className="article-description line-clamp-3">{article.summary}</p>
-            )}
+            {article.summary ? (
+              <p className="article-description line-clamp-3">
+                {truncateAtWordBoundary(article.summary)}
+              </p>
+            ) : article.content ? (
+              <div
+                className="article-description line-clamp-3"
+                dangerouslySetInnerHTML={{ __html: article.content }}
+              />
+            ) : null}
           </div>
 
           <div className="slider-right-content">
