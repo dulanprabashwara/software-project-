@@ -20,6 +20,14 @@ function formatDate(dateStr) {
   }
 }
 
+// Truncates plain text at the last word boundary before maxChars.
+function truncateAtWordBoundary(text, maxChars = 200) {
+  if (!text || text.length <= maxChars) return text;
+  const cut = text.slice(0, maxChars);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut) + "...";
+}
+
 export default function SearchArticleCard({ article, savedArticles = [] }) {
   const router = useRouter();
   const { user, profileLoading } = useAuth();
@@ -62,7 +70,9 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
       })
     : "Scheduled date unknown";
 
-  const previewText = summary || (content ? content.replace(/<[^>]+>/g, "").slice(0, 200) : "");
+  // Summary truncated at a JS word boundary to avoid mid-word CSS cuts.
+  // Falls back to raw HTML content (line-clamp handles visual truncation).
+  const summaryText = summary ? truncateAtWordBoundary(summary) : null;
 
   // ── Bookmark state ────────────────────────────────────────────────────────
 
@@ -208,10 +218,16 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
                 {title || "Untitled Article"}
               </h2>
             </div>
-            <div
-              className="line-clamp-3 h-18 text-gray-500 text-[16px] leading-6"
-              dangerouslySetInnerHTML={{ __html: previewText || "<p>No content available.</p>" }}
-            />
+            {summaryText ? (
+              <p className="line-clamp-3 h-18 text-gray-500 text-[16px] leading-6">
+                {summaryText}
+              </p>
+            ) : (
+              <div
+                className="line-clamp-3 h-18 text-gray-500 text-[16px] leading-6"
+                dangerouslySetInnerHTML={{ __html: content || "<p>No content available.</p>" }}
+              />
+            )}
           </div>
 
           {coverImage && (
