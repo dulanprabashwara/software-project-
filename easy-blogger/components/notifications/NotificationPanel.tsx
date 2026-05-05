@@ -17,7 +17,6 @@ function timeAgo(dateString: string) {
   if (hours < 24) return `${hours}h ago`;
   return date.toLocaleDateString();
 }
-const { user } = useAuth(); // get user + logout from backend/auth
 
 function getNotificationDetails(notification: any) {
   const actorName =
