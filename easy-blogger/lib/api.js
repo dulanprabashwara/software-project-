@@ -31,7 +31,10 @@ export async function fetchAPI(endpoint, options = {}) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || `API error: ${response.statusText}`);
+      const error = new Error(data.message || `API error: ${response.statusText}`);
+      error.status = response.status;
+      error.data = data;
+      throw error;
     }
 
     return data;
@@ -143,6 +146,12 @@ export const api = {
       token,
     }),
 
+  unbanUser: (userId, token) => 
+    fetchAPI(`/api/admin/users/${userId}/ban`, { 
+      method: 'DELETE', 
+      token 
+  }),
+
   // ─── Payment / Subscription ───────────────
   getActiveOffers: () => fetchAPI("/api/payments/offers"),
 
@@ -175,9 +184,6 @@ export const api = {
       body: JSON.stringify({ role }),
       token,
     }),
-
-  togglePremiumStatus: (userId, token) =>
-    fetchAPI(`/api/admin/users/${userId}/premium`, { method: "PUT", token }),
 
   getDefaultKeywords: (token) =>
     fetchAPI(`/api/admin/scraping/default-keywords`, { token }),
