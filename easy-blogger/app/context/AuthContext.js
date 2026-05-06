@@ -13,54 +13,32 @@ import { auth } from "../../lib/firebase";
 import { api } from "../../lib/api";
 
 const AuthContext = createContext(null);
-
-/**
- * @function useAuth
- * @description
- * Custom hook to safely consume the Authentication Context.
- * @returns {Object} Context values including user state, loading properties, and modifier functions.
- */
 export function useAuth() {
   return useContext(AuthContext);
 }
 
 /**
- * @component AuthProvider
- * @description
- * The root Context Provider for Authentication.
- * WHY: This component manages the absolute source of truth for a user's session.
- * It bridges the gap between Firebase Auth (which handles raw JWT identity) and our
- * Postgres database (which handles business-logic roles like ADMIN and isPremium).
- * It listens to Firebase state changes and conditionally fetches the Postgres profile to
- * ensure the UI never leaks protected routes or displays incorrect states.
- *
- * @param {Object} props - React props.
- * @param {React.ReactNode} props.children - Child components requiring auth state.
- * @returns {JSX.Element} The Provider wrapping the application.
+  provide the user's firebase auth and profile data to other components in the application
+  listens to Firebase state changes and conditionally fetches the Postgres profile
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  // loading = true only until Firebase confirms auth state (fast, ~50ms from cache).
-  // userProfile fills in separately after the backend syncUser call completes.
+  // loading = true only until Firebase confirms auth state
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [bannedReason, setBannedReason] = useState(null);
 
   /**
-   * Optimistically updates the local profile state without requiring a full network refetch.
+   updates the profile without requiring a full network refetch.
    */
   const updateProfile = useCallback((data) => {
     setUserProfile((prev) => (prev ? { ...prev, ...data } : prev));
   }, []);
 
   /**
-   * @function refreshProfile
-   * @description
-   * Forcibly re-fetches the user's Postgres profile using their current Firebase token.
-   * WHY: Useful after a user performs an action that alters their database role (e.g., purchasing Premium)
-   * so the UI instantly updates to reflect their new permissions without requiring a hard refresh.
-   * @returns {Promise<Object|null>} The refreshed profile data.
+ re-fetches the user's Postgres profile using their current Firebase token.
    */
   const refreshProfile = useCallback(async () => {
     const currentUser = auth.currentUser;
@@ -82,12 +60,8 @@ export function AuthProvider({ children }) {
   const hasSynced = useRef(false);
 
   /**
-   * @function useEffect(onAuthStateChanged)
-   * @description
-   * Subscribes to Firebase's persistent authorization state.
-   * WHY: This prevents infinite loops and race conditions. When Firebase detects a valid session,
-   * we capture the `getIdToken()` and pass it to the backend `/sync` endpoint to fetch the matching
-   * Postgres data. The `hasSynced` ref prevents spamming the API on hot-reloads.
+    When Firebase auth state changes 
+  capture the `getIdToken()` and pass it to the backend `/sync` endpoint to fetch the matching Postgres data. .
    */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -103,17 +77,16 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      // Firebase confirmed the user — unlock the UI immediately.
+      // Firebase confirmed the user — unlock the UI immediately
       setLoading(false);
 
-      // If we already synced this session, skip backend call to avoid rate limits.
-      // hasSynced is a ref — always up-to-date inside closures, no stale value issue.
+      // If we already synced this session skip backend call to avoid rate limits.
       if (hasSynced.current) {
         setProfileLoading(false);
         return;
       }
 
-      // First time login: sync with backend to get role and full profile.
+      // First time login or sign up: sync with backend to get role and full profile.
       setProfileLoading(true);
       try {
         const token = await firebaseUser.getIdToken();
@@ -132,8 +105,22 @@ export function AuthProvider({ children }) {
           hasSynced.current = true;
         }
       } catch (error) {
+        //Check if this is a ban error (403). If so sign the user out of Firebase
+        const statusCode = error?.response?.status || error?.status;
+        const message = error?.response?.data?.message || error?.message || "";
+        if (statusCode === 403 || message.toLowerCase().includes("suspend")) {
+          setBannedReason(
+            message ||
+              "Your account has been suspended. Please contact support.",
+          );
+          await signOut(auth);
+          setLoading(false);
+          setProfileLoading(false);
+          return;
+        }
+
         console.error("Failed to sync user with backend database:", error);
-        // Fallback 1: try fetching the existing profile via getMe
+        // try fetching the existing profile via getMe when sync fails
         try {
           const token = await firebaseUser.getIdToken();
           const res = await api.getMe(token);
@@ -146,7 +133,7 @@ export function AuthProvider({ children }) {
         } catch (getmeError) {
           console.error("getMe fallback also failed:", getmeError);
         }
-        // Fallback 2: build a minimal profile from Firebase so the UI is never stuck
+        // build a minimal profile from Firebase so the UI is never stuck
         setUserProfile({
           id: null,
           email: firebaseUser.email,
@@ -173,6 +160,11 @@ export function AuthProvider({ children }) {
     await signOut(auth);
   };
 
+  /**
+  Resets the bannedReason state so the popup can be dismissed.
+   */
+  const clearBan = useCallback(() => setBannedReason(null), []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -181,6 +173,8 @@ export function AuthProvider({ children }) {
         isAdmin,
         loading,
         profileLoading,
+        bannedReason,
+        clearBan,
         logout,
         updateProfile,
         refreshProfile,
