@@ -7,10 +7,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 
 /**
- * @component ForgotPasswordPage
- * @description
- * Interface for users to initiate a password reset flow securely via Firebase Auth.
- * @returns {JSX.Element} The password reset request form.
+ Interface for users to initiate a password reset flow securely via Firebase Auth.
  */
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -20,11 +17,8 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState("");
 
   /**
-   * @function handleSubmit
-   * @description
    * Triggers the Firebase password reset email.
-   * WHY: We route the user immediately to the `/verify-email` page to provide structural 
-   * continuity, passing the `email` as a URL query parameter so they don't have to re-enter it.
+    We route the user immediately to the `/verify-email` page to provide structural continuity, passing the `email` as a URL query parameter so they don't have to re-enter it.
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +31,9 @@ export default function ForgotPasswordPage() {
     try {
       await sendPasswordResetEmail(auth, email);
       // Redirect to the verify email page immediately with query params
-      router.push(`/verify-email?email=${encodeURIComponent(email)}&type=reset`);
+      router.push(
+        `/verify-email?email=${encodeURIComponent(email)}&type=reset`,
+      );
     } catch (err) {
       console.error("Error sending password reset email", err);
       setError(

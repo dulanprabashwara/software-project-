@@ -14,17 +14,15 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import React, { useState } from "react";
-import { GoogleIcon, FacebookIcon, EmailIcon } from "../../../components/ui/Icons";
-
+import {
+  GoogleIcon,
+  FacebookIcon,
+  EmailIcon,
+} from "../../../components/ui/Icons";
 
 /**
- * @component LoginPage
- * @description
  * Primary authentication interface allowing existing users to enter the platform.
- * WHY: Provides aggregated authentication methods (Email, Google, Facebook) bridging
- * into a single unified session tracked by `AuthContext`.
- *
- * @returns {JSX.Element} Login user interface.
+ Provides aggregated authentication methods (Email, Google, Facebook) bridging into a single unified session tracked by `AuthContext`.
  */
 export default function LoginPage() {
   const router = useRouter();
@@ -74,8 +72,7 @@ export default function LoginPage() {
   };
 
   /**
-   * @function handleFacebookLogin
-   * @description Initiates the Firebase Facebook OAuth popup flow.
+  Initiates the Firebase Facebook OAuth popup flow.
    */
   const handleFacebookLogin = async () => {
     setIsAuthenticating(true);
@@ -97,8 +94,7 @@ export default function LoginPage() {
   };
 
   /**
-   * @function handleEmailLogin
-   * @description Standard email/password authentication handler.
+    Standard email/password authentication handler.
    */
   const handleEmailLogin = async (e) => {
     e.preventDefault();
