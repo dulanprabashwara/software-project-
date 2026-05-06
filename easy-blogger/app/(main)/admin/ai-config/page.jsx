@@ -210,12 +210,24 @@ const handleSaveSource = async () => {
   const handleToggleStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     
+    const sourceToUpdate = sources.find(s => s.id === id);
+
     // Optimistic UI update so it feels instant
     setSources(sources.map(s => s.id === id ? { ...s, status: newStatus } : s));
     
     try {
       const user = auth.currentUser;
       const token = await user.getIdToken();
+
+      const payload = {
+        name: sourceToUpdate.name,
+        url: sourceToUpdate.url,
+        category: sourceToUpdate.category,
+        scrapeWindow: sourceToUpdate.scrapeWindow,
+        minWordCount: parseInt(sourceToUpdate.minWordCount),
+        excludedKeywords: sourceToUpdate.excludedKeywords, 
+        status: newStatus
+      };
       
       await api.updateScrapingSource(id, { status: newStatus }, token);
     } catch (error) {
@@ -252,7 +264,7 @@ const handleSaveSource = async () => {
       {/* MODAL OVERLAY */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center backdrop-blur-sm">
-          <div className="bg-[#F8FDFB] w-175 rounded-3xl shadow-2xl p-10 relative">
+          <div className="bg-[#F8FDFB] w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl p-6 md:p-10 relative">
             <h2 className="text-2xl font-serif text-gray-800 mb-8">
               {modalData.id ? "Edit Scraping Source" : "Configure New Scraping Source"}
             </h2>
@@ -407,7 +419,7 @@ const handleSaveSource = async () => {
       </div>
 
       {/* BOTTOM SECTION: DATA TABLE */}
-      <div className="bg-white border border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white border border-gray-800 rounded-2xl overflow-x-auto shadow-sm">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-gray-800 text-sm font-serif text-gray-800 bg-gray-50">

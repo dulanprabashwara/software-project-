@@ -182,7 +182,6 @@ export default function OffersPage() {
                 <div className={`w-8 h-2.5 rounded-full ${offer.is_active ? 'bg-[#22C55E]' : 'bg-[#EF4444]'}`}></div>
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <p className="text-[13px] font-black text-gray-800">${offer.price}</p>
                 {offer.discount_percent > 0 && (
                   <p className="text-[11px] font-bold text-[#1ABC9C] bg-[#E6F8F3] px-2 py-0.5 rounded-md">-{offer.discount_percent}%</p>
                 )}
