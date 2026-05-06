@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MoreHorizontal, Shield, Activity, Clock, Laptop, ShieldAlert, Monitor } from "lucide-react";
 
-// 1. IMPORT YOUR HELPERS
 import { auth } from "../../../../lib/firebase"; 
 import { api } from "../../../../lib/api";
 
@@ -23,6 +22,20 @@ export default function AdminProfilePage() {
       // Depending on how api.js unwraps, data might be directly returned or inside response.data
       const userData = response.data || response; 
 
+      let actionsCount = 0;
+      let resolvedCount = 0;
+
+      try {
+        const metricsResponse = await api.getAdminMetrics(token);
+        // Extract the numbers from the backend response
+        if (metricsResponse.data?.data) {
+          actionsCount = metricsResponse.data.data.totalActions;
+          resolvedCount = metricsResponse.data.data.totalResolved;
+        }
+      } catch (metricsErr) {
+        console.error("Could not fetch metrics endpoint:", metricsErr);
+      }
+
       // Map the Prisma User object to your UI's expected format
       setAdminData({
         name: userData.displayName || userData.username || "Admin User",
@@ -30,13 +43,13 @@ export default function AdminProfilePage() {
         role: userData.role === "ADMIN" ? "Super Admin" : "User",
         bio: userData.bio || "No administrative bio provided yet.",
         avatar: userData.avatarUrl || null,
-        lastLogin: userData.lastSeen ? new Date(userData.lastSeen).toLocaleString() : "Just now",
+        lastLogin: userData.lastSeen ? new Date(userData.lastSeen).toLocaleString() : new Date().toLocaleString(),
         stats: { 
           // Pulling from Prisma's UserStats relation if it exists
           followers: userData.stats?.totalFollowers || "0", 
           following: userData.stats?.totalFollowing || "0",
-          actions: "...", // Would require an Audit Log count query
-          resolved: "..." // Would require a resolved Reports count query
+          actions: actionsCount, 
+          resolved: resolvedCount
         },
         // Fallbacks for UI elements not currently tracked in the database schema
         permissions: ["Full Content Moderation", "User Data Access", "System API Management"],

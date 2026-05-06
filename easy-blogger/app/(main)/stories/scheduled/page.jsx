@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ArticleCard from "../../../../components/article/ArticleCard";
+import PublishedArticleCard from "../../../../components/article/PublishedArticleCard";
 import { getMyScheduledArticles } from "../../../../lib/articles/api";
 
 export default function Scheduled() {
@@ -34,7 +34,7 @@ export default function Scheduled() {
           </p>
         ) : (
           articles.map((article) => (
-            <ArticleCard 
+            <PublishedArticleCard 
             key={article.id} 
             article={article} />
           ))
