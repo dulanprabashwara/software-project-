@@ -30,7 +30,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const { user, isAdmin, loading: authLoading, profileLoading } = useAuth();
+  const {
+    user,
+    isAdmin,
+    loading: authLoading,
+    profileLoading,
+    bannedReason,
+    clearBan,
+  } = useAuth();
 
   // Watch for auth changes. Wait for profileLoading to finish so isAdmin is accurate.
   React.useEffect(() => {
@@ -43,7 +50,19 @@ export default function LoginPage() {
         router.push("/home");
       }
     }
-  }, [user, isAdmin, authLoading, profileLoading, isAuthenticating, router]);
+    // If a ban was detected mid-login, reset the authenticating state so the form is re-enabled and the modal can be shown.
+    if (bannedReason) {
+      setIsAuthenticating(false);
+    }
+  }, [
+    user,
+    isAdmin,
+    authLoading,
+    profileLoading,
+    isAuthenticating,
+    bannedReason,
+    router,
+  ]);
 
   const emailInputRef = React.useRef(null);
 
@@ -94,11 +113,23 @@ export default function LoginPage() {
   };
 
   /**
-    Standard email/password authentication handler.
+   email/password authnetication handler Validates the email format and credentials client-side before calling Firebase.
    */
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Client-side email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address (e.g. name@example.com).");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
     setIsAuthenticating(true);
 
     try {
@@ -130,6 +161,55 @@ export default function LoginPage() {
         <div className="absolute left-0 top-0 w-1/3 h-full bg-linear-to-r from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
         <div className="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
       </div>
+
+      {/* Banned User Modal  */}
+      {bannedReason && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+            {/* Red accent bar at top */}
+            <div className="h-1.5 w-full bg-red-500" />
+            <div className="p-8 text-center">
+              {/* Ban icon */}
+              <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-[#111827] mb-2">
+                Account Suspended
+              </h2>
+              <p className="text-sm text-[#6B7280] leading-relaxed mb-6">
+                {bannedReason}
+              </p>
+              <p className="text-xs text-[#9CA3AF] mb-6">
+                If you believe this is a mistake, please contact{" "}
+                <a
+                  href="mailto:support@easyblogger.com"
+                  className="text-[#1ABC9C] hover:underline"
+                >
+                  support@easyblogger.com
+                </a>
+              </p>
+              <button
+                onClick={clearBan}
+                className="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="relative z-10 p-6">
         <Link
@@ -226,7 +306,7 @@ export default function LoginPage() {
 
           {/* Sign Up Link */}
           <p className="text-center text-sm text-[#6B7280] mt-6">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/signup"
               className="text-[#3B82F6] font-medium hover:text-[#2563EB] transition-colors"

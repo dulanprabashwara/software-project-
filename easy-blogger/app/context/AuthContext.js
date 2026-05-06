@@ -15,18 +15,14 @@ import { api } from "../../lib/api";
 const AuthContext = createContext(null);
 
 /**
- * @function useAuth
- * @description
  * Custom hook to safely consume the Authentication Context.
- * @returns {Object} Context values including user state, loading properties, and modifier functions.
  */
 export function useAuth() {
   return useContext(AuthContext);
 }
 
 /**
- * @component AuthProvider
- * @description
+ 
  * The root Context Provider for Authentication.
  * WHY: This component manages the absolute source of truth for a user's session.
  * It bridges the gap between Firebase Auth (which handles raw JWT identity) and our
@@ -46,6 +42,8 @@ export function AuthProvider({ children }) {
   // userProfile fills in separately after the backend syncUser call completes.
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(true);
+  // Holds the ban reason string when a banned user attempts to log in.
+  const [bannedReason, setBannedReason] = useState(null);
 
   /**
    * Optimistically updates the local profile state without requiring a full network refetch.
@@ -132,6 +130,20 @@ export function AuthProvider({ children }) {
           hasSynced.current = true;
         }
       } catch (error) {
+        //Check if this is a ban error (403). If so, sign the user out of Firebase
+        const statusCode = error?.response?.status || error?.status;
+        const message = error?.response?.data?.message || error?.message || "";
+        if (statusCode === 403 || message.toLowerCase().includes("suspend")) {
+          setBannedReason(
+            message ||
+              "Your account has been suspended. Please contact support.",
+          );
+          await signOut(auth);
+          setLoading(false);
+          setProfileLoading(false);
+          return;
+        }
+
         console.error("Failed to sync user with backend database:", error);
         // Fallback 1: try fetching the existing profile via getMe
         try {
@@ -173,6 +185,12 @@ export function AuthProvider({ children }) {
     await signOut(auth);
   };
 
+  /**
+   * @function clearBan
+   * @description Resets the bannedReason state so the popup can be dismissed.
+   */
+  const clearBan = useCallback(() => setBannedReason(null), []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -181,6 +199,8 @@ export function AuthProvider({ children }) {
         isAdmin,
         loading,
         profileLoading,
+        bannedReason,
+        clearBan,
         logout,
         updateProfile,
         refreshProfile,
