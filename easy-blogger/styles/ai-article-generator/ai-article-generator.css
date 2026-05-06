@@ -11,7 +11,6 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  /* align-self stretch ensures this fills the full height of its flex parent */
   align-self: stretch;
 }
 
@@ -234,6 +233,7 @@
   gap: 16px;
   margin-top: 8px;
   width: 100%;
+  font-weight: 470;
 }
 
 .stat-item {
@@ -270,11 +270,6 @@
   color: inherit;
 }
 
-/* Rating active state */
-.stat-rating      { color: #1ABC9C; }
-.stat-icon-rating { fill: #1ABC9C; color: #1ABC9C; }
-.stat-number-rating { color: #1ABC9C; font-weight: 500; }
-.stat-number-muted  { color: #6B7280; }
 
 /* Bookmark + MoreHorizontal — pushed to the far right of the stats row */
 .slider-actions-right {
@@ -489,13 +484,6 @@ body.loading-transition { overflow: hidden; }
 }
 
 /* ── Insights sidebar ────────────────────────────────────────────────────── */
-/*
- * KEY FIX: The sidebar must fill the full height of the page including the
- * scrollable area below the fold. Using align-self:stretch on the sidebar
- * ensures it grows with the tallest sibling (the main content area).
- * The parent flex container must NOT clip overflow so the background colour
- * extends naturally as the page grows.
- */
 
 .insights-sidebar {
   width: 321px;
@@ -503,7 +491,6 @@ body.loading-transition { overflow: hidden; }
   border-left: 1px solid #e8e8e8;
   padding: 24px;
   flex-shrink: 0;
-  /* stretch to match the tallest sibling — fixes the white gap below keywords */
   align-self: stretch;
 }
 
@@ -578,16 +565,12 @@ body.loading-transition { overflow: hidden; }
 }
 
 /* ── Trending keywords buttons — flexible wrap layout ─────────────────────── */
-/*
- * KEY FIX: Buttons must wrap and not overflow a narrow sidebar.
- * overflow:hidden prevents any rogue long keyword from breaking the layout.
- */
 
 .trending-topics-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  overflow: hidden;            /* guard against any overflowing keyword text */
+  overflow: hidden;            
 }
 
 .topic-button {

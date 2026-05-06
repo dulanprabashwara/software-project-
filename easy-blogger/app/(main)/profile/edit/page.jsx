@@ -61,6 +61,7 @@ export default function EditProfilePage() {
   // WordPress connection state
   const [wpUsername, setWpUsername] = useState("");
   const [wpSiteUrl, setWpSiteUrl] = useState("");
+  const [wpPicture, setWpPicture] = useState("");
   const [wpError, setWpError] = useState("");
   const [wpLoading, setWpLoading] = useState(false);
   // LinkedIn connection state
@@ -113,6 +114,7 @@ export default function EditProfilePage() {
           setWordpressConnected(true);
           setWpUsername(data.data.wpUsername || "");
           setWpSiteUrl(data.data.siteUrl || "");
+          setWpPicture(data.data.wpProfilePicture || "");
         }
       } catch {
         // non-critical: silently ignore, UI defaults to disconnected
@@ -187,6 +189,7 @@ export default function EditProfilePage() {
       setWordpressConnected(true);
       setWpUsername(params.get("wp_username") || "");
       setWpSiteUrl(params.get("wp_site") || "");
+      setWpPicture(params.get("wp_picture") || "");
       setWpError("");
     } else if (wpStatus === "error") {
       setWpError(
@@ -200,6 +203,7 @@ export default function EditProfilePage() {
     cleanUrl.searchParams.delete("wp_status");
     cleanUrl.searchParams.delete("wp_username");
     cleanUrl.searchParams.delete("wp_site");
+    cleanUrl.searchParams.delete("wp_picture");
     cleanUrl.searchParams.delete("wp_message");
     window.history.replaceState({}, "", cleanUrl.toString());
   }, []);
@@ -474,6 +478,7 @@ export default function EditProfilePage() {
         setWordpressConnected(false);
         setWpUsername("");
         setWpSiteUrl("");
+        setWpPicture("");
       } catch (err) {
         setWpError(
           err.message || "Failed to disconnect WordPress. Please try again.",
@@ -1079,8 +1084,12 @@ export default function EditProfilePage() {
 
           <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#21759B] rounded-lg flex items-center justify-center">
-                <Globe className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-[#21759B] rounded-lg flex items-center justify-center overflow-hidden border border-blue-100 shadow-sm">
+                {wordpressConnected && wpPicture ? (
+                  <img src={wpPicture} alt="WordPress Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <Globe className="w-6 h-6 text-white" />
+                )}
               </div>
               <div>
                 <p className="font-medium text-[#111827]">
