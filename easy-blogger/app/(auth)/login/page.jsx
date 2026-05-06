@@ -191,15 +191,6 @@ export default function LoginPage() {
               <p className="text-sm text-[#6B7280] leading-relaxed mb-6">
                 {bannedReason}
               </p>
-              <p className="text-xs text-[#9CA3AF] mb-6">
-                If you believe this is a mistake, please contact{" "}
-                <a
-                  href="mailto:support@easyblogger.com"
-                  className="text-[#1ABC9C] hover:underline"
-                >
-                  support@easyblogger.com
-                </a>
-              </p>
               <button
                 onClick={clearBan}
                 className="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-full text-sm font-medium transition-colors"
