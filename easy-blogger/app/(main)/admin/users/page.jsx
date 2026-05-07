@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Filter, X, AlertCircle, Download } from "lucide-react";
+import { Search, Filter, X, AlertCircle, Download, Loader2 } from "lucide-react";
 
 import { auth } from "../../../../lib/firebase"; 
 import { api } from "../../../../lib/api";
@@ -152,7 +152,7 @@ export default function UserListPage() {
   });
 
   return (
-    <div className="p-8 bg-white min-h-screen relative overflow-hidden">
+    <div className="max-w-6xl mx-auto p-8 bg-white min-h-screen relative overflow-hidden">
       <h1 className="text-4xl font-bold mb-8 text-[#111827] ml-4" style={{ fontFamily: "serif" }}>User List</h1>
       
       <div className={`max-w-262.5 bg-[#D1D5DB]/50 rounded-[45px] overflow-hidden shadow-sm transition-all duration-500 pb-4 ${selectedUser ? "blur-md opacity-40 pointer-events-none" : ""}`}>
@@ -182,13 +182,17 @@ export default function UserListPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="3" className="text-center p-20"><span className="loading loading-spinner loading-lg text-[#1ABC9C]"></span></td></tr>
-              ) : (
+                <tr><td colSpan="3" className="text-center p-20"><div className="flex flex-col items-center justify-center gap-3">
+                      <Loader2 className="w-10 h-10 animate-spin text-[#1ABC9C]" />
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest animate-pulse">Syncing Users...</span></div>
+                    </td>
+                </tr>
+                ) : (
                 filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-white/20 transition-colors">
                     <td className="p-2 pl-16 cursor-pointer" onClick={() => setSelectedUser(user)}>
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-gray-400 font-bold shadow-inner">👤</div>
+                        <div className="w-9 h-9 bsog-gray-200 rounded-full flex items-center justify-center text-gray-400 font-bold shadow-inner">👤</div>
                         <div>
                           <div className="font-bold text-gray-800 text-[14px]">{user.name}[{user.id}]</div>
                           <div className="text-[10px] text-gray-400 italic font-medium">{user.email}</div>
@@ -253,9 +257,10 @@ export default function UserListPage() {
               </div>
             </div>
 
-            <div className="space-y-3 w-full mt-auto px-4 text-center">
-               <button className="w-full bg-[#1ABC9C] hover:bg-[#16a085] text-white font-bold py-3 rounded-2xl shadow-md text-xs">Edit Plan</button>
-               <button className="w-full bg-red-100 hover:bg-red-200 text-red-500 font-bold py-3 rounded-2xl text-xs">Cancel Plan</button>
+            <div className="w-full mt-auto px-4 text-center py-4 bg-gray-50 border-t border-gray-200">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                Subscription managed automatically via Payment Gateway
+              </p>
             </div>
           </div>
         )}
