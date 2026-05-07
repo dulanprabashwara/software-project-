@@ -104,11 +104,11 @@ export default function AuditLogPage() {
   });
 
   return (
-    <div className="p-10 bg-white min-h-screen">
+    <div className="max-w-6xl mx-auto p-8 bg-white min-h-screen">
       {/* HEADER & FILTERS */}
       <div className="flex justify-between items-start mb-2">
         <div>
-          <h1 className="text-3xl font-bold text-[#111827]" style={{ fontFamily: "Georgia, serif" }}>Audit Logs</h1>
+          <h1 className="text-3xl font-bold text-gray-900 font-serif">Audit Logs</h1>
           <p className="text-sm text-gray-500 italic mt-1">Read-only history of all administrative actions</p>
         </div>
 
@@ -134,9 +134,10 @@ export default function AuditLogPage() {
 
           {/* Date Range Controls */}
           <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm">
-             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Dates:</span>
+             <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Dates:</span>
              <input 
-               type="date" 
+               type="date"
+               max={endDate} 
                value={startDate} 
                onChange={(e) => setStartDate(e.target.value)} 
                className="text-xs text-gray-600 outline-none bg-transparent font-bold cursor-pointer"
@@ -144,6 +145,8 @@ export default function AuditLogPage() {
              <span className="text-gray-300">-</span>
              <input 
                type="date" 
+               min={startDate}
+               max={new Date().toISOString().split('T')[0]}
                value={endDate} 
                onChange={(e) => setEndDate(e.target.value)} 
                className="text-xs text-gray-600 outline-none bg-transparent font-bold cursor-pointer"
@@ -191,25 +194,25 @@ export default function AuditLogPage() {
             ) : (
               filteredLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-gray-50/40 transition-colors">
-                  <td className="py-10 text-center">
-                    <div className="text-xl font-black text-gray-800 leading-[1.1]">
+                  <td className="py-6 text-center">
+                    <div className="text-lg font-black text-gray-800 leading-tight">
                       {log.admin.split(' ').map((word, i) => (<span key={i} className="block">{word}</span>))}
                     </div>
                   </td>
-                  <td className="py-10 text-center">
-                    <span className={`inline-block px-5 py-2 rounded-full text-sm font-bold shadow-sm ${getBadgeStyle(log.action)}`}>
+                  <td className="py-6 text-center">
+                    <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold shadow-sm ${getBadgeStyle(log.action)}`}>
                       {log.action}
                     </span>
                   </td>
-                  <td className="py-10 text-center">
-                    <div className="font-black text-gray-800 text-[18px]">{log.target}</div>
-                    <div className="text-sm text-gray-400 font-bold mt-1 px-4 line-clamp-2">{log.details}</div>
+                  <td className="py-6 text-center">
+                    <div className="font-black text-gray-800 text-base">{log.target}</div>
+                    <div className="text-xs text-gray-400 font-bold mt-1 px-4 line-clamp-2">{log.details}</div>
                   </td>
-                  <td className="py-10 text-center font-mono text-[13px] font-bold">
+                  <td className="py-6 text-center font-mono text-sm font-bold">
                     <div className="text-gray-800">{log.endpoint.split(' ')[0]}</div>
-                    <div className="text-gray-400">{log.endpoint.split(' ')[1] || ''}</div>
+                    <div className="text-gray-400 text-xs">{log.endpoint.split(' ')[1] || ''}</div>
                   </td>
-                  <td className="py-10 text-center text-gray-500 font-bold text-sm whitespace-pre-line leading-relaxed">
+                  <td className="py-6 text-center text-gray-500 font-bold text-sm whitespace-pre-line leading-relaxed">
                     {log.timestamp}
                   </td>
                 </tr>
