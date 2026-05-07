@@ -3,39 +3,34 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Search, CheckCircle, Trash2, Ban, ChevronDown, MousePointer2 } from "lucide-react";
 
-// 1. IMPORT YOUR HELPERS
-import { auth } from "../../../../../lib/firebase"; 
-import { api } from "../../../../../lib/api";       
+import { auth } from "../../../../../lib/firebase";
+import { api } from "../../../../../lib/api";
 
 export default function QueuePage() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState(null); 
+  const [filterStatus, setFilterStatus] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedId, setSelectedId] = useState(null); 
+  const [selectedId, setSelectedId] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // --- REAL BACKEND FETCH ---
   const fetchReports = async () => {
     try {
       const user = auth.currentUser;
       if (!user) return;
       const token = await user.getIdToken();
-      
+
       const response = await api.getAdminReports("?limit=100", token);
-      
-      // MAP Prisma Database relational fields to your UI's expected format
+
       const mappedReports = response.data.map(report => ({
         id: report.id,
-        articleId: report.articleId, // Keep track of the actual article ID
+        articleId: report.articleId,
         authorId: report.article?.authorId || report.article?.author?.id,
-        // reporterId: report.article?.authorId, // The user who wrote the offending article
         title: report.article?.title || "Untitled Article",
         reason: report.reason,
         reporter: report.reporter?.displayName || report.reporter?.username || "Unknown User",
         timeReported: new Date(report.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        // Map Prisma Enums to your UI statuses
         status: report.status,
         resolvedAt: report.resolvedAt,
         image: report.article?.coverImage || null,
@@ -45,20 +40,17 @@ export default function QueuePage() {
       //  THE 24-HOUR QUEUE CLEANUP LOGIC 
       const now = new Date();
       const cleanedQueue = mappedReports.filter(report => {
-        // 1. Always show PENDING reports
         if (report.status === 'PENDING') return true;
-        
-        // 2. Hide RESOLVED (Deleted/Banned) permanently so they don't annoy you tomorrow
-        if (report.status === 'RESOLVED') return false; 
-        
-        // 3. For DISMISSED (Kept/Verified), only show them if they were approved in the last 24 hours
+
+        if (report.status === 'RESOLVED') return false;
+
         if (report.status === 'DISMISSED' && report.resolvedAt) {
           const resolveDate = new Date(report.resolvedAt);
           const hoursDifference = (now - resolveDate) / (1000 * 60 * 60);
           return hoursDifference <= 24;
         }
-        
-        return false; // Hide anything else
+
+        return false;
       });
 
       setPosts(cleanedQueue);
@@ -82,14 +74,13 @@ export default function QueuePage() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) setIsDropdownOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
-    
+
     return () => {
       unsubscribe();
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
-  // --- REAL BACKEND ACTIONS ---
   const handleAction = async (actionType) => {
     const selectedPost = posts.find(p => p.id === selectedId);
     if (!selectedPost || !confirm(`Confirm ${actionType}?`)) return;
@@ -99,32 +90,28 @@ export default function QueuePage() {
       const token = await user.getIdToken();
 
       if (actionType === "Keep") {
-        // Mark the report as DISMISSED or REVIEWED (Content is safe)
         await api.resolveReport(selectedPost.id, "DISMISSED", token);
         setPosts(posts.map(p => p.id === selectedId ? { ...p, status: 'DISMISSED' } : p));
-      } 
+      }
       else if (actionType === "Delete") {
-        // Mark the report as RESOLVED (Triggers content takedown in backend)
         await api.resolveReport(selectedPost.id, "RESOLVED", token);
         setPosts(posts.filter(p => p.id !== selectedId));
         setSelectedId(null);
-      } 
+      }
       else if (actionType === "Ban User") {
         if (!selectedPost.authorId) {
-           alert("Cannot ban: This article's author is already missing or deleted.");
-           return;
+          alert("Cannot ban: This article's author is already missing or deleted.");
+          return;
         }
-        // Hit the real ban endpoint for the author of the article
         await api.banUser(selectedPost.authorId, selectedPost.reason, token);
-        // Also resolve the report
+
         await api.resolveReport(selectedPost.id, "RESOLVED", token);
-        
+
         setPosts(posts.filter(p => p.id !== selectedId));
         setSelectedId(null);
         alert("User banned and report resolved.");
       }
-      
-      // Notice: No manual audit logging! The backend handles it automatically.
+
     } catch (error) {
       console.error(`Failed to execute ${actionType}:`, error);
       alert("Action failed. Check console.");
@@ -150,7 +137,7 @@ export default function QueuePage() {
       {/* LEFT COLUMN */}
       <div className="w-1/3 flex flex-col gap-4">
         <h1 className="text-2xl font-bold text-[#111827]" style={{ fontFamily: "Georgia, serif" }}>Moderation</h1>
-        <div className="flex gap-2 relative z-20"> 
+        <div className="flex gap-2 relative z-20">
           <div className="relative w-36" ref={dropdownRef}>
             <button suppressHydrationWarning onClick={() => setIsDropdownOpen(!isDropdownOpen)} className={`w-full h-10 px-4 rounded-lg font-medium flex items-center justify-between transition-all ${getDropdownColor()}`}>
               <span className="capitalize">{filterStatus || "Status"}</span>
@@ -187,7 +174,7 @@ export default function QueuePage() {
       <div className="w-2/3 bg-white rounded-2xl shadow-sm border border-[#E5E7EB] flex flex-col overflow-hidden relative">
         {activePost ? (
           <>
-            {/* REPORTER DETAILS HEADER */}
+            {/* reporter Details header*/}
             <div className="p-6 px-8 border-b border-gray-100 text-sm">
               <div className="space-y-0.5">
                 <p className="text-[#111827]"><span className="font-semibold">Reported by:</span> {activePost.reporter}</p>
@@ -201,8 +188,8 @@ export default function QueuePage() {
               {activePost.image && <div className="mb-6"><img src={activePost.image} alt="Post content" className="rounded-lg shadow-sm w-full max-h-80 object-cover" /></div>}
               <p className="text-[#374151] leading-relaxed text-base whitespace-pre-line">{activePost.content}</p>
             </div>
-            
-            {/* CONDITIONAL ACTION AREA */}
+
+            {/* Conditional Action area*/}
             <div className="p-6 border-t border-[#E5E7EB] bg-[#F9FAFB] flex justify-end gap-4">
               {activePost.status === 'DISMISSED' ? (
                 <div className="flex items-center gap-3 bg-[#CCFBF1] text-[#0F766E] px-6 py-2 rounded-full border border-[#1ABC9C] shadow-sm">

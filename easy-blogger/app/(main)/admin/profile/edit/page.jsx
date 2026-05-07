@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Camera, Bell, ShieldCheck, Globe, Smartphone, X } from "lucide-react";
 
-// 1. IMPORT YOUR HELPERS
-import { auth } from "../../../../../lib/firebase"; 
+import { auth } from "../../../../../lib/firebase";
 import { api } from "../../../../../lib/api";
 
 export default function EditAdminProfile() {
@@ -15,7 +14,6 @@ export default function EditAdminProfile() {
   const [show2FAModal, setShow2FAModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // --- REAL BACKEND FETCH ---
   const fetchProfile = async () => {
     try {
       const user = auth.currentUser;
@@ -25,17 +23,16 @@ export default function EditAdminProfile() {
       const response = await api.getMe(token);
       const userData = response.data || response;
 
-      // Map real Prisma fields + Mock the missing settings
       setFormData({
         name: userData.displayName || userData.username || "",
         email: userData.email || "",
         bio: userData.bio || "",
         avatar: userData.avatarUrl || null,
-        settings: { 
-          notifications: true, 
-          criticalAlerts: true, 
-          weeklyExport: false, 
-          lockedIp: null 
+        settings: {
+          notifications: true,
+          criticalAlerts: true,
+          weeklyExport: false,
+          lockedIp: null
         }
       });
     } catch (error) {
@@ -56,22 +53,20 @@ export default function EditAdminProfile() {
     return () => unsubscribe();
   }, []);
 
-  // --- REAL BACKEND UPDATE ---
   const handleSave = async () => {
     setSaving(true);
     try {
       const user = auth.currentUser;
       const token = await user.getIdToken();
 
-      // Only send fields that actually exist in the Prisma schema!
       const payload = {
         displayName: formData.name,
         bio: formData.bio,
-        avatarUrl: formData.avatar, // NOTE: Assuming backend accepts base64 strings here
+        avatarUrl: formData.avatar,
       };
 
       await api.updateProfile(payload, token);
-      
+
       router.push("/admin/profile");
     } catch (error) {
       console.error("Failed to update profile:", error);
@@ -106,7 +101,7 @@ export default function EditAdminProfile() {
       {show2FAModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
           <div className="bg-white p-8 rounded-2xl shadow-xl w-96 text-center relative">
-            <button onClick={() => setShow2FAModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-black"><X size={20}/></button>
+            <button onClick={() => setShow2FAModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-black"><X size={20} /></button>
             <h2 className="text-xl font-bold mb-2">Configure 2FA</h2>
             <p className="text-sm text-gray-500 mb-6">Scan this QR code with Google Authenticator or Authy.</p>
             <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=otpauth://totp/EasyBlogger:${formData.email}?secret=JBSWY3DPEHPK3PXP&issuer=EasyBlogger`} alt="QR Code" className="mx-auto mb-6 border p-2 rounded-lg" />
@@ -137,30 +132,30 @@ export default function EditAdminProfile() {
           </div>
 
           <div className="flex-1 space-y-6 text-left">
-             <div className="grid grid-cols-2 gap-6">
-              <div><label className="text-xs font-bold text-gray-900 mb-2 block uppercase">Admin Full Name</label><input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C]" /></div>
+            <div className="grid grid-cols-2 gap-6">
+              <div><label className="text-xs font-bold text-gray-900 mb-2 block uppercase">Admin Full Name</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C]" /></div>
               {/* Note: Email is usually read-only unless synced properly with Firebase auth, disabled for safety */}
               <div><label className="text-xs font-bold text-gray-900 mb-2 block uppercase">System Email</label><input type="email" value={formData.email} disabled className="w-full p-3 bg-gray-100 text-gray-500 border border-gray-100 rounded-xl text-sm outline-none cursor-not-allowed" /></div>
             </div>
-            <div><label className="text-xs font-bold text-gray-900 mb-2 block uppercase">Administrative Bio</label><textarea rows={3} value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} className="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] resize-none text-[#374151]" /></div>
+            <div><label className="text-xs font-bold text-gray-900 mb-2 block uppercase">Administrative Bio</label><textarea rows={3} value={formData.bio} onChange={(e) => setFormData({ ...formData, bio: e.target.value })} className="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] resize-none text-[#374151]" /></div>
           </div>
         </div>
 
         {/* GOVERNANCE ALERTS SECTION */}
         <div className="bg-white border border-gray-100 rounded-3xl p-10 shadow-sm text-left opacity-75">
           <div className="flex items-center gap-2 mb-6">
-            <Bell size={18} className="text-[#1ABC9C]"/>
+            <Bell size={18} className="text-[#1ABC9C]" />
             <h3 className="text-lg font-bold">System Governance Alerts <span className="text-xs font-normal text-gray-400 italic">(UI Preview Only)</span></h3>
           </div>
           <div className="space-y-6">
-            
+
             <div className="flex items-center justify-between border-b border-gray-50 pb-4">
               <div>
                 <p className="text-sm font-bold text-gray-800">High-Priority Report Notifications</p>
                 <p className="text-xs text-gray-400">Alert when post receives &gt; 5 reports</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" checked={formData.settings.notifications} onChange={() => setFormData({...formData, settings: {...formData.settings, notifications: !formData.settings.notifications}})} />
+                <input type="checkbox" className="sr-only peer" checked={formData.settings.notifications} onChange={() => setFormData({ ...formData, settings: { ...formData.settings, notifications: !formData.settings.notifications } })} />
                 <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#1ABC9C] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
               </label>
             </div>
@@ -171,7 +166,7 @@ export default function EditAdminProfile() {
                 <p className="text-xs text-gray-400">Email alerts for AI scraper failures</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" checked={formData.settings.criticalAlerts} onChange={() => setFormData({...formData, settings: {...formData.settings, criticalAlerts: !formData.settings.criticalAlerts}})} />
+                <input type="checkbox" className="sr-only peer" checked={formData.settings.criticalAlerts} onChange={() => setFormData({ ...formData, settings: { ...formData.settings, criticalAlerts: !formData.settings.criticalAlerts } })} />
                 <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#1ABC9C] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
               </label>
             </div>
@@ -182,7 +177,7 @@ export default function EditAdminProfile() {
                 <p className="text-xs text-gray-400">Automated CSV summary of system changes</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" checked={formData.settings.weeklyExport} onChange={() => setFormData({...formData, settings: {...formData.settings, weeklyExport: !formData.settings.weeklyExport}})} />
+                <input type="checkbox" className="sr-only peer" checked={formData.settings.weeklyExport} onChange={() => setFormData({ ...formData, settings: { ...formData.settings, weeklyExport: !formData.settings.weeklyExport } })} />
                 <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#1ABC9C] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
               </label>
             </div>
@@ -191,7 +186,7 @@ export default function EditAdminProfile() {
         </div>
 
         <div className="bg-white border border-gray-100 rounded-3xl p-10 shadow-sm text-left opacity-75">
-          <div className="flex items-center gap-2 mb-6"><ShieldCheck size={18} className="text-[#1ABC9C]"/><h3 className="text-lg font-bold">Account Security <span className="text-xs font-normal text-gray-400 italic">(UI Preview Only)</span></h3></div>
+          <div className="flex items-center gap-2 mb-6"><ShieldCheck size={18} className="text-[#1ABC9C]" /><h3 className="text-lg font-bold">Account Security <span className="text-xs font-normal text-gray-400 italic">(UI Preview Only)</span></h3></div>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
               <div className="flex items-center gap-3"><Globe size={18} className="text-gray-400" /><div><p className="text-sm font-bold text-gray-800">IP-Based Access Control</p><p className="text-[10px] text-gray-400 uppercase font-bold">Current IP: 124.43.15.2</p></div></div>
