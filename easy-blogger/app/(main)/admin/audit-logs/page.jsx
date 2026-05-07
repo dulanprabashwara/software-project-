@@ -2,14 +2,13 @@
 import { useEffect, useState } from "react";
 import { Filter, ChevronDown, X } from "lucide-react";
 
-import { auth } from "../../../../lib/firebase"; 
+import { auth } from "../../../../lib/firebase";
 import { api } from "../../../../lib/api";
 
 export default function AuditLogPage() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Filter States
+
   const [selectedAdmin, setSelectedAdmin] = useState("All Admins");
   const [selectedAction, setSelectedAction] = useState("All Actions");
   const [startDate, setStartDate] = useState("");
@@ -22,15 +21,14 @@ export default function AuditLogPage() {
       const token = await user.getIdToken();
 
       const response = await api.getAuditLogs("?limit=500", token);
-      
-      const logsArray = Array.isArray(response.data) 
-        ? response.data 
+
+      const logsArray = Array.isArray(response.data)
+        ? response.data
         : (response.data?.data || response.logs || []);
 
       const mappedLogs = logsArray.map(log => ({
         id: log.id,
         admin: log.admin?.displayName || log.admin?.username || "System Admin",
-        // Converts "CREATE_SCRAPING_SOURCE" to "Create Scraping Source"
         action: log.action.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()),
         target: log.targetId ? `${log.targetType || 'ID'}_${log.targetId.slice(0, 8)}` : "System Action",
         details: log.details || "No additional details",
@@ -61,39 +59,36 @@ export default function AuditLogPage() {
     return () => unsubscribe();
   }, []);
 
-  // Upgraded Badge Logic to handle the new Master List
   const getBadgeStyle = (action) => {
     const act = action.toLowerCase();
-    
-    // 1. Danger/Destructive (Prioritized to catch "Resolve Report Delete/Ban")
+
+    // Danger/Destructive (Prioritized to catch "Resolve Report Delete/Ban")
     if (act.includes("delete") || act.includes("ban") || act.includes("revoke") || act.includes("cancel")) {
       return "bg-[#FEE2E2] text-[#EF4444] border border-[#FCA5A5]";
     }
-    // 2. Success/Creation (Prioritized to catch "Resolve Report Keep")
+    //Success/Creation (Prioritized to catch "Resolve Report Keep")
     if (act.includes("create") || act.includes("unban") || act.includes("keep")) {
       return "bg-[#DCFCE7] text-[#22C55E] border border-[#86EFAC]";
     }
-    // 3. Warning/Manual Actions
+    //Warning/Manual Actions
     if (act.includes("trigger") || act.includes("lock") || act.includes("reset")) {
       return "bg-[#FEF9C3] text-[#CA8A04] border border-[#FEF08A]";
     }
-    // 4. Updates & Modifications
+    //Updates & Modifications
     if (act.includes("update") || act.includes("toggle") || act.includes("resolve")) {
       return "bg-[#DBEAFE] text-[#3B82F6] border border-[#93C5FD]";
     }
-    // 5. Default (Exports, Downloads, Logins)
+    //Default (Exports, Downloads, Logins)
     return "bg-[#F3F4F6] text-[#6B7280] border border-[#D1D5DB]";
   };
 
-  // Extract unique values for dynamic dropdowns
   const uniqueAdmins = ["All Admins", ...new Set(logs.map(log => log.admin))];
   const uniqueActions = ["All Actions", ...new Set(logs.map(log => log.action))];
 
-  // Apply all 3 active filters simultaneously 
   const filteredLogs = logs.filter(log => {
     const matchAdmin = selectedAdmin === "All Admins" || log.admin === selectedAdmin;
     const matchAction = selectedAction === "All Actions" || log.action === selectedAction;
-    
+
     let matchDate = true;
     if (startDate || endDate) {
       if (startDate) matchDate = matchDate && log.rawDate >= new Date(startDate);
@@ -105,14 +100,14 @@ export default function AuditLogPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-8 bg-white min-h-screen">
-      {/* HEADER & FILTERS */}
+      {/* Header and filters*/}
       <div className="flex justify-between items-start mb-2">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 font-serif">Audit Logs</h1>
           <p className="text-sm text-gray-500 italic mt-1">Read-only history of all administrative actions</p>
         </div>
 
-        {/* FUNCTIONAL FILTER CONTROLS */}
+        {/* Filter controls */}
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2 text-sm font-bold text-gray-600 mr-2">
             <Filter size={18} /> Filter by
@@ -120,61 +115,60 @@ export default function AuditLogPage() {
 
           {/* Action Type Dropdown */}
           <div className="relative">
-             <select 
-               value={selectedAction}
-               onChange={(e) => setSelectedAction(e.target.value)}
-               className="appearance-none bg-white border border-gray-200 rounded-xl px-5 py-2.5 pr-10 text-xs font-bold text-gray-600 outline-none shadow-sm cursor-pointer uppercase tracking-widest"
-             >
-               {uniqueActions.map(action => (
-                 <option key={action} value={action}>{action}</option>
-               ))}
-             </select>
-             <ChevronDown className="absolute right-3 top-2.5 text-gray-400" size={16} />
+            <select
+              value={selectedAction}
+              onChange={(e) => setSelectedAction(e.target.value)}
+              className="appearance-none bg-white border border-gray-200 rounded-xl px-5 py-2.5 pr-10 text-xs font-bold text-gray-600 outline-none shadow-sm cursor-pointer uppercase tracking-widest"
+            >
+              {uniqueActions.map(action => (
+                <option key={action} value={action}>{action}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-2.5 text-gray-400" size={16} />
           </div>
 
           {/* Date Range Controls */}
           <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm">
-             <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Dates:</span>
-             <input 
-               type="date"
-               max={endDate} 
-               value={startDate} 
-               onChange={(e) => setStartDate(e.target.value)} 
-               className="text-xs text-gray-600 outline-none bg-transparent font-bold cursor-pointer"
-             />
-             <span className="text-gray-300">-</span>
-             <input 
-               type="date" 
-               min={startDate}
-               max={new Date().toISOString().split('T')[0]}
-               value={endDate} 
-               onChange={(e) => setEndDate(e.target.value)} 
-               className="text-xs text-gray-600 outline-none bg-transparent font-bold cursor-pointer"
-             />
-             {(startDate || endDate) && (
-               <button onClick={() => {setStartDate(""); setEndDate("");}} className="text-red-400 hover:text-red-600 ml-1 transition-colors" title="Clear Dates">
-                 <X size={16} />
-               </button>
-             )}
+            <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Dates:</span>
+            <input
+              type="date"
+              max={endDate}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="text-xs text-gray-600 outline-none bg-transparent font-bold cursor-pointer"
+            />
+            <span className="text-gray-300">-</span>
+            <input
+              type="date"
+              min={startDate}
+              max={new Date().toISOString().split('T')[0]}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="text-xs text-gray-600 outline-none bg-transparent font-bold cursor-pointer"
+            />
+            {(startDate || endDate) && (
+              <button onClick={() => { setStartDate(""); setEndDate(""); }} className="text-red-400 hover:text-red-600 ml-1 transition-colors" title="Clear Dates">
+                <X size={16} />
+              </button>
+            )}
           </div>
-          
+
           {/* Admin Dropdown */}
           <div className="relative">
-             <select 
-               value={selectedAdmin}
-               onChange={(e) => setSelectedAdmin(e.target.value)}
-               className="appearance-none bg-white border border-gray-200 rounded-xl px-5 py-2.5 pr-12 text-sm font-bold outline-none shadow-sm cursor-pointer"
-             >
-               {uniqueAdmins.map(admin => (
-                 <option key={admin} value={admin}>{admin}</option>
-               ))}
-             </select>
-             <ChevronDown className="absolute right-4 top-3 text-gray-400" size={18} />
+            <select
+              value={selectedAdmin}
+              onChange={(e) => setSelectedAdmin(e.target.value)}
+              className="appearance-none bg-white border border-gray-200 rounded-xl px-5 py-2.5 pr-12 text-sm font-bold outline-none shadow-sm cursor-pointer"
+            >
+              {uniqueAdmins.map(admin => (
+                <option key={admin} value={admin}>{admin}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-4 top-3 text-gray-400" size={18} />
           </div>
         </div>
       </div>
 
-      {/* TABLE */}
       <div className="mt-12 overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
