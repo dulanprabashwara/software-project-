@@ -7,7 +7,7 @@ import { useComments } from "../../hooks/useComments";
 import { useArticleRatings } from "../../hooks/useArticleRatings";
 
 export const Comments = ({ articleId, token }) => {
-  // 1. Guard against missing ID
+  //Guard against missing ID
   if (!articleId) {
     return (
       <div className="flex justify-center p-4">
@@ -27,7 +27,7 @@ export const Comments = ({ articleId, token }) => {
   const [isPostingComment, setIsPostingComment] = useState(false);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
-  // Local rating state for display and optimistic updates
+  // Local rating state for display 
   const [localRating, setLocalRating] = useState(0);
 
   // Helper to check if we are actually logged in

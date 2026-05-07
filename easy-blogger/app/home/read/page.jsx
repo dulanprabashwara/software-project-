@@ -17,28 +17,29 @@ export default function Page() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
   
-  // --- Context & Global State ---
+  // us and article details
   const { user, userProfile, loading: authLoading } = useAuth();
   const { article, isLoading: articleLoading, error } = useArticle(id);
   const { savedArticles } = useSavedArticles();
   const [token, setToken] = useState(null);
 
-  // --- Local UI State ---
-  const [showCompact, setShowCompact] = useState(false);
-  const [saved, setSaved] = useState(false);
+  //for raed page UI chages
+  const [showCompact, setShowCompact] = useState(false); //compact info display
+  //for comment and rating submissions
+  const [saved, setSaved] = useState(false); 
   const [saving, setSaving] = useState(false);
 
-  // --- Report Modal State ---
+  // for filing reports agains article
   const [reportReason, setReportReason] = useState("");
   const [reportDescription, setReportDescription] = useState("");
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
 
-  // --- Refs ---
+  // references 
   const scrollRef = useRef(null);
   const coverRef = useRef(null);
 
-  // 1. Manage Firebase Token
+  // Manage Firebase Token
   useEffect(() => {
     if (user) {
       user.getIdToken().then(setToken);
@@ -67,10 +68,10 @@ export default function Page() {
     recordVisit();
   }, [id, token]); 
 
-  // 3. Sync Bookmark Status
+  // Sync Bookmark Status
   useEffect(() => {
     if (savedArticles?.length > 0 && article?.id) {
-      setSaved(savedArticles.some((obj) => obj.id === article.id));
+      setSaved(savedArticles.some((obj) => obj.id === article.id)); //seeing if the list have
     }
   }, [savedArticles, article?.id]);
 
@@ -183,7 +184,7 @@ export default function Page() {
     : "Recent";
 
   return (
-    <div className="h-full overflow-hidden bg-white">
+    <div className="h-full bg-white">
       <article ref={scrollRef} className="h-full overflow-y-auto scroll-smooth">
         
         {/* Sticky Header (Hidden until user scrolls down) */}
