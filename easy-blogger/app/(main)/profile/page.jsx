@@ -272,7 +272,6 @@ export default function ProfilePage() {
     [firebaseUser, userProfile, updateContextProfile],
   );
 
-  
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-[calc(100vh-64px)] pt-20 bg-gray-50">
@@ -463,16 +462,21 @@ export default function ProfilePage() {
                 alt={displayName}
                 referrerPolicy="no-referrer"
                 className={`w-20 h-20 rounded-full object-cover border-2 transition-all ${
-                  isPremium
-                    ? "border-[#F59E0B]"
-                    : "border-[#E5E7EB]"
+                  isPremium ? "border-[#F59E0B]" : "border-[#E5E7EB]"
                 }`}
               />
             </div>
 
             <h2 className="text-base font-bold text-[#111827] mb-2 flex items-center gap-2">
               {displayName}
-              {isPremium && <BadgeCheck className="w-5 h-5 shrink-0" fill="#1ABC9C" stroke="white" strokeWidth="1.5" />}
+              {isPremium && (
+                <BadgeCheck
+                  className="w-5 h-5 shrink-0"
+                  fill="#1ABC9C"
+                  stroke="white"
+                  strokeWidth="1.5"
+                />
+              )}
             </h2>
 
             <p className="text-sm text-[#6B7280] mb-1">

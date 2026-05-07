@@ -1,12 +1,10 @@
 // tests/api/auth.api.test.js
-// ─────────────────────────────────────────────────────────────────────────────
-// Unit tests for the auth-related API methods in lib/api.js:
-//   • api.registerUser  – POST /api/auth/register
-//   • api.syncUser      – POST /api/auth/sync
-//   • api.getMe         – GET  /api/users/me
-// ─────────────────────────────────────────────────────────────────────────────
 
-const { mockFetch, mockFetchError, resetFetch } = require("../mocks/fetch.mock");
+const {
+  mockFetch,
+  mockFetchError,
+  resetFetch,
+} = require("../mocks/fetch.mock");
 const { api, API_BASE_URL } = require("../helpers/api.cjs");
 
 afterEach(() => {
@@ -14,15 +12,12 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-// ════════════════════════════════════════════════════════════════════════════
-//  api.registerUser
-// ════════════════════════════════════════════════════════════════════════════
+// api.registerUser
 describe("api.registerUser", () => {
-
   const REGISTRATION_DATA = {
     firebaseUid: "firebase-uid-001",
-    email:       "newuser@example.com",
-    username:    "newuser",
+    email: "newuser@example.com",
+    username: "newuser",
     displayName: "New User",
   };
 
@@ -67,33 +62,37 @@ describe("api.registerUser", () => {
   test("throws when server returns 409 (username already taken)", async () => {
     mockFetch({ message: "Username already taken." }, 409);
 
-    await expect(api.registerUser(REGISTRATION_DATA, "firebase-token-abc"))
-      .rejects.toThrow("Username already taken.");
+    await expect(
+      api.registerUser(REGISTRATION_DATA, "firebase-token-abc"),
+    ).rejects.toThrow("Username already taken.");
   });
 
   test("throws when server returns 409 (email already in use)", async () => {
     mockFetch({ message: "Email already in use." }, 409);
 
-    await expect(api.registerUser(REGISTRATION_DATA, "firebase-token-abc"))
-      .rejects.toThrow("Email already in use.");
+    await expect(
+      api.registerUser(REGISTRATION_DATA, "firebase-token-abc"),
+    ).rejects.toThrow("Email already in use.");
   });
 
   test("returns the created user data on success", async () => {
-    const serverResponse = { success: true, data: { id: "user-001", username: "newuser" } };
+    const serverResponse = {
+      success: true,
+      data: { id: "user-001", username: "newuser" },
+    };
     mockFetch(serverResponse, 200);
 
-    const result = await api.registerUser(REGISTRATION_DATA, "firebase-token-abc");
+    const result = await api.registerUser(
+      REGISTRATION_DATA,
+      "firebase-token-abc",
+    );
 
     expect(result).toEqual(serverResponse);
   });
 });
 
-
-// ════════════════════════════════════════════════════════════════════════════
-//  api.syncUser
-// ════════════════════════════════════════════════════════════════════════════
+// api.syncUser
 describe("api.syncUser", () => {
-
   test("calls POST /api/auth/sync with the correct URL", async () => {
     mockFetch({ success: true, data: {} });
 
@@ -115,7 +114,10 @@ describe("api.syncUser", () => {
   });
 
   test("returns the synced user profile on success", async () => {
-    const profileData = { success: true, data: { id: "user-001", isPremium: false } };
+    const profileData = {
+      success: true,
+      data: { id: "user-001", isPremium: false },
+    };
     mockFetch(profileData);
 
     const result = await api.syncUser({ firebaseUid: "uid-001" }, "token");
@@ -125,17 +127,14 @@ describe("api.syncUser", () => {
   test("throws when the server returns 401 (unrecognised Firebase UID)", async () => {
     mockFetch({ message: "User not found. Please register first." }, 401);
 
-    await expect(api.syncUser({ firebaseUid: "unknown-uid" }, "token"))
-      .rejects.toThrow("User not found. Please register first.");
+    await expect(
+      api.syncUser({ firebaseUid: "unknown-uid" }, "token"),
+    ).rejects.toThrow("User not found. Please register first.");
   });
 });
 
-
-// ════════════════════════════════════════════════════════════════════════════
-//  api.getMe
-// ════════════════════════════════════════════════════════════════════════════
+// api.getMe
 describe("api.getMe", () => {
-
   test("calls GET /api/users/me", async () => {
     mockFetch({ success: true, data: { id: "me" } });
 
@@ -166,7 +165,10 @@ describe("api.getMe", () => {
   });
 
   test("returns the logged-in user profile on success", async () => {
-    const me = { success: true, data: { id: "user-001", username: "john", isPremium: true } };
+    const me = {
+      success: true,
+      data: { id: "user-001", username: "john", isPremium: true },
+    };
     mockFetch(me);
 
     const result = await api.getMe("my-token");
@@ -176,14 +178,14 @@ describe("api.getMe", () => {
   test("throws when server returns 401 (no token / expired token)", async () => {
     mockFetch({ message: "Access denied. No token provided." }, 401);
 
-    await expect(api.getMe("bad-token"))
-      .rejects.toThrow("Access denied. No token provided.");
+    await expect(api.getMe("bad-token")).rejects.toThrow(
+      "Access denied. No token provided.",
+    );
   });
 
   test("throws on network failure", async () => {
     mockFetchError("Network error");
 
-    await expect(api.getMe("my-token"))
-      .rejects.toThrow("Network error");
+    await expect(api.getMe("my-token")).rejects.toThrow("Network error");
   });
 });

@@ -9,11 +9,8 @@ import { useAuth } from "../../context/AuthContext";
 import { useSubscription } from "../../context/SubscriptionContext";
 import { api } from "../../../lib/api";
 
-/**
- * /subscription/manage
- * Auto-redirects premium users to the Stripe Customer Portal.
- * Non-premium users are sent to the upgrade page.
- */
+//  Auto-redirects premium users to the Stripe Customer Portal.
+//  Non-premium users are sent to the upgrade page.
 
 export default function ManageSubscriptionPage() {
   const router = useRouter();

@@ -49,7 +49,9 @@ async function fetchAPI(endpoint, options = {}) {
 
     return data;
   } catch (error) {
-    console.error(`Error fetching ${endpoint}:`, error);
+    if (process.env.NODE_ENV !== "test") {
+      console.error(`Error fetching ${endpoint}:`, error);
+    }
     throw error;
   }
 }

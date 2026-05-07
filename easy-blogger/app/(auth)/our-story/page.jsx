@@ -121,9 +121,9 @@ export default function OurStoryPage() {
                 <p className="text-[#6B7280] text-base max-w-2xl leading-relaxed">
                   We believe that what you read and write matters. Words can
                   divide or empower us, inspire or discourage us. In a world
-                  where the most sensational and surface-level stories often win,
-                  we're building a system that rewards depth, nuance, and time
-                  well spent.
+                  where the most sensational and surface-level stories often
+                  win, we're building a system that rewards depth, nuance, and
+                  time well spent.
                 </p>
               </div>
               <span
@@ -147,9 +147,9 @@ export default function OurStoryPage() {
                 </h3>
                 <p className="text-[#6B7280] text-base max-w-2xl leading-relaxed">
                   We've built a platform where anyone can participate. Someone's
-                  ability to contribute valuable ideas doesn't depend on who they
-                  are or where they come from. If you've got a perspective worth
-                  sharing, you have a place here.
+                  ability to contribute valuable ideas doesn't depend on who
+                  they are or where they come from. If you've got a perspective
+                  worth sharing, you have a place here.
                 </p>
               </div>
               <span
@@ -174,7 +174,8 @@ export default function OurStoryPage() {
                 <p className="text-[#6B7280] text-base max-w-2xl leading-relaxed">
                   We measure success not by clicks or views, but by time
                   meaningfully spent. Our model aligns the interests of writers
-                  and readers, creating a virtuous cycle of high-quality content.
+                  and readers, creating a virtuous cycle of high-quality
+                  content.
                 </p>
               </div>
               <span
@@ -199,7 +200,8 @@ export default function OurStoryPage() {
                 <p className="text-[#6B7280] text-base max-w-2xl leading-relaxed">
                   Great ideas can come from anywhere. We're building tools and
                   surfaces that help good ideas find an audience, and help
-                  curious readers discover stories they won't find anywhere else.
+                  curious readers discover stories they won't find anywhere
+                  else.
                 </p>
               </div>
               <span
