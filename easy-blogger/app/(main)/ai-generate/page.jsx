@@ -16,6 +16,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useSubscription } from "../../context/SubscriptionContext";
 import InsightsSidebar from "../../../components/ai/InsightsSidebar";
 import TrendingArticleSlider from "../../../components/ai/TrendingArticleSlider";
+import { useSavedArticles } from "../../../hooks/useSavedArticles";
 import "../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../styles/ai-article-generator/ai-article-generator-view2.css";
 import "../../../styles/ai-article-generator/articles-view.css";
@@ -49,6 +50,7 @@ function formatDate(isoString) {
 export default function AIArticleGeneratorPage() {
   const router = useRouter();
   const { isPremium, isLoading } = useSubscription();
+  const { savedArticles } = useSavedArticles();
 
   // ── View + prompt state ────────────────────────────────────────────────────
   const [currentView, setCurrentView] = useState("input");
@@ -723,7 +725,7 @@ export default function AIArticleGeneratorPage() {
                 <img src="/icons/Trending icon.png" alt="Trending" className="trending-icon" />
                 <h2 className="trending-title">Trending Articles</h2>
               </div>
-              <TrendingArticleSlider articles={trendingArticles} />
+              <TrendingArticleSlider articles={trendingArticles} savedArticles={savedArticles} />
             </div>
           )}
 
