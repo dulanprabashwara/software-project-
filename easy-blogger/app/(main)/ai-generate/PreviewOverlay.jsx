@@ -94,11 +94,12 @@ export default function PreviewOverlay({
             <h3 className="preview-article-title">{generatedArticle.title}</h3>
             <p className="preview-article-excerpt">{generatedArticle.content}</p>
           </div>
-          <div className="preview-footer">
-            <span className="preview-word-count">
-              word count: {generatedArticle.wordCount ?? generatedArticle.content.split(" ").length}
-            </span>
-          </div>
+        </div>
+
+        <div className="preview-footer">
+          <span className="preview-word-count">
+            word count: {generatedArticle.wordCount ?? generatedArticle.content.split(" ").length}
+          </span>
         </div>
       </div>
     </div>
