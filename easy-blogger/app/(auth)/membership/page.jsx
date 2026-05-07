@@ -115,9 +115,7 @@ export default function MembershipPage() {
               </li>
               <li className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-[#6B7280] mt-0.5 shrink-0" />
-                <span className="text-[#6B7280] text-sm">
-                  Community access
-                </span>
+                <span className="text-[#6B7280] text-sm">Community access</span>
               </li>
             </ul>
 
@@ -230,8 +228,8 @@ export default function MembershipPage() {
             </h3>
             <p className="text-base text-[#6B7280] leading-relaxed">
               Enjoy unlimited access to every story in our library. No paywalls,
-              no interruptions — just quality content from writers who care about
-              their craft. Dive deep into any topic that catches your eye.
+              no interruptions — just quality content from writers who care
+              about their craft. Dive deep into any topic that catches your eye.
             </p>
           </div>
 

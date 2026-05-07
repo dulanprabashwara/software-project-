@@ -12,7 +12,11 @@
 //  • Error thrown on network failure
 // ─────────────────────────────────────────────────────────────────────────────
 
-const { mockFetch, mockFetchError, resetFetch } = require("../mocks/fetch.mock");
+const {
+  mockFetch,
+  mockFetchError,
+  resetFetch,
+} = require("../mocks/fetch.mock");
 const { fetchAPI, API_BASE_URL } = require("../helpers/api.cjs");
 
 afterEach(() => {
@@ -20,12 +24,10 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-
 // ════════════════════════════════════════════════════════════════════════════
 //  URL & Method
 // ════════════════════════════════════════════════════════════════════════════
 describe("fetchAPI — URL and method", () => {
-
   test("calls fetch with the correct full URL by combining BASE_URL + endpoint", async () => {
     mockFetch({ success: true });
 
@@ -60,12 +62,10 @@ describe("fetchAPI — URL and method", () => {
   });
 });
 
-
 // ════════════════════════════════════════════════════════════════════════════
 //  Headers
 // ════════════════════════════════════════════════════════════════════════════
 describe("fetchAPI — headers", () => {
-
   test("always sends Content-Type: application/json", async () => {
     mockFetch({ success: true });
 
@@ -106,12 +106,10 @@ describe("fetchAPI — headers", () => {
   });
 });
 
-
 // ════════════════════════════════════════════════════════════════════════════
 //  Body
 // ════════════════════════════════════════════════════════════════════════════
 describe("fetchAPI — request body", () => {
-
   test("serializes the body object to a JSON string", async () => {
     mockFetch({ success: true });
     const payload = { username: "john", email: "john@example.com" };
@@ -136,14 +134,15 @@ describe("fetchAPI — request body", () => {
   });
 });
 
-
 // ════════════════════════════════════════════════════════════════════════════
 //  Response handling
 // ════════════════════════════════════════════════════════════════════════════
 describe("fetchAPI — response handling", () => {
-
   test("returns the parsed JSON data on a successful 200 response", async () => {
-    const responseData = { success: true, data: [{ id: "1", title: "Test Article" }] };
+    const responseData = {
+      success: true,
+      data: [{ id: "1", title: "Test Article" }],
+    };
     mockFetch(responseData, 200);
 
     const result = await fetchAPI("/api/articles");
@@ -154,21 +153,20 @@ describe("fetchAPI — response handling", () => {
   test("throws an error with the server message when response.ok is false (4xx/5xx)", async () => {
     mockFetch({ message: "User not found. Please register first." }, 401);
 
-    await expect(fetchAPI("/api/users/me", { token: "bad-token" }))
-      .rejects.toThrow("User not found. Please register first.");
+    await expect(
+      fetchAPI("/api/users/me", { token: "bad-token" }),
+    ).rejects.toThrow("User not found. Please register first.");
   });
 
   test("throws a fallback error message when server returns no message", async () => {
     mockFetch({}, 500);
 
-    await expect(fetchAPI("/api/articles"))
-      .rejects.toThrow("API error:");
+    await expect(fetchAPI("/api/articles")).rejects.toThrow("API error:");
   });
 
   test("throws an error when fetch itself fails (network crash, no internet)", async () => {
     mockFetchError("Failed to fetch");
 
-    await expect(fetchAPI("/api/articles"))
-      .rejects.toThrow("Failed to fetch");
+    await expect(fetchAPI("/api/articles")).rejects.toThrow("Failed to fetch");
   });
 });

@@ -8,9 +8,7 @@ import { Check, Zap, Info } from "lucide-react";
 
 /**
  * Upgrade Page - Pricing Comparison
- *
- * Purpose: Shows pricing comparison between Free and Premium plans
- * Features: Side-by-side comparison with upgrade CTA
+ *Shows pricing comparison between Free and Premium plans
  */
 
 export default function UpgradePage() {

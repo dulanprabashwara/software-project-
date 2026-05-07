@@ -10,10 +10,7 @@ import Button from "../../../../components/ui/Button";
 import Input from "../../../../components/ui/Input";
 
 /**
- * @component EmailSignupPage
- * @description
  * Handles the manual registration flow using Email and Password.
- * @returns {JSX.Element} The email signup form.
  */
 export default function EmailSignupPage() {
   const router = useRouter();
@@ -27,8 +24,7 @@ export default function EmailSignupPage() {
   const [loading, setLoading] = useState(false);
 
   /**
-   * @function handleInputChange
-   * @description Dynamically updates the form state based on input name attributes.
+  Dynamically updates the form state based on input name attributes.
    */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -36,12 +32,8 @@ export default function EmailSignupPage() {
   };
 
   /**
-   * @function handleSubmit
-   * @description
    * Executes the manual registration process sequentially.
     Creates the base user in Firebase Auth.
-   Appends the `displayName` directly to the Firebase profile.
-    Pauses execution slightly to allow `AuthContext` onAuthStateChanged to natively establish the Postgres record via the `/sync` API endpoint.Makes an explicit API call to update the newly minted Postgres record with the requested `displayName` before cleanly routing to the homepage.
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
