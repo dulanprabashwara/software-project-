@@ -13,8 +13,8 @@ export const getInteractedArticlesApi = async (token) => {
   return json.data || [];
 };
 
-export const getArticleRatingsApi = async (token) => {
-  const res = await fetch(`${API_URL}/api/articleRatings`, {
+export const getArticleRatingsApi = async (token,articleId) => {
+  const res = await fetch(`${API_URL}/api/articleRatings?articleId=${articleId}`, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -23,5 +23,5 @@ export const getArticleRatingsApi = async (token) => {
   });
   const json = await res.json();
   if (!json.success) throw new Error(json.message || "Failed to fetch article ratings");
-  return json.data || [];
+  return json.data || null;
 };

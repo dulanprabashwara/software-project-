@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { getArticleCommentsApi, addCommentApi, rateArticleApi } from "../app/api/comments.api";
 
 export const useComments = (articleId, token) => {
+  //for comment and rating submissions
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(0); 
 
+  //get article comments
   const fetchComments = async () => {
     try {
       const data = await getArticleCommentsApi(articleId);
@@ -16,7 +18,7 @@ export const useComments = (articleId, token) => {
       setLoading(false);
     }
   };
-
+//run when article loads
   useEffect(() => {
     if (articleId) fetchComments();
   }, [articleId]);
@@ -29,6 +31,7 @@ export const useComments = (articleId, token) => {
       return true;
     } catch (err) {
       console.error("Hook Error:", err.message);
+      
       return false;
     }
   };

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../app/context/AuthContext"; 
 import { getArticleRatingsApi } from "../app/api/userInteractions.api";
 
-export function useArticleRatings() {
+export function useArticleRatings(articleId) {
   const { user, profileLoading } = useAuth();
   const [articleRatings, setArticleRatings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,7 +17,7 @@ export function useArticleRatings() {
     setIsLoading(true);
     try {
       const token = await user.getIdToken();
-      const data = await getArticleRatingsApi(token);
+      const data = await getArticleRatingsApi(token,articleId);
       setArticleRatings(data);
     } catch (error) {
       console.error("Hook Error:", error.message);

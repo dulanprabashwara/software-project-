@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Loader2, BadgeCheck, Star, MessageCircle, 
-  CalendarDays, Flag, Bookmark 
+  CalendarDays, Flag, Bookmark, AlertCircle
 } from "lucide-react";
 
 // Context & Custom Hooks
@@ -38,6 +38,11 @@ export default function Page() {
   // references 
   const scrollRef = useRef(null);
   const coverRef = useRef(null);
+
+  //for error popups
+  const [errorOcuurred, setErrorOccurred] = useState (false);
+
+  
 
   // Manage Firebase Token
   useEffect(() => {
@@ -75,14 +80,14 @@ export default function Page() {
     }
   }, [savedArticles, article?.id]);
 
-  // 4. Handle Sticky Header Scroll Effect
+  // Handle Sticky Header Scroll Effect
   useEffect(() => {
     const el = scrollRef.current;
     if (!el || articleLoading) return;
     
     const onScroll = () => {
       if (!coverRef.current) return;
-      const rect = coverRef.current.getBoundingClientRect();
+      const rect = coverRef.current.getBoundingClientRect(); //get reference location
       setShowCompact(rect.bottom <= 80); // Show sticky header when cover image scrolls up
     };
     
@@ -90,7 +95,7 @@ export default function Page() {
     return () => el.removeEventListener("scroll", onScroll);
   }, [articleLoading]);
 
-  // --- Actions ---
+  // bookmark
 
   const toggleBookmark = async () => {
     if (!user) {
@@ -99,10 +104,11 @@ export default function Page() {
     }
 
     const nextState = !saved;
-    setSaved(nextState); // Optimistic UI update
+    setSaved(nextState); //  UI update
     setSaving(true);
 
     try {
+      //send Article ID to be added to saved data table
       const currentToken = token || await user.getIdToken();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/savedArticle`, {
         method: nextState ? "POST" : "DELETE",
@@ -117,6 +123,7 @@ export default function Page() {
     } catch (err) {
       setSaved(!nextState); // Revert on failure
       alert(err.message || "Failed to sync bookmark.");
+      errorPopup();
     } finally {
       setSaving(false);
     }
@@ -152,19 +159,21 @@ export default function Page() {
       }
 
       alert("Thank you. The report has been sent to our team.");
-      setIsReportOpen(false);
       setReportReason("");
       setReportDescription("");
 
     } catch (err) {
       console.error(err);
-      alert(err.message || "Something went wrong.");
+      console.log("Error creating report");
+      setErrorOccurred((prev)=>!prev);
     } finally {
       setIsReporting(false);
+      setIsReportOpen(false);
+
     }
   };
 
-  // --- Render Handlers ---
+   //check for loading article/user
 
   if (articleLoading || authLoading) return (
     <div className="flex h-screen items-center justify-center">
@@ -172,18 +181,55 @@ export default function Page() {
     </div>
   );
 
-  if (error || !article) return <div className="p-8 text-center text-gray-500">Article not found</div>;
+  if (error || !article) 
+    {
+      return (
 
+       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center w-150">
+          
+          <AlertCircle className="text-red-500 w-20 h-20 mb-4" />
+          
+          <h2 className="text-gray-900 font-semibold">Article not found</h2>
+          <p className="text-gray-400 text-sm mb-6">Content unavailable</p>
+
+          <button
+            onClick={() => window.history.back()}
+            className="w-full bg-red-500 text-white py-2.5 rounded-xl font-medium hover:bg-red-600 transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+</div>
+      )
+    }
   // Format the display date
-  const rawDate = article.status === "PUBLISHED" 
-    ? article.publishedAt || article.createdAt 
-    : article.scheduledAt || article.updatedAt || article.createdAt;
-
+  const rawDate = article.publishedAt || null
+ 
   const displayDate = rawDate 
     ? new Date(rawDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-    : "Recent";
+    : "Date not Found";
 
   return (
+  <>
+    {/*error popup */}
+    {errorOcuurred && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="w-[300px] rounded-lg border border-red-300 bg-white p-6 shadow-2xl">
+       <h2 className="text-xl font-bold text-red-600">Error Occurred</h2>
+        <p className="mt-3 text-sm text-gray-700">Please try again.</p>
+      
+      {/*go back Button */}
+      <div className="mt-6 flex justify-end">
+        <button
+          onClick={() => setErrorOccurred(false)}
+          className="rounded-lg bg-red-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>}
+
     <div className="h-full bg-white">
       <article ref={scrollRef} className="h-full overflow-y-auto scroll-smooth">
         
@@ -191,12 +237,14 @@ export default function Page() {
         <div className={`sticky top-0 z-50 border-b bg-white/90 backdrop-blur-md transition-all ${
           showCompact ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
         }`}>
+          {/*author avatar*/}
           <div className="max-w-5xl mx-auto px-4 md:px-8 py-2 md:py-3 flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0 mr-4">
-              <img src={article.author?.avatarUrl} className="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover shrink-0" alt="" />
+              <img src={article.author?.avatarUrl} className="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover shrink-0" alt="Author Picture" />
+              {/*Author name and username*/}
               <div className="flex flex-col min-w-0">
                 <span className="text-[11px] md:text-xs font-semibold text-gray-500 truncate">
-                  {article.author?.displayName}
+                  {article.author?.displayName}  
                 </span>
                 <h2 className="font-serif font-bold text-sm md:text-base text-gray-900 truncate max-w-[150px] md:max-w-[400px]">
                   {article.title}
@@ -207,22 +255,26 @@ export default function Page() {
             <div className="flex items-center gap-3 md:gap-5 text-gray-500 shrink-0">
               <div className="hidden sm:flex items-center gap-4 md:gap-5 border-r border-gray-200 pr-4 md:pr-5">
                 <div className="flex items-center gap-1.5 text-xs md:text-sm">
+                  {/* publishe date*/}
                   <CalendarDays className="w-4 h-4" />
                   <span>{displayDate}</span>
                 </div>
+                {/* ratings*/}
                 <div className="flex items-center gap-1">
                   <Star className="w-4 h-4" />
                   <span className="text-xs md:text-sm font-medium">
-                    {article.averageRating > 0 ? article.averageRating.toFixed(1) : "0"}
+                    {article.averageRating > 0 ? article.averageRating.toFixed(1)  : "0"}
+                    [{article.ratingCount}]
                   </span>
                 </div>
+                {/*Comments amount*/}
                 <div className="flex items-center gap-1.5 text-xs md:text-sm">
                   <MessageCircle className="w-4 h-4" />
                   <span>{article.commentCount || 0}</span>
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* bookmark button */}
               <div className="flex items-center gap-3">
                 <button 
                   onClick={toggleBookmark}
@@ -252,11 +304,13 @@ export default function Page() {
             <img src={article.author?.avatarUrl} className="w-10 h-10 rounded-full object-cover" alt="" />
             <div className="flex items-center gap-2">
               <span className="font-bold text-gray-900">{article.author?.displayName}</span>
-              {article.author?.role === "ADMIN" && <BadgeCheck className="w-4 h-4 text-teal-500" />}
+              {article.author?.isPremium === true && <BadgeCheck className="w-4 h-4 text-teal-500" />}
             </div>
-            <button className="text-xs font-semibold text-teal-600 border border-teal-400 rounded-full px-3 py-1 hover:bg-teal-50 transition-colors">
-              Follow
-            </button>
+            {userProfile?.id !== article.author?.id &&
+              <button className="text-xs font-semibold text-teal-600 border border-teal-400 rounded-full px-3 py-1 hover:bg-teal-50 transition-colors">
+                Follow
+              </button>
+            }       
           </div>
 
           <h1 className="text-4xl md:text-5xl font-black font-serif mb-6 leading-tight text-black">
@@ -267,15 +321,20 @@ export default function Page() {
             <img ref={coverRef} src={article.coverImage} className="max-h-[420px] max-w-full object-contain" alt="" />
           </div>
 
-          {/* Interaction Bar (Below Cover) */}
+          {/* Interaction Bar  */}
           <div className="flex items-center justify-between py-4 border-b border-gray-100 mb-8 text-sm text-gray-500">
             <div className="flex items-center gap-6">
+              {/* ratings*/}
               <div className="flex items-center gap-0.5">
                 <Star className="w-5 h-5" />
                 <span className="ml-2 font-medium">
                   {article.averageRating > 0 ? article.averageRating.toFixed(1) : "0"}
+                  [{article.ratingCount}]
+
                 </span>
               </div>
+
+              {/* comments */}
               <div className="flex items-center gap-1.5">
                 <MessageCircle className="w-5 h-5" />
                 <span>{article.commentCount || 0}</span>
@@ -359,5 +418,6 @@ export default function Page() {
       )}
 
     </div>
+  </>
   );
 }
