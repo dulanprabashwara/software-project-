@@ -342,6 +342,25 @@
   border-color: #17a589;
 }
 
+/* ── Restore countdown label ─────────────────────────────────────────────── */
+
+.restore-countdown {
+  font-size: 11px;
+  color: #1ABC9C;
+}
+
+/* ── Empty articles message ──────────────────────────────────────────────── */
+
+.articles-empty-message {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  color: #6B7280;
+}
+
+/* ── Utility: invert icon to white ──────────────────────────────────────── */
+
+.icon-inverted { filter: invert(1); }
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
