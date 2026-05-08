@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { MoreHorizontal, Shield, Activity, Clock, Laptop, ShieldAlert, Monitor } from "lucide-react";
+import { Shield, Activity, Clock, Laptop, ShieldAlert, Monitor } from "lucide-react";
 
-import { auth } from "../../../../lib/firebase"; 
+import { auth } from "../../../../lib/firebase";
 import { api } from "../../../../lib/api";
 
 export default function AdminProfilePage() {
@@ -16,11 +16,9 @@ export default function AdminProfilePage() {
       if (!user) return;
       const token = await user.getIdToken();
 
-      // Hit the real backend endpoint for the logged-in user
       const response = await api.getMe(token);
-      
-      // Depending on how api.js unwraps, data might be directly returned or inside response.data
-      const userData = response.data || response; 
+
+      const userData = response.data || response;
 
       let actionsCount = 0;
       let resolvedCount = 0;
@@ -36,7 +34,6 @@ export default function AdminProfilePage() {
         console.error("Could not fetch metrics endpoint:", metricsErr);
       }
 
-      // Map the Prisma User object to your UI's expected format
       setAdminData({
         name: userData.displayName || userData.username || "Admin User",
         email: userData.email,
@@ -44,14 +41,12 @@ export default function AdminProfilePage() {
         bio: userData.bio || "No administrative bio provided yet.",
         avatar: userData.avatarUrl || null,
         lastLogin: userData.lastSeen ? new Date(userData.lastSeen).toLocaleString() : new Date().toLocaleString(),
-        stats: { 
-          // Pulling from Prisma's UserStats relation if it exists
-          followers: userData.stats?.totalFollowers || "0", 
+        stats: {
+          followers: userData.stats?.totalFollowers || "0",
           following: userData.stats?.totalFollowing || "0",
-          actions: actionsCount, 
+          actions: actionsCount,
           resolved: resolvedCount
         },
-        // Fallbacks for UI elements not currently tracked in the database schema
         permissions: ["Full Content Moderation", "User Data Access", "System API Management"],
         sessions: [
           { id: 1, device: "Current Device", location: "Active Session", status: "Online Now" }
@@ -76,7 +71,6 @@ export default function AdminProfilePage() {
     return () => unsubscribe();
   }, []);
 
-  // --- REAL WORLD: Session Revocation ---
   const handleRevokeSession = async (sessionId, deviceName) => {
     const confirm = window.confirm(`Are you sure you want to terminate the session on ${deviceName}?`);
     if (!confirm) return;
@@ -96,7 +90,7 @@ export default function AdminProfilePage() {
         </div>
 
         <div className="space-y-10 mt-8">
-           <section>
+          <section>
             <p className="text-[#374151] leading-relaxed text-base mb-6">{adminData.bio}</p>
             <div className="flex gap-4">
               <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 bg-gray-50 px-4 py-2 rounded-full border border-gray-100 uppercase">
@@ -134,27 +128,26 @@ export default function AdminProfilePage() {
 
           <section className="pt-8 border-t border-gray-50">
             <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-               <Laptop size={14} /> Active Management Sessions
+              <Laptop size={14} /> Active Management Sessions
             </h3>
             {adminData.sessions.map((session) => (
-               <div key={session.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 mb-3">
-                  <div className="flex items-center gap-4">
-                    <Monitor className="text-gray-400" size={20} />
-                    <div>
-                      <p className="text-sm font-bold text-gray-800">{session.device}</p>
-                      <p className="text-xs text-gray-400">{session.location} • {session.status}</p>
-                    </div>
+              <div key={session.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 mb-3">
+                <div className="flex items-center gap-4">
+                  <Monitor className="text-gray-400" size={20} />
+                  <div>
+                    <p className="text-sm font-bold text-gray-800">{session.device}</p>
+                    <p className="text-xs text-gray-400">{session.location} • {session.status}</p>
                   </div>
-                  <button onClick={() => handleRevokeSession(session.id, session.device)} className="text-[10px] font-black text-red-500 uppercase hover:underline">
-                    Revoke Access
-                  </button>
-               </div>
+                </div>
+                <button onClick={() => handleRevokeSession(session.id, session.device)} className="text-[10px] font-black text-red-500 uppercase hover:underline">
+                  Revoke Access
+                </button>
+              </div>
             ))}
           </section>
         </div>
       </div>
 
-      {/* RIGHT SIDEBAR WITH DYNAMIC AVATAR */}
       <div className="w-64 pt-4 sticky top-8 h-fit text-left">
         <div className="w-24 h-24 bg-gray-200 rounded-full mb-6 flex items-center justify-center overflow-hidden text-gray-500 text-3xl font-bold shadow-sm">
           {adminData.avatar ? <img src={adminData.avatar} alt="Profile" className="w-full h-full object-cover" /> : adminData.name.charAt(0)}

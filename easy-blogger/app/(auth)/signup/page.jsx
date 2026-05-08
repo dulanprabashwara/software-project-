@@ -11,31 +11,26 @@ import {
   signInWithRedirect,
   FacebookAuthProvider,
 } from "firebase/auth";
-import { GoogleIcon, FacebookIcon, EmailIcon } from "../../../components/ui/Icons";
+import {
+  GoogleIcon,
+  FacebookIcon,
+  EmailIcon,
+} from "../../../components/ui/Icons";
 
 /**
- * @component SignupPage
- * @description
  * High-level signup interface combining the landing page background with an overarching authentication modal.
- * WHY: Provides a seamless onboarding experience where users can quickly spin up an account via social providers without leaving the context of the landing page's value proposition.
- *
- * @returns {JSX.Element} The signup modal overlaying the root landing page.
  */
 export default function SignupPage() {
   const router = useRouter();
 
   /**
-   * @function handleClose
-   * @description Closes the modal by routing back to the landing page.
+    Closes the modal by routing back to the landing page.
    */
   const handleClose = () => {
     router.push("/");
   };
 
-  /**
-   * @function handleGoogleSignup
-   * @description Triggers the Firebase Google provider popup for instant registration.
-   */
+  // Triggers the Firebase Google provider popup for instant registration.
   const handleGoogleSignup = async () => {
     try {
       const provider = new GoogleAuthProvider();
@@ -52,10 +47,8 @@ export default function SignupPage() {
     }
   };
 
-  /**
-   * @function handleFacebookSignup
-   * @description Triggers the Firebase Facebook provider popup for instant registration.
-   */
+  // Triggers the Firebase Facebook provider popup for instant registration.
+
   const handleFacebookSignup = async () => {
     try {
       const provider = new FacebookAuthProvider();

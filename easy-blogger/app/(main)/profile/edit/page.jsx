@@ -1021,7 +1021,11 @@ export default function EditProfilePage() {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#0077B5] rounded-lg flex items-center justify-center overflow-hidden border border-blue-100 shadow-sm">
                 {linkedInConnected && liPicture ? (
-                  <img src={liPicture} alt="LinkedIn Profile" className="w-full h-full object-cover" />
+                  <img
+                    src={liPicture}
+                    alt="LinkedIn Profile"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <Linkedin className="w-6 h-6 text-white" />
                 )}
