@@ -80,9 +80,7 @@ export default function CoverImageField({
         className="hidden"
       />
 
-      {!coverImage && (
-        <p className="text-xs text-[#DC2626] mt-2">*Required</p>
-      )}
+
     </div>
   );
 }

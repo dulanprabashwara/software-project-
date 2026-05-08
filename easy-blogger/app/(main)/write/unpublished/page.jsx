@@ -23,10 +23,12 @@ const FILTERS = {
   AI: "ai",
 };
 
+//Removes HTML from content
 function stripHtml(value) {
   return String(value || "").replace(/<[^>]*>/g, "").trim();
 }
 
+//Formats the updated date
 function formatDraftDate(value) {
   if (!value) return "Recently updated";
 
@@ -101,10 +103,7 @@ export default function UnpublishedArticlesPage() {
   // Controls the starting index of the horizontal carousel view
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const toggleSelect = useCallback((id) => {
-    setSelectedId((prev) => (prev === id ? null : id));
-  }, []);
-
+  //Shows an error message for 2.5 seconds
   const showError = useCallback((message) => {
     setErrorMsg(message);
 
@@ -113,6 +112,7 @@ export default function UnpublishedArticlesPage() {
     }, 2500);
   }, []);
 
+  //Loads drafts from the backend 
   const loadDrafts = useCallback(
     async (nextPage = 1, filter = activeFilter) => {
       const isFirstPage = nextPage === 1;
@@ -131,7 +131,7 @@ export default function UnpublishedArticlesPage() {
         );
 
         const drafts = Array.isArray(response?.data)
-          ? response.data
+          ? response.data //
           : Array.isArray(response?.articles)
             ? response.articles
             : [];
@@ -143,7 +143,7 @@ export default function UnpublishedArticlesPage() {
           0;
 
         setDraftArticles((prev) =>
-          isFirstPage ? drafts : [...prev, ...drafts],
+          isFirstPage ? drafts : [...prev, ...drafts], //Add new articles after old articles
         );
         setTotalDrafts(total);
         setPage(nextPage);
@@ -151,16 +151,17 @@ export default function UnpublishedArticlesPage() {
         console.error("Failed to load draft articles:", error);
         showError(error?.message || "Failed to load drafts.");
       } finally {
-        setIsLoading(false);
+        setIsLoading(false);      
         setIsLoadingMore(false);
+        //Loading states are cleared regardless of whether the API request succeeds or fails. 
+        // This prevents the UI from getting stuck in a loading state after an error.
       }
     },
     [activeFilter, showError],
   );
 
   useEffect(() => {
-    // We use a global click listener to automatically close any open edit or delete 
-    // confirmation menus when the user clicks elsewhere, providing a cleaner UX.
+    // Global click listener to automatically close any open edit or delete 
     const handleClickOutside = (event) => {
       if (!event.target.closest(".interactive-controls")) {
         setEditingId(null);
@@ -172,12 +173,14 @@ export default function UnpublishedArticlesPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  //Load drafts when filter changes
   useEffect(() => {
     setSelectedId(null);
     setCurrentIndex(0);
     void loadDrafts(1, activeFilter);
   }, [activeFilter, loadDrafts]);
 
+  //Converts backend articles into the format needed by the UI
   const displayedArticles = useMemo(() => {
     return draftArticles.map((article) => ({
       id: article.id,
@@ -202,6 +205,7 @@ export default function UnpublishedArticlesPage() {
     router.push("/write/choose-method");
   }, [router]);
 
+  //Deletes one draft article
   const handleDelete = async (id) => {
     try {
       await deleteDraft(id);
@@ -216,6 +220,7 @@ export default function UnpublishedArticlesPage() {
     }
   };
 
+  //Slider next button
   const nextSlide = () => {
     // Ensures we don't scroll past the end of the article list (showing max 4 per view)
     if (currentIndex + 4 < displayedArticles.length) {
@@ -223,6 +228,7 @@ export default function UnpublishedArticlesPage() {
     }
   };
 
+  //Slider previous button
   const prevSlide = () => {
     // Prevents negative indexing when scrolling back
     if (currentIndex > 0) {
@@ -232,7 +238,6 @@ export default function UnpublishedArticlesPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header same as Currently Developed Page (Stories) */}
       <header className="px-8 pt-10 pb-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
@@ -364,10 +369,6 @@ export default function UnpublishedArticlesPage() {
                         </div>
 
                         <div className="flex flex-wrap gap-2 mb-3">
-                          {/* 
-                             Badges provide immediate visual feedback on the article's 
-                             origin (AI vs Human) and its current lifecycle state.
-                          */}
                           {article.isEdited && (
                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-100 uppercase tracking-tighter">
                               Edited
@@ -379,7 +380,8 @@ export default function UnpublishedArticlesPage() {
                             </span>
                           )}
                         </div>
-
+                        
+                        {/*Shows plain text preview from article content (limits it to 3 lines)*/}
                         <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed mb-4">
                           {article.desc}
                         </p>
