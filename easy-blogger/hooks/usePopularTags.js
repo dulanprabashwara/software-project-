@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getPopularTagsApi } from "../app/api/topics.api";
+import { api } from "../lib/api"
 
 export function usePopularTags(limit = 10) {
   const [tags, setTags] = useState([]);
@@ -10,7 +10,7 @@ export function usePopularTags(limit = 10) {
     const fetchTags = async () => {
       setIsLoading(true);
       try {
-        const data = await getPopularTagsApi(limit);
+        const data = await api.getPopularTags(limit);
         setTags(data);
       } catch (err) {
         setError(err.message);

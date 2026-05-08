@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../app/context/AuthContext"; 
-import { getReadHistoryApi } from "../app/api/userHistory.api";
+import { useAuth } from "../../app/context/AuthContext"; 
+import { api } from "../../lib/api"
 
 export function useReadHistory() {
   const { user, profileLoading } = useAuth();
@@ -17,7 +17,7 @@ export function useReadHistory() {
     setIsLoading(true);
     try {
       const token = await user.getIdToken();
-      const data = await getReadHistoryApi(token);
+      const data = await api.getReadHistory(token);
       setReadHistory(data);
     } catch (error) {
       console.error("Hook Error:", error.message);

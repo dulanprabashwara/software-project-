@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import ArticleCard from "../../../../components/article/ArticleCard";
-import { useReadHistory } from "../../../../hooks/useReadHistory";
-import { useSavedList } from "../../../../hooks/useSavedArticles";
+import { useReadHistory } from "../../../../hooks/feeds/useReadHistory";
+import { useSavedList } from "../../../../hooks/feeds/useSavedArticles";
 import { Loader2 } from "lucide-react";
 
 export default function History() {
@@ -34,7 +33,7 @@ export default function History() {
          {readHistory.map((item) => (
           <ArticleCard 
             key={item.id} 
-             article={item.article} 
+            article={item.article} 
             readHistory={readHistory} 
             savedArticles={savedList}
           />

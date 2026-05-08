@@ -4,10 +4,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { 
   BadgeCheck, MessageCircle, Star, Bookmark, 
-  MoreHorizontal, BookOpen, Sparkles, Clock, Flag 
+  MoreHorizontal, BookOpen, Sparkles, Clock, Flag,Trash2 
 } from "lucide-react";
 import { useAuth } from "../../app/context/AuthContext";  
-
+ 
 
 //Article card may use saved, interacted, read history depending on the context displayed
 export default function ArticleCard({ 
@@ -19,7 +19,7 @@ export default function ArticleCard({
 
 
 const router = useRouter();
-const { user, profileLoading } = useAuth();
+const { user, profileLoading, userProfile } = useAuth();
 
   // Bookmark State
   const [saved, setSaved] = useState(false);
@@ -28,17 +28,19 @@ const { user, profileLoading } = useAuth();
   // Dropdown Menu State
   const [moreOptions, setMoreOptions] = useState(false);
 
-  // Report Modal State
+  // Report Option State
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [reportDescription, setReportDescription] = useState("");
   const [isReporting, setIsReporting] = useState(false);
 
-  // ==========================================
-  // 2. EFFECTS & INITIALIZATION
-  // ==========================================
+  // Delete OPtion State
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Check if article is already bookmarked on load
+   
+
+  // Check if article is already bookmarked 
   useEffect(() => {
     if (savedArticles.length > 0) {
       const isSavedInDb = savedArticles.some((obj) => obj.id === article.id);
@@ -46,9 +48,7 @@ const { user, profileLoading } = useAuth();
     }
   }, [savedArticles, article.id]);
 
-  // ==========================================
-  // 3. DATA CALCULATIONS & FORMATTING
-  // ==========================================
+   
 
   // User Interaction Checks
   const userInteraction = interactedArticles.find((obj) => obj.id === article.id);
@@ -59,34 +59,33 @@ const { user, profileLoading } = useAuth();
   const readMatch = readHistory.find((obj) => obj.articleId === article.id);
   const rawReadDate = article.interactedAt || readMatch?.lastReadAt; 
   const readDateDisplay = rawReadDate
+
     ? new Date(rawReadDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
     : null;
 
   // Author Details
   const authorName = article.author?.displayName || "Guest Writer"; 
   const authorAvatar = article.author?.avatarUrl || "https://ui-avatars.com/api/?name=Guest";
-  const authorUsername = article.author.username || "guestAuthor"
+  const authorUsername = article.author?.username || "guestAuthor"
   
   // Date Formatting
   const isPublished = article.status;
-  const rawPublishDate = isPublished === "PUBLISHED"
-      ? article.publishedAt || article.createdAt
-      : article.updatedAt || article.createdAt;
-  const rawScheduledDate = isPublished === "SCHEDULED" ? article.scheduledAt : "";
+  const rawPublishDate = isPublished === "PUBLISHED" ? article.publishedAt : "Unknown date";
+  const rawScheduledDate = isPublished === "SCHEDULED" ? article.scheduledAt : "Unknown";
 
+  //for published articles
   const displayDate = rawPublishDate
     ? new Date(rawPublishDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
     : "Date unknown";
 
+    //for scheduled articles
   const scheduledDate = rawScheduledDate
-    ? new Date(raw).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })
+    ? new Date(rawScheduledDate).toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false })
     : "Scheduled date unknown";
 
 
-  // ==========================================
-  // 4. API HANDLERS
-  // ==========================================
-
+ 
+//more options
   const toggleMoreOptions = () => setMoreOptions(!moreOptions);
 
   // Handle Bookmarking
@@ -100,6 +99,7 @@ const { user, profileLoading } = useAuth();
     setSaved(nextState); // Optimistic UI update
     setSaving(true);
 
+    //toggle bookmark on and off
     try {
       const token = await user.getIdToken();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/savedArticle`, {
@@ -164,10 +164,47 @@ const { user, profileLoading } = useAuth();
     }
   };
 
-  // ==========================================
-  // 5. RENDER UI
-  // ==========================================
+  // handle delete
+  const handleDeleteSubmit = async () => {
+    if (!user) return alert("You must be logged in.");
 
+    setIsDeleting(true);
+
+    try {
+      const token = await user.getIdToken();
+      
+      // api call
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${article.id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to delete article");
+      }
+
+      setIsDeleteOpen(false);
+      
+      // If the parent page passed a refresh function, call it so the deleted article disappears!
+      if (onDeleteSuccess) {
+        onDeleteSuccess(article.id);
+      } else {
+        alert("Article deleted successfully.");
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Something went wrong.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+
+  // UI
   return (
     <div className="relative"> 
       <article className="py-6 border-b border-[#E5E7EB]  relative">
@@ -179,8 +216,9 @@ const { user, profileLoading } = useAuth();
             {authorName}
             <span className="text-xs text-gray-500"> @{authorUsername}</span>
             </span>
-          {article.author?.isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" title="Premium Author" />}
+          {article.author?.isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" title="Premium Author" />} {/* premium check */}
 
+          {/*Display published or scheduled date */}
           <span className="text-sm text-[#6B7280]"> 
             {isPublished === "PUBLISHED" ? (
               <span>{displayDate}</span>
@@ -190,7 +228,8 @@ const { user, profileLoading } = useAuth();
               </span>
             ) : "date_unknown"}
           </span>
-
+          
+          {/* AI generatted check */}
           {article.isAiGenerated && (
             <span className="flex items-center gap-1 ml-2 text-[10px] font-semibold border border-[#1ABC9C] text-[#1ABC9C] bg-purple-50 px-2 py-0.5 rounded-full">
               <Sparkles className="w-3 h-3" /> AI Generated
@@ -198,18 +237,21 @@ const { user, profileLoading } = useAuth();
           )}
         </div>
 
-        {/* --- Article Title & Content Snippet --- */}
+        {/* Article Title & Content  */}
         <div className="flex gap-6 justify-between">
           <div className="flex-1">
             <div className="h-14">
+
+              {/* Push to article reading page */}
               <h2 
                 className="text-xl font-bold text-[#111827] mb-2 leading-tight font-serif hover:text-[#1ABC9C] cursor-pointer transition-colors duration-150 line-clamp-2" 
-                onClick={() => router.push(`/home/read?id=${article.id}`)}
+                onClick={() => router.push(`/home/read?id=${article.id}`)} 
               >
                 {article.title || "Untitled Article"}
               </h2>
             </div>
             
+            {/*display article preview content*/}
             <div className="line-clamp-3 h-18 text-gray-500 text-[16px] leading-6"
                  dangerouslySetInnerHTML={{ __html: article.summary || "<p>No content available.</p>" }}
             />
@@ -222,20 +264,20 @@ const { user, profileLoading } = useAuth();
           )}
         </div>
 
-        {/* --- Interaction Footer --- */}
+        {/*   Interaction Footer  */}
         <div className="flex items-center justify-between mt-4 relative">
           <div className="flex items-center gap-4 text-sm text-[#6B7280]">
             
-            <button className={`flex items-center gap-1.5 transition-colors duration-150 ${hasCommented ? 'text-[#1ABC9C]' : 'hover:text-[#1ABC9C]'}`}>
+            <span className={`flex items-center gap-1.5 transition-colors duration-150 ${hasCommented ? 'text-[#1ABC9C]' : 'hover:text-[#1ABC9C]'}`}>
               <MessageCircle className={`w-5 h-5 ${hasCommented ? 'fill-[#1ABC9C]' : ''}`} strokeWidth={1.5} />
               <span>{article.commentCount || "-"}</span>
-            </button>
+            </span>
 
-            <div className={`flex items-center gap-1.5 ${hasRated ? 'text-[#1ABC9C]' : ''}`}>
+            <span className={`flex items-center gap-1.5 ${hasRated ? 'text-[#1ABC9C]' : ''}`}>
               <Star className={`w-5 h-5 ${hasRated ? 'fill-[#1ABC9C]' : ''}`} strokeWidth={1.5} />
               <span className="font-medium">{article.averageRating > 0 ? article.averageRating.toFixed(1) : "-"}</span>
               <span className="text-[#6B7280]"> [{article.ratingCount || 0}]</span>
-            </div>
+            </span>
 
             {readDateDisplay && (
               <div className="flex items-center gap-1.5 text-[#6B7280] ml-2">
@@ -264,27 +306,44 @@ const { user, profileLoading } = useAuth();
             </button>
 
             {/* Dropdown Menu */}
-            {moreOptions && (
-              <div className="absolute right-0 top-full mt-1 flex flex-col bg-white w-36 border border-[#e5e7eb] rounded-xl drop-shadow-lg z-50 overflow-hidden">
-                <button 
-                  onClick={() => {
-                    setIsReportOpen(true);
-                    setMoreOptions(false); // Close dropdown when opening modal
-                  }}
-                  className="flex items-center gap-3 w-full h-10 px-4 hover:bg-red-50 transition-colors"
-                >
-                  <Flag className="w-4 h-4 text-red-500" />
-                  <span className="text-sm font-medium text-red-500">Report</span>
-                </button>
-              </div>
-            )}
+          {moreOptions && (
+            <div className="absolute right-0 top-full mt-1 flex flex-col bg-white w-36 border border-[#e5e7eb] rounded-xl drop-shadow-lg z-50 overflow-hidden">
+              {/* Report Option */}
+             { userProfile.id != article.author.id &&
+              <button 
+                onClick={() => {
+                  setIsReportOpen(true);
+                  setMoreOptions(false); 
+                }}
+                className="flex items-center gap-3 w-full h-10 px-4 hover:bg-gray-50 transition-colors border-b border-gray-100"
+              >
+                <Flag className="w-4 h-4 text-gray-600" />
+                <span className="text-sm font-medium text-gray-700">Report</span>
+              </button>
+            }
+
+              {/* Delete Option */}
+             {userProfile.id == article.author.id &&
+              <button 
+                onClick={() => {
+                  setIsDeleteOpen(true);
+                  setMoreOptions(false); 
+                }}
+                className="flex items-center gap-3 w-full h-10 px-4 hover:bg-red-50 transition-colors"
+              >
+                <Trash2 className="w-4 h-4 text-red-600" />
+                <span className="text-sm font-medium text-red-600">Delete</span>
+              </button> 
+            }
+
+
+            </div>
+          )}
           </div>
         </div>
       </article>
 
-      {/* ==========================================
-          6. MODALS
-          ========================================== */}
+      {/*  report  popup mrnu */}
       
       {isReportOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -321,6 +380,41 @@ const { user, profileLoading } = useAuth();
                 {isReporting ? "Sending..." : "Submit"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+       {/* Delete popup menu */}
+      {isDeleteOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+            
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <Trash2 className="w-6 h-6 text-red-600" />
+            </div>
+            
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Article?</h3>
+            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
+              This action is permanent and cannot be undone. All comments and ratings associated with this article will be lost forever.
+            </p>
+            
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setIsDeleteOpen(false)} 
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDeleteSubmit} 
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-all disabled:opacity-50"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+
           </div>
         </div>
       )}

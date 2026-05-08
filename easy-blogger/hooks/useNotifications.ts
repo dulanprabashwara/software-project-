@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from '../app/context/AuthContext'; 
-import { getNotificationsApi, markNotificationReadApi } from '../app/api/notification.api';
+import { api } from "../lib/api"
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 let socket;
@@ -19,8 +19,8 @@ export function useNotifications(userId) {
         const token = await user.getIdToken();
 
         // 1. Fetch historical data via API Service
-        const data = await getNotificationsApi(token);
-        setNotifications(data);
+        const data = await api.getNotifications(token); 
+        setNotifications(Array.isArray(data) ? data : data.data || []);
 
         // 2. Initialize Socket Connection
         if (!socket || !socket.connected) {
@@ -60,7 +60,7 @@ export function useNotifications(userId) {
       setNotifications(prev => id ? prev.filter(n => n.id !== id) : []);
       
       // API Service Call
-      await markNotificationReadApi(id, token);
+      await api.markNotificationRead(id, token);
     } catch (err) {
       console.error("Failed to delete notification:", err.message);
     }

@@ -16,7 +16,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useSubscription } from "../../context/SubscriptionContext";
 import InsightsSidebar from "../../../components/ai/InsightsSidebar";
 import TrendingArticleSlider from "../../../components/ai/TrendingArticleSlider";
-import { useSavedArticles } from "../../../hooks/useSavedArticles";
+import { useSavedArticles } from "../../../hooks/feeds/useSavedArticles";
 import "../../../styles/ai-article-generator/ai-article-generator.css";
 import "../../../styles/ai-article-generator/ai-article-generator-view2.css";
 import "../../../styles/ai-article-generator/articles-view.css";

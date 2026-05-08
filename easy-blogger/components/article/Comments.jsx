@@ -168,6 +168,7 @@ export const Comments = ({ articleId, token }) => {
             <Loader2 className="animate-spin text-teal-500" />
           </div>
         ) : (
+          //get only top level comments
           comments.filter(c => !c.parentId).map((comment) => (
             <div key={comment.id} className="border-l-2 border-gray-100 pl-4">
               <div className="flex items-center gap-2 mb-1">
@@ -189,7 +190,7 @@ export const Comments = ({ articleId, token }) => {
               </button>
 
               {/* REPLIES SECTION */}
-              <div className="ml-6 mt-4 space-y-4">
+              <div className=" ml-6 mt-4 space-y-4">
                 {comments.filter(r => r.parentId === comment.id).map(reply => (
                   <div key={reply.id} className="bg-gray-50 p-2 rounded">
                     <span className="font-bold text-xs">{reply.author?.displayName || "Anonymous"}</span>

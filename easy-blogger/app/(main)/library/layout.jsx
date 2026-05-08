@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import RightFeed from "../../../components/article/RightFeed";
-import { DATA } from "../../../components/article/ArticleList";
 
 export default function Layout({ children }) {
   const pathname = usePathname();

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getArticleCommentsApi, addCommentApi, rateArticleApi } from "../app/api/comments.api";
+ import { api } from "../lib/api"
 
 export const useComments = (articleId, token) => {
   //for comment and rating submissions
@@ -10,7 +10,7 @@ export const useComments = (articleId, token) => {
   //get article comments
   const fetchComments = async () => {
     try {
-      const data = await getArticleCommentsApi(articleId);
+      const data = await api.getArticleComments(articleId);
       setComments(data);
     } catch (err) {
       console.error("Hook Error:", err.message);
@@ -26,12 +26,12 @@ export const useComments = (articleId, token) => {
   const addComment = async (content, parentId = null) => {
     if (!token) return false;
     try {
-      await addCommentApi(articleId, content, parentId, token);
+      await api.addComment({articleId, content, parentId}, token);
       await fetchComments(); // Refresh list automatically
       return true;
     } catch (err) {
       console.error("Hook Error:", err.message);
-      
+
       return false;
     }
   };
@@ -39,7 +39,7 @@ export const useComments = (articleId, token) => {
   const submitRating = async (num) => { 
     if (!token) return false;
     try {
-      await rateArticleApi(articleId, num, token);
+      await api.rateArticle(articleId, num, token);
       setRating(num); 
       return true;
     } catch (err) {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useFollowingArticles } from "../../hooks/useFollowingFeed";
-import { useSavedArticles } from "../../hooks/useSavedArticles";
+import { useFollowingArticles } from "../../hooks/feeds/useFollowingFeed";
+import { useSavedArticles } from "../../hooks/feeds/useSavedArticles";
 import ArticleCard from "./ArticleCard";
 import InfiniteScroll from "../ui/InfiniteScroll"; // Adjust path as needed
 import { Loader2 } from "lucide-react";

@@ -9,8 +9,8 @@ import {
 
 // Context & Custom Hooks
 import { useAuth } from "../../context/AuthContext";
-import { useArticle } from "../../../hooks/useArticle";
-import { useSavedArticles } from "../../../hooks/useSavedArticles";
+import { useArticle } from "../../../hooks/read/useArticle";
+import { useSavedArticles } from "../../../hooks/feeds/useSavedArticles";
 import { Comments } from "../../../components/article/Comments";
 
 export default function Page() {

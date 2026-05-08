@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getTrendingArticlesApi } from "../app/api/trending.api";
+import { api } from "../../lib/api"
 
 let cachedTrendingArticles = null; // Renamed to avoid clashes
 
@@ -17,7 +17,7 @@ export function useTrendingArticles() {
     const fetchTrending = async () => {
       setIsTrendingLoading(true);
       try {
-        const result = await getTrendingArticlesApi();
+        const result = await api.getTrendingArticles();
         cachedTrendingArticles = result;
         setTrending(result);
       } catch (error) {

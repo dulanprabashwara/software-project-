@@ -1,13 +1,13 @@
 "use client";
 
-import { useMainArticles } from "../../hooks/useMainArticles";
-import { useSavedArticles } from "../../hooks/useSavedArticles";
+import { useNewArticles } from "../../hooks/feeds/useNewArticles";
+import { useSavedArticles } from "../../hooks/feeds/useSavedArticles";
 import ArticleCard from "./ArticleCard";
 import InfiniteScroll from "../ui/InfiniteScroll"; // Adjust path as needed
 import { Loader2 } from "lucide-react";
 
 export default function MainFeed() {
-  const { articles, isLoading, isFetchingMore, hasMore, loadMore } = useMainArticles();
+  const { articles, isLoading, isFetchingMore, hasMore, loadMore } = useNewArticles();
   const { savedArticles } = useSavedArticles();
 
   // Initial full-page loading state

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../app/context/AuthContext";
-import { useSavedArticles } from "../../hooks/useSavedArticles";
+import { useSavedArticles } from "../../hooks/feeds/useSavedArticles";
 import { searchArticles, searchUsers } from "../../lib/searchApi";
 import SearchArticleCard from "./SearchArticleCard";
 import UserCard from "./UserCard";

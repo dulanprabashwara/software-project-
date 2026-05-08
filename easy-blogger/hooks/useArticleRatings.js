@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../app/context/AuthContext"; 
-import { getArticleRatingsApi } from "../app/api/userInteractions.api";
+ import { api } from "../lib/api"
 
 export function useArticleRatings(articleId) {
   const { user, profileLoading } = useAuth();
@@ -17,7 +17,7 @@ export function useArticleRatings(articleId) {
     setIsLoading(true);
     try {
       const token = await user.getIdToken();
-      const data = await getArticleRatingsApi(token,articleId);
+      const data = await api.getArticleRatings(articleId,token);
       setArticleRatings(data);
     } catch (error) {
       console.error("Hook Error:", error.message);

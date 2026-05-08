@@ -1,8 +1,8 @@
 "use client";
 
 import ArticleCard from "../../../../components/article/ArticleCard";
-import { useSavedArticles } from "../../../../hooks/useSavedArticles";
-import { useInteractedArticles } from "../../../../hooks/useInteractedArticles";
+import { useSavedArticles } from "../../../../hooks/feeds/useSavedArticles";
+import { useInteractedArticles } from "../../../../hooks/feeds/useInteractedArticles";
 export default function Saved() {
   const { savedArticles, isLoading: savedLoading } = useSavedArticles();
   const { interactedArticles, isLoading: interactedLoading } = useInteractedArticles();

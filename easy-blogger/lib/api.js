@@ -190,4 +190,67 @@ export const api = {
 
   getAdminMetrics: (token) => 
     fetchAPI(`/api/admin/metrics`, { token }),
+
+  // Comments and articleRating
+  getArticleComments: (articleId) => 
+    fetchAPI(`/api/comments/${articleId}`),
+  
+  addComment: (data, token) => 
+    fetchAPI("/api/comments", { method: "POST", body: data, token }),
+    
+  rateArticle: (articleId, rating, token) => 
+    fetchAPI(`/api/comments/${articleId}/rate`, { method: "POST", body: { rating }, token }),
+
+  // Feeds
+  getFollowingFeed: (page = 1, token = null) => 
+    fetchAPI(`/api/homefeed/following?page=${page}`, { token }),
+
+  getNewFeed: (page = 1, token = null) => 
+    fetchAPI(`/api/homefeed/main?page=${page}`, { token }),
+
+  // Notifications
+  getNotifications: (token) => 
+    fetchAPI("/api/notifications", { token }),
+
+  markNotificationRead: (notificationId, token) =>
+    fetchAPI("/api/notifications/mark-read", { 
+      method: "POST", 
+      body: { notificationId }, 
+      token 
+    }),
+
+    // Saved Articles
+  getSavedArticles: (token) => 
+    fetchAPI("/api/savedArticle", { token }),
+    
+  getSavedList: (token) => 
+    fetchAPI("/api/savedArticle/savedList", { token }),
+
+  // Topics / Tags
+  getPopularTags: (limit = 10) => 
+    fetchAPI(`/api/popularTopics?limit=${limit}`).then(res => res.data || []),
+
+  getTrendingTitles: () => 
+    fetchAPI(`/api/trendingArticles/trendingTitles`).then(res=> Array.isArray(res)? res: res.trending || [] ),
+
+  getTrendingArticles: () => 
+    fetchAPI(`/api/trendingArticles/trendingArticles`).then(res=> Array.isArray(res)? res: res.trending || [] ),
+
+  // User History & Content
+  getReadHistory: (token) => 
+    fetchAPI("/api/readHistory", { token }).then(res => res.data || []),
+
+  getPublishedArticles: (token) => 
+    fetchAPI("/api/publishedArticles", { token }).then(res => res.data || []),
+
+  // User Interactions & Ratings
+  getInteractedArticles: (token) => 
+    fetchAPI("/api/interactedArticles", { token }).then(res => res.data || []),
+
+   getInteractedList: (token) => 
+    fetchAPI("/api/interactedArticles/interactedList", { token }),
+
+  getArticleRatings: (articleId, token) => 
+    fetchAPI(`/api/articleRatings?articleId=${articleId}`, { token }).then(res => res.data || null),
+
 };

@@ -1,6 +1,5 @@
 import { Star } from 'lucide-react';
-import FollowerGrowthChart from "../../../../components/FollowerGrowthChart";
-import TrendingArticles from "../../../../components/article/TrendingArticles";
+ import TrendingArticles from "../../../../components/article/TrendingArticles";
 
 
 export default function PrivateStats()
