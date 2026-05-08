@@ -181,7 +181,7 @@ export default function Page() {
     </div>
   );
 
-  if (error || !article) 
+  if (!article) 
     {
       return (
 
