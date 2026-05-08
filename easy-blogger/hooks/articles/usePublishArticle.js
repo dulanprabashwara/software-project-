@@ -68,22 +68,25 @@ export function usePublishArticle(articleId) {
   const [liUsername, setLiUsername] = useState("");
   const [liCheckDone, setLiCheckDone] = useState(false);
 
-  // LinkedIn word count logic
+  // LinkedIn caption word count logic
   const linkedinWordCount = useMemo(() => {
-    if (!linkedinCaption) return 0;
+    if (!linkedinCaption)
+      return 0;
     return linkedinCaption.trim().split(/\s+/).filter(Boolean).length;
   }, [linkedinCaption]);
 
   const isLiCaptionOverLimit = linkedinWordCount >= 200;
 
-  // Helpers
+  // Checks if selected schedule time is invalid
   const isPastDateTime = () => {
-    if (!scheduledDate || !scheduledTime) return false;
+    if (!scheduledDate || !scheduledTime)
+      return false;
     const selected = new Date(`${scheduledDate}T${scheduledTime}`);
     const now = new Date();
     return selected < now;
   };
 
+  //Creates ISO datetime for backend
   const buildScheduledAt = () => {
     if (timing !== "schedule" || !scheduledDate || !scheduledTime) {
       return null;
@@ -102,6 +105,7 @@ export function usePublishArticle(articleId) {
     setTags((prev) => [...prev, trimmedTag]);
   };
 
+  //Removes selected tag
   const removeTag = (tagToRemove) => {
     setTags((prev) => prev.filter((tag) => tag !== tagToRemove));
   };
@@ -250,7 +254,8 @@ export function usePublishArticle(articleId) {
 
   // Verifies LinkedIn connection status
   useEffect(() => {
-    if (!shareLinkedIn || !firebaseUser || liCheckDone) return;
+    if (!shareLinkedIn || !firebaseUser || liCheckDone)
+      return;
 
     const checkLinkedInConnection = async () => {
       try {

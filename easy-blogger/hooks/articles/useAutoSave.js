@@ -8,6 +8,7 @@ export function useAutosave({
   onSave,
   watchValues = [],
 }) {
+  //Keeps the latest save function available inside delayed timers
   const latestOnSaveRef = useRef(onSave);
 
   useEffect(() => {
@@ -15,12 +16,15 @@ export function useAutosave({
   }, [onSave]);
 
   useEffect(() => {
-    if (!enabled) return;
+    //Prevents autosave from running during invalid editor states
+    if (!enabled) 
+      return;
 
     const timer = setTimeout(() => {
+      //Avoids blocking the UI while autosave runs asynchronously
       void latestOnSaveRef.current();
     }, AUTOSAVE_DELAY_MS);
-
+    //Cancels outdated autosave attempts while the user is still typing
     return () => clearTimeout(timer);
   }, [enabled, ...watchValues]);
 }

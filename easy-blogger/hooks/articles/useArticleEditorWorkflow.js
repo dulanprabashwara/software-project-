@@ -75,8 +75,8 @@ export function useArticleEditorWorkflow(mode) {
   const [articleMode, setArticleMode] = useState("new");
   const { modalState, openModal, closeModal } = useConfirmDialog();
 
-  const hasHydratedRef = useRef(false);
-  const lastSavedSnapshotRef = useRef("");
+  const hasHydratedRef = useRef(false); //Prevents loading the article multiple times
+  const lastSavedSnapshotRef = useRef(""); //Stores the last saved version of title/content/image
   const hasDiscardedCopyRef = useRef(false); // For edit-as-new
 
   const getSnapshot = useCallback(
@@ -99,8 +99,7 @@ export function useArticleEditorWorkflow(mode) {
     if (!mode || !isClientReady || hasHydratedRef.current)
       return;
 
-    // For non-create modes, we must wait for the article ID from searchParams to be available.
-    // Next.js may take a brief moment to populate searchParams on initial mount.
+    // For non-create modes, wait for the article ID from searchParams to be available.
     if (mode !== "create" && !articleIdFromParams)
       return;
 
@@ -110,15 +109,15 @@ export function useArticleEditorWorkflow(mode) {
       try {
         const previewContext = readPreviewContext();
 
-        // 1. Handle returning from Preview
+        // Handle returning from Preview
         if (previewContext?.mode === mode && previewContext?.id) {
           /* 
-           We must verify the ID matches the URL. If a user publishes article A 
+           Must verify the ID matches the URL. If a user publishes article A 
           and then immediately edits article B, the 'edit-existing' mode in sessionStorage 
            might still point to article A. This check prevents loading the wrong data.
            */
           const isCorrectArticle = mode !== "edit-existing" || previewContext.id === articleIdFromParams;
-          // Additional check for edit-as-new sourceId
+          // Check for edit-as-new sourceId
           const isCorrectSource = mode !== "edit-as-new" || previewContext.sourceId === sourceIdFromParams;
 
           if (isCorrectArticle && isCorrectSource) {
@@ -144,7 +143,7 @@ export function useArticleEditorWorkflow(mode) {
           }
         }
 
-        // 2. Handle Fresh Load based on Mode
+        // Handle Fresh Load based on Mode
         if (mode === "create") {
           const response = await getCurrentEditingDraft();
           const article = getArticleFromResponse(response);
@@ -229,6 +228,7 @@ export function useArticleEditorWorkflow(mode) {
           ? buildArticlePayload({ title: nextTitle, content: nextContent, coverImage: nextCoverImage, status })
           : { title: nextTitle, content: nextContent, coverImage: nextCoverImage };
 
+        //Create mode save
         if (mode === "create") {
           if (!currentDraftId) {
             const response = await createDraft(payload);
@@ -238,7 +238,7 @@ export function useArticleEditorWorkflow(mode) {
             await updateDraft(currentDraftId, payload);
           }
         } else {
-          // edit-existing or edit-as-new
+          // edit-existing or edit-as-new modes save
           const saveFn = options.isPreview && config.previewSaveFn
             ? config.previewSaveFn
             : (status === "draft" ? config.saveDraftFn : config.autosaveFn);
@@ -269,7 +269,7 @@ export function useArticleEditorWorkflow(mode) {
     watchValues: [title, content, coverImage],
   });
 
-  // Save as Draft Action
+  // Save as Draft Action without redirect
   const saveDraftWithoutRedirect = useCallback(async () => {
     const plainTextContent = getEditorPlainTextContent();
     const validationError = getEditorValidationError({
@@ -287,7 +287,8 @@ export function useArticleEditorWorkflow(mode) {
 
     try {
       setInlineError("");
-      if (mode === "create") setArticleMode("draft");
+      if (mode === "create") 
+        setArticleMode("draft");
       await saveArticle("draft", { content: getEditorHtmlContent() });
       clearPreviewContext();
       return true;
@@ -298,13 +299,14 @@ export function useArticleEditorWorkflow(mode) {
     }
   }, [title, contentLimitError, isContentLimitReached, getEditorPlainTextContent, getEditorHtmlContent, saveArticle, mode, setInlineError]);
 
+  //Save as draft button
   const handleSaveAsDraft = useCallback(async () => {
     const didSave = await saveDraftWithoutRedirect();
     if (didSave)
       router.push(config.exitPath);
   }, [saveDraftWithoutRedirect, router, config.exitPath]);
 
-  // Discard Action
+  // Discard Action without redirect
   const discardWithoutRedirect = useCallback(async () => {
     try {
       if (mode === "edit-as-new")
@@ -334,6 +336,7 @@ export function useArticleEditorWorkflow(mode) {
     }
   }, [draftId, articleIdFromParams, config.discardFn, mode, resetEditorCoreState, setInlineError]);
 
+  //Disacrd button
   const handleDiscard = useCallback(() => {
     openModal({
       title: config.discardTitle,
@@ -372,7 +375,8 @@ export function useArticleEditorWorkflow(mode) {
       onSaveAndPreview: async () => {
         try {
           setInlineError("");
-          if (mode === "create") setArticleMode("draft");
+          if (mode === "create") 
+            setArticleMode("draft");
 
           const currentDraftId = await saveArticle("draft", { content: getEditorHtmlContent() }, { isPreview: true });
 
@@ -381,7 +385,7 @@ export function useArticleEditorWorkflow(mode) {
             id: currentDraftId,
             sourceId: mode === "edit-as-new" ? sourceIdFromParams : undefined,
           });
-
+          //Builds preview URL after saves as draft
           const previewUrl = `/write/preview?id=${currentDraftId}&mode=${mode}${mode === "edit-as-new" ? `&sourceId=${sourceIdFromParams}` : ""}`;
           router.push(previewUrl);
         } catch (error) {
@@ -392,7 +396,7 @@ export function useArticleEditorWorkflow(mode) {
     });
   }, [getEditorPlainTextContent, title, contentLimitError, isContentLimitReached, openModal, closeModal, saveArticle, mode, getEditorHtmlContent, sourceIdFromParams, router, setInlineError]);
 
-  // Navigation Guard
+  // Navigation Guard - protects the user from leaving editor accidentally
   const { handleExternalActionAttempt, pendingExternalActionRef } = useEditorNavigationGuard({
     enabled: isClientReady,
     isHydrating,
@@ -405,6 +409,7 @@ export function useArticleEditorWorkflow(mode) {
     onDiscardBeforeLeave: discardWithoutRedirect,
   });
 
+  //Exit handler
   const handleExit = useCallback(() => {
     pendingExternalActionRef.current = () => router.push(config.exitPath);
     handleExternalActionAttempt();

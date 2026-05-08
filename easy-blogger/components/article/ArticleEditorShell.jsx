@@ -8,7 +8,7 @@ import {
   CONTENT_MAX_LENGTH,
   TITLE_MAX_LENGTH,
 } from "../../lib/articles/editorConstants";
-import { getPlainTextFromHtml, normalizeEditorPlainText } from "../../lib/articles/editorHelpers";
+import { normalizeEditorPlainText } from "../../lib/articles/editorHelpers";
 import CoverImageField from "./CoverImageField";
 import { EditorHeader, EditorBottomActions } from "./EditorSharedLayout";
 
