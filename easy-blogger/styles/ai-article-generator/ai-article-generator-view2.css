@@ -1,11 +1,8 @@
-/* AI Article Generator — View 2 Styles (keyword selection, length, tone, generate) */
-/* Also contains preview overlay and article result styles used in View 3 */
+/* AI Article Generator — contain styles for keyword selection, length, tone, generate,result article display, preview overlay */
 /* Note: Google Fonts (Inter) is imported in ai-article-generator.css */
 
 /* ── Main container override for View 2 ─────────────────────────────────── */
-/* Extends .ai-generator-main from ai-article-generator.css:
-   fills full height, removes the overflow-y scroll so the page itself scrolls */
-
+/* Extends .ai-generator-main from ai-article-generator.css: */
 .ai-generator-main {
   min-height: 100%;
   overflow-y: unset;
@@ -356,7 +353,7 @@
   flex-shrink: 0;
 }
 
-/* Action row sits directly below the title box — no large gap */
+/* Article actions row */
 .article-actions {
   display: flex;
   align-items: center;
@@ -598,7 +595,7 @@
   margin-left: 35px;
 }
 
-/* Close button (circle outside the preview box) */
+/*Preview box close button */
 .preview-close-circle {
   position: absolute;
   top: 20px;
@@ -629,7 +626,7 @@
 
 .preview-close-button-circle:hover { background-color: #5A5A5A; transform: scale(1.1); }
 
-/* ── Article result full-width modifier (View 2 generate result) ─────────── */
+/* ── Article result full-width modifier  ─────────── */
 
 .article-result-section--full-width { width: 100%; }
 

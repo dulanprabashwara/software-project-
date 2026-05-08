@@ -66,8 +66,7 @@ export default function UserCard({ user }) {
     }
   };
 
-  // Optimistically toggles follow state, then reconciles with the server response
-  // and refreshes the follower count.
+  // Optimistically toggles follow state, then reconciles with the server response and refreshes the follower count.
   const handleFollowToggle = async (e) => {
     e.stopPropagation();
     if (!firebaseUser || !id || isTogglingFollow) return;

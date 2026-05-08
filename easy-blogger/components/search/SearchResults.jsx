@@ -208,7 +208,8 @@ export default function SearchResults({ query, initialTab = "articles" }) {
                 article={article}
                 savedArticles={savedArticles}
               />
-            ))}           
+            ))}     
+             {/* small spinner at end of page when scrolled further*/}      
             {articlesLoading && articles.length > 0 && <InlineSpinner />}
             {!hasMoreArticles && articlesLoaded && articles.length > 0 && <EndOfResults />}
           </>
@@ -229,7 +230,7 @@ export default function SearchResults({ query, initialTab = "articles" }) {
             {users.map((user) => (
               <UserCard key={user.id} user={user} />
             ))}
-
+             {/* small spinner at end of page when scrolled further*/}
             {usersLoading && users.length > 0 && <InlineSpinner />}
             {!hasMoreUsers && usersLoaded && users.length > 0 && <EndOfResults />}
           </>

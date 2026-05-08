@@ -21,7 +21,6 @@ export default function ArticlesView({
   handleRestoreArticle,
   handleConfirmSecondDelete,
   handleCancelSecondDelete,
-  fetchArticleLogs,
 }) {
   const router = useRouter();
 

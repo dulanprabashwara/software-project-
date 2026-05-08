@@ -6,8 +6,6 @@
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-// ── Prompt analysis ──────────────────────────────────────────────────────────
-
 /**
  * Sends the user's raw prompt to the backend for topic + keyword extraction.
  * Returns { sessionId, topic, keywords, hasArticleLengthInPrompt, hasToneInPrompt }.
@@ -22,8 +20,6 @@ export const analyzePrompt = async (getHeaders, userInput) => {
   if (!res.ok || !data.success) throw new Error(data.error || `Server error: ${res.status}`);
   return data;
 };
-
-// ── Article generation ───────────────────────────────────────────────────────
 
 /**
  * Generates a new AI article from the given settings.
@@ -55,8 +51,6 @@ export const regenerateArticle = async (getHeaders, payload) => {
   return data.article;
 };
 
-// ── Draft & editor ───────────────────────────────────────────────────────────
-
 /**
  * Saves the AI-generated article as a DRAFT in the articles table.
  * Returns { alreadySaved, message, draft }.
@@ -87,11 +81,8 @@ export const loadToEditor = async (getHeaders, logId) => {
   return data;
 };
 
-// ── Article logs ─────────────────────────────────────────────────────────────
-
-/**
- * Returns the user's list of AI-generated article logs (unsaved drafts).
- */
+ // Returns the user's list of AI-generated article logs (unsaved drafts). 
+ 
 export const getArticleLogs = async (getHeaders) => {
   const headers = await getHeaders();
   const res     = await fetch(`${BACKEND_URL}/api/ai/logs`, { headers });
@@ -101,17 +92,15 @@ export const getArticleLogs = async (getHeaders) => {
   return data.logs;
 };
 
-/**
- * Soft-deletes an AI article log. It can be restored within 1 hour.
- */
+ //Soft-deletes an AI article log. It can be restored within 1 hour. 
+
 export const deleteLog = async (getHeaders, logId) => {
   const headers = await getHeaders();
   await fetch(`${BACKEND_URL}/api/ai/logs/${logId}`, { method: "DELETE", headers });
 };
 
-/**
- * Restores a soft-deleted log within the 1-hour restore window.
- */
+ // Restores a soft-deleted log within the 1-hour restore window. 
+
 export const restoreLog = async (getHeaders, logId) => {
   const headers = await getHeaders();
   const res     = await fetch(`${BACKEND_URL}/api/ai/logs/${logId}/restore`, {
@@ -135,11 +124,8 @@ export const setUserResponse = async (getHeaders, logId, response) => {
   return data.userResponse;
 };
 
-// ── Sidebar data ─────────────────────────────────────────────────────────────
+// Returns top AI-assisted articles for the Insights sidebar. 
 
-/**
- * Returns top AI-assisted articles for the Insights sidebar.
- */
 export const getTopAIArticles = async (getHeaders) => {
   const headers = await getHeaders();
   const res     = await fetch(`${BACKEND_URL}/api/ai/top-ai-articles`, { headers });
@@ -148,9 +134,9 @@ export const getTopAIArticles = async (getHeaders) => {
   return data.articles;
 };
 
-/**
- * Returns trending keyword topics for the Insights sidebar.
- */
+
+// Returns trending keyword topics for the Insights sidebar.
+
 export const getTrendingKeywords = async (getHeaders) => {
   const headers = await getHeaders();
   const res     = await fetch(`${BACKEND_URL}/api/ai/trending-keywords`, { headers });
@@ -159,10 +145,9 @@ export const getTrendingKeywords = async (getHeaders) => {
   return data.keywords ?? [];
 };
 
-/**
- * Returns all published articles sorted by trendingScore (for the slider).
- * This endpoint is public — no auth header needed.
- */
+
+//Returns all published articles sorted by trendingScore (for the slider).
+
 export const getTrendingArticles = async () => {
   const res  = await fetch(`${BACKEND_URL}/api/trendingArticles/trendingArticles`);
   const data = await res.json();

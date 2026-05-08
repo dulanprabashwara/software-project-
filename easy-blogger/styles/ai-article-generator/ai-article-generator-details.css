@@ -33,12 +33,12 @@
   display: flex;
   align-items: flex-start;
   gap: 20px;
-  margin-left: 107px;       /* aligned with other sections on details page */
+  margin-left: 107px;       
   margin-top: 20px;
 }
 
 .result-left-side {
-  width: 40px;              /* 40px spacer pushes content right */
+  width: 40px;              
   flex-shrink: 0;
 }
 
@@ -109,11 +109,6 @@
 }
 
 .action-icon:hover { background-color: #f0f0f0; }
-
-/* ── Preview overlay ─────────────────────────────────────────────────────── */
-/* Preview overlay, box, header, content, footer and close-button styles are
-   defined in ai-article-generator-view2.css and shared across all views.
-   Only details-page-specific overrides belong here. */
 
 /* ── Details page: "Included in prompt" label ───────────────────────────── */
 

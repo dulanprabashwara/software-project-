@@ -120,7 +120,7 @@
 
 .delete-warning-callout {
   position: absolute;
-  top: calc(100% + 10px);  /* sits just below the restore button */
+  top: calc(100% + 10px);  
   left: 50%;
   transform: translateX(-50%);
   width: 220px;
@@ -184,7 +184,6 @@
 }
 
 /* ── Second-delete confirmation overlay ──────────────────────────────────── */
-/* Full-page dim overlay with centered modal — matching the project's theme */
 
 .second-delete-overlay {
   position: fixed;

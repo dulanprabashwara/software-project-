@@ -31,9 +31,6 @@ export default function KeywordsView({
   // result actions
   userResponse, handleUserResponse,
   setShowPreview, setCurrentView, setGeneratedArticle, setUserResponse,
-  // draft
-  isSavingDraft, draftSaveStatus, handleSaveDraft, saveDraftLabel,
-  isLoadingEditor, handleEditInEditor,
 }) {
   return (
     <div className="user-input-section">
