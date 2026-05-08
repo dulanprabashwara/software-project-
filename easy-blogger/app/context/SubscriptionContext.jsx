@@ -5,6 +5,7 @@ import { useAuth } from "./AuthContext";
 
 const SubscriptionContext = createContext();
 
+//give user's premium status to other components
 export function SubscriptionProvider({ children }) {
   const { userProfile, loading: authLoading, profileLoading } = useAuth();
   const [isPremium, setIsPremium] = useState(false);

@@ -24,14 +24,10 @@ const EmailIcon = () => (
 );
 
 /**
- * @component VerifyEmailContent
- * @description
  * Informational display and logical handler for verification operations after an email dispatch.
- * WHY: This component dynamically renders responses based on search params (e.g., "?type=reset"). 
+  This component dynamically renders responses based on search params (e.g., "?type=reset"). 
  * It manages the strict retry policies (Firebase Auth imposes rate limits on resends) 
  * directly without polluting the parent Suspense wrapper.
- * 
- * @returns {JSX.Element} The email verification status card.
  */
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -180,7 +176,13 @@ export default function VerifyEmailPage() {
       </div>
 
       {/* Main Content wrapped in Suspense for useSearchParams */}
-      <Suspense fallback={<div className="relative z-10 flex-1 flex items-center justify-center px-4 -mt-8">Loading...</div>}>
+      <Suspense
+        fallback={
+          <div className="relative z-10 flex-1 flex items-center justify-center px-4 -mt-8">
+            Loading...
+          </div>
+        }
+      >
         <VerifyEmailContent />
       </Suspense>
 

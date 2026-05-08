@@ -13,13 +13,13 @@ import {
   Filler
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { ArrowLeft, Calendar, Loader2 , Download} from "lucide-react";
+import { ArrowLeft, Calendar, Loader2, Download } from "lucide-react";
 
-import { auth } from "../../../lib/firebase"; 
+import { auth } from "../../../lib/firebase";
 import { api } from "../../../lib/api";
 
 // Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend,Filler);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -47,17 +47,15 @@ export default function AdminDashboard() {
   }, []);
 
   const fetchChartData = useCallback(async () => {
-    if (view === "platform") return; // Platform data is already in initial 'stats'
-    
+    if (view === "platform") return;
+
     setChartLoading(true);
     try {
       const user = auth.currentUser;
       const token = await user.getIdToken();
-      
-      // We ask the backend for specifically the engagement data for X days
-      const response = await api.getEngagementAnalytics(token, timeframe); 
-      
-      // Update only the engagement part of our state
+
+      const response = await api.getEngagementAnalytics(token, timeframe);
+
       setStats(prev => ({
         ...prev,
         engagementData: response.data
@@ -79,10 +77,10 @@ export default function AdminDashboard() {
   const downloadCSV = () => {
     if (!stats || !stats.chartData) return;
 
-    // 1. Create the CSV Header row
+    // CSV Header row
     let csvContent = "Date,Reads,Ratings,Comments\n";
 
-    // 2. Loop through the arrays and build the rows
+    //Loop through the arrays and build the rows
     const labels = stats.chartData.labels;
     const reads = stats.chartData.datasets.reads;
     const ratings = stats.chartData.datasets.ratings;
@@ -92,7 +90,7 @@ export default function AdminDashboard() {
       csvContent += `${labels[i]},${reads[i]},${ratings[i]},${comments[i]}\n`;
     }
 
-    // 3. Create a Blob and trigger the browser download
+    // Blob and trigger the browser download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -142,9 +140,9 @@ export default function AdminDashboard() {
       {
         label: 'Reads',
         data: stats.chartData.datasets.reads,
-        borderColor: '#1E6091', // Dark blue
+        borderColor: '#1E6091',
         backgroundColor: '#1E6091',
-        tension: 0.3, 
+        tension: 0.3,
         borderWidth: 3,
         pointRadius: 0,
         pointHoverRadius: 6,
@@ -152,7 +150,7 @@ export default function AdminDashboard() {
       {
         label: 'Ratings',
         data: stats.chartData.datasets.ratings,
-        borderColor: '#F28C28', // Orange
+        borderColor: '#F28C28',
         backgroundColor: '#F28C28',
         tension: 0.3,
         borderWidth: 3,
@@ -162,7 +160,7 @@ export default function AdminDashboard() {
       {
         label: 'Comments',
         data: stats.chartData.datasets.comments,
-        borderColor: '#116C31', // Dark green
+        borderColor: '#116C31',
         backgroundColor: '#116C31',
         tension: 0.3,
         borderWidth: 3,
@@ -170,7 +168,7 @@ export default function AdminDashboard() {
         pointHoverRadius: 6,
       }
     ]
-  }: {
+  } : {
     labels: stats.engagementData?.labels || [],
     datasets: [{
       label: 'Daily Active Users',
@@ -188,7 +186,7 @@ export default function AdminDashboard() {
         Dashboard
       </h1>
 
-      {/* KPI CARDS - Now Interactive Links */}
+      {/* KPI CARDS - Interactive Links */}
       <div className="grid grid-cols-4 gap-6 mb-10">
         <Link href="/admin/moderation/queue" className="block transform hover:scale-[1.02] transition-transform duration-200">
           <div className="bg-linear-to-br from-[#1ABC9C] to-[#128A72] rounded-2xl p-6 shadow-md text-center h-full flex flex-col justify-center">
@@ -196,7 +194,7 @@ export default function AdminDashboard() {
             <h3 className="text-white text-4xl font-bold">{stats.kpis.pendingReports}</h3>
           </div>
         </Link>
-        
+
         <Link href="/admin/users?filter=Premium" className="block transform hover:scale-[1.02] transition-transform duration-200">
           <div className="bg-linear-to-br from-[#1ABC9C] to-[#128A72] rounded-2xl p-6 shadow-md text-center h-full flex flex-col justify-center">
             <p className="text-white/90 text-sm font-medium mb-2">Active Premium Users</p>
@@ -212,7 +210,7 @@ export default function AdminDashboard() {
         </Link>
 
         {/* TOGGLE CARD */}
-        <button 
+        <button
           onClick={() => setView(view === "engagement" ? "platform" : "engagement")}
           className={`block transform hover:scale-[1.02] transition-all text-left outline-none rounded-2xl ${view === "engagement" ? 'ring-4 ring-[#8B5CF6] ring-offset-2' : ''}`}
         >
@@ -236,10 +234,10 @@ export default function AdminDashboard() {
               {view === "platform" ? "Platform Activity (30 Days)" : "Engagement Trend"}
             </h2>
 
-            {/* THE NEW BUTTON AREA */}
+            {/* EXPORT BUTTON */}
             <div className="flex gap-4 items-center">
               {view === "platform" && (
-                <button 
+                <button
                   onClick={downloadCSV}
                   className="flex items-center gap-2 bg-[#1E6091] hover:bg-[#164a72] text-white px-4 py-1.5 rounded-xl text-sm font-semibold transition-colors shadow-sm"
                 >
@@ -251,8 +249,8 @@ export default function AdminDashboard() {
               {view === "engagement" && (
                 <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
                   <Calendar size={16} className="text-gray-400" />
-                  <select 
-                    value={timeframe} 
+                  <select
+                    value={timeframe}
                     onChange={(e) => setTimeframe(e.target.value)}
                     className="bg-transparent text-sm font-semibold text-gray-600 outline-none cursor-pointer"
                   >
@@ -271,7 +269,7 @@ export default function AdminDashboard() {
                 <p className="text-sm font-bold text-gray-500 animate-pulse">Syncing latest data...</p>
               </div>
             ) : null}
-              <Line data={currentChartData} options={chartOptions} />
+            <Line data={currentChartData} options={chartOptions} />
           </div>
         </div>
       </div>

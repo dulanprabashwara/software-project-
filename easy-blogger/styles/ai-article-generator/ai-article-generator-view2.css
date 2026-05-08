@@ -1,36 +1,18 @@
-/* AI Article Generator — View 2 Styles (keyword selection, length, tone, generate) */
-/* Also contains preview overlay and article result styles used in View 3 */
-
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+/* AI Article Generator — contain styles for keyword selection, length, tone, generate,result article display, preview overlay */
+/* Note: Google Fonts (Inter) is imported in ai-article-generator.css */
 
 /* ── Main container override for View 2 ─────────────────────────────────── */
-/* View 2 uses the same .ai-generator-main but fills full height */
-
+/* Extends .ai-generator-main from ai-article-generator.css: */
 .ai-generator-main {
-  width: 100%;
-  max-width: 100%;
   min-height: 100%;
-  background-color: #fafafa;
-  display: flex;
-  flex-direction: column;
-  margin-top: 0;
+  overflow-y: unset;
+  align-self: unset;
 }
 
-/* ── Title ───────────────────────────────────────────────────────────────── */
-
-.ai-generator-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: 14px;
-  margin-top: 14px;
-}
+/* ── Title size override for View 2 ─────────────────────────────────────── */
 
 .ai-generator-title-text {
-  font-family: Georgia, serif;
-  font-weight: bold;
   font-size: 36px;
-  color: #000000;
 }
 
 /* ── Keyword selection ───────────────────────────────────────────────────── */
@@ -149,6 +131,8 @@
   transition: transform 0.2s ease;
   margin-left: 8px;
 }
+
+.dropdown-arrow.open { transform: rotate(180deg); }
 
 .dropdown-menu {
   position: absolute;
@@ -369,7 +353,7 @@
   flex-shrink: 0;
 }
 
-/* Action row sits directly below the title box — no large gap */
+/* Article actions row */
 .article-actions {
   display: flex;
   align-items: center;
@@ -611,29 +595,7 @@
   margin-left: 35px;
 }
 
-.preview-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.preview-action-button {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-family: "Inter", sans-serif;
-  font-size: 14px;
-  color: #A9A9A9;
-  transition: color 0.2s ease;
-}
-
-.preview-action-button:hover { color: #1ABC9C; }
-
-/* Close button (circle outside the preview box) */
+/*Preview box close button */
 .preview-close-circle {
   position: absolute;
   top: 20px;
@@ -664,7 +626,46 @@
 
 .preview-close-button-circle:hover { background-color: #5A5A5A; transform: scale(1.1); }
 
-/* ── Loading body state ───────────────────────────────────────────────────── */
+/* ── Article result full-width modifier  ─────────── */
+
+.article-result-section--full-width { width: 100%; }
+
+/* ── Preview button disabled / loading states ─────────────────────────────── */
+
+.preview-save-icon[data-saved="true"],
+.preview-edit-button[data-loading="true"] {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ── Generate error message ──────────────────────────────────────────────── */
+
+.generate-error-message {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  color: #e25457;
+  text-align: center;
+}
+
+/* ── Loading transition error text ───────────────────────────────────────── */
+
+.transition-error-container {
+  text-align: center;
+  padding: 24px;
+}
+
+.transition-error-message {
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.transition-error-redirect {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: #1ABC9C;
+}
 
 body.loading { cursor: not-allowed !important; }
 body.loading * { cursor: not-allowed !important; }
