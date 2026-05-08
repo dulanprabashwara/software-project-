@@ -8,7 +8,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../app/context/AuthContext";
 
-// Formats a UTC date string into a short readable date.
+const SUMMARY_MAX_CHARS        = 200;
+const SAVED_ARTICLE_ENDPOINT   = `${process.env.NEXT_PUBLIC_API_URL}/api/savedArticle`;
+const ARTICLE_REPORT_ENDPOINT  = `${process.env.NEXT_PUBLIC_API_URL}/api/articleReports`;
+
+// Formats a UTC date string into a short human-readable date.
 function formatDate(dateStr) {
   if (!dateStr) return "Date unknown";
   try {
@@ -20,8 +24,8 @@ function formatDate(dateStr) {
   }
 }
 
-// Truncates plain text at the last word boundary before maxChars.
-function truncateAtWordBoundary(text, maxChars = 200) {
+// Truncates plain text at the last word boundary before maxChars, appending ellipsis.
+function truncateAtWordBoundary(text, maxChars = SUMMARY_MAX_CHARS) {
   if (!text || text.length <= maxChars) return text;
   const cut = text.slice(0, maxChars);
   const lastSpace = cut.lastIndexOf(" ");
@@ -60,9 +64,9 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
 
   const totalComments = _count?.comments ?? commentCount;
 
-  const rawPublishDate  = status === "PUBLISHED" ? (publishedAt || createdAt) : (updatedAt || createdAt);
-  const rawScheduleDate = status === "SCHEDULED"  ? scheduledAt : null;
-  const displayDate     = formatDate(rawPublishDate);
+  const rawPublishDate   = status === "PUBLISHED" ? (publishedAt || createdAt) : (updatedAt || createdAt);
+  const rawScheduleDate  = status === "SCHEDULED"  ? scheduledAt : null;
+  const displayDate      = formatDate(rawPublishDate);
   const scheduledDisplay = rawScheduleDate
     ? new Date(rawScheduleDate).toLocaleString(undefined, {
         year: "numeric", month: "short", day: "numeric",
@@ -70,8 +74,6 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
       })
     : "Scheduled date unknown";
 
-  // Summary truncated at a JS word boundary to avoid mid-word CSS cuts.
-  // Falls back to raw HTML content (line-clamp handles visual truncation).
   const summaryText = summary ? truncateAtWordBoundary(summary) : null;
 
   // ── Bookmark state ────────────────────────────────────────────────────────
@@ -79,7 +81,7 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
   const [saved,  setSaved]  = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Initialise bookmark state from the savedArticles list passed by SearchResults.
+  // Initialises bookmark state from the savedArticles list passed by SearchResults.
   useEffect(() => {
     if (savedArticles.length > 0) {
       setSaved(savedArticles.some((obj) => obj.id === id));
@@ -88,17 +90,17 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
 
   // ── Dropdown / Report state ───────────────────────────────────────────────
 
-  const [moreOptions,        setMoreOptions]        = useState(false);
-  const [isReportOpen,       setIsReportOpen]       = useState(false);
-  const [reportReason,       setReportReason]       = useState("");
-  const [reportDescription,  setReportDescription]  = useState("");
-  const [isReporting,        setIsReporting]        = useState(false);
+  const [moreOptions,       setMoreOptions]       = useState(false);
+  const [isReportOpen,      setIsReportOpen]      = useState(false);
+  const [reportReason,      setReportReason]      = useState("");
+  const [reportDescription, setReportDescription] = useState("");
+  const [isReporting,       setIsReporting]       = useState(false);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleArticleClick = () => router.push(`/home/read?id=${id}`);
 
-  // Saves or unsaves the article using the same endpoint as the home feed ArticleCard.
+  // Toggles the saved state of the article, syncing with the server.
   const toggleBookmark = async () => {
     if (!user) {
       alert("Please log in to save articles!");
@@ -111,10 +113,10 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
 
     try {
       const token = await user.getIdToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/savedArticle`, {
+      const res = await fetch(SAVED_ARTICLE_ENDPOINT, {
         method:  nextState ? "POST" : "DELETE",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type":  "application/json",
           "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({ articleId: id }),
@@ -129,7 +131,7 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
     }
   };
 
-  // Submits a report for this article.
+  // Submits a report for this article with the selected reason and description.
   const handleReportSubmit = async () => {
     if (!user) {
       alert("You must be logged in to report an article.");
@@ -140,10 +142,10 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
 
     try {
       const token = await user.getIdToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articleReports`, {
+      const res = await fetch(ARTICLE_REPORT_ENDPOINT, {
         method:  "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type":  "application/json",
           "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({

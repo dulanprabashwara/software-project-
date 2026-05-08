@@ -21,6 +21,7 @@ const BACKEND_URL          = process.env.NEXT_PUBLIC_API_URL;
 const COPY_FEEDBACK_MS     = 6000;   // how long "copied!" stays visible
 const DRAFT_STATUS_CLEAR_MS = 4000; // how long "saved" / "error" feedback stays
 const AUTH_TIMEOUT_MS      = 5000;   // Firebase re-auth wait before giving up
+const MAX_KEYWORDS_SELECTABLE = 4;
 
 const ARTICLE_LENGTH_LABELS = {
   short:        { left: "Short",      right: "300-1000"  },
@@ -215,10 +216,10 @@ export default function ArticleDetailsPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#dc2626", marginBottom: "1rem" }}>
+          <h2 className="error-screen-title">
             Error Loading Article
           </h2>
-          <p style={{ color: "#6b7280", marginBottom: "1rem" }}>{error}</p>
+          <p className="error-screen-message">{error}</p>
           <button
             onClick={() => router.push("/ai-generate")}
             className="px-4 py-2 bg-[#1ABC9C] text-white rounded-lg hover:bg-[#16A085] transition-colors"
@@ -234,7 +235,7 @@ export default function ArticleDetailsPage() {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#6b7280", marginBottom: "1rem" }}>
+          <h2 className="not-found-screen-title">
             Article Not Found
           </h2>
           <button
@@ -297,15 +298,15 @@ export default function ArticleDetailsPage() {
                   </button>
                 ))
               ) : (
-                <p style={{ color: "#6B7280", fontFamily: "Inter, sans-serif", fontSize: "14px" }}>
+                <p className="keywords-empty-message">
                   No keywords were matched for this article.
                 </p>
               )}
             </div>
             {articleData.keywordsPresented.length > 0 && (
               <p className="selected-keywords-title">
-                {articleData.keywordsSelected.length === 4
-                  ? "selected: 4 keywords (Maximum)"
+                {articleData.keywordsSelected.length === MAX_KEYWORDS_SELECTABLE
+                  ? `selected: ${MAX_KEYWORDS_SELECTABLE} keywords (Maximum)`
                   : `selected: ${articleData.keywordsSelected.length} keywords`}
               </p>
             )}
@@ -323,7 +324,7 @@ export default function ArticleDetailsPage() {
                       <span className="dropdown-header-right">{lengthDisplay.right}</span>
                     </>
                   ) : (
-                    <span className="dropdown-header-left" style={{ color: "#1ABC9C", fontStyle: "italic" }}>
+                    <span className="dropdown-header-left included-in-prompt">
                       Included in prompt
                     </span>
                   )}
@@ -356,7 +357,7 @@ export default function ArticleDetailsPage() {
                 ))}
               </div>
             ) : (
-              <p style={{ color: "#1ABC9C", fontFamily: "Inter, sans-serif", fontSize: "14px", fontStyle: "italic", marginLeft: "8px" }}>
+              <p className="included-in-prompt-text">
                 Included in prompt
               </p>
             )}
@@ -444,10 +445,7 @@ export default function ArticleDetailsPage() {
                   title="Save to drafts"
                   onClick={handleSaveDraft}
                   disabled={isSavingDraft || isAlreadySaved || draftSaveStatus === "saved"}
-                  style={{
-                    opacity: (isAlreadySaved || draftSaveStatus === "saved") ? 0.6 : 1,
-                    cursor:  (isSavingDraft || isAlreadySaved || draftSaveStatus === "saved") ? "default" : "pointer",
-                  }}
+                  data-saved={isAlreadySaved || draftSaveStatus === "saved" ? "true" : undefined}
                 >
                   <img src="/icons/Save.png" alt="Save" width="16" height="16" />
                   <span className="preview-save-text">{saveDraftLabel()}</span>
@@ -457,7 +455,7 @@ export default function ArticleDetailsPage() {
                   title="Edit in editor"
                   onClick={handleEditInEditor}
                   disabled={isLoadingEditor}
-                  style={{ opacity: isLoadingEditor ? 0.6 : 1, cursor: isLoadingEditor ? "default" : "pointer" }}
+                  data-loading={isLoadingEditor ? "true" : undefined}
                 >
                   <span className="preview-edit-text">{isLoadingEditor ? "opening..." : "edit"}</span>
                 </button>

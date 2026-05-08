@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../../app/context/AuthContext";
 import { useSavedArticles } from "../../hooks/useSavedArticles";
 import { searchArticles, searchUsers } from "../../lib/searchApi";
@@ -10,86 +10,167 @@ import RightFeed from "../article/RightFeed";
 import { DATA } from "../article/ArticleList";
 import { Loader2, SearchX } from "lucide-react";
 
-// Renders tabbed search results for articles and user profiles.
+const FIRST_PAGE          = 1;
+const SCROLL_THRESHOLD_PX = 300; // distance from bottom (px) that triggers the next page fetch
+
+// Renders tabbed search results for articles and user profiles with infinite scroll.
 // The initialTab prop controls which tab is active on first render —
 // "profiles" when navigated from a person autocomplete suggestion.
 export default function SearchResults({ query, initialTab = "articles" }) {
-  const [activeTab,       setActiveTab]       = useState(initialTab);
-  const { user: firebaseUser }                = useAuth();
+  const [activeTab,     setActiveTab]     = useState(initialTab);
+  const { user: firebaseUser }            = useAuth();
 
-  // savedArticles is fetched once for the logged-in user and passed to every
+  // Fetched once for the logged-in user and passed down to every SearchArticleCard.
   const { savedArticles } = useSavedArticles();
 
-  const [articles,        setArticles]        = useState([]);
-  const [articlesTotal,   setArticlesTotal]   = useState(0);
-  const [articlesLoading, setArticlesLoading] = useState(false);
-  const [articlesLoaded,  setArticlesLoaded]  = useState(false);
+  // ── Articles state ────────────────────────────────────────────────
 
-  const [users,        setUsers]        = useState([]);
-  const [usersTotal,   setUsersTotal]   = useState(0);
-  const [usersLoading, setUsersLoading] = useState(false);
-  const [usersLoaded,  setUsersLoaded]  = useState(false);
+  const [articles,           setArticles]           = useState([]);
+  const [articlesTotal,      setArticlesTotal]      = useState(0);
+  const [articlesPage,       setArticlesPage]       = useState(FIRST_PAGE);
+  const [articlesTotalPages, setArticlesTotalPages] = useState(0);
+  const [articlesLoading,    setArticlesLoading]    = useState(false);
+  const [articlesLoaded,     setArticlesLoaded]     = useState(false);
 
-  const loadArticles = useCallback(async (q) => {
+  // ── Users state ───────────────────────────────────────────────────
+
+  const [users,           setUsers]           = useState([]);
+  const [usersTotal,      setUsersTotal]      = useState(0);
+  const [usersPage,       setUsersPage]       = useState(FIRST_PAGE);
+  const [usersTotalPages, setUsersTotalPages] = useState(0);
+  const [usersLoading,    setUsersLoading]    = useState(false);
+  const [usersLoaded,     setUsersLoaded]     = useState(false);
+
+  // Ref attached to the scrollable results container, used by the scroll listener.
+  const scrollContainerRef = useRef(null);
+
+  // ── Load functions ────────────────────────────────────────────────
+
+  // Fetches a page of article results and appends them to the existing list.
+  // When page is FIRST_PAGE the list is replaced (fresh search or tab switch).
+  const loadArticles = useCallback(async (q, page) => {
     setArticlesLoading(true);
-    setArticlesLoaded(false);
+    if (page === FIRST_PAGE) setArticlesLoaded(false);
     try {
       const token = firebaseUser ? await firebaseUser.getIdToken() : null;
-      const data  = await searchArticles(q, 1, token);
-      setArticles(data?.articles || []);
+      const data  = await searchArticles(q, page, token);
+      setArticles((prev) =>
+        page === FIRST_PAGE
+          ? (data?.articles || [])
+          : [...prev, ...(data?.articles || [])]
+      );
       setArticlesTotal(data?.total || 0);
+      setArticlesTotalPages(data?.totalPages || 0);
+      setArticlesPage(page);
     } catch (err) {
       console.error("Article search failed:", err);
-      setArticles([]);
+      if (page === FIRST_PAGE) setArticles([]);
     } finally {
       setArticlesLoading(false);
       setArticlesLoaded(true);
     }
   }, [firebaseUser]);
 
-  const loadUsers = useCallback(async (q) => {
+  // Fetches a page of user results and appends them to the existing list.
+  // When page is FIRST_PAGE the list is replaced (fresh search or tab switch).
+  const loadUsers = useCallback(async (q, page) => {
     setUsersLoading(true);
-    setUsersLoaded(false);
+    if (page === FIRST_PAGE) setUsersLoaded(false);
     try {
       const token = firebaseUser ? await firebaseUser.getIdToken() : null;
-      const data  = await searchUsers(q, 1, token);
-      setUsers(data?.users || []);
+      const data  = await searchUsers(q, page, token);
+      setUsers((prev) =>
+        page === FIRST_PAGE
+          ? (data?.users || [])
+          : [...prev, ...(data?.users || [])]
+      );
       setUsersTotal(data?.total || 0);
+      setUsersTotalPages(data?.totalPages || 0);
+      setUsersPage(page);
     } catch (err) {
       console.error("User search failed:", err);
-      setUsers([]);
+      if (page === FIRST_PAGE) setUsers([]);
     } finally {
       setUsersLoading(false);
       setUsersLoaded(true);
     }
   }, [firebaseUser]);
 
+  // ── Query change — reset everything and load the active tab ───────
+
+  // Resets both tabs and loads page 1 for the active tab on every new query.
+  // The inactive tab is loaded lazily on first click.
   useEffect(() => {
     if (!query) return;
     setArticles([]);
     setUsers([]);
+    setArticlesPage(FIRST_PAGE);
+    setUsersPage(FIRST_PAGE);
+    setArticlesTotalPages(0);
+    setUsersTotalPages(0);
     setArticlesLoaded(false);
     setUsersLoaded(false);
     setActiveTab(initialTab);
 
-    // Load the active tab immediately; the other tab loads lazily on first click.
     if (initialTab === "profiles") {
-      loadUsers(query);
+      loadUsers(query, FIRST_PAGE);
     } else {
-      loadArticles(query);
+      loadArticles(query, FIRST_PAGE);
     }
   }, [query, initialTab, loadArticles, loadUsers]);
 
+  // ── Tab switching ─────────────────────────────────────────────────
+
+  // Switches the active tab and triggers a lazy first-page load if that tab has not yet been fetched.
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    if (tab === "profiles" && !usersLoaded   && !usersLoading)    loadUsers(query);
-    if (tab === "articles" && !articlesLoaded && !articlesLoading) loadArticles(query);
+    if (tab === "profiles" && !usersLoaded    && !usersLoading)    loadUsers(query, FIRST_PAGE);
+    if (tab === "articles" && !articlesLoaded && !articlesLoading) loadArticles(query, FIRST_PAGE);
   };
+
+  // ── Infinite scroll ───────────────────────────────────────────────
+
+  // Listens to scroll events on the results container and fetches the next page
+  // when the user scrolls within SCROLL_THRESHOLD_PX of the bottom.
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+      if (distanceFromBottom > SCROLL_THRESHOLD_PX) return;
+
+      if (activeTab === "articles" && articlesPage < articlesTotalPages && !articlesLoading) {
+        loadArticles(query, articlesPage + 1);
+      }
+
+      if (activeTab === "profiles" && usersPage < usersTotalPages && !usersLoading) {
+        loadUsers(query, usersPage + 1);
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [
+    activeTab,
+    query,
+    articlesPage, articlesTotalPages, articlesLoading,
+    usersPage,    usersTotalPages,    usersLoading,
+    loadArticles, loadUsers,
+  ]);
+
+  // ── Derived flags ─────────────────────────────────────────────────
+
+  const hasMoreArticles = articlesPage < articlesTotalPages;
+  const hasMoreUsers    = usersPage    < usersTotalPages;
+
+  // ── Render ────────────────────────────────────────────────────────
 
   return (
     <div className="flex h-full overflow-hidden">
 
-      <div className="p-8 mx-auto h-full overflow-y-auto flex-1">
+      <div ref={scrollContainerRef} className="p-8 mx-auto h-full overflow-y-auto flex-1">
         <p className="text-sm text-[#6B7280] mb-5">
           Results for <span className="font-semibold text-[#111827]">"{query}"</span>
         </p>
@@ -111,35 +192,47 @@ export default function SearchResults({ query, initialTab = "articles" }) {
 
         {activeTab === "articles" && (
           <>
-            {articlesLoading && <Spinner />}
+            {/* Full-page spinner shown only while the first page is loading */}
+            {articlesLoading && articles.length === 0 && <Spinner />}
+
             {!articlesLoading && articlesLoaded && articles.length === 0 && (
               <EmptyState
                 message={`No articles found for "${query}"`}
                 hint="Try a different keyword or check the Profiles tab."
               />
             )}
+
             {articles.map((article) => (
               <SearchArticleCard
                 key={article.id}
                 article={article}
                 savedArticles={savedArticles}
               />
-            ))}
+            ))}     
+             {/* small spinner at end of page when scrolled further*/}      
+            {articlesLoading && articles.length > 0 && <InlineSpinner />}
+            {!hasMoreArticles && articlesLoaded && articles.length > 0 && <EndOfResults />}
           </>
         )}
 
         {activeTab === "profiles" && (
           <>
-            {usersLoading && <Spinner />}
+            {/* Full-page spinner shown only while the first page is loading */}
+            {usersLoading && users.length === 0 && <Spinner />}
+
             {!usersLoading && usersLoaded && users.length === 0 && (
               <EmptyState
                 message={`No profiles found for "${query}"`}
                 hint="Try searching by username or display name."
               />
             )}
+
             {users.map((user) => (
               <UserCard key={user.id} user={user} />
             ))}
+             {/* small spinner at end of page when scrolled further*/}
+            {usersLoading && users.length > 0 && <InlineSpinner />}
+            {!hasMoreUsers && usersLoaded && users.length > 0 && <EndOfResults />}
           </>
         )}
       </div>
@@ -156,6 +249,7 @@ export default function SearchResults({ query, initialTab = "articles" }) {
   );
 }
 
+// Renders a single tab button with an optional result count badge.
 function TabButton({ label, count, active, onClick }) {
   return (
     <button
@@ -178,6 +272,7 @@ function TabButton({ label, count, active, onClick }) {
   );
 }
 
+// Displays a centered full-page loading spinner for the initial page fetch.
 function Spinner() {
   return (
     <div className="flex justify-center py-16">
@@ -186,6 +281,16 @@ function Spinner() {
   );
 }
 
+// Displays a small inline spinner at the bottom of the list while fetching subsequent pages.
+function InlineSpinner() {
+  return (
+    <div className="flex justify-center py-6">
+      <Loader2 className="w-5 h-5 animate-spin text-[#1ABC9C]" />
+    </div>
+  );
+}
+
+// Displays a no-results message with an optional hint.
 function EmptyState({ message, hint }) {
   return (
     <div className="flex flex-col items-center py-16 text-center text-[#6B7280]">
@@ -193,5 +298,14 @@ function EmptyState({ message, hint }) {
       <p className="text-sm font-medium text-[#111827]">{message}</p>
       {hint && <p className="text-xs mt-1">{hint}</p>}
     </div>
+  );
+}
+
+// Displayed at the bottom of the list when all pages have been loaded.
+function EndOfResults() {
+  return (
+    <p className="text-center text-xs text-[#6B7280] py-8">
+      You've reached the end of the results.
+    </p>
   );
 }
