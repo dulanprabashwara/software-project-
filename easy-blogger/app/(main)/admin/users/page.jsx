@@ -3,52 +3,46 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, Filter, X, AlertCircle, Download, Loader2 } from "lucide-react";
 
-import { auth } from "../../../../lib/firebase"; 
+import { auth } from "../../../../lib/firebase";
 import { api } from "../../../../lib/api";
 
 export default function UserListPage() {
   const searchParams = useSearchParams();
-  const initialFilter = searchParams.get('filter'); // Catches "?filter=Premium" from the URL
+  const initialFilter = searchParams.get('filter');
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedUser, setSelectedUser] = useState(null); 
+  const [selectedUser, setSelectedUser] = useState(null);
   const [banningUser, setBanningUser] = useState(null);
   const [banReason, setBanReason] = useState("");
   const [validationError, setValidationError] = useState("");
   const [activeFilters, setActiveFilters] = useState({ regular: false, premium: false, banned: false, active: false });
 
-  // --- NEW: Automatically apply filters from the URL Dashboard Link ---
   useEffect(() => {
     if (initialFilter) {
       const filterKey = initialFilter.toLowerCase();
-      // If the URL passes "Premium", "Active", etc., it automatically sets that filter to true
       if (['regular', 'premium', 'banned', 'active'].includes(filterKey)) {
         setActiveFilters(prev => ({ ...prev, [filterKey]: true }));
       }
     }
   }, [initialFilter]);
 
-  // --- REAL BACKEND FETCH ---
   const fetchRealUsers = async () => {
     try {
       const user = auth.currentUser;
       if (!user) return;
       const token = await user.getIdToken();
-      
-      // Call the real backend
+
       const response = await api.getAdminUsers("?limit=100", token);
-      
-      // MAP Prisma Database fields to your UI's expected format
+
       const mappedUsers = response.data.map(u => ({
         id: u.id,
         name: u.displayName || u.username || "Unknown User",
         email: u.email,
         type: u.isPremium ? "Premium" : "Regular",
-        status: u.bannedRecord ? "Banned" : "Active", // Assuming backend returns bannedRecord if banned
-        // Placeholder data for UI elements not yet in schema
-        startDate: "01/02/2026", 
+        status: u.bannedRecord ? "Banned" : "Active",
+        startDate: "01/02/2026",
         endDate: "02/01/2026",
         paymentMethod: "Credit Card"
       }));
@@ -72,7 +66,7 @@ export default function UserListPage() {
     return () => unsubscribe();
   }, []);
 
-  // --- CSV EXPORT LOGIC ---
+  // CSV export logic
   const exportToCSV = (filename, userList) => {
     if (userList.length === 0) return alert("No data to export");
     const headers = ["ID", "Name", "Email", "Type", "Status", "Start Date", "End Date", "Payment Method"];
@@ -96,7 +90,7 @@ export default function UserListPage() {
   const handleToggleClick = (user) => {
     if (user.status === "Active") {
       setBanningUser(user);
-      setValidationError(""); 
+      setValidationError("");
     } else {
       updateUserStatus(user.id, "Active", "Unbanned by admin");
     }
@@ -105,7 +99,7 @@ export default function UserListPage() {
   const updateUserStatus = async (id, newStatus, reason) => {
     if (newStatus === "Banned" && (!banReason || banReason.trim().length < 10)) {
       setValidationError("Please provide a reason (min. 10 characters).");
-      return; 
+      return;
     }
 
     try {
@@ -125,10 +119,10 @@ export default function UserListPage() {
       setBanningUser(null);
       setBanReason("");
       setValidationError("");
-      if (selectedUser?.id === id) setSelectedUser({...selectedUser, status: newStatus});
+      if (selectedUser?.id === id) setSelectedUser({ ...selectedUser, status: newStatus });
 
-    } catch (error) { 
-      console.error("Failed to update user status:", error); 
+    } catch (error) {
+      console.error("Failed to update user status:", error);
       setValidationError("Backend error. Check console.");
     }
   };
@@ -136,16 +130,16 @@ export default function UserListPage() {
   const filteredUsers = users.filter(user => {
     const cleanQuery = searchQuery.trim().toLowerCase();
     const matchesSearch = (user.name?.toLowerCase() || "").includes(cleanQuery) || (user.email?.toLowerCase() || "").includes(cleanQuery);
-    
+
     const typeFiltersActive = activeFilters.regular || activeFilters.premium;
     const statusFiltersActive = activeFilters.banned || activeFilters.active;
 
-    const matchesType = !typeFiltersActive || 
-      (activeFilters.regular && user.type === "Regular") || 
+    const matchesType = !typeFiltersActive ||
+      (activeFilters.regular && user.type === "Regular") ||
       (activeFilters.premium && user.type === "Premium");
 
-    const matchesStatus = !statusFiltersActive || 
-      (activeFilters.banned && user.status === "Banned") || 
+    const matchesStatus = !statusFiltersActive ||
+      (activeFilters.banned && user.status === "Banned") ||
       (activeFilters.active && user.status === "Active");
 
     return matchesSearch && matchesType && matchesStatus;
@@ -154,16 +148,16 @@ export default function UserListPage() {
   return (
     <div className="max-w-6xl mx-auto p-8 bg-white min-h-screen relative overflow-hidden">
       <h1 className="text-4xl font-bold mb-8 text-[#111827] ml-4" style={{ fontFamily: "serif" }}>User List</h1>
-      
+
       <div className={`max-w-262.5 bg-[#D1D5DB]/50 rounded-[45px] overflow-hidden shadow-sm transition-all duration-500 pb-4 ${selectedUser ? "blur-md opacity-40 pointer-events-none" : ""}`}>
         <div className="bg-[#D1D5DB] p-5 px-10 border-b-[3px] border-[#1ABC9C] flex items-center justify-between">
           <div className="flex items-center gap-5 text-[11px] font-bold text-gray-600 uppercase">
-             <div className="flex items-center gap-2"><Filter size={16} /> Filter by</div>
-             {['regular', 'premium', 'banned', 'active'].map(f => (
-               <label key={f} className="flex items-center gap-2 cursor-pointer opacity-70">
-                 <input type="checkbox" className="checkbox checkbox-xs" checked={activeFilters[f]} onChange={() => handleFilterChange(f)} /> {f}
-               </label>
-             ))}
+            <div className="flex items-center gap-2"><Filter size={16} /> Filter by</div>
+            {['regular', 'premium', 'banned', 'active'].map(f => (
+              <label key={f} className="flex items-center gap-2 cursor-pointer opacity-70">
+                <input type="checkbox" className="checkbox checkbox-xs" checked={activeFilters[f]} onChange={() => handleFilterChange(f)} /> {f}
+              </label>
+            ))}
           </div>
           <div className="relative w-64">
             <Search className="absolute left-3 top-2 text-gray-400" size={16} />
@@ -183,11 +177,11 @@ export default function UserListPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan="3" className="text-center p-20"><div className="flex flex-col items-center justify-center gap-3">
-                      <Loader2 className="w-10 h-10 animate-spin text-[#1ABC9C]" />
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest animate-pulse">Syncing Users...</span></div>
-                    </td>
+                  <Loader2 className="w-10 h-10 animate-spin text-[#1ABC9C]" />
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest animate-pulse">Syncing Users...</span></div>
+                </td>
                 </tr>
-                ) : (
+              ) : (
                 filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-white/20 transition-colors">
                     <td className="p-2 pl-16 cursor-pointer" onClick={() => setSelectedUser(user)}>
@@ -224,9 +218,9 @@ export default function UserListPage() {
       <aside className={`fixed top-20 right-10 bottom-10 w-84 bg-[#D1D5DB] border border-gray-300 rounded-[40px] shadow-2xl transition-transform duration-500 z-50 ${selectedUser ? "translate-x-0" : "translate-x-[120%]"}`}>
         {selectedUser && (
           <div className="p-6 relative flex flex-col items-center h-full">
-            <button onClick={() => setSelectedUser(null)} className="absolute top-4 right-4 text-red-500 hover:bg-white/40 p-1 rounded-full"><X size={20}/></button>
+            <button onClick={() => setSelectedUser(null)} className="absolute top-4 right-4 text-red-500 hover:bg-white/40 p-1 rounded-full"><X size={20} /></button>
             <h3 className="text-sm font-bold mb-6 text-gray-700 tracking-tight uppercase">Subscription Details</h3>
-            
+
             <div className="bg-white p-8 rounded-[35px] w-full shadow-inner border border-gray-200">
               <div className="text-center mb-6">
                 <h2 className="text-3xl font-black text-gray-900 leading-none" style={{ fontFamily: "serif" }}>
@@ -251,8 +245,8 @@ export default function UserListPage() {
                   <div className="flex justify-between items-center text-[10px] font-bold italic text-gray-500 uppercase"><span>End Date:</span><span className="text-gray-400">{selectedUser.endDate}</span></div>
                 </div>
                 <div className="pt-4 border-t border-gray-100">
-                   <div className="text-[10px] italic font-bold text-gray-400 uppercase mb-1">Payment Method:</div>
-                   <div className="text-xs font-bold text-gray-600">{selectedUser.paymentMethod}</div>
+                  <div className="text-[10px] italic font-bold text-gray-400 uppercase mb-1">Payment Method:</div>
+                  <div className="text-xs font-bold text-gray-600">{selectedUser.paymentMethod}</div>
                 </div>
               </div>
             </div>
@@ -272,10 +266,10 @@ export default function UserListPage() {
           <div className="bg-white p-8 rounded-[40px] shadow-2xl max-w-sm w-full border border-gray-100 animate-in zoom-in duration-200">
             <h2 className="text-2xl font-bold text-red-600 mb-2 text-center">Ban User?</h2>
             <p className="text-sm text-gray-500 mb-6 font-medium text-center">Are you sure you want to ban <strong>{banningUser.name}</strong>?</p>
-            <textarea className={`w-full p-4 border rounded-3xl text-sm h-32 mb-2 outline-none resize-none bg-gray-50 transition-colors ${validationError ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:ring-2 focus:ring-[#1ABC9C]'}`} placeholder="Reason for banning..." value={banReason} onChange={(e) => { setBanReason(e.target.value); if(e.target.value.trim().length >= 10) setValidationError(""); }} />
-            {validationError && <p className="text-[10px] text-red-500 mb-4 ml-4 font-bold flex items-center gap-1"><AlertCircle size={12}/> {validationError}</p>}
+            <textarea className={`w-full p-4 border rounded-3xl text-sm h-32 mb-2 outline-none resize-none bg-gray-50 transition-colors ${validationError ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:ring-2 focus:ring-[#1ABC9C]'}`} placeholder="Reason for banning..." value={banReason} onChange={(e) => { setBanReason(e.target.value); if (e.target.value.trim().length >= 10) setValidationError(""); }} />
+            {validationError && <p className="text-[10px] text-red-500 mb-4 ml-4 font-bold flex items-center gap-1"><AlertCircle size={12} /> {validationError}</p>}
             <div className="flex gap-4 font-bold">
-              <button onClick={() => {setBanningUser(null); setBanReason("");}} className="flex-1 btn btn-ghost rounded-2xl h-12">Cancel</button>
+              <button onClick={() => { setBanningUser(null); setBanReason(""); }} className="flex-1 btn btn-ghost rounded-2xl h-12">Cancel</button>
               <button onClick={() => updateUserStatus(banningUser.id, "Banned")} className="flex-1 btn bg-red-500 hover:bg-red-600 text-white border-none rounded-2xl h-12">Confirm Ban</button>
             </div>
           </div>

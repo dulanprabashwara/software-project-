@@ -3,25 +3,23 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Search, ChevronDown, Plus, Save, AlertCircle, MousePointer2, Percent, Tag } from "lucide-react";
 
-import { auth } from "../../../../../lib/firebase"; 
+import { auth } from "../../../../../lib/firebase";
 import { api } from "../../../../../lib/api";
 
 export default function OffersPage() {
-  const [offers, setOffers] = useState([]); 
-  const [filterStatus, setFilterStatus] = useState(null); 
+  const [offers, setOffers] = useState([]);
+  const [filterStatus, setFilterStatus] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedId, setSelectedId] = useState(null); 
+  const [selectedId, setSelectedId] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const dropdownRef = useRef(null);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
   const [showVerifyModal, setShowVerifyModal] = useState(false);
-  const [newFeatureName, setNewFeatureName] = useState("");
-  
-  // 2. UPDATED STATE TO MATCH PRISMA SCHEMA
+
   const [formData, setFormData] = useState({
-    name: "", discount_percent: "",stripe_coupon_id: "", is_active: true,
+    name: "", discount_percent: "", stripe_coupon_id: "", is_active: true,
   });
 
   useEffect(() => {
@@ -35,14 +33,13 @@ export default function OffersPage() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) setIsDropdownOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
-    
+
     return () => {
       unsubscribe();
       document.removeEventListener("mousedown", handleClickOutside);
     }
   }, []);
 
-  // --- REAL BACKEND FETCH ---
   const fetchRealOffers = async () => {
     try {
       const user = auth.currentUser;
@@ -60,7 +57,7 @@ export default function OffersPage() {
   const handleSelectOffer = (offer) => {
     setIsAddingNew(false);
     setSelectedId(offer.id);
-    setFormData({ ...offer});
+    setFormData({ ...offer });
     setErrors({});
     setSubmitError("");
   };
@@ -77,7 +74,7 @@ export default function OffersPage() {
 
   const toggleVisibility = async () => {
     const newActiveState = !formData.is_active;
-    
+
     // Update local editor state immediately
     setFormData({ ...formData, is_active: newActiveState });
   };
@@ -85,8 +82,8 @@ export default function OffersPage() {
   const validateAndTriggerVerify = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Offer Name is required.";
-    
-    // STRIPE ID VALIDATION
+
+    // STRIPE ID validation
     const stripeId = formData.stripe_coupon_id?.trim();
     if (!stripeId) {
       newErrors.stripe_coupon_id = "Stripe Coupon ID is required.";
@@ -100,22 +97,20 @@ export default function OffersPage() {
     if (formData.discount_percent && (isNaN(discount) || discount < 0 || discount > 100)) {
       newErrors.discount_percent = "Must be 0-100.";
     }
-    
+
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
-    setShowVerifyModal(true); 
+    setShowVerifyModal(true);
   };
 
-  // --- REAL BACKEND SAVE ---
   const confirmFinalSave = async () => {
     try {
       setSubmitError("");
       const user = auth.currentUser;
       const token = await user.getIdToken();
 
-      // Match the payload to the Prisma schema
       const payload = {
         name: formData.name,
-        discount_percent: parseInt(formData.discount_percent)|| 0,
+        discount_percent: parseInt(formData.discount_percent) || 0,
         stripe_coupon_id: formData.stripe_coupon_id.trim(),
         is_active: formData.is_active
       };
@@ -123,23 +118,23 @@ export default function OffersPage() {
       if (isAddingNew) {
         await api.createOffer(payload, token);
       } else {
-       await api.updateOffer(selectedId, payload, token);
+        await api.updateOffer(selectedId, payload, token);
       }
 
-      await fetchRealOffers(); 
+      await fetchRealOffers();
       setShowVerifyModal(false);
       setIsAddingNew(false);
       setSelectedId(null);
-      
-    } catch (err) { 
-      console.error("Save Error:", err); 
+
+    } catch (err) {
+      console.error("Save Error:", err);
       setShowVerifyModal(false);
       setSubmitError(err.message || "Failed to save to the database. Please try again.");
     }
   };
 
-  const filteredOffers = offers.filter(o => 
-    (filterStatus ? (filterStatus === 'active' ? o.is_active : !o.is_active) : true) && 
+  const filteredOffers = offers.filter(o =>
+    (filterStatus ? (filterStatus === 'active' ? o.is_active : !o.is_active) : true) &&
     o.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -148,7 +143,7 @@ export default function OffersPage() {
       {/* LEFT COLUMN */}
       <div className="w-1/3 flex flex-col gap-4">
         <h1 className="text-2xl font-bold text-[#111827]" style={{ fontFamily: "Georgia, serif" }}>Moderation</h1>
-        <div className="flex gap-2 relative z-20"> 
+        <div className="flex gap-2 relative z-20">
           <div className="relative w-36" ref={dropdownRef}>
             <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className={`w-full h-10 px-4 rounded-lg font-medium flex items-center justify-between transition-all ${filterStatus ? 'bg-[#1ABC9C] text-white' : 'bg-white border border-[#E5E7EB] text-[#6B7280]'}`}>
               <span className="capitalize">{filterStatus || "Status"}</span>
@@ -207,18 +202,18 @@ export default function OffersPage() {
             )}
 
             <div className="bg-[#F0FDFA] rounded-[35px] p-8 space-y-6 shadow-sm border border-gray-100 max-w-2xl">
-              
+
               <div className="grid grid-cols-3 gap-6">
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Offer Name:</label>
-                  <input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Summer Sale" className={`w-full p-3 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.name ? 'border-red-500' : 'border-gray-200'}`} />
+                  <input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Summer Sale" className={`w-full p-3 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.name ? 'border-red-500' : 'border-gray-200'}`} />
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                 </div>
-                
+
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Discount (%):</label>
                   <div className="relative">
-                    <input type="number" min="0" max="100" value={formData.discount_percent} onChange={(e) => setFormData({...formData, discount_percent: e.target.value})} placeholder="e.g. 50" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.discount_percent ? 'border-red-500' : 'border-gray-200'}`} />
+                    <input type="number" min="0" max="100" value={formData.discount_percent} onChange={(e) => setFormData({ ...formData, discount_percent: e.target.value })} placeholder="e.g. 50" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.discount_percent ? 'border-red-500' : 'border-gray-200'}`} />
                     <Percent className="absolute left-3 top-3.5 text-gray-400" size={16} />
                   </div>
                   {errors.discount_percent && <p className="text-red-500 text-xs mt-1">{errors.discount_percent}</p>}
@@ -227,7 +222,7 @@ export default function OffersPage() {
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Stripe Coupon ID:</label>
                   <div className="relative">
-                    <input type="text" value={formData.stripe_coupon_id} onChange={(e) => setFormData({...formData, stripe_coupon_id: e.target.value})} placeholder="e.g. SUMMER50" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm font-mono outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.stripe_coupon_id ? 'border-red-500' : 'border-gray-200'}`} />
+                    <input type="text" value={formData.stripe_coupon_id} onChange={(e) => setFormData({ ...formData, stripe_coupon_id: e.target.value })} placeholder="e.g. SUMMER50" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm font-mono outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.stripe_coupon_id ? 'border-red-500' : 'border-gray-200'}`} />
                     <Tag className="absolute left-3 top-3.5 text-gray-400" size={16} />
                   </div>
                   {errors.stripe_coupon_id && <p className="text-red-500 text-xs mt-1">{errors.stripe_coupon_id}</p>}
@@ -241,11 +236,11 @@ export default function OffersPage() {
                   <div className="w-8 h-8 bg-[#4FD1C5] rounded-full flex items-center justify-center text-[#114A3F]"><Save size={18} /></div>
                 </button>
                 <div className="flex items-center gap-4">
-                   <span className="text-xl font-black text-[#111827]">Visibility</span>
-                   <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" checked={formData.is_active} onChange={toggleVisibility} />
-                      <div className="w-14 h-7 bg-gray-300 rounded-full peer peer-checked:bg-[#1ABC9C] after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-7 shadow-inner"></div>
-                   </label>
+                  <span className="text-xl font-black text-[#111827]">Visibility</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" checked={formData.is_active} onChange={toggleVisibility} />
+                    <div className="w-14 h-7 bg-gray-300 rounded-full peer peer-checked:bg-[#1ABC9C] after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-7 shadow-inner"></div>
+                  </label>
                 </div>
               </div>
             </div>
@@ -253,7 +248,7 @@ export default function OffersPage() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-[#9CA3AF] select-none">
             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100">
-               <MousePointer2 size={32} className="text-gray-300" />
+              <MousePointer2 size={32} className="text-gray-300" />
             </div>
             <h3 className="text-lg font-semibold text-gray-700">No Offer Selected</h3>
             <p className="text-sm mt-2">Click an offer on the left to edit, or create a new one.</p>
