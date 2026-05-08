@@ -250,7 +250,7 @@ export default function ChatInterface() {
         });
       }
 
-      //update the sidebar by push the conversation up and update the last message and unread count by +1
+      //if new message comes update the sidebar by push the conversation up and update the last message and unread count by +1
       setConversations((prev) => {
         let exists = prev.find((c) => c.id === message.senderId);
         const others = prev.filter((c) => c.id !== message.senderId);
@@ -392,7 +392,7 @@ export default function ChatInterface() {
     };
   }, [socket, activeConversationId, userProfile, user]);
 
-  //handling sending a message
+  //handles sending a message
   const handleSendMessage = (text) => {
     if (!socket || !activeConversationId || !userProfile) return;
 

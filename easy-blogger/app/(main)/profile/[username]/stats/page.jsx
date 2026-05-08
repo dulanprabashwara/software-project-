@@ -1,5 +1,5 @@
 "use client";
-//acts as a dedicated modal for displaying the followers and following lists of a user other than the one currently logged in
+// displaying the followers and following lists of a user other than the one currently logged in
 import { useState, useEffect, use, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { X, Loader2 } from "lucide-react";
@@ -45,7 +45,7 @@ export default function OtherUserStatsPage({ params }) {
     const load = async () => {
       setLoading(true);
       try {
-        // 1. Fetch the profile to get the user's DB id and counts
+        // 1. Fetch the profile to get the user's db id and counts
         let profileRes;
         if (firebaseUser) {
           const token = await firebaseUser.getIdToken();

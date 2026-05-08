@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Search, Edit } from "lucide-react";
 
+//show the conversation list in the left sidebar
 export default function ConversationList({
   conversations,
   activeConversationId,

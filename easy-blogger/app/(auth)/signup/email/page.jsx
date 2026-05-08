@@ -24,7 +24,7 @@ export default function EmailSignupPage() {
   const [loading, setLoading] = useState(false);
 
   /**
-  Dynamically updates the form state based on input name attributes.
+  updates the form states based on input attributes
    */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -32,8 +32,7 @@ export default function EmailSignupPage() {
   };
 
   /**
-   * Executes the manual registration process sequentially.
-    Creates the base user in Firebase Auth.
+    Creates the base user in Firebase 
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,11 +62,12 @@ export default function EmailSignupPage() {
       try {
         const { api } = await import("../../../../lib/api");
         await new Promise((resolve) => setTimeout(resolve, 500));
+        //send profile data to backend to update profile
         await api.updateProfile({ displayName: formData.name }, token);
       } catch (err) {
         console.error("Failed to sync name to backend during signup", err);
       }
-
+      //redirect user to home page after signup
       router.push("/home");
     } catch (err) {
       console.error("Signup validation error:", err);
