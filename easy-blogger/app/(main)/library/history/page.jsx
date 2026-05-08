@@ -1,17 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import ArticleCard from "../../../../components/article/ArticleCard";
-import { useReadHistory } from "../../../../hooks/useReadHistory";
-import { useSavedList } from "../../../../hooks/useSavedArticles";
+import { useReadHistory } from "../../../../hooks/feeds/useReadHistory";
+import { useSavedList } from "../../../../hooks/feeds/useSavedArticles";
 import { Loader2 } from "lucide-react";
 
 export default function History() {
+  //get history articles
   const { readHistory, isLoading: historyLoading } = useReadHistory();
   const { savedList} = useSavedList();
 
   const isLoading = historyLoading;
 
+//still loading
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -20,6 +21,7 @@ export default function History() {
     );
   }
 
+  //if no articles available
   if (!readHistory || readHistory.length === 0) {
     return (
       <div className="px-8 mt-10 text-center">
@@ -28,13 +30,14 @@ export default function History() {
     );
   }
 
+  //map articles to articlecard
   return (
     <section className="px-8 min-w-0">
       <div className=" w-full">
          {readHistory.map((item) => (
           <ArticleCard 
             key={item.id} 
-             article={item.article} 
+            article={item.article} 
             readHistory={readHistory} 
             savedArticles={savedList}
           />

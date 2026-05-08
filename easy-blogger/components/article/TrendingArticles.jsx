@@ -2,8 +2,8 @@
 "use client";
 
 import ArticleCard from './ArticleCard';
-import { useTrendingArticles } from '../../hooks/useTrendingArticles';
-import { useSavedList } from '../../hooks/useSavedArticles';
+import { useTrendingArticles } from '../../hooks/feeds/useTrendingArticles';
+import { useSavedList } from '../../hooks/feeds/useSavedArticles';
 import { Loader2 } from 'lucide-react';
  
 export default function TrendingArticles() {

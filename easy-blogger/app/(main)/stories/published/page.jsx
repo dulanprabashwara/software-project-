@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import PublishedArticleCard from "../../../../components/article/PublishedArticleCard";
+import ArticleCard from "../../../../components/article/ArticleCard";
 import { getMyPublishedArticles } from "../../../../lib/articles/api";
-import { useSavedList } from "../../../../hooks/useSavedArticles";
+import { useSavedList } from "../../../../hooks/feeds/useSavedArticles";
 
 
 export default function Published() {
@@ -38,7 +38,7 @@ export default function Published() {
           </p>
         ) : (
           articles.map((article) => (
-            <PublishedArticleCard key={article.id} 
+            <ArticleCard key={article.id} 
             article={article}
             savedArticles={savedList}
             />

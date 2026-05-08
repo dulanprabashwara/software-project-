@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../../app/context/AuthContext";
-import { useSavedArticles } from "../../hooks/useSavedArticles";
+import { useSavedArticles } from "../../hooks/feeds/useSavedArticles";
 import { searchArticles, searchUsers } from "../../lib/searchApi";
 import SearchArticleCard from "./SearchArticleCard";
 import UserCard from "./UserCard";
 import RightFeed from "../article/RightFeed";
-import { DATA } from "../article/ArticleList";
 import { Loader2, SearchX } from "lucide-react";
 
 const FIRST_PAGE          = 1;
@@ -238,11 +237,7 @@ export default function SearchResults({ query, initialTab = "articles" }) {
       </div>
 
       <div className="hidden lg:block w-80 flex-none h-full overflow-y-auto">
-        <RightFeed
-          trending={DATA.trending}
-          topics={DATA.topics}
-          usersToFollow={DATA.usersToFollow}
-        />
+        <RightFeed/>
       </div>
 
     </div>

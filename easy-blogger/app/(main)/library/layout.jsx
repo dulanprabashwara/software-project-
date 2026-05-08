@@ -1,9 +1,9 @@
+//libarray page layout
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import RightFeed from "../../../components/article/RightFeed";
-import { DATA } from "../../../components/article/ArticleList";
 
 export default function Layout({ children }) {
   const pathname = usePathname();
@@ -23,7 +23,8 @@ export default function Layout({ children }) {
         {/* Header + Tabs */}
         <div className="p-3 border-b border-[#e5e7eb] px-8">
           <h1 className="text-4xl font-bold font-[Georgia]">Library</h1>
-
+          
+          {/*maplibabry sections links*/}
           <div className="flex gap-10">
             {tabs.map((tab) => (
               <Link

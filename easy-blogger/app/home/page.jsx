@@ -3,7 +3,7 @@ import { useRef, useEffect, useCallback, Suspense,useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
-import MainFeed from "../../components/article/MainFeed";
+import NewFeed from "../../components/article/NewFeed";
 import FollowingFeed from "../../components/article/FollowingFeed";
 import RightFeed from "../../components/article/RightFeed";
 import SearchResults from "../../components/search/SearchResults";
@@ -18,7 +18,7 @@ function HomeContent() {
   const initialTab = tabParam === "profiles" ? "profiles" : "articles";
   const [getFeed, setFeed] = useState(1);
 
-  // ✅ OPTIMIZATION: Use a ref to hold our timeout ID
+  //OPTIMIZATION: Use a ref to hold our timeout ID
   const scrollTimeout = useRef(null);
 
   // Helper to save current scroll position safely
@@ -102,7 +102,7 @@ function HomeContent() {
         className="p-4 md:p-8 mx-auto w-full h-full overflow-y-auto"
       >
         {getFeed === 1 ? (
-          <MainFeed />
+          <NewFeed />
         ) : getFeed === 2 ? (
           <FollowingFeed />
         ) : (
