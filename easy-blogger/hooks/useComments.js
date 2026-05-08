@@ -10,7 +10,7 @@ export const useComments = (articleId, token) => {
   //get article comments
   const fetchComments = async () => {
     try {
-      const data = await api.getArticleComments(articleId);
+      const data = await api.getArticleComments(articleId); //api call to get comments
       setComments(data);
     } catch (err) {
       console.error("Hook Error:", err.message);
@@ -36,10 +36,11 @@ export const useComments = (articleId, token) => {
     }
   };
 
+  //submit a rating
   const submitRating = async (num) => { 
     if (!token) return false;
     try {
-      await api.rateArticle(articleId, num, token);
+      await api.rateArticle(articleId, num, token); //api call for rating
       setRating(num); 
       return true;
     } catch (err) {

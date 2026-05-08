@@ -14,15 +14,16 @@ export function useNotifications(userId) {
   useEffect(() => {
     if (!userId || !user) return;
 
+    //setup connection and get old notifications
     const setupNotifications = async () => {
       try {
         const token = await user.getIdToken();
 
-        // 1. Fetch historical data via API Service
+        // Fetch   data via API Service
         const data = await api.getNotifications(token); 
         setNotifications(Array.isArray(data) ? data : data.data || []);
 
-        // 2. Initialize Socket Connection
+        // Initialize Socket Connection
         if (!socket || !socket.connected) {
             socket = io(SOCKET_URL, {
               auth: { token },
@@ -30,7 +31,7 @@ export function useNotifications(userId) {
             });
         }
 
-        // 3. Listen for live incoming notifications
+        // Listen for live incoming notifications
         socket.on('notification:receive', (newNotification) => {
           setNotifications((prev) => [newNotification, ...prev]);
         });
@@ -51,6 +52,7 @@ export function useNotifications(userId) {
     };
   }, [userId, user]); 
 
+  //mark as read
   const markAsRead = async (id = null) => {
     try {
       if (!user) return;

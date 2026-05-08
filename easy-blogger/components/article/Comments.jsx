@@ -100,6 +100,7 @@ export const Comments = ({ articleId, token }) => {
       {/* RATING SECTION */}
       <div className="flex items-center gap-4 p-4 border rounded-xl bg-gray-50">
         <span className="text-sm font-bold text-gray-600">Rate this article:</span>
+        {/* Map the users rating onto the stars if available / get users rating */}
         <div className="flex gap-1">
           <Star 
             size={24} 

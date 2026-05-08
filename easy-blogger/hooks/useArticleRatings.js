@@ -1,8 +1,10 @@
+//get ratings of a certain article of a ceratin user
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../app/context/AuthContext"; 
  import { api } from "../lib/api"
 
 export function useArticleRatings(articleId) {
+  //for loading and setting ratings
   const { user, profileLoading } = useAuth();
   const [articleRatings, setArticleRatings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,8 +18,8 @@ export function useArticleRatings(articleId) {
 
     setIsLoading(true);
     try {
-      const token = await user.getIdToken();
-      const data = await api.getArticleRatings(articleId,token);
+      const token = await user.getIdToken(); //userId 
+      const data = await api.getArticleRatings(articleId,token); //article ID
       setArticleRatings(data);
     } catch (error) {
       console.error("Hook Error:", error.message);

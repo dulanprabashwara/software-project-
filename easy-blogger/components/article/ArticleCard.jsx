@@ -15,6 +15,7 @@ export default function ArticleCard({
   savedArticles = [], 
   interactedArticles = [], 
   readHistory = [] 
+  
 }) {
 
 
@@ -187,13 +188,9 @@ const { user, profileLoading, userProfile } = useAuth();
       }
 
       setIsDeleteOpen(false);
+      alert("Article Successfully Deleted");
       
-      // If the parent page passed a refresh function, call it so the deleted article disappears!
-      if (onDeleteSuccess) {
-        onDeleteSuccess(article.id);
-      } else {
-        alert("Article deleted successfully.");
-      }
+       
 
     } catch (err) {
       console.error(err);

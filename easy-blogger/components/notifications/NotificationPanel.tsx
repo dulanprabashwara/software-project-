@@ -4,12 +4,11 @@ import { useState, useRef } from "react";
 import { useNotifications } from "../../hooks/useNotifications";
 import { Bell, Circle, Loader2, Info, EyeOff, Eye } from "lucide-react";
 import Link from "next/link";
-import { useAuth } from "../../app/context/AuthContext";
 
 function timeAgo(dateString: string) {
   const date = new Date(dateString);
   const now = new Date();
-  const seconds = Math.round((now.getTime() - date.getTime()) / 1000);
+  const seconds = Math.round((now.getTime() - date.getTime()) / 1000); //calculte difference & convert to seconds
   const minutes = Math.round(seconds / 60);
   const hours = Math.round(minutes / 60);
   if (seconds < 60) return "Just now";
@@ -18,11 +17,13 @@ function timeAgo(dateString: string) {
   return date.toLocaleDateString();
 }
 
+//create teh notification
 function getNotificationDetails(notification: any) {
   const actorName =
     notification.sourceUser?.displayName ||
     notification.sourceUser?.username ||
     "Someone";
+
   const articleTitle = notification.sourceArticle?.title || "an article";
   const articleId = notification.sourceArticleId || "";
   const link = `/home/read?id=${articleId}`;
@@ -60,10 +61,6 @@ function getNotificationDetails(notification: any) {
       };
   }
 }
-
-// ... (keep helper functions timeAgo and getNotificationDetails same as before)
-
-// ... (imports and helper functions remain same)
 
 export default function NotificationPanel({
   userId,

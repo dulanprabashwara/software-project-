@@ -45,7 +45,7 @@ export function useSavedArticles() {
    };
 }
 
-
+//get only a list of saved article IDs
 export function useSavedList() {
   const { user, profileLoading } = useAuth();
   const [savedList, setSavedList] = useState([]);
@@ -62,8 +62,8 @@ export function useSavedList() {
     try {
       const token = await user.getIdToken();
       
-      // FIX 1: Use the correct API function
-      const list = await api.getSavedList(token); 
+      
+      const list = await api.getSavedList(token); //api call
       const data=list.data;
       setSavedList(data);
     } catch (error) {
@@ -79,7 +79,7 @@ export function useSavedList() {
   }, [profileLoading, fetchSavedList]);
 
   return { 
-    savedList, // FIX 2: Return the correct state variable
+    savedList, 
     isLoading, 
   };
 }

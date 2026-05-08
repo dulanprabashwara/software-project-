@@ -15,7 +15,7 @@ export function useFollowingArticles() {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const articleLimit = 5;
 
-  // 1. Initial Load
+  // Initial Load
   useEffect(() => {
     if (profileLoading) return;
 

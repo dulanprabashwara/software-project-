@@ -256,4 +256,12 @@ export const api = {
   getArticleRatings: (articleId, token) => 
     fetchAPI(`/api/articleRatings?articleId=${articleId}`, { token }).then(res => res.data || null),
 
+  //for article stats
+
+// for article stats
+  // lib/api.js
+getUserArticleStats: (token) => 
+    fetchAPI("/api/articleStats", { token }).then(res => res.data || []),
+  
+
 };

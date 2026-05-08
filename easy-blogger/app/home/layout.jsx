@@ -1,14 +1,16 @@
  "use client";
-
+//Layout for the homepage
 import { useState } from "react";
 import Header from "../../components/layout/Header";
 import Sidebar from "../../components/layout/Sidebar";
 
 export default function layout({ children }) {
+  //track if the idebar is open
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-     <div className="h-screen overflow-hidden bg-white flex flex-col">
+    
+     <div className="h-screen overflow-hidden bg-white flex flex-col"> 
         {/* Header */}
         <div className="h-16 shrink-0">
           <Header onToggleSidebar={() => setSidebarOpen((p) => !p)} />
@@ -17,7 +19,7 @@ export default function layout({ children }) {
         {/* Main Area */}
         <main
           className={`h-screen     overflow-hidden transition-[margin] duration-500 ease-in-out ${
-            sidebarOpen ? "lg:ml-64" : "lg:ml-0"
+            sidebarOpen ? "lg:ml-64" : "lg:ml-0" //if the sidebar is opend content shrinks
           }`}
         >
           <Sidebar isOpen={sidebarOpen} />
