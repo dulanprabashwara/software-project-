@@ -18,7 +18,7 @@ function HomeContent() {
   const initialTab = tabParam === "profiles" ? "profiles" : "articles";
   const [getFeed, setFeed] = useState(1);
 
-  //OPTIMIZATION: Use a ref to hold our timeout ID
+  //Use a ref to hold our timeout ID
   const scrollTimeout = useRef(null);
 
   // Helper to save current scroll position safely
@@ -72,7 +72,7 @@ function HomeContent() {
     {/* Center Column: Flex-col keeps header at top, feed scrolling below */}
     <div className="flex flex-col flex-1 h-full border-r border-gray-100">
       
-      {/* 1. NON-SCROLLING TAB HEADER */}
+      {/* Follow, NEw header*/}
       <div className="flex w-full border-b border-gray-200 bg-white/90 backdrop-blur z-10">
         <button
           onClick={() => setFeed(1)}
@@ -95,7 +95,7 @@ function HomeContent() {
         </button>
       </div>
 
-      {/* 2. SCROLLABLE FEED AREA */}
+      {/* SCROLLABLE FEED */}
       <div
         ref={scrollRef}
         onScroll={saveScroll}
@@ -112,7 +112,7 @@ function HomeContent() {
 
     </div>
 
-    {/* 3. RIGHT SIDEBAR */}
+    {/* RIGHT SIDEBAR */}
     <div className="hidden lg:block w-80 flex-none h-full overflow-y-auto bg-gray-50/50">
       <RightFeed />
     </div>
