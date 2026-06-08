@@ -26,27 +26,26 @@ function HomeContent() {
     // Clear the previous timer if they are still actively scrolling
     if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
     
-    // Set a new timer to save the position after a 100ms pause
+    // Set a new timer to save the position 
     scrollTimeout.current = setTimeout(() => {
       if (scrollRef.current) {
-        sessionStorage.setItem("homeScroll", scrollRef.current.scrollTop.toString());
+        sessionStorage.setItem("homeScroll", scrollRef.current.scrollTop.toString()); //save how much is scrolled in pixels
       }
-    }, 100);
+    }, 100); //runs 100 miliseconds after user scroll
   }, []);
 
   // Restore scroll position
   useEffect(() => {
     if (isSearching) return;
-    const savedScroll = sessionStorage.getItem("homeScroll");
+    const savedScroll = sessionStorage.getItem("homeScroll"); //load scrolled pixel amount
     if (!savedScroll) return;
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (scrollRef.current) {
-          scrollRef.current.scrollTo({ top: Number(savedScroll), behavior: "instant" });
-        }
-      });
-    });
+    //wait for 50 milliseconds restoring scroll
+    setTimeout(() => {
+  if (scrollRef.current) {
+    scrollRef.current.scrollTo({ top: Number(savedScroll), behavior: "instant" });
+  }
+}, 50);
   }, [isSearching]);
 
   // Save scroll on view change and unmount
@@ -54,10 +53,14 @@ function HomeContent() {
     if (isSearching) saveScroll();
   }, [isSearching, saveScroll]);
 
+  
   useEffect(() => {
     return () => {
       // Ensure we clear the timeout to prevent memory leaks on unmount
-      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+      if (scrollTimeout.current) 
+        {
+          clearTimeout(scrollTimeout.current);
+        }
       saveScroll();
     };
   }, [saveScroll]);
@@ -102,7 +105,7 @@ function HomeContent() {
         className="p-4 md:p-8 mx-auto w-full h-full overflow-y-auto"
       >
         {getFeed === 1 ? (
-          <NewFeed />
+          <NewFeed/>
         ) : getFeed === 2 ? (
           <FollowingFeed />
         ) : (
