@@ -128,6 +128,13 @@ export const api = {
   deleteScrapingSource: (id, token) =>
     fetchAPI(`/api/admin/scraping-sources/${id}`, { method: "DELETE", token }),
 
+  // Scraper Test Endpoints
+  triggerScrape: (token) =>
+    fetchAPI("/api/scraper/trigger", { method: "POST", token }),
+
+  triggerEnrichment: (token) =>
+    fetchAPI("/api/scraper/enrich", { method: "POST", token }),
+
   // ─── Messages / Chat ──────────────────────
   getConversations: (token) =>
     fetchAPI("/api/messages/conversations", { token }),
