@@ -12,6 +12,7 @@ import { api } from "../../../lib/api";
  * Upgrade to Premium Page
  * Redirects user to Stripe Hosted Checkout
  */
+
 export default function UpgradeToPremiumPage() {
   const router = useRouter();
   const { user, userProfile } = useAuth();
