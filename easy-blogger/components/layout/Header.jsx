@@ -296,6 +296,15 @@ export default function Header({ onToggleSidebar }) {
         {/* Place Notificatin panel*/}
         <NotificationPanel userId={user?.uid || user?.id} />
 
+        {/* Messages */}
+        <Link 
+          href="/chat" 
+          className="p-2 hover:bg-emerald-50 rounded-full transition-colors text-gray-600"
+          title="Messages"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </Link>
+
         {/* Avatar + Dropdown */}
         <div className="relative" ref={menuRef}>
           <div className="relative inline-block">
@@ -355,13 +364,6 @@ export default function Header({ onToggleSidebar }) {
                 className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
               >
                 <HelpCircle size={16} /> Help
-              </Link>
-              <Link
-                href="/chat"
-                onClick={() => setUserMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
-              >
-                <MessageCircle size={16} /> Messages
               </Link>
               <Link
                 href={membership.href}
