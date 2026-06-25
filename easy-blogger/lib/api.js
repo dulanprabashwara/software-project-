@@ -205,9 +205,10 @@ export const api = {
     fetchAPI(`/api/comments/${articleId}/rate`, { method: "POST", body: { rating }, token }),
 
   // Feeds
-  getFollowingFeed: (page = 1, token = null) => 
-    fetchAPI(`/api/homefeed/following?page=${page}`, { token }),
-
+  getFollowingFeed: (page = 1, token = null) => {
+  console.log("MY POSTMAN TOKEN:", token);
+  return fetchAPI(`/api/homefeed/following?page=${page}`, { token });
+},
   getNewFeed: (page = 1, token = null) => 
     fetchAPI(`/api/homefeed/main?page=${page}`, { token }),
 

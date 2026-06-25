@@ -17,53 +17,74 @@ function HomeContent() {
   const tabParam = searchParams.get("tab");
   const initialTab = tabParam === "profiles" ? "profiles" : "articles";
   const [getFeed, setFeed] = useState(1);
+  const getFeedRef = useRef(1);
+  getFeedRef.current = getFeed;
 
   //Use a ref to hold our timeout ID
   const scrollTimeout = useRef(null);
 
   // Helper to save current scroll position safely
   const saveScroll = useCallback(() => {
-    // Clear the previous timer if they are still actively scrolling
     if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
     
-    // Set a new timer to save the position 
     scrollTimeout.current = setTimeout(() => {
       if (scrollRef.current) {
-        sessionStorage.setItem("homeScroll", scrollRef.current.scrollTop.toString()); //save how much is scrolled in pixels
+        sessionStorage.setItem(`homeScroll_${getFeedRef.current}`, scrollRef.current.scrollTop.toString()); 
       }
-    }, 100); //runs 100 miliseconds after user scroll
+    }, 100); 
   }, []);
 
   // Restore scroll position
   useEffect(() => {
     if (isSearching) return;
-    const savedScroll = sessionStorage.getItem("homeScroll"); //load scrolled pixel amount
-    if (!savedScroll) return;
+    const savedScroll = Number(sessionStorage.getItem(`homeScroll_${getFeed}`) || 0);
+    if (savedScroll === 0) return;
 
-    //wait for 50 milliseconds restoring scroll
-    setTimeout(() => {
-  if (scrollRef.current) {
-    scrollRef.current.scrollTo({ top: Number(savedScroll), behavior: "instant" });
-  }
-}, 50);
-  }, [isSearching]);
+    let attempts = 0;
+    const interval = setInterval(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ top: savedScroll, behavior: "instant" });
+        if (Math.abs(scrollRef.current.scrollTop - savedScroll) < 5 || attempts > 20) {
+          clearInterval(interval);
+        }
+      }
+      attempts++;
+    }, 100);
 
-  // Save scroll on view change and unmount
+    return () => clearInterval(interval);
+  }, [isSearching, getFeed]);
+
+  // Save scroll on search view change
   useEffect(() => {
     if (isSearching) saveScroll();
   }, [isSearching, saveScroll]);
 
-  
+  // Final save on unmount (navigation)
   useEffect(() => {
     return () => {
-      // Ensure we clear the timeout to prevent memory leaks on unmount
-      if (scrollTimeout.current) 
-        {
-          clearTimeout(scrollTimeout.current);
-        }
-      saveScroll();
+      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+      if (scrollRef.current) {
+        sessionStorage.setItem(`homeScroll_${getFeedRef.current}`, scrollRef.current.scrollTop.toString());
+      }
     };
-  }, [saveScroll]);
+  }, []);
+
+  // Restore the active tab from sessionStorage on mount
+  useEffect(() => {
+    const savedTab = sessionStorage.getItem("homeFeedTab");
+    if (savedTab && Number(savedTab) !== getFeedRef.current) {
+      setFeed(Number(savedTab));
+    }
+  }, []);
+
+  const handleTabChange = (newFeed) => {
+    if (getFeed === newFeed) return;
+    if (scrollRef.current) {
+      sessionStorage.setItem(`homeScroll_${getFeed}`, scrollRef.current.scrollTop.toString());
+    }
+    sessionStorage.setItem("homeFeedTab", newFeed.toString());
+    setFeed(newFeed);
+  };
 
   if (isSearching) {
     return <SearchResults query={query.trim()} initialTab={initialTab} />;
@@ -78,7 +99,7 @@ function HomeContent() {
       {/* Follow, NEw header*/}
       <div className="flex w-full border-b border-gray-200 bg-white/90 backdrop-blur z-10">
         <button
-          onClick={() => setFeed(1)}
+          onClick={() => handleTabChange(1)}
           className={`flex-1 py-4 text-sm md:text-base font-semibold transition-all duration-200 hover:bg-gray-50 
             ${getFeed === 1 
               ? "border-b-4 border-[#1abc9c] text-[#1abc9c]" 
@@ -88,7 +109,7 @@ function HomeContent() {
         </button>
         
         <button
-          onClick={() => setFeed(2)}
+          onClick={() => handleTabChange(2)}
           className={`flex-1 py-4 text-sm md:text-base font-semibold transition-all duration-200 hover:bg-gray-50 
             ${getFeed === 2 
               ? "border-b-4 border-[#1abc9c] text-[#1abc9c]"  

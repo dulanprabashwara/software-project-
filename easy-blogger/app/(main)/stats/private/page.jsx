@@ -1,39 +1,48 @@
 'use client';
 
 import { Star, Loader2 } from 'lucide-react';
-import TrendingArticles from "../../../../components/article/TrendingArticles";
+import ArticleCard from '../../../../components/article/ArticleCard';
 import { useArticleStats } from '../../../../hooks/useArticleStats';
+import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from "next/navigation";
 
 export default function PrivateStats() {
     // 1. Fetch real data using your hook
     const { stats, isLoading, error } = useArticleStats();
+    const { userProfile } = useAuth();
     const router = useRouter();
     
+    const topArticles = stats 
+        ? [...stats].sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0)).slice(0, 5)
+        : [];
+        
+    const totalRatings = stats ? stats.reduce((acc, curr) => acc + (curr.ratingCount || 0), 0) : 0;
+    const avgRating = totalRatings > 0 
+      ? (stats.reduce((acc, curr) => acc + (curr.averageRating || 0) * (curr.ratingCount || 0), 0) / totalRatings).toFixed(1) 
+      : "0.0";
 
     return (
         <div className="overflow-hidden flex flex-col p-4">
-            <div className="bg-[#f0fdf9] w-full rounded-4xl mb-10 gap-20 p-5 flex">
-                <div className="flex gap-7 flex-col font-[Georgia]">
+            <div className="bg-[#f0fdf9] w-full rounded-4xl mb-10 gap-20 p-5 flex flex-col md:flex-row">
+                <div className="flex gap-7 flex-col font-[Georgia] shrink-0">
                     <div className="flex gap-3">
                         <Star className="fill-[#1abc9c] text-[#f0fdf9] pb-2 stroke-1 w-13 h-13" />
                         <h1 className="text-[1.75rem] text-[#6b6b6b]">Ratings</h1>
                     </div>
-                    <div className="bg-white p-5 h-50 w-70 rounded-2xl shadow-sm">
+                    <div className="bg-white p-5 h-50 w-70 rounded-2xl shadow-sm flex items-center justify-center">
                         <div className="flex flex-col">
-                            <img src="https://i.pravatar.cc/150?img=47"
-                                alt="image_User" className="rounded-full w-30 h-30 overflow-hidden mx-auto" />
+                            <img src={userProfile?.avatarUrl || "https://i.pravatar.cc/150?img=47"}
+                                alt="image_User" className="rounded-full w-30 h-30 overflow-hidden mx-auto object-cover" />
                             <h1 className="pt-3 font-bold text-[1.5rem] text-center text-[#4a4a4a]">
-                                Emma Richardson
+                                {userProfile?.displayName || "User"}
                             </h1>
                         </div>
                     </div>
-                    {/* Note: These could also be derived from the 'stats' array later */}
                     <div className="bg-white pl-5 py-4 rounded-2xl shadow-sm">
-                        <p className="text-[4rem] leading-tight text-[#1abc9c]">4.2</p>
+                        <p className="text-[4rem] leading-tight text-[#1abc9c]">{avgRating}</p>
                         <p className="text-[1.25rem] text-[#6b6b6b]">Average Score</p>
                         <div className="flex text-[1rem] text-[#6b6b6b]">
-                            <p>322 . rates</p>
+                            <p>{totalRatings} . rates</p>
                         </div>
                     </div>
                 </div>
@@ -43,9 +52,39 @@ export default function PrivateStats() {
                         <h1 className="font-bold px-5 rounded-2xl text-[#6b6b6b]">{"<<"} High</h1>
                         <h1 className="font-bold px-5 rounded-2xl text-[#6b6b6b]">Low {">>"}</h1>
                     </div>
-                    <TrendingArticles />
-                    <div className="flex justify-end mt-18">
-                        <button className="bg-white border-2 border-[#1abc9c] font-[Georgia] px-5 py-2 rounded-2xl text-[#1abc9c] transition-colors hover:bg-[#1abc9c] hover:text-white">
+                    
+                    {isLoading ? (
+                        <div className="flex w-full items-center justify-center py-10">
+                            <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
+                        </div>
+                    ) : (
+                        <div className="flex gap-5 overflow-x-auto bg-white p-3 rounded-2xl mb-3 items-start">
+                            {topArticles.map((article) => {
+                                // Provide default author to ArticleCard so it displays the user profile
+                                const articleWithAuthor = {
+                                    ...article,
+                                    author: {
+                                        displayName: userProfile?.displayName,
+                                        avatarUrl: userProfile?.avatarUrl,
+                                        username: userProfile?.username,
+                                        id: userProfile?.id
+                                    }
+                                };
+                                return (
+                                    <div key={article.id} className="bg-white w-160 shrink-0 px-4 border-2 rounded-2xl border-[#e5e7eb] h-fit">
+                                        <ArticleCard article={articleWithAuthor} />
+                                    </div>
+                                );
+                            })}
+                            {topArticles.length === 0 && <p className="text-gray-400 p-4">No articles found.</p>}
+                        </div>
+                    )}
+                    
+                    <div className="flex justify-end mt-4">
+                        <button 
+                            className="bg-white border-2 border-[#1abc9c] font-[Georgia] px-5 py-2 rounded-2xl text-[#1abc9c] cursor-pointer transition-colors hover:bg-[#1abc9c] hover:text-white"
+                            onClick={() => router.push('/stats/private/more')}
+                        >
                             See More
                         </button>
                     </div>
@@ -75,7 +114,7 @@ export default function PrivateStats() {
                             {!isLoading && stats.length > 0 ? (
                                 stats.map((article) => (
                                     <tr key={article.id} 
-                                    className="group hover:bg-teal-50 transition-colors cursor-pointer transition-colors transition-transform hover:scale-102 duration-200"
+                                    className="group hover:bg-teal-50 transition-colors cursor-pointer transition-transform hover:scale-102 duration-200"
                                      onClick={() => router.push(`/home/read?id=${article.id}`)} >
                                         <td className="py-5 pl-4 rounded-l-2xl border-y border-l border-gray-100">
                                             <p className="font-bold text-[#4a4a4a] truncate max-w-xs">

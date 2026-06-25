@@ -371,7 +371,8 @@ export default function Page() {
             <Comments 
               articleId={id} 
               currentUser={userProfile} 
-              token={token} 
+              token={token}
+              articleAuthorId={article?.author?.id}
             />
           </div>
         </div>
