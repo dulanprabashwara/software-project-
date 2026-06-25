@@ -224,8 +224,8 @@ export const api = {
     }),
 
     // Saved Articles
-  getSavedArticles: (token) => 
-    fetchAPI("/api/savedArticle", { token }),
+  getSavedArticles: (token, page = 1) => 
+    fetchAPI(`/api/savedArticle?page=${page}`, { token }),
     
   getSavedList: (token) => 
     fetchAPI("/api/savedArticle/savedList", { token }),
@@ -241,15 +241,15 @@ export const api = {
     fetchAPI(`/api/trendingArticles/trendingArticles`).then(res=> Array.isArray(res)? res: res.trending || [] ),
 
   // User History & Content
-  getReadHistory: (token) => 
-    fetchAPI("/api/readHistory", { token }).then(res => res.data || []),
+  getReadHistory: (token, page = 1) => 
+    fetchAPI(`/api/readHistory?page=${page}`, { token }).then(res => res.data || []),
 
   getPublishedArticles: (token) => 
     fetchAPI("/api/publishedArticles", { token }).then(res => res.data || []),
 
   // User Interactions & Ratings
-  getInteractedArticles: (token) => 
-    fetchAPI("/api/interactedArticles", { token }).then(res => res.data || []),
+  getInteractedArticles: (token, page = 1) => 
+    fetchAPI(`/api/interactedArticles?page=${page}`, { token }).then(res => res.data || []),
 
    getInteractedList: (token) => 
     fetchAPI("/api/interactedArticles/interactedList", { token }),
