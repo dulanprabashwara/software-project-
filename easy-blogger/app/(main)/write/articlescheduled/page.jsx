@@ -23,6 +23,35 @@ export default function ArticleScheduledPage() {
     router,
   } = usePublishStatus();
 
+  /*
+   List of platforms where the article is scheduled to appear.
+   WHY: We check the article status for 'Easy Blogger' and look at
+   the publish jobs arrays to accurately determine if LinkedIn or WordPress
+   are scheduled.
+   */
+  const platforms = useMemo(() => {
+    const list = [];
+    if (article?.status === "SCHEDULED" || article?.status === "PUBLISHED") {
+      list.push("Easy Blogger");
+    }
+    
+    const validStatuses = ["PENDING", "IN_PROGRESS", "PUBLISHED", "SCHEDULED"];
+    
+    if (article?.wpPublishJobs?.some(job => validStatuses.includes(job.status))) {
+      list.push("WordPress");
+    }
+    
+    if (article?.liPublishJobs?.some(job => validStatuses.includes(job.status))) {
+      list.push("LinkedIn");
+    }
+    
+    return list;
+  }, [article]);
+
+  // Format the date and time from the article's scheduledAt field for the UI
+  const scheduledDate = formatFullDate(article?.scheduledAt);
+  const scheduledTime = formatFullTime(article?.scheduledAt);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6">
@@ -32,18 +61,6 @@ export default function ArticleScheduledPage() {
   }
 
   if (!article) return null;
-
-  /*
-   List of platforms where the article is scheduled to appear.
-   WHY: We always show 'Easy Blogger' as the primary platform, 
-   and dynamically add 'WordPress' only if the user has an active connection.
-   */
-  const platforms = ["Easy Blogger"];
-  if (wpConnected) platforms.push("WordPress");
-
-  // Format the date and time from the article's scheduledAt field for the UI
-  const scheduledDate = formatFullDate(article.scheduledAt);
-  const scheduledTime = formatFullTime(article.scheduledAt);
 
   return (
     <PublishStatusLayout
