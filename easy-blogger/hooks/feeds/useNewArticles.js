@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../app/context/AuthContext";
-import { getFollowingFeedApi } from "../app/api/followingFeed.api";
+import { useAuth } from "../../app/context/AuthContext";
+ import { api } from "../../lib/api"
 
 // Cache an object now: { articles: [...], page: 3, hasMore: true }
-const articleCache = {};
+  const articleCache = {};
 
-export function useFollowingArticles() {
+export function useNewArticles() {
   const { user, profileLoading } = useAuth();
   
   const [articles, setArticles] = useState([]);
@@ -13,9 +13,9 @@ export function useFollowingArticles() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const articleLimit = 5;
+  const articleLimit =5;
 
-  // 1. Initial Load
+  //Initial Load
   useEffect(() => {
     if (profileLoading) return;
 
@@ -30,12 +30,13 @@ export function useFollowingArticles() {
       return;
     }
 
-    //fetch the first set of articles
+    //fetch the forst set of articles
     const fetchInitialData = async () => {
       setIsLoading(true);
       try {
         const token = user ? await user.getIdToken() : null;
-        const initialBatch = await getFollowingFeedApi(1, token);
+        const data = await api.getNewFeed(1, token);
+        const initialBatch = Array.isArray(data) ? data : data.articles || [];
 
         const isMore = initialBatch.length === articleLimit;
         
@@ -55,15 +56,15 @@ export function useFollowingArticles() {
     fetchInitialData();
   }, [user, profileLoading]); 
 
-  // 2. Load More (Triggered by Scroll)
+  // 2. Load More (Triggered by Scrolling)
   const loadMore = useCallback(async () => {
     if (isFetchingMore || !hasMore || isLoading) return;
 
     setIsFetchingMore(true);
     try {
       const token = user ? await user.getIdToken() : null;
-      const nextBatch = await getFollowingFeedApi(page, token);
-
+      const data = await api.getNewFeed(page, token);
+      const nextBatch = Array.isArray(data) ? data : data.articles || [];
       if (nextBatch.length === 0) {
         setHasMore(false);
         // Update cache
@@ -73,7 +74,7 @@ export function useFollowingArticles() {
         setArticles((prev) => {
           const combined = [...prev, ...nextBatch];
           
-          // Update cache with the new massive list
+          // Update cache with the new list
           const cacheKey = user ? user.uid : "guest";
           articleCache[cacheKey] = { articles: combined, page: page + 1, hasMore: nextBatch.length === articleLimit };
           
@@ -86,7 +87,7 @@ export function useFollowingArticles() {
     } finally {
       setIsFetchingMore(false);
     }
-  }, [page, isFetchingMore, hasMore, isLoading, user]);
+  },[page, isFetchingMore, hasMore, isLoading, user]);
 
-  return { articles, isLoading, isFetchingMore, hasMore, loadMore };
+  return { articles, isLoading, isFetchingMore, hasMore,  loadMore };
 }

@@ -1,16 +1,17 @@
 "use client";
 
-import { useFollowingArticles } from "../../hooks/feeds/useFollowingFeed";
+import { useNewArticles } from "../../hooks/feeds/useNewArticles";
 import { useSavedArticles } from "../../hooks/feeds/useSavedArticles";
 import ArticleCard from "./ArticleCard";
 import InfiniteScroll from "../ui/InfiniteScroll"; // Adjust path as needed
-import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Loader2, Router } from "lucide-react";
 
-export default function FollowingFeed() {
-  const { articles, isLoading, isFetchingMore, hasMore, loadMore } = useFollowingArticles();
+
+
+export default function MainFeed() {
+  const { articles, isLoading, isFetchingMore, hasMore, loadMore } = useNewArticles();
   const { savedArticles } = useSavedArticles();
-  const router = useRouter();
+  
 
   // Initial full-page loading state
   if (isLoading) {
@@ -26,9 +27,9 @@ export default function FollowingFeed() {
 return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="w-80 rounded bg-white p-6 text-center shadow-xl">
-        <h3 className="text-lg font-bold text-red-600">No Articles</h3>
-        <p className="mt-2 text-sm text--500">
-          Follow authors to see their articles here.
+        <h3 className="text-lg font-bold text-red-600">An Error Occured</h3>
+        <p className="mt-2 text-sm text-gray-500">
+          Press Reload to Try again
         </p>
         
         <button
@@ -39,18 +40,18 @@ return (
 
            }}
         >
-          OK
+          Reload
         </button>
       </div>
     </div>
-  );  }
+  )  }
 
   return (
     <InfiniteScroll 
       loadMore={loadMore} 
       hasMore={hasMore} 
       isFetchingMore={isFetchingMore}
-      endMessage="You've reached the end of your feed."
+      endMessage="You've reached the end of New Article Feed."
     >
       <div className="space-y-4 pb-10">
         {articles.map((article) => (

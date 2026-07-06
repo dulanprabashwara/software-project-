@@ -584,7 +584,6 @@ body.loading-transition { overflow: hidden; }
   color: #6b6b6b;
   cursor: pointer;
   transition: background-color 0.2s;
-  /* prevents a single very-long keyword from overflowing the sidebar */
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;

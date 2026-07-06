@@ -138,12 +138,28 @@ export default function ArticlePublishedPage() {
 
   /*
    List of platforms where the article is live.
+   WHY: We check the article status for 'Easy Blogger' and look at
+   the publish jobs arrays to accurately determine if LinkedIn or WordPress
+   were published successfully.
    */
   const platforms = useMemo(() => {
-    const list = ["Easy Blogger"];
-    if (wpConnected) list.push("WordPress");
+    const list = [];
+    if (article?.status === "PUBLISHED" || article?.status === "SCHEDULED") {
+      list.push("Easy Blogger");
+    }
+    
+    const validStatuses = ["PENDING", "IN_PROGRESS", "PUBLISHED", "SCHEDULED"];
+    
+    if (article?.wpPublishJobs?.some(job => validStatuses.includes(job.status))) {
+      list.push("WordPress");
+    }
+    
+    if (article?.liPublishJobs?.some(job => validStatuses.includes(job.status))) {
+      list.push("LinkedIn");
+    }
+    
     return list;
-  }, [wpConnected]);
+  }, [article]);
 
   /*
    Human-readable publication date.

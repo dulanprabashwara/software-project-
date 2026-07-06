@@ -1,3 +1,4 @@
+//stories page layout
 "use client";
 
 import Link from "next/link";
@@ -16,13 +17,14 @@ export default function Layout({ children }) {
   return (
     <div className="flex h-full overflow-hidden mx-auto">
       
-      {/* Left */}
+      
       <div className="h-full flex flex-col flex-1 min-w-0">
 
         {/* Header + Tabs */}
         <div className="p-3 border-b border-[#e5e7eb] px-8">
           <h1 className="text-4xl font-bold font-[Georgia]">Stories</h1>
 
+          {/*section links map*/}
           <div className="flex gap-10">
             {tabs.map((tab) => (
               <Link
@@ -47,7 +49,7 @@ export default function Layout({ children }) {
 
       </div>
 
-      {/* Right */}
+      {/* Rightfeed */}
       <aside className="hidden lg:block w-80 overflow-y-auto ml-auto">
         <RightFeed/>
       </aside>

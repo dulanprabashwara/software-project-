@@ -51,8 +51,12 @@ export async function fetchAPI(endpoint, options = {}) {
  */
 export const api = {
   // Articles
-  getArticles: (queryParams = "") => fetchAPI(`/api/articles${queryParams}`),
-  getArticleBySlug: (slug) => fetchAPI(`/api/articles/${slug}`),
+  getArticles: (queryParams = "") => 
+    fetchAPI(`/api/articles${queryParams}`),
+
+  getArticleBySlug: (slug) => 
+    fetchAPI(`/api/articles/${slug}`),
+
   createArticle: (data, token) =>
     fetchAPI("/api/articles", { method: "POST", body: data, token }),
 
@@ -63,30 +67,46 @@ export const api = {
   // Auth Endpoints
   registerUser: (data, token) =>
     fetchAPI("/api/auth/register", { method: "POST", body: data, token }),
+
   syncUser: (data, token) =>
     fetchAPI("/api/auth/sync", { method: "POST", body: data, token }),
-  getMe: (token) => fetchAPI("/api/users/me", { token }),
+
+  getMe: (token) => 
+    fetchAPI("/api/users/me", { token }),
 
   // User Endpoints
   updateProfile: (data, token) =>
     fetchAPI("/api/users/profile", { method: "PUT", body: data, token }),
-  getUserProfile: (identifier) => fetchAPI(`/api/users/${identifier}`),
+
+  getUserProfile: (identifier) => 
+    fetchAPI(`/api/users/${identifier}`),
+
   getUserProfileAuth: (identifier, token) =>
     fetchAPI(`/api/users/${identifier}`, { token }),
 
   // Follow System
   toggleFollow: (userId, token) =>
     fetchAPI(`/api/users/${userId}/follow`, { method: "POST", token }),
-  getFollowers: (userId) => fetchAPI(`/api/users/${userId}/followers`),
+
+  getFollowers: (userId) => 
+    fetchAPI(`/api/users/${userId}/followers`),
+
   getFollowing: (userId, token) =>
     fetchAPI(`/api/users/${userId}/following`, token ? { token } : {}),
 
-  getAdminDashboard: (token) => fetchAPI("/api/admin/dashboard", { token }),
-  getEngagementAnalytics: (token, days) =>
+  //Admin dashboard
+  getAdminDashboard: (token) => 
+    fetchAPI("/api/admin/dashboard", { token }),
+
+  getEngagementAnalytics: (token, days) => 
     fetchAPI(`/api/admin/engagement?days=${days}`, { token }),
 
-  //offer system
-  getOffers: (token) => fetchAPI("/api/admin/offers", { token }),
+  getAdminMetrics: (token) => 
+    fetchAPI(`/api/admin/metrics`, { token }),
+
+  //offer moderation
+  getOffers: (token) => 
+    fetchAPI("/api/admin/offers", { token }),
 
   createOffer: (data, token) =>
     fetchAPI("/api/admin/offers", { method: "POST", body: data, token }),
@@ -94,25 +114,18 @@ export const api = {
   updateOffer: (id, data, token) =>
     fetchAPI(`/api/admin/offers/${id}`, { method: "PUT", body: data, token }),
 
+  //Scraping Sources Management
   getScrapingSources: (token) =>
     fetchAPI("/api/admin/scraping-sources", { token }),
 
   createScrapingSource: (data, token) =>
-    fetchAPI("/api/admin/scraping-sources", {
-      method: "POST",
-      body: data,
-      token,
-    }),
+    fetchAPI("/api/admin/scraping-sources", {method: "POST",body: data,token,}),
 
   validateUrl: (data, token) =>
     fetchAPI("/api/admin/validate-url", { method: "POST", body: data, token }),
 
   updateScrapingSource: (id, data, token) =>
-    fetchAPI(`/api/admin/scraping-sources/${id}`, {
-      method: "PUT",
-      body: data,
-      token,
-    }),
+    fetchAPI(`/api/admin/scraping-sources/${id}`, {method: "PUT",body: data,token,}),
 
   deleteScrapingSource: (id, token) =>
     fetchAPI(`/api/admin/scraping-sources/${id}`, { method: "DELETE", token }),
@@ -120,17 +133,21 @@ export const api = {
   // Messages / Chat
   getConversations: (token) =>
     fetchAPI("/api/messages/conversations", { token }),
+
   getMessages: (userId, token) =>
     fetchAPI(`/api/messages/${userId}`, { token }),
+
   markMessagesAsRead: (userId, token) =>
     fetchAPI(`/api/messages/${userId}/read`, { method: "PUT", token }),
+  
   getUnreadMessageCount: (token) =>
     fetchAPI("/api/messages/unread/count", { token }),
 
+  //Audit log
   getAuditLogs: (query = "", token) =>
     fetchAPI(`/api/admin/audit-logs${query}`, { token }),
 
-  // --- Admin Moderation Queue ---
+  //Admin Moderation Queue
   getAdminReports: (query = "", token) =>
     fetchAPI(`/api/admin/reports${query}`, { token }),
 
@@ -182,14 +199,74 @@ export const api = {
     fetchAPI(`/api/admin/users${query}`, { token }),
 
   updateUserRole: (userId, role, token) =>
-    fetchAPI(`/api/admin/users/${userId}/role`, {
-      method: "PUT",
-      body: JSON.stringify({ role }),
-      token,
-    }),
+    fetchAPI(`/api/admin/users/${userId}/role`, {method: "PUT",body: JSON.stringify({ role }),token,}),
 
   getDefaultKeywords: (token) =>
     fetchAPI(`/api/admin/scraping/default-keywords`, { token }),
 
-  getAdminMetrics: (token) => fetchAPI(`/api/admin/metrics`, { token }),
+  // Comments and articleRating
+  getArticleComments: (articleId) => 
+    fetchAPI(`/api/comments/${articleId}`),
+  
+  addComment: (data, token) => 
+    fetchAPI("/api/comments", { method: "POST", body: data, token }),
+    
+  rateArticle: (articleId, rating, token) => 
+    fetchAPI(`/api/comments/${articleId}/rate`, { method: "POST", body: { rating }, token }),
+
+  // Feeds
+  getFollowingFeed: (page = 1, token = null) => 
+    fetchAPI(`/api/homefeed/following?page=${page}`, { token }),
+
+  getNewFeed: (page = 1, token = null) => 
+    fetchAPI(`/api/homefeed/main?page=${page}`, { token }),
+
+  // Notifications
+  getNotifications: (token) => 
+    fetchAPI("/api/notifications", { token }),
+
+  markNotificationRead: (notificationId, token) =>
+    fetchAPI("/api/notifications/mark-read", { 
+      method: "POST", 
+      body: { notificationId }, 
+      token 
+    }),
+
+    // Saved Articles
+  getSavedArticles: (token) => 
+    fetchAPI("/api/savedArticle", { token }),
+    
+  getSavedList: (token) => 
+    fetchAPI("/api/savedArticle/savedList", { token }),
+
+  // Topics / Tags
+  getPopularTags: (limit = 10) => 
+    fetchAPI(`/api/popularTopics?limit=${limit}`).then(res => res.data || []),
+
+  getTrendingTitles: () => 
+    fetchAPI(`/api/trendingArticles/trendingTitles`).then(res=> Array.isArray(res)? res: res.trending || [] ),
+
+  getTrendingArticles: () => 
+    fetchAPI(`/api/trendingArticles/trendingArticles`).then(res=> Array.isArray(res)? res: res.trending || [] ),
+
+  // User History & Content
+  getReadHistory: (token) => 
+    fetchAPI("/api/readHistory", { token }).then(res => res.data || []),
+
+  getPublishedArticles: (token) => 
+    fetchAPI("/api/publishedArticles", { token }).then(res => res.data || []),
+
+  // User Interactions & Ratings
+  getInteractedArticles: (token) => 
+    fetchAPI("/api/interactedArticles", { token }).then(res => res.data || []),
+
+   getInteractedList: (token) => 
+    fetchAPI("/api/interactedArticles/interactedList", { token }),
+
+  getArticleRatings: (articleId, token) => 
+    fetchAPI(`/api/articleRatings?articleId=${articleId}`, { token }).then(res => res.data || null),
+
+  //for article stats
+  getUserArticleStats: (token) => 
+    fetchAPI("/api/articleStats", { token }).then(res => res.data || []),
 };

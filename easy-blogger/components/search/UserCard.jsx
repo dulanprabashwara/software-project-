@@ -6,9 +6,13 @@ import { useState } from "react";
 import { useAuth } from "../../app/context/AuthContext";
 import { api } from "../../lib/api";
 
+const COUNT_MILLION = 1_000_000;
+const COUNT_THOUSAND = 1_000;
+
+// Formats a follower/article count into a compact human-readable string (e.g. 1.2K, 3.4M).
 function formatCount(n = 0) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`;
+  if (n >= COUNT_MILLION)  return `${(n / COUNT_MILLION).toFixed(1)}M`;
+  if (n >= COUNT_THOUSAND) return `${(n / COUNT_THOUSAND).toFixed(1)}K`;
   return String(n);
 }
 
@@ -27,8 +31,8 @@ export default function UserCard({ user }) {
     _count    = {},
   } = user;
 
-  const [isFollowing,       setIsFollowing]       = useState(user.isFollowing ?? false);
-  const [followerCount,     setFollowerCount]      = useState(
+  const [isFollowing,      setIsFollowing]      = useState(user.isFollowing ?? false);
+  const [followerCount,    setFollowerCount]     = useState(
     stats?.totalFollowers ?? _count?.followers ?? 0
   );
   const [isTogglingFollow,  setIsTogglingFollow]  = useState(false);
@@ -42,11 +46,12 @@ export default function UserCard({ user }) {
       displayName || username || "U"
     )}&background=1ABC9C&color=fff`;
 
+  // Navigates to the user's public profile page.
   const navigateToProfile = () => {
     if (username) router.push(`/profile/${username}`);
   };
 
-  // Fetches the current follower count from the DB after a follow/unfollow toggle.
+  // Refreshes the displayed follower count from the server after a follow/unfollow action.
   const refreshFollowerCount = async () => {
     if (!username) return;
     setIsRefetchingCount(true);
@@ -61,8 +66,7 @@ export default function UserCard({ user }) {
     }
   };
 
-  // Toggles follow state optimistically then reconciles with server response.
-  // Follower count is only updated after a confirmed DB refresh.
+  // Optimistically toggles follow state, then reconciles with the server response and refreshes the follower count.
   const handleFollowToggle = async (e) => {
     e.stopPropagation();
     if (!firebaseUser || !id || isTogglingFollow) return;

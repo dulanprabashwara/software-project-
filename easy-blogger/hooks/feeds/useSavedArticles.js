@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../app/context/AuthContext"; 
-import { getSavedArticlesApi, getSavedListApi } from "../app/api/savedArticles.api"; 
+import { useAuth } from "../../app/context/AuthContext"; 
+import { api } from "../../lib/api"
 
 
 
@@ -23,7 +23,8 @@ export function useSavedArticles() {
       const token = await user.getIdToken();
       
       // Call the function to get the saved articles
-      const data = await getSavedArticlesApi(token);
+      const articles = await api.getSavedArticles(token);
+      const data =articles.data; 
       setSavedArticles(data);
     } catch (error) {
       console.error("Hook Error:", error.message); //get the error 
@@ -44,7 +45,7 @@ export function useSavedArticles() {
    };
 }
 
-
+//get only a list of saved article IDs
 export function useSavedList() {
   const { user, profileLoading } = useAuth();
   const [savedList, setSavedList] = useState([]);
@@ -61,8 +62,9 @@ export function useSavedList() {
     try {
       const token = await user.getIdToken();
       
-      // FIX 1: Use the correct API function
-      const data = await getSavedListApi(token); 
+      
+      const list = await api.getSavedList(token); //api call
+      const data=list.data;
       setSavedList(data);
     } catch (error) {
       console.error("Hook Error:", error.message);
@@ -77,7 +79,7 @@ export function useSavedList() {
   }, [profileLoading, fetchSavedList]);
 
   return { 
-    savedList, // FIX 2: Return the correct state variable
+    savedList, 
     isLoading, 
   };
 }

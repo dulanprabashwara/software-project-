@@ -7,7 +7,7 @@ import { useComments } from "../../hooks/useComments";
 import { useArticleRatings } from "../../hooks/useArticleRatings";
 
 export const Comments = ({ articleId, token }) => {
-  // 1. Guard against missing ID
+  //Guard against missing ID
   if (!articleId) {
     return (
       <div className="flex justify-center p-4">
@@ -17,7 +17,7 @@ export const Comments = ({ articleId, token }) => {
   }
 
   const { comments, loading, addComment, submitRating } = useComments(articleId, token);
-  const { articleRatings } = useArticleRatings(); // Fetch current user's ratings
+  const { articleRatings } = useArticleRatings(articleId); // Fetch current user's ratings
 
   const [text, setText] = useState("");
   const [replyTo, setReplyTo] = useState(null);
@@ -27,21 +27,21 @@ export const Comments = ({ articleId, token }) => {
   const [isPostingComment, setIsPostingComment] = useState(false);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
-  // Local rating state for display and optimistic updates
+  // Local rating state for display 
   const [localRating, setLocalRating] = useState(0);
 
-  // Helper to check if we are actually logged in
+  //  to check if we are actually logged in
   const isAuthenticated = !!token;
 
   // Find the user's rating for THIS specific article when data loads
   useEffect(() => {
-    if (articleRatings?.length > 0 && articleId) {
-      const existingRating = articleRatings.find(r => r.articleId === articleId);
-      if (existingRating) {
-        setLocalRating(existingRating.score);
-      }
-    }
-  }, [articleRatings, articleId]);
+  // If the backend found a rating, set it. Otherwise, set it to 0.
+  if (articleRatings?.score) {
+    setLocalRating(articleRatings.score);
+  } else {
+    setLocalRating(0); 
+  }
+}, [articleRatings]);
 
   // EXECUTE: Send main comment to backend
   const onPost = async () => {
@@ -100,6 +100,7 @@ export const Comments = ({ articleId, token }) => {
       {/* RATING SECTION */}
       <div className="flex items-center gap-4 p-4 border rounded-xl bg-gray-50">
         <span className="text-sm font-bold text-gray-600">Rate this article:</span>
+        {/* Map the users rating onto the stars if available / get users rating */}
         <div className="flex gap-1">
           <Star 
             size={24} 
@@ -168,10 +169,14 @@ export const Comments = ({ articleId, token }) => {
             <Loader2 className="animate-spin text-teal-500" />
           </div>
         ) : (
+          //get only top level comments
           comments.filter(c => !c.parentId).map((comment) => (
             <div key={comment.id} className="border-l-2 border-gray-100 pl-4">
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-bold text-sm">{comment.author?.displayName || "Anonymous"}</span>
+                <span className="font-bold text-sm">
+                  {comment.author?.displayName || "Anonymous"}
+                  
+                  </span>
                 <span className="text-xs text-gray-400">
                   {new Date(comment.createdAt).toLocaleDateString()}
                 </span>
@@ -186,7 +191,7 @@ export const Comments = ({ articleId, token }) => {
               </button>
 
               {/* REPLIES SECTION */}
-              <div className="ml-6 mt-4 space-y-4">
+              <div className=" ml-6 mt-4 space-y-4">
                 {comments.filter(r => r.parentId === comment.id).map(reply => (
                   <div key={reply.id} className="bg-gray-50 p-2 rounded">
                     <span className="font-bold text-xs">{reply.author?.displayName || "Anonymous"}</span>

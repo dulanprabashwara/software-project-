@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useTrending } from "../../hooks/useTrendingTitles";
 import { usePopularTags } from "../../hooks/usePopularTags";
 import { Loader2 } from "lucide-react";
-import { DATA } from "./ArticleList"; // Assuming DATA contains usersToFollow
 import Link from "next/link";
 
 export default function RightFeed() {

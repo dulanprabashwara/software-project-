@@ -120,7 +120,7 @@
 
 .delete-warning-callout {
   position: absolute;
-  top: calc(100% + 10px);  /* sits just below the restore button */
+  top: calc(100% + 10px);  
   left: 50%;
   transform: translateX(-50%);
   width: 220px;
@@ -184,7 +184,6 @@
 }
 
 /* ── Second-delete confirmation overlay ──────────────────────────────────── */
-/* Full-page dim overlay with centered modal — matching the project's theme */
 
 .second-delete-overlay {
   position: fixed;
@@ -341,6 +340,25 @@
   color: #17a589;
   border-color: #17a589;
 }
+
+/* ── Restore countdown label ─────────────────────────────────────────────── */
+
+.restore-countdown {
+  font-size: 11px;
+  color: #1ABC9C;
+}
+
+/* ── Empty articles message ──────────────────────────────────────────────── */
+
+.articles-empty-message {
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  color: #6B7280;
+}
+
+/* ── Utility: invert icon to white ──────────────────────────────────────── */
+
+.icon-inverted { filter: invert(1); }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 
