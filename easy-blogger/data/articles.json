@@ -1,0 +1,62 @@
+[
+  {
+    "id": "d_1782316952842_dba10c4462025",
+    "writerName": "John Doe",
+    "date": "2026-06-24T16:02:32.842Z",
+    "title": "My Test Article",
+    "content": "This is a test article created via Postman.",
+    "coverImage": null,
+    "status": "published",
+    "updatedAt": "2026-06-24T16:02:32.842Z"
+  },
+  {
+    "id": "d_1782316598647_3ba4274f2db01",
+    "writerName": "John Doe",
+    "date": "2026-06-24T15:56:38.647Z",
+    "title": "My Test Article",
+    "content": "This is a test article created via Postman.",
+    "coverImage": null,
+    "status": "published",
+    "updatedAt": "2026-06-24T15:56:38.647Z"
+  },
+  {
+    "id": "d_1782316589127_48cf904da76f1",
+    "writerName": "John Doe",
+    "date": "2026-06-24T15:56:29.127Z",
+    "title": "My Test Article",
+    "content": "This is a test article created via Postman.",
+    "coverImage": null,
+    "status": "published",
+    "updatedAt": "2026-06-24T15:56:29.127Z"
+  },
+  {
+    "id": "d_1782316585787_d4fd21034b99c",
+    "writerName": "John Doe",
+    "date": "2026-06-24T15:56:25.787Z",
+    "title": "My Test Article",
+    "content": "This is a test article created via Postman.",
+    "coverImage": null,
+    "status": "published",
+    "updatedAt": "2026-06-24T15:56:25.787Z"
+  },
+  {
+    "id": "d_1782316576012_bae131f9c35e4",
+    "writerName": "John Doe",
+    "date": "2026-06-24T15:56:16.012Z",
+    "title": "My Test Article",
+    "content": "This is a test article created via Postman.",
+    "coverImage": null,
+    "status": "published",
+    "updatedAt": "2026-06-24T15:56:16.012Z"
+  },
+  {
+    "id": "d_1782315870117_efb9f69f50f9d",
+    "writerName": "John Doe",
+    "date": "2026-06-24T15:44:30.117Z",
+    "title": "My Test Article",
+    "content": "This is a test article created via Postman.",
+    "coverImage": null,
+    "status": "published",
+    "updatedAt": "2026-06-24T15:44:30.118Z"
+  }
+]
