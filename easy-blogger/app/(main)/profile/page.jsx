@@ -24,6 +24,7 @@ export default function ProfilePage() {
 
   // When ?modal=followers/following/shares is present, show the stats modal. model is triggered by the url
   const modalTab = searchParams.get("modal");
+  const returnTo = searchParams.get("returnTo");
 
   const loading = authLoading;
 
@@ -157,7 +158,13 @@ export default function ProfilePage() {
   }, []);
 
   //route to profile page when close the modal
-  const closeModal = () => router.push("/profile");
+  const closeModal = () => {
+    if (returnTo) {
+      router.push(returnTo);
+    } else {
+      router.push("/profile");
+    }
+  };
 
   // grab the URL of the profile page and copy it to the clipboard
   const handleCopyLink = () => {
@@ -567,7 +574,8 @@ export default function ProfilePage() {
                       key={key}
                       onClick={() => {
                         setStatsActiveTab(key);
-                        router.replace(`/profile?modal=${key}`, {
+                        const returnToParam = returnTo ? `&returnTo=${returnTo}` : '';
+                        router.replace(`/profile?modal=${key}${returnToParam}`, {
                           scroll: false,
                         });
                       }}

@@ -27,7 +27,7 @@ export default function ConversationList({
           Messages
         </h2>
         <Link
-          href="/profile?modal=following"
+          href="/profile?modal=following&returnTo=/chat"
           className="text-gray-500 hover:text-gray-700"
         >
           <Edit className="w-5 h-5" />

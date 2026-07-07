@@ -50,7 +50,7 @@ export default function EditProfilePage() {
   // overwrite user edits if the context updates.
   const [hasInitializedForm, setHasInitializedForm] = useState(false);
 
-  const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(false);
+
   const [isSaving, setIsSaving] = useState(false);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -303,6 +303,11 @@ export default function EditProfilePage() {
       setPasswordError("New password must be at least 8 characters.");
       return;
     }
+    //check new password strength
+    if (!/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
+      setPasswordError("New password must include letters, numbers, and symbols.");
+      return;
+    }
     //check if new password and old password are same
     if (newPassword === currentPassword) {
       setPasswordError(
@@ -380,15 +385,8 @@ export default function EditProfilePage() {
 
   //delete the user account
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const handleDeleteAccount = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to delete your account? This action cannot be undone. All your articles, comments, and data will be permanently removed.",
-      )
-    ) {
-      return;
-    }
-
     if (!firebaseUser) return;
     setIsDeleting(true);
 
@@ -405,6 +403,7 @@ export default function EditProfilePage() {
       alert("Failed to delete account. Please try again or contact support.");
     } finally {
       setIsDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -647,7 +646,7 @@ export default function EditProfilePage() {
                     type="text"
                     value={username}
                     readOnly
-                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB] cursor-not-allowed"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB] cursor-not-allowed focus:outline-none"
                   />
                 </div>
 
@@ -941,61 +940,8 @@ export default function EditProfilePage() {
           )}
         </div>
 
-        {/* Email Settings */}
-        <div>
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 bg-[#F3F4F6] rounded-lg flex items-center justify-center">
-              <Mail className="w-5 h-5 text-[#6B7280]" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-[#111827] mb-1">
-                Email Settings
-              </h3>
-              <p className="text-sm text-[#6B7280] mb-4">
-                Manage your email preferences
-              </p>
-
-              {/* Email Address */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-[#374151] mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  className="w-full px-4 py-2.5 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB]"
-                  placeholder="your.email@example.com"
-                  readOnly
-                />
-              </div>
-
-              {/* Weekly Digest Toggle */}
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <p className="font-medium text-[#111827]">Weekly Digest</p>
-                  <p className="text-sm text-[#6B7280]">
-                    Get a summary of top stories
-                  </p>
-                </div>
-                <button
-                  onClick={() => setWeeklyDigestEnabled(!weeklyDigestEnabled)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    weeklyDigestEnabled ? "bg-[#1ABC9C]" : "bg-[#E5E7EB]"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      weeklyDigestEnabled ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* LinkedIn Integration */}
-        <div className="pt-6 mt-6 border-t border-[#E5E7EB]">
+        <div>
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 bg-[#EFF6FF] rounded-lg flex items-center justify-center">
               <Linkedin className="w-5 h-5 text-[#0077B5]" />
@@ -1020,15 +966,7 @@ export default function EditProfilePage() {
           <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#0077B5] rounded-lg flex items-center justify-center overflow-hidden border border-blue-100 shadow-sm">
-                {linkedInConnected && liPicture ? (
-                  <img
-                    src={liPicture}
-                    alt="LinkedIn Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Linkedin className="w-6 h-6 text-white" />
-                )}
+                <Linkedin className="w-6 h-6 text-white" />
               </div>
               <div>
                 <p className="font-medium text-[#111827]">
@@ -1089,11 +1027,7 @@ export default function EditProfilePage() {
           <div className="bg-white border border-[#E5E7EB] rounded-lg p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#21759B] rounded-lg flex items-center justify-center overflow-hidden border border-blue-100 shadow-sm">
-                {wordpressConnected && wpPicture ? (
-                  <img src={wpPicture} alt="WordPress Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <Globe className="w-6 h-6 text-white" />
-                )}
+                <Globe className="w-6 h-6 text-white" />
               </div>
               <div>
                 <p className="font-medium text-[#111827]">
@@ -1145,15 +1079,57 @@ export default function EditProfilePage() {
               certain.
             </p>
             <button
-              onClick={handleDeleteAccount}
-              disabled={isDeleting}
-              className="px-5 py-2 border-2 border-[#DC2626] hover:bg-[#DC2626] text-[#DC2626] hover:text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => setShowDeleteModal(true)}
+              className="px-5 py-2 border-2 border-[#DC2626] hover:bg-[#DC2626] text-[#DC2626] hover:text-white rounded-lg text-sm font-medium transition-colors"
             >
-              {isDeleting ? "Deleting..." : "Delete Account"}
+              Delete Account
             </button>
           </div>
         </div>
       </div>
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm px-4">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(false)}
+              className="absolute right-4 top-3 text-2xl text-gray-400 hover:text-gray-700"
+            >
+              ×
+            </button>
+            <div className="mb-6 flex justify-center">
+              <div className="w-16 h-16 bg-[#FEE2E2] rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-8 h-8 text-[#DC2626]" />
+              </div>
+            </div>
+            <h2 className="mb-2 text-center text-2xl font-bold text-[#111827]">
+              Delete Account
+            </h2>
+            <p className="text-center text-[#475569] mb-8">
+              Are you sure you want to delete your account? This action cannot be undone. All your articles, comments, and data will be permanently removed.
+            </p>
+            <div className="space-y-4">
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                className="w-full rounded-full bg-[#DC2626] py-3 font-semibold text-white shadow-md hover:bg-[#B91C1C] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeleting ? "Deleting..." : "Yes, Delete My Account"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+                className="w-full rounded-full border border-gray-300 bg-white py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
