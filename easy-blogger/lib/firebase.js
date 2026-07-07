@@ -5,14 +5,8 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 /**
- * @fileoverview Frontend Firebase Client Configuration
- * @description
+ * Frontend Firebase Client Configuration
  * Initializes the Firebase client SDK for authentication and database services.
- * WHY: We use a singleton pattern dynamically checking `getApps().length` to ensure 
- * Firebase is only initialized once. This prevents fatal "app already exists" errors 
- * during Next.js Hot Module Replacement (HMR) in development.
- * 
- * @module lib/firebase
  */
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,

@@ -24,8 +24,8 @@ export default function ProfilePage() {
 
   // When ?modal=followers/following/shares is present, show the stats modal. model is triggered by the url
   const modalTab = searchParams.get("modal");
+  const returnTo = searchParams.get("returnTo");
 
-  // Show spinner only while Firebase auth state is being determined
   const loading = authLoading;
 
   // Derive display values
@@ -92,7 +92,7 @@ export default function ProfilePage() {
     fetchUnread();
   }, [firebaseUser]);
 
-  // Fetch real followers/following when modal opens
+  // Fetch published articles of the user
   useEffect(() => {
     if (!firebaseUser) return;
 
@@ -112,6 +112,7 @@ export default function ProfilePage() {
     void loadPublishedArticles();
   }, [firebaseUser]);
 
+  // Fetch followers, following and their stats when the model changes
   useEffect(() => {
     if (!modalTab || !userProfile?.id) return;
 
@@ -129,7 +130,7 @@ export default function ProfilePage() {
         setFollowers(followersList);
         setFollowing(followingList);
 
-        // get the id of who we currently follow
+        //getting the id of who we currently follow
         const alreadyFollowing = new Set(followingList.map((u) => u.id));
         setFollowingSet(alreadyFollowing);
       } catch (err) {
@@ -157,7 +158,13 @@ export default function ProfilePage() {
   }, []);
 
   //route to profile page when close the modal
-  const closeModal = () => router.push("/profile");
+  const closeModal = () => {
+    if (returnTo) {
+      router.push(returnTo);
+    } else {
+      router.push("/profile");
+    }
+  };
 
   // grab the URL of the profile page and copy it to the clipboard
   const handleCopyLink = () => {
@@ -232,7 +239,6 @@ export default function ProfilePage() {
   //when toggle follow/unfollow get the userId and send to backend to updates that user's follower or following list
   const handleToggleFollow = useCallback(
     async (userId) => {
-      //stop if not logged in
       if (!firebaseUser) return;
       //add the toggeling user's id to the toggelingIds list
       setTogglingIds((prev) => new Set(prev).add(userId));
@@ -568,7 +574,8 @@ export default function ProfilePage() {
                       key={key}
                       onClick={() => {
                         setStatsActiveTab(key);
-                        router.replace(`/profile?modal=${key}`, {
+                        const returnToParam = returnTo ? `&returnTo=${returnTo}` : '';
+                        router.replace(`/profile?modal=${key}${returnToParam}`, {
                           scroll: false,
                         });
                       }}
