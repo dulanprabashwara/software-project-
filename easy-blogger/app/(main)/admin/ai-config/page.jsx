@@ -239,7 +239,8 @@ export default function AdminAIConfig() {
       const token = await user.getIdToken();
       setIsScraping(true);
       const result = await api.triggerScrape(token);
-      alert(`Scraping triggered successfully!\nSession ID: ${result.sessionId || 'N/A'}\nStatus: ${result.status || 'Started'}`);
+      const { userEmail } = result;
+      alert(`Scraping triggered successfully!\n\nReport will be sent to ${userEmail} once completed.`);
     } catch (error) {
       console.error("Failed to trigger scrape:", error);
       alert("Failed to trigger scraping. Check console for details.");
@@ -256,7 +257,8 @@ export default function AdminAIConfig() {
       const token = await user.getIdToken();
       setIsEnriching(true);
       const result = await api.triggerEnrichment(token);
-      alert(`Enrichment triggered successfully!\nStatistics: ${JSON.stringify(result.statistics || {}, null, 2)}`);
+      const { userEmail } = result;
+      alert(`Enrichment triggered successfully!\n\nReport will be sent to ${userEmail} once completed.`);
     } catch (error) {
       console.error("Failed to trigger enrichment:", error);
       alert("Failed to trigger enrichment. Check console for details.");
@@ -425,7 +427,7 @@ export default function AdminAIConfig() {
           className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           {isScraping ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-          Test Scrape
+          {isScraping ? "Scraping..." : "Test Scrape"}
         </button>
         <button
           onClick={handleTestEnrichment}
@@ -433,7 +435,7 @@ export default function AdminAIConfig() {
           className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           {isEnriching ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-          Test Enrichment
+          {isEnriching ? "Enriching..." : "Test Enrichment"}
         </button>
         <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm">
           <label className="text-sm font-bold text-gray-500">Filter:</label>
