@@ -281,6 +281,22 @@ export function usePublishArticle(articleId) {
     void checkLinkedInConnection();
   }, [shareLinkedIn, firebaseUser, liCheckDone]);
 
+  const handleDisconnectLinkedIn = async () => {
+    if (!firebaseUser) return;
+    try {
+      const token = await firebaseUser.getIdToken();
+      await fetch(`${API_BASE_URL}/api/linkedin/disconnect`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLiConnected(false);
+      setLiUsername("");
+      setShareLinkedIn(false);
+    } catch (error) {
+      console.error("Failed to disconnect LinkedIn:", error);
+    }
+  };
+
   const handleWordPressPublish = async (currentArticleId) => {
     if (!shareWordPress || !wpConnected || !currentArticleId || !firebaseUser)
       return;
@@ -399,6 +415,7 @@ export function usePublishArticle(articleId) {
       addTag,
       removeTag,
       handlePublishArticle,
+      handleDisconnectLinkedIn,
       isPastDateTime,
     },
   };

@@ -130,6 +130,7 @@ function PublishArticlePageContent() {
           setLinkedinCaption={actions.setLinkedinCaption}
           linkedinWordCount={state.linkedinWordCount}
           isLiCaptionOverLimit={state.isLiCaptionOverLimit}
+          handleDisconnectLinkedIn={actions.handleDisconnectLinkedIn}
         />
 
         <div className="flex justify-center">
