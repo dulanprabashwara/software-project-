@@ -12,7 +12,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useSubscription } from "../app/context/SubscriptionContext";
-import { useSavedArticles } from "./useSavedArticles";
+import { useSavedArticles } from "./feeds/useSavedArticles";
 import * as aiApi from "../lib/aiApi";
 
 // ── Constants ────────────────────────────────────────────────────────────────
