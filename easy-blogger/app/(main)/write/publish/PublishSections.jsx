@@ -287,6 +287,7 @@ export function SocialSharingSection({
   liUsername,
   showShareText,
   shareText,
+  handleConnectLinkedIn,
 }) {
   return (
     <Section title="Social Sharing">
@@ -319,9 +320,9 @@ export function SocialSharingSection({
                 </p>
               ) : (
                 <p className="text-sm text-gray-700">
-                  <a href="/profile/edit" className="text-[#0077B5] underline hover:text-[#005582]">
+                  <button type="button" onClick={handleConnectLinkedIn} className="text-[#0077B5] underline hover:text-[#005582]">
                     Connect to LinkedIn
-                  </a>
+                  </button>
                 </p>
               )}
             </div>
@@ -386,7 +387,8 @@ export function LinkedInCaptionSection({
   setLinkedinCaption,
   linkedinWordCount,
   isLiCaptionOverLimit,
-  handleDisconnectLinkedIn
+  handleDisconnectLinkedIn,
+  handleConnectLinkedIn
 }) {
   return (
     <Section title="LinkedIn Caption (Optional)">
@@ -407,6 +409,7 @@ export function LinkedInCaptionSection({
               <div className="flex items-center gap-3 text-sm">
                 <button 
                   type="button" 
+                  onClick={handleConnectLinkedIn}
                   className="rounded-full border border-gray-300 bg-white px-4 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-900"
                 >
                   Change account

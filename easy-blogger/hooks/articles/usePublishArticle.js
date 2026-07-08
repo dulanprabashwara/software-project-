@@ -281,6 +281,20 @@ export function usePublishArticle(articleId) {
     void checkLinkedInConnection();
   }, [shareLinkedIn, firebaseUser, liCheckDone]);
 
+  // Reads ?li_status query param set by the OAuth callback redirect and cleans it up
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("li_status")) return;
+
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("li_status");
+    cleanUrl.searchParams.delete("li_username");
+    cleanUrl.searchParams.delete("li_picture");
+    cleanUrl.searchParams.delete("li_message");
+    window.history.replaceState({}, "", cleanUrl.toString());
+  }, []);
+
   const handleDisconnectLinkedIn = async () => {
     if (!firebaseUser) return;
     try {
@@ -294,6 +308,26 @@ export function usePublishArticle(articleId) {
       setShareLinkedIn(false);
     } catch (error) {
       console.error("Failed to disconnect LinkedIn:", error);
+    }
+  };
+
+  const handleConnectLinkedIn = async () => {
+    if (!firebaseUser) return;
+    try {
+      const token = await firebaseUser.getIdToken();
+      // Pass the current URL path so the backend redirects back here after OAuth
+      const currentPath = window.location.pathname + window.location.search;
+      const res = await fetch(`${API_BASE_URL}/api/linkedin/auth?returnTo=${encodeURIComponent(currentPath)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok && data?.data?.authUrl) {
+        window.location.href = data.data.authUrl;
+      } else {
+        throw new Error(data?.message || "Could not get LinkedIn authorization URL.");
+      }
+    } catch (error) {
+      console.error("Failed to connect to LinkedIn:", error);
     }
   };
 
@@ -416,6 +450,7 @@ export function usePublishArticle(articleId) {
       removeTag,
       handlePublishArticle,
       handleDisconnectLinkedIn,
+      handleConnectLinkedIn,
       isPastDateTime,
     },
   };

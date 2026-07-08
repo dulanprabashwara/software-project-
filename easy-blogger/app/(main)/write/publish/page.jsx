@@ -118,6 +118,7 @@ function PublishArticlePageContent() {
           liUsername={state.liUsername}
           showShareText={state.showShareText}
           shareText={state.shareText}
+          handleConnectLinkedIn={actions.handleConnectLinkedIn}
         />
 
         <div className="flex justify-center">
@@ -131,6 +132,7 @@ function PublishArticlePageContent() {
           linkedinWordCount={state.linkedinWordCount}
           isLiCaptionOverLimit={state.isLiCaptionOverLimit}
           handleDisconnectLinkedIn={actions.handleDisconnectLinkedIn}
+          handleConnectLinkedIn={actions.handleConnectLinkedIn}
         />
 
         <div className="flex justify-center">
