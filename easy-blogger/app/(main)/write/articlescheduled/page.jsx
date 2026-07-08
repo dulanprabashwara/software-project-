@@ -6,7 +6,7 @@
  It displays the precise timing and the platforms targeted for the scheduled release.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BookOpen, CalendarDays, Clock, Share2, Tag } from "lucide-react";
 import { usePublishStatus } from "../../../../hooks/articles/usePublishStatus";
@@ -15,7 +15,7 @@ import InfoCard from "../../../../components/article/InfoCard";
 import PlatformItem from "../../../../components/article/PlatformItem";
 import PublishStatusLayout from "../../../../components/article/PublishStatusLayout";
 
-export default function ArticleScheduledPage() {
+function ArticleScheduledContent() {
   const {
     article,
     loading,
@@ -109,5 +109,13 @@ export default function ArticleScheduledPage() {
         </div>
       </InfoCard>
     </PublishStatusLayout>
+  );
+}
+
+export default function ArticleScheduledPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-linear-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6"><p className="text-sm text-gray-500">Loading...</p></div>}>
+      <ArticleScheduledContent />
+    </Suspense>
   );
 }
