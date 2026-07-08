@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState , Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Search, Filter, X, AlertCircle, Download, Loader2 } from "lucide-react";
 
 import { auth } from "../../../../lib/firebase";
 import { api } from "../../../../lib/api";
 
-export default function UserListPage() {
+function UserListPageContent() {
   const searchParams = useSearchParams();
   const initialFilter = searchParams.get('filter');
 
@@ -276,5 +276,13 @@ export default function UserListPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function UserListPage(props) {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-gray-500">Loading...</p></div>}>
+      <UserListPageContent {...props} />
+    </Suspense>
   );
 }

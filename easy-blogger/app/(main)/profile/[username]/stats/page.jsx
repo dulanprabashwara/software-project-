@@ -1,13 +1,13 @@
 "use client";
 // displaying the followers and following lists of a user other than the one currently logged in
-import { useState, useEffect, use, useCallback } from "react";
+import { useState, useEffect, use, useCallback , Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { X, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "../../../../context/AuthContext";
 import { api } from "../../../../../lib/api";
 
-export default function OtherUserStatsPage({ params }) {
+function OtherUserStatsPageContent({ params }) {
   const unwrappedParams = use(params);
   const { username } = unwrappedParams;
   const searchParams = useSearchParams();
@@ -382,5 +382,14 @@ export default function OtherUserStatsPage({ params }) {
         </div>
       </div>
     </>
+  );
+}
+
+
+export default function OtherUserStatsPage(props) {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-gray-500">Loading...</p></div>}>
+      <OtherUserStatsPageContent {...props} />
+    </Suspense>
   );
 }

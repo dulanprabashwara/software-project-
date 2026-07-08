@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback , Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { X, Loader2, MessageCircle, BadgeCheck } from "lucide-react";
@@ -9,7 +9,7 @@ import ArticleCard from "../../../components/article/ArticleCard";
 import { api } from "../../../lib/api";
 import { getMyPublishedArticles } from "../../../lib/articles/api";
 
-export default function ProfilePage() {
+function ProfilePageContent() {
   const [activeTab, setActiveTab] = useState("home");
   const { isPremium } = useSubscription();
   const {
@@ -817,5 +817,14 @@ export default function ProfilePage() {
         </>
       )}
     </div>
+  );
+}
+
+
+export default function ProfilePage(props) {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-gray-500">Loading...</p></div>}>
+      <ProfilePageContent {...props} />
+    </Suspense>
   );
 }

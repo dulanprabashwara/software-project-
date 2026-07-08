@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState , Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ConfirmDialog from "../../../../components/article/ConfirmDialog";
 import ArticleContentRenderer from "../../../../components/article/ArticleContentRenderer";
@@ -13,7 +13,7 @@ import { useClearBackupOnLayoutNavigation } from "../../../../hooks/articles/use
 import { getDraftById, updateDraft } from "../../../../lib/articles/api";
 import { getArticleFromResponse } from "../../../../lib/articles/utils";
 
-export default function PreviewPage() {
+function PreviewPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -200,4 +200,12 @@ export default function PreviewPage() {
       </div>
     </>
   );
-}
+}
+
+export default function PreviewPage(props) {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-gray-500">Loading...</p></div>}>
+      <PreviewPageContent {...props} />
+    </Suspense>
+  );
+}

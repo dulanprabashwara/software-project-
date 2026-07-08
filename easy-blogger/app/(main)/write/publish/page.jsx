@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect , Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useClearBackupOnLayoutNavigation } from "../../../../hooks/articles/useClearBackupOnLayoutNavigation";
 import { usePublishArticle } from "../../../../hooks/articles/usePublishArticle";
@@ -11,7 +11,7 @@ import {
   LinkedInCaptionSection,
 } from "./PublishSections";
 
-export default function PublishArticlePage() {
+function PublishArticlePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -172,5 +172,13 @@ export default function PublishArticlePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PublishArticlePage(props) {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-gray-500">Loading...</p></div>}>
+      <PublishArticlePageContent {...props} />
+    </Suspense>
   );
 }
