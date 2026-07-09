@@ -383,6 +383,7 @@ export function SocialSharingSection({
 
 export function LinkedInCaptionSection({
   shareLinkedIn,
+  liConnected,
   linkedinCaption,
   setLinkedinCaption,
   linkedinWordCount,
@@ -393,7 +394,7 @@ export function LinkedInCaptionSection({
   return (
     <Section title="LinkedIn Caption (Optional)">
       <div className="space-y-3">
-        {shareLinkedIn ? (
+        {shareLinkedIn && liConnected ? (
           <>
             <textarea
               value={linkedinCaption}
