@@ -127,6 +127,7 @@ function PublishArticlePageContent() {
 
         <LinkedInCaptionSection
           shareLinkedIn={state.shareLinkedIn}
+          liConnected={state.liConnected}
           linkedinCaption={state.linkedinCaption}
           setLinkedinCaption={actions.setLinkedinCaption}
           linkedinWordCount={state.linkedinWordCount}
