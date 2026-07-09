@@ -409,13 +409,6 @@ export function LinkedInCaptionSection({
               <div className="flex items-center gap-3 text-sm">
                 <button 
                   type="button" 
-                  onClick={handleConnectLinkedIn}
-                  className="rounded-full border border-gray-300 bg-white px-4 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-900"
-                >
-                  Change account
-                </button>
-                <button 
-                  type="button" 
                   onClick={handleDisconnectLinkedIn} 
                   className="rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-xs font-medium text-red-600 shadow-sm transition-colors hover:border-red-300 hover:bg-red-100"
                 >
