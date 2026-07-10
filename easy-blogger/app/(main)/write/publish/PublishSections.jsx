@@ -2,7 +2,7 @@
 
 import { Calendar, Clock } from "lucide-react";
 import Image from "next/image";
-import { formatDateMMDDYYYY, to12Hour, to24Hour } from "../../../../lib/articles/utils";
+import { formatDateMMDDYYYY, to12Hour, to24Hour, injectHighlights } from "../../../../lib/articles/utils";
 
 /*
  Focused sub-components to keep the main Publish page decluttered and maintainable.
@@ -423,6 +423,101 @@ export function LinkedInCaptionSection({
           </>
         ) : (
           <p className="text-sm text-gray-400">Enable LinkedIn sharing to add a caption.</p>
+        )}
+      </div>
+    </Section>
+  );
+}
+
+export function AnalysisSection({
+  isAnalyzing,
+  analysisType,
+  setAnalysisType,
+  analysisScores,
+  highlights,
+  articleBody,
+  analysisHasRun,
+  handleRunAnalysis,
+}) {
+  const highlightedHtml = injectHighlights(articleBody, highlights);
+
+  return (
+    <Section title="Content Review & Analysis">
+      <div className="space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <select
+            value={analysisType}
+            onChange={(e) => setAnalysisType(e.target.value)}
+            className="h-11 rounded-md border border-gray-200 px-4 text-sm outline-none focus:ring-2 focus:ring-emerald-200"
+          >
+            <option value="both">Check Plagiarism & AI</option>
+            <option value="plagiarism">Check Plagiarism Only</option>
+            <option value="ai">Check AI Content Only</option>
+          </select>
+
+          <button
+            type="button"
+            onClick={() => handleRunAnalysis()}
+            disabled={isAnalyzing}
+            className={`rounded-md px-6 py-2.5 text-sm font-medium text-white transition-colors ${
+              isAnalyzing ? "cursor-not-allowed bg-emerald-400" : "bg-emerald-600 hover:bg-emerald-700"
+            }`}
+          >
+            {isAnalyzing ? "Analyzing..." : "Run Analysis"}
+          </button>
+        </div>
+
+        {analysisHasRun && (
+          <div className="space-y-6 rounded-lg border border-gray-100 bg-gray-50 p-6">
+            <div className="grid gap-6 sm:grid-cols-2">
+              {(analysisType === "ai" || analysisType === "both") && (
+                <div className="flex flex-col gap-2 rounded-md bg-white p-4 shadow-sm">
+                  <span className="text-xs font-semibold uppercase text-gray-500">AI Generated</span>
+                  <div className="flex items-end gap-2">
+                    <span className="text-3xl font-bold text-yellow-600">{analysisScores?.aiScore ?? 0}%</span>
+                    <span className="mb-1 text-sm text-gray-400">confidence</span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                    <div className="h-full bg-yellow-400" style={{ width: `${analysisScores?.aiScore ?? 0}%` }} />
+                  </div>
+                </div>
+              )}
+
+              {(analysisType === "plagiarism" || analysisType === "both") && (
+                <div className="flex flex-col gap-2 rounded-md bg-white p-4 shadow-sm">
+                  <span className="text-xs font-semibold uppercase text-gray-500">Plagiarism</span>
+                  <div className="flex items-end gap-2">
+                    <span className="text-3xl font-bold text-red-600">{analysisScores?.plagiarismScore ?? 0}%</span>
+                    <span className="mb-1 text-sm text-gray-400">match</span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                    <div className="h-full bg-red-500" style={{ width: `${analysisScores?.plagiarismScore ?? 0}%` }} />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-gray-900">Analysis Preview</h3>
+              <p className="text-xs text-gray-500">
+                <span className="mr-3 inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-400"></span> AI Generated</span>
+                <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500"></span> Plagiarism</span>
+              </p>
+              <div 
+                className="prose prose-sm max-h-96 max-w-none overflow-y-auto rounded-md border border-gray-200 bg-white p-4"
+                dangerouslySetInnerHTML={{ __html: highlightedHtml || "No content available to preview." }}
+              />
+            </div>
+            
+            <div className="flex justify-end">
+              <a 
+                href={`/write/${typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('id') : ''}`}
+                className="text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline"
+              >
+                Go back to Editor to fix issues →
+              </a>
+            </div>
+          </div>
         )}
       </div>
     </Section>

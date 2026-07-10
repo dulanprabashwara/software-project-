@@ -52,6 +52,14 @@ export function usePublishArticle(articleId) {
   const [shareText, setShareText] = useState("");
   const [showShareText, setShowShareText] = useState(false);
 
+  // Analysis State
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisType, setAnalysisType] = useState("both"); // "ai", "plagiarism", "both"
+  const [analysisScores, setAnalysisScores] = useState({ aiScore: null, plagiarismScore: null });
+  const [highlights, setHighlights] = useState([]);
+  const [articleBody, setArticleBody] = useState("");
+  const [analysisHasRun, setAnalysisHasRun] = useState(false);
+
   // Time Picker State
   const [tpHour, setTpHour] = useState("10");
   const [tpMinute, setTpMinute] = useState("30");
@@ -131,6 +139,11 @@ export function usePublishArticle(articleId) {
         // Extracts and normalizes existing tags, limiting to the maximum allowed
         if (Array.isArray(article.tags) && article.tags.length > 0) {
           setTags(article.tags.slice(0, MAX_TAGS));
+        }
+
+        // Extract body for analysis
+        if (article.content || article.body) {
+          setArticleBody(article.content || article.body);
         }
 
         // If the article was already scheduled, restore the date and time components for the UI
@@ -357,6 +370,35 @@ export function usePublishArticle(articleId) {
     }
   };
 
+  const handleRunAnalysis = async () => {
+    if (!firebaseUser || !articleBody) return;
+    try {
+      setIsAnalyzing(true);
+      const token = await firebaseUser.getIdToken();
+      const response = await fetch(`${API_BASE_URL}/api/analysis/check`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ htmlContent: articleBody, type: analysisType }),
+      });
+      const data = await response.json();
+      if (data.success && data.data) {
+        setAnalysisScores({
+          aiScore: data.data.aiScore ?? null,
+          plagiarismScore: data.data.plagiarismScore ?? null,
+        });
+        setHighlights(data.data.highlights || []);
+        setAnalysisHasRun(true);
+      }
+    } catch (error) {
+      console.error("Failed to run analysis:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handlePublishArticle = async () => {
     if (!articleId) {
       setPublishError("Article id is missing.");
@@ -429,6 +471,12 @@ export function usePublishArticle(articleId) {
       linkedinWordCount,
       isLiCaptionOverLimit,
       MAX_TAGS,
+      isAnalyzing,
+      analysisType,
+      analysisScores,
+      highlights,
+      articleBody,
+      analysisHasRun,
     },
     actions: {
       setTagInput,
@@ -446,12 +494,14 @@ export function usePublishArticle(articleId) {
       setTpPeriod,
       setWpCheckDone,
       setLiCheckDone,
+      setAnalysisType,
       addTag,
       removeTag,
       handlePublishArticle,
       handleDisconnectLinkedIn,
       handleConnectLinkedIn,
       isPastDateTime,
+      handleRunAnalysis,
     },
   };
 }

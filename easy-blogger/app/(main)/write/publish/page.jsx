@@ -9,6 +9,7 @@ import {
   TimingSection,
   SocialSharingSection,
   LinkedInCaptionSection,
+  AnalysisSection,
 } from "./PublishSections";
 
 function PublishArticlePageContent() {
@@ -59,6 +60,21 @@ function PublishArticlePageContent() {
             You can publish now or schedule a time to publish
           </p>
         </div>
+
+        <div className="flex justify-center">
+          <div className="w-[90%] border-t border-gray-400" />
+        </div>
+
+        <AnalysisSection
+          isAnalyzing={state.isAnalyzing}
+          analysisType={state.analysisType}
+          setAnalysisType={actions.setAnalysisType}
+          analysisScores={state.analysisScores}
+          highlights={state.highlights}
+          articleBody={state.articleBody}
+          analysisHasRun={state.analysisHasRun}
+          handleRunAnalysis={actions.handleRunAnalysis}
+        />
 
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
