@@ -12,6 +12,8 @@ export default function AdminAIConfig() {
   const [filterCategory, setFilterCategory] = useState("All Categories");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [urlStatus, setUrlStatus] = useState("idle");
+  const [isScraping, setIsScraping] = useState(false);
+  const [isEnriching, setIsEnriching] = useState(false);
   const [modalData, setModalData] = useState({
     id: null,
     name: "",
@@ -229,6 +231,42 @@ export default function AdminAIConfig() {
   };
 
 
+    // Test Scrape Handler
+  const handleTestScrape = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+      const token = await user.getIdToken();
+      setIsScraping(true);
+      const result = await api.triggerScrape(token);
+      const { userEmail } = result;
+      alert(`Scraping triggered successfully!\n\nReport will be sent to ${userEmail} once completed.`);
+    } catch (error) {
+      console.error("Failed to trigger scrape:", error);
+      alert("Failed to trigger scraping. Check console for details.");
+    } finally {
+      setIsScraping(false);
+    }
+  };
+
+  // Test Enrichment Handler
+  const handleTestEnrichment = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+      const token = await user.getIdToken();
+      setIsEnriching(true);
+      const result = await api.triggerEnrichment(token);
+      const { userEmail } = result;
+      alert(`Enrichment triggered successfully!\n\nReport will be sent to ${userEmail} once completed.`);
+    } catch (error) {
+      console.error("Failed to trigger enrichment:", error);
+      alert("Failed to trigger enrichment. Check console for details.");
+    } finally {
+      setIsEnriching(false);
+    }
+  };
+
   const filteredSources = filterCategory === "All Categories"
     ? sources
     : sources.filter(source => source.category === filterCategory
@@ -382,7 +420,23 @@ export default function AdminAIConfig() {
       )}
 
       {/* Filter bar*/}
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end mb-4 gap-6">
+        <button
+          onClick={handleTestScrape}
+          disabled={isScraping}
+          className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        >
+          {isScraping ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+          {isScraping ? "Scraping..." : "Test Scrape"}
+        </button>
+        <button
+          onClick={handleTestEnrichment}
+          disabled={isEnriching}
+          className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        >
+          {isEnriching ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+          {isEnriching ? "Enriching..." : "Test Enrichment"}
+        </button>
         <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm">
           <label className="text-sm font-bold text-gray-500">Filter:</label>
           <select
