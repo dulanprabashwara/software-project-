@@ -74,6 +74,7 @@ function PublishArticlePageContent() {
           articleBody={state.articleBody}
           analysisHasRun={state.analysisHasRun}
           handleRunAnalysis={actions.handleRunAnalysis}
+          onBackToEditor={() => router.push(`/write/${mode}?id=${articleId}`)}
         />
 
         <div className="flex justify-center">

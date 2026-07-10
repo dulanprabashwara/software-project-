@@ -438,6 +438,7 @@ export function AnalysisSection({
   articleBody,
   analysisHasRun,
   handleRunAnalysis,
+  onBackToEditor,
 }) {
   const highlightedHtml = injectHighlights(articleBody, highlights);
 
@@ -510,12 +511,13 @@ export function AnalysisSection({
             </div>
             
             <div className="flex justify-end">
-              <a 
-                href={`/write/${typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('id') : ''}`}
+              <button 
+                type="button"
+                onClick={onBackToEditor}
                 className="text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline"
               >
                 Go back to Editor to fix issues →
-              </a>
+              </button>
             </div>
           </div>
         )}
