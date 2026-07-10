@@ -21,8 +21,8 @@ import {
 } from "../../../components/ui/Icons";
 
 /**
- * Primary authentication interface allowing existing users to enter the platform.
- Provides aggregated authentication methods (Email, Google, Facebook) bridging into a single unified session tracked by `AuthContext`.
+  allowing existing users to enter the platform.
+ Provides aggregated authentication methods (Email, Google, Facebook) 
  */
 export default function LoginPage() {
   const router = useRouter();
@@ -41,8 +41,7 @@ export default function LoginPage() {
 
   // Watch for auth changes. Wait for profileLoading to finish so isAdmin is accurate.
   React.useEffect(() => {
-    // Only redirect if we actively triggered a login request (to prevent auto-redirects
-    // when just sitting on the page if they happen to have an old token resolving)
+    //  redirect to admin or user home page based on user type
     if (!authLoading && !profileLoading && user && isAuthenticating) {
       if (isAdmin) {
         router.push("/admin");
@@ -50,7 +49,7 @@ export default function LoginPage() {
         router.push("/home");
       }
     }
-    // If a ban was detected mid-login, reset the authenticating state so the form is re-enabled and the modal can be shown.
+    // If a ban was detected mid-login, reset the authenticating state so can show the ban reason in the modal
     if (bannedReason) {
       setIsAuthenticating(false);
     }
@@ -67,8 +66,7 @@ export default function LoginPage() {
   const emailInputRef = React.useRef(null);
 
   /**
-   * @function handleGoogleLogin
-   * @description Initiates the Firebase Google OAuth popup flow.
+     Firebase Google OAuth popup flow.
    */
   const handleGoogleLogin = async () => {
     setIsAuthenticating(true);
@@ -91,7 +89,7 @@ export default function LoginPage() {
   };
 
   /**
-  Initiates the Firebase Facebook OAuth popup flow.
+Firebase Facebook OAuth popup flow.
    */
   const handleFacebookLogin = async () => {
     setIsAuthenticating(true);
@@ -113,7 +111,7 @@ export default function LoginPage() {
   };
 
   /**
-   email/password authnetication handler Validates the email format and credentials client-side before calling Firebase.
+   email/password authnetication handler Validates the email format and credentials 
    */
   const handleEmailLogin = async (e) => {
     e.preventDefault();
@@ -157,11 +155,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
+      {/* background gradient and fade */}
       <div className="absolute inset-0 bg-[#F8FAFC]">
         <div className="absolute left-0 top-0 w-1/3 h-full bg-linear-to-r from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
         <div className="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
       </div>
-
       {/* Banned User Modal  */}
       {bannedReason && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -201,7 +199,7 @@ export default function LoginPage() {
           </div>
         </div>
       )}
-
+      {/* Back to Home button */}s
       <div className="relative z-10 p-6">
         <Link
           href="/"
@@ -210,7 +208,6 @@ export default function LoginPage() {
           ← Back to Home
         </Link>
       </div>
-
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex items-center justify-center px-4 pb-12">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-10">
@@ -307,7 +304,6 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-
       {/* Footer */}
       <footer className="relative z-10 py-4 text-center text-sm text-[#9CA3AF]">
         © 2025 Easy Blogger. All rights reserved.

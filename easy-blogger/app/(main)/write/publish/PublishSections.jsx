@@ -287,6 +287,7 @@ export function SocialSharingSection({
   liUsername,
   showShareText,
   shareText,
+  handleConnectLinkedIn,
 }) {
   return (
     <Section title="Social Sharing">
@@ -319,9 +320,9 @@ export function SocialSharingSection({
                 </p>
               ) : (
                 <p className="text-sm text-gray-700">
-                  <a href="/profile/edit" className="text-[#0077B5] underline hover:text-[#005582]">
+                  <button type="button" onClick={handleConnectLinkedIn} className="text-[#0077B5] underline hover:text-[#005582]">
                     Connect to LinkedIn
-                  </a>
+                  </button>
                 </p>
               )}
             </div>
@@ -382,15 +383,18 @@ export function SocialSharingSection({
 
 export function LinkedInCaptionSection({
   shareLinkedIn,
+  liConnected,
   linkedinCaption,
   setLinkedinCaption,
   linkedinWordCount,
-  isLiCaptionOverLimit
+  isLiCaptionOverLimit,
+  handleDisconnectLinkedIn,
+  handleConnectLinkedIn
 }) {
   return (
     <Section title="LinkedIn Caption (Optional)">
       <div className="space-y-3">
-        {shareLinkedIn ? (
+        {shareLinkedIn && liConnected ? (
           <>
             <textarea
               value={linkedinCaption}
@@ -403,9 +407,14 @@ export function LinkedInCaptionSection({
                 }`}
             />
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6 text-sm">
-                <button type="button" className="text-gray-600 hover:text-gray-900">Change account</button>
-                <button type="button" className="text-red-500 hover:text-red-600">Disconnect</button>
+              <div className="flex items-center gap-3 text-sm">
+                <button 
+                  type="button" 
+                  onClick={handleDisconnectLinkedIn} 
+                  className="rounded-full border border-red-600 bg-red-500 px-4 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:border-red-700 hover:bg-red-600"
+                >
+                  Disconnect
+                </button>
               </div>
               <p className={`text-xs ${isLiCaptionOverLimit ? "font-semibold text-red-500" : "text-gray-400"}`}>
                 {linkedinWordCount} / 200 words

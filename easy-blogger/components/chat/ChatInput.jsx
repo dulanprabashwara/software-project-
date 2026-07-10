@@ -25,7 +25,7 @@ export default function ChatInput({
   //if user stop typing clear the typing timeout and send typing stop event
   const stopTyping = () => {
     if (isTypingRef.current) {
-      onTypingStop?.();
+      onTypingStop?.(); //send typing stop event
       setIsTyping(false);
       isTypingRef.current = false;
     }

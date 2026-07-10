@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef , Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Loader2, BadgeCheck, Star, MessageCircle, 
@@ -13,7 +13,7 @@ import { useArticle } from "../../../hooks/read/useArticle";
 import { useSavedArticles } from "../../../hooks/feeds/useSavedArticles";
 import { Comments } from "../../../components/article/Comments";
 
-export default function Page() {
+function PageContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
   
@@ -419,5 +419,13 @@ export default function Page() {
 
     </div>
   </>
+  );
+}
+
+export default function Page(props) {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-gray-500">Loading...</p></div>}>
+      <PageContent {...props} />
+    </Suspense>
   );
 }
