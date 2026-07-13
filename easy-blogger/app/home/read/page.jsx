@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { 
   Loader2, BadgeCheck, Star, MessageCircle, 
   CalendarDays, Flag, Bookmark, AlertCircle
@@ -12,9 +12,11 @@ import { useAuth } from "../../context/AuthContext";
 import { useArticle } from "../../../hooks/read/useArticle";
 import { useSavedArticles } from "../../../hooks/feeds/useSavedArticles";
 import { Comments } from "../../../components/article/Comments";
+import { api } from "../../../lib/api";
 
 export default function Page() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const id = searchParams.get("id");
   
   // us and article details
@@ -38,6 +40,10 @@ export default function Page() {
   // references 
   const scrollRef = useRef(null);
   const coverRef = useRef(null);
+
+  // follow state
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isTogglingFollow, setIsTogglingFollow] = useState(false);
 
   //for error popups
   const [errorOcuurred, setErrorOccurred] = useState (false);
@@ -173,6 +179,51 @@ export default function Page() {
     }
   };
 
+  const handleFollowToggle = async () => {
+    if (!user) {
+      alert("Please log in to follow authors!");
+      return;
+    }
+    if (!article?.author?.id || isTogglingFollow) return;
+
+    const wasFollowing = isFollowing;
+    setIsFollowing(!wasFollowing);
+    setIsTogglingFollow(true);
+
+    try {
+      const currentToken = token || await user.getIdToken();
+      const res = await api.toggleFollow(article.author.id, currentToken);
+      if (res.success && res.data) {
+        setIsFollowing(res.data.followed);
+      }
+    } catch (err) {
+      console.error("Follow toggle failed:", err);
+      setIsFollowing(wasFollowing);
+      alert("Failed to toggle follow. Please try again.");
+    } finally {
+      setIsTogglingFollow(false);
+    }
+  };
+
+  // Fetch follow status on load
+  useEffect(() => {
+    const fetchFollowStatus = async () => {
+      // Use article.author.username if available, otherwise fallback to id
+      const identifier = article?.author?.username || article?.author?.id;
+      if (user && token && identifier) {
+        try {
+          const res = await api.getUserProfileAuth(identifier, token);
+          if (res.success && res.data) {
+            setIsFollowing(res.data.isFollowing || false);
+          }
+        } catch (err) {
+          console.error("Failed to fetch follow status:", err);
+        }
+      }
+    };
+    fetchFollowStatus();
+  }, [user, token, article?.author?.username, article?.author?.id]);
+
    //check for loading article/user
 
   if (articleLoading || authLoading) return (
@@ -239,7 +290,16 @@ export default function Page() {
         }`}>
           {/*author avatar*/}
           <div className="max-w-5xl mx-auto px-4 md:px-8 py-2 md:py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0 mr-4">
+            <div 
+              className="flex items-center gap-3 min-w-0 mr-4 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => {
+                if (userProfile?.username === article.author?.username) {
+                  router.push('/profile');
+                } else {
+                  router.push(`/profile/${article.author?.username || article.author?.id}`);
+                }
+              }}
+            >
               <img src={article.author?.avatarUrl} className="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover shrink-0" alt="Author Picture" />
               {/*Author name and username*/}
               <div className="flex flex-col min-w-0">
@@ -260,7 +320,10 @@ export default function Page() {
                   <span>{displayDate}</span>
                 </div>
                 {/* ratings*/}
-                <div className="flex items-center gap-1">
+                <div 
+                  className="flex items-center gap-1 cursor-pointer hover:text-teal-500 transition-colors"
+                  onClick={() => document.getElementById('comments-section')?.scrollIntoView({ behavior: 'smooth' })}
+                >
                   <Star className="w-4 h-4" />
                   <span className="text-xs md:text-sm font-medium">
                     {article.averageRating > 0 ? article.averageRating.toFixed(1)  : "0"}
@@ -268,7 +331,10 @@ export default function Page() {
                   </span>
                 </div>
                 {/*Comments amount*/}
-                <div className="flex items-center gap-1.5 text-xs md:text-sm">
+                <div 
+                  className="flex items-center gap-1.5 text-xs md:text-sm cursor-pointer hover:text-teal-500 transition-colors"
+                  onClick={() => document.getElementById('comments-section')?.scrollIntoView({ behavior: 'smooth' })}
+                >
                   <MessageCircle className="w-4 h-4" />
                   <span>{article.commentCount || 0}</span>
                 </div>
@@ -301,14 +367,33 @@ export default function Page() {
           
           {/* Author Details */}
           <div className="flex items-center gap-3 mb-6">
-            <img src={article.author?.avatarUrl} className="w-10 h-10 rounded-full object-cover" alt="" />
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-gray-900">{article.author?.displayName}</span>
-              {article.author?.isPremium === true && <BadgeCheck className="w-4 h-4 text-teal-500" />}
+            <div 
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => {
+                if (userProfile?.username === article.author?.username) {
+                  router.push('/profile');
+                } else {
+                  router.push(`/profile/${article.author?.username || article.author?.id}`);
+                }
+              }}
+            >
+              <img src={article.author?.avatarUrl} className="w-10 h-10 rounded-full object-cover" alt="" />
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-gray-900">{article.author?.displayName}</span>
+                {article.author?.isPremium === true && <BadgeCheck className="w-4 h-4 text-teal-500" />}
+              </div>
             </div>
-            {userProfile?.id !== article.author?.id &&
-              <button className="text-xs font-semibold text-teal-600 border border-teal-400 rounded-full px-3 py-1 hover:bg-teal-50 transition-colors">
-                Follow
+            {userProfile?.username !== article.author?.username &&
+              <button 
+                onClick={handleFollowToggle}
+                disabled={isTogglingFollow}
+                className={`text-xs font-semibold rounded-full px-3 py-1 transition-colors ${
+                  isFollowing 
+                    ? "text-gray-600 border border-gray-400 hover:bg-gray-100" 
+                    : "text-teal-600 border border-teal-400 hover:bg-teal-50"
+                }`}
+              >
+                {isTogglingFollow ? "Wait..." : isFollowing ? "Following" : "Follow"}
               </button>
             }       
           </div>
@@ -325,7 +410,10 @@ export default function Page() {
           <div className="flex items-center justify-between py-4 border-b border-gray-100 mb-8 text-sm text-gray-500">
             <div className="flex items-center gap-6">
               {/* ratings*/}
-              <div className="flex items-center gap-0.5">
+              <div 
+                className="flex items-center gap-0.5 cursor-pointer hover:text-teal-500 transition-colors"
+                onClick={() => document.getElementById('comments-section')?.scrollIntoView({ behavior: 'smooth' })}
+              >
                 <Star className="w-5 h-5" />
                 <span className="ml-2 font-medium">
                   {article.averageRating > 0 ? article.averageRating.toFixed(1) : "0"}
@@ -335,7 +423,10 @@ export default function Page() {
               </div>
 
               {/* comments */}
-              <div className="flex items-center gap-1.5">
+              <div 
+                className="flex items-center gap-1.5 cursor-pointer hover:text-teal-500 transition-colors"
+                onClick={() => document.getElementById('comments-section')?.scrollIntoView({ behavior: 'smooth' })}
+              >
                 <MessageCircle className="w-5 h-5" />
                 <span>{article.commentCount || 0}</span>
               </div>
@@ -366,7 +457,7 @@ export default function Page() {
           <div className="prose prose-teal prose-lg max-w-none mb-20" dangerouslySetInnerHTML={{ __html: article.content }} />
 
           {/* Comments Section */}
-          <div className="border-t pt-12">
+          <div id="comments-section" className="border-t pt-12">
             <h3 className="text-2xl font-black font-serif mb-8">Responses ({article._count?.comments || 0})</h3>
             <Comments 
               articleId={id} 
