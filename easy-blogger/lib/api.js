@@ -76,13 +76,22 @@ export const api = {
 
   // User Endpoints
   updateProfile: (data, token) =>
-    fetchAPI("/api/users/profile", { method: "PUT", body: data, token }),
+    fetchAPI("/api/admin/profile", { method: "PUT", body: data, token }),
 
   getUserProfile: (identifier) => 
     fetchAPI(`/api/users/${identifier}`),
 
   getUserProfileAuth: (identifier, token) =>
     fetchAPI(`/api/users/${identifier}`, { token }),
+
+  registerSession: (token) =>
+    fetchAPI("/api/admin/sessions/register", { method: "POST", token }),
+
+  getActiveSessions: (token) =>
+    fetchAPI("/api/admin/sessions", { token }),
+
+  revokeSession: (sessionId, token) =>
+    fetchAPI(`/api/admin/sessions/${sessionId}`, { method: "DELETE", token }),
 
   // Follow System
   toggleFollow: (userId, token) =>
