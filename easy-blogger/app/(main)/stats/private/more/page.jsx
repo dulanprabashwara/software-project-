@@ -2,13 +2,22 @@
 
 import { useState } from 'react';
 import { useArticleStats } from '../../../../../hooks/useArticleStats';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { useComments } from '../../../../../hooks/useComments'; 
+import { Loader2, ArrowLeft, Trash2 } from 'lucide-react'; 
 import { useRouter } from 'next/navigation';
 
 export default function MoreStatsPage() {
-    const { stats, isLoading, error } = useArticleStats();
+    const { stats, isLoading, error } = useArticleStats(); 
     const router = useRouter();
     const [selectedArticleId, setSelectedArticleId] = useState(null);
+
+    // Default to the first article if none selected
+    const activeArticleId = selectedArticleId || (stats?.length > 0 ? stats[0].id : null);
+    const activeArticle = stats?.find(a => a.id === activeArticleId);
+
+    // CHANGED: We now pull the 'comments' array directly out of your hook!
+    // We rename it to 'liveComments' so it doesn't conflict with anything else.
+    const { deleteComment, comments: liveComments } = useComments(activeArticleId);
 
     if (isLoading) {
         return (
@@ -22,11 +31,6 @@ export default function MoreStatsPage() {
         return <div className="p-10 text-red-500">Error loading stats: {error}</div>;
     }
 
-    // Default to the first article if none selected
-    const activeArticleId = selectedArticleId || (stats?.length > 0 ? stats[0].id : null);
-    const activeArticle = stats?.find(a => a.id === activeArticleId);
-
-    // Calculate rating breakdown
     const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     if (activeArticle && activeArticle.ratings) {
         activeArticle.ratings.forEach(r => {
@@ -35,6 +39,18 @@ export default function MoreStatsPage() {
             }
         });
     }
+
+    // CHANGED: This function is now incredibly simple. 
+    // The hook manages the rest automatically!
+    const handleDeleteClick = async (commentId) => {
+        if (!confirm("Are you sure you want to delete this comment?")) return;
+
+        const success = await deleteComment(commentId);
+        
+        if (!success) {
+            alert("Failed to delete the comment. You may not have permission or need to log in.");
+        }
+    };
 
     return (
         <div className="flex flex-col h-full bg-[#f8fafc] p-6 font-[Georgia]">
@@ -103,19 +119,31 @@ export default function MoreStatsPage() {
                             {/* Comments Table */}
                             <div>
                                 <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Comments</h3>
-                                {activeArticle.comments && activeArticle.comments.length > 0 ? (
+                                
+                                {/* CHANGED: Map over the new 'liveComments' variable instead of activeArticle.comments */}
+                                {liveComments && liveComments.length > 0 ? (
                                     <table className="w-full text-left border-collapse">
                                         <thead>
                                             <tr className="bg-gray-50">
                                                 <th className="p-3 border-b text-gray-600 font-semibold w-1/4 rounded-tl-lg">Name</th>
-                                                <th className="p-3 border-b text-gray-600 font-semibold rounded-tr-lg">Comment</th>
+                                                <th className="p-3 border-b text-gray-600 font-semibold">Comment</th>
+                                                <th className="p-3 border-b text-gray-600 font-semibold w-16 text-center rounded-tr-lg">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {activeArticle.comments.map(comment => (
+                                            {liveComments.map(comment => (
                                                 <tr key={comment.id} className="border-b last:border-0 hover:bg-gray-50">
                                                     <td className="p-3 align-top font-medium text-gray-800">{comment.author?.displayName || 'Unknown'}</td>
                                                     <td className="p-3 text-gray-600 whitespace-pre-wrap">{comment.content}</td>
+                                                    <td className="p-3 align-top text-center">
+                                                        <button 
+                                                            onClick={() => handleDeleteClick(comment.id)}
+                                                            className="text-gray-400 hover:text-red-500 p-1 rounded transition-colors cursor-pointer"
+                                                            title="Delete Comment"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>

@@ -200,7 +200,11 @@ export const api = {
   
   addComment: (data, token) => 
     fetchAPI("/api/comments", { method: "POST", body: data, token }),
-    
+
+// RIGHT: Appends the commentId directly into the URL path to match your router.delete('/:id')
+deleteComment: (commentId, token) => 
+    fetchAPI(`/api/comments/${commentId}`, { method: "DELETE", token }),
+  
   rateArticle: (articleId, rating, token) => 
     fetchAPI(`/api/comments/${articleId}/rate`, { method: "POST", body: { rating }, token }),
 
