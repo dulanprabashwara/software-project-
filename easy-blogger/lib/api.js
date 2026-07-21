@@ -293,4 +293,8 @@ deleteComment: (commentId, token) =>
   //for article stats
   getUserArticleStats: (token) => 
     fetchAPI("/api/articleStats", { token }).then(res => res.data || []),
+
+  // Support Request
+  submitSupportRequest: (data) =>
+    fetchAPI("/api/support", { method: "POST", body: data }),
 };

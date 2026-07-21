@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef , Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { 
   Loader2, BadgeCheck, Star, MessageCircle, 
   CalendarDays, Flag, Bookmark, AlertCircle
