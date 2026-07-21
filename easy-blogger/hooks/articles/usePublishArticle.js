@@ -52,6 +52,14 @@ export function usePublishArticle(articleId) {
   const [shareText, setShareText] = useState("");
   const [showShareText, setShowShareText] = useState(false);
 
+  // Analysis State
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisType, setAnalysisType] = useState("both"); // "ai", "plagiarism", "both"
+  const [analysisScores, setAnalysisScores] = useState({ aiScore: null, plagiarismScore: null });
+  const [highlights, setHighlights] = useState([]);
+  const [articleBody, setArticleBody] = useState("");
+  const [analysisHasRun, setAnalysisHasRun] = useState(false);
+
   // Time Picker State
   const [tpHour, setTpHour] = useState("10");
   const [tpMinute, setTpMinute] = useState("30");
@@ -68,22 +76,25 @@ export function usePublishArticle(articleId) {
   const [liUsername, setLiUsername] = useState("");
   const [liCheckDone, setLiCheckDone] = useState(false);
 
-  // LinkedIn word count logic
+  // LinkedIn caption word count logic
   const linkedinWordCount = useMemo(() => {
-    if (!linkedinCaption) return 0;
+    if (!linkedinCaption)
+      return 0;
     return linkedinCaption.trim().split(/\s+/).filter(Boolean).length;
   }, [linkedinCaption]);
 
   const isLiCaptionOverLimit = linkedinWordCount >= 200;
 
-  // Helpers
+  // Checks if selected schedule time is invalid
   const isPastDateTime = () => {
-    if (!scheduledDate || !scheduledTime) return false;
+    if (!scheduledDate || !scheduledTime)
+      return false;
     const selected = new Date(`${scheduledDate}T${scheduledTime}`);
     const now = new Date();
     return selected < now;
   };
 
+  //Creates ISO datetime for backend
   const buildScheduledAt = () => {
     if (timing !== "schedule" || !scheduledDate || !scheduledTime) {
       return null;
@@ -102,6 +113,7 @@ export function usePublishArticle(articleId) {
     setTags((prev) => [...prev, trimmedTag]);
   };
 
+  //Removes selected tag
   const removeTag = (tagToRemove) => {
     setTags((prev) => prev.filter((tag) => tag !== tagToRemove));
   };
@@ -127,6 +139,11 @@ export function usePublishArticle(articleId) {
         // Extracts and normalizes existing tags, limiting to the maximum allowed
         if (Array.isArray(article.tags) && article.tags.length > 0) {
           setTags(article.tags.slice(0, MAX_TAGS));
+        }
+
+        // Extract body for analysis
+        if (article.content || article.body) {
+          setArticleBody(article.content || article.body);
         }
 
         // If the article was already scheduled, restore the date and time components for the UI
@@ -250,7 +267,8 @@ export function usePublishArticle(articleId) {
 
   // Verifies LinkedIn connection status
   useEffect(() => {
-    if (!shareLinkedIn || !firebaseUser || liCheckDone) return;
+    if (!shareLinkedIn || !firebaseUser || liCheckDone)
+      return;
 
     const checkLinkedInConnection = async () => {
       try {
@@ -276,6 +294,56 @@ export function usePublishArticle(articleId) {
     void checkLinkedInConnection();
   }, [shareLinkedIn, firebaseUser, liCheckDone]);
 
+  // Reads ?li_status query param set by the OAuth callback redirect and cleans it up
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("li_status")) return;
+
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("li_status");
+    cleanUrl.searchParams.delete("li_username");
+    cleanUrl.searchParams.delete("li_picture");
+    cleanUrl.searchParams.delete("li_message");
+    window.history.replaceState({}, "", cleanUrl.toString());
+  }, []);
+
+  const handleDisconnectLinkedIn = async () => {
+    if (!firebaseUser) return;
+    try {
+      const token = await firebaseUser.getIdToken();
+      await fetch(`${API_BASE_URL}/api/linkedin/disconnect`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLiConnected(false);
+      setLiUsername("");
+      setShareLinkedIn(false);
+    } catch (error) {
+      console.error("Failed to disconnect LinkedIn:", error);
+    }
+  };
+
+  const handleConnectLinkedIn = async () => {
+    if (!firebaseUser) return;
+    try {
+      const token = await firebaseUser.getIdToken();
+      // Pass the current URL path so the backend redirects back here after OAuth
+      const currentPath = window.location.pathname + window.location.search;
+      const res = await fetch(`${API_BASE_URL}/api/linkedin/auth?returnTo=${encodeURIComponent(currentPath)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok && data?.data?.authUrl) {
+        window.location.href = data.data.authUrl;
+      } else {
+        throw new Error(data?.message || "Could not get LinkedIn authorization URL.");
+      }
+    } catch (error) {
+      console.error("Failed to connect to LinkedIn:", error);
+    }
+  };
+
   const handleWordPressPublish = async (currentArticleId) => {
     if (!shareWordPress || !wpConnected || !currentArticleId || !firebaseUser)
       return;
@@ -299,6 +367,35 @@ export function usePublishArticle(articleId) {
       }
     } catch {
       setWpPublishError("Could not reach server for WordPress publish.");
+    }
+  };
+
+  const handleRunAnalysis = async () => {
+    if (!firebaseUser || !articleBody) return;
+    try {
+      setIsAnalyzing(true);
+      const token = await firebaseUser.getIdToken();
+      const response = await fetch(`${API_BASE_URL}/api/analysis/check`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ htmlContent: articleBody, type: analysisType }),
+      });
+      const data = await response.json();
+      if (data.success && data.data) {
+        setAnalysisScores({
+          aiScore: data.data.aiScore ?? null,
+          plagiarismScore: data.data.plagiarismScore ?? null,
+        });
+        setHighlights(data.data.highlights || []);
+        setAnalysisHasRun(true);
+      }
+    } catch (error) {
+      console.error("Failed to run analysis:", error);
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -374,6 +471,12 @@ export function usePublishArticle(articleId) {
       linkedinWordCount,
       isLiCaptionOverLimit,
       MAX_TAGS,
+      isAnalyzing,
+      analysisType,
+      analysisScores,
+      highlights,
+      articleBody,
+      analysisHasRun,
     },
     actions: {
       setTagInput,
@@ -391,10 +494,14 @@ export function usePublishArticle(articleId) {
       setTpPeriod,
       setWpCheckDone,
       setLiCheckDone,
+      setAnalysisType,
       addTag,
       removeTag,
       handlePublishArticle,
+      handleDisconnectLinkedIn,
+      handleConnectLinkedIn,
       isPastDateTime,
+      handleRunAnalysis,
     },
   };
 }

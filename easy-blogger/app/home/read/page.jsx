@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useRef , Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { 
   Loader2, BadgeCheck, Star, MessageCircle, 
   CalendarDays, Flag, Bookmark, AlertCircle
@@ -14,7 +14,7 @@ import { useSavedArticles } from "../../../hooks/feeds/useSavedArticles";
 import { Comments } from "../../../components/article/Comments";
 import { api } from "../../../lib/api";
 
-export default function Page() {
+function PageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = searchParams.get("id");
@@ -513,5 +513,13 @@ export default function Page() {
 
     </div>
   </>
+  );
+}
+
+export default function Page(props) {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-gray-500">Loading...</p></div>}>
+      <PageContent {...props} />
+    </Suspense>
   );
 }

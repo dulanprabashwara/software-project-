@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect , Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useClearBackupOnLayoutNavigation } from "../../../../hooks/articles/useClearBackupOnLayoutNavigation";
 import { usePublishArticle } from "../../../../hooks/articles/usePublishArticle";
@@ -9,9 +9,10 @@ import {
   TimingSection,
   SocialSharingSection,
   LinkedInCaptionSection,
+  AnalysisSection,
 } from "./PublishSections";
 
-export default function PublishArticlePage() {
+function PublishArticlePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -59,6 +60,22 @@ export default function PublishArticlePage() {
             You can publish now or schedule a time to publish
           </p>
         </div>
+
+        <div className="flex justify-center">
+          <div className="w-[90%] border-t border-gray-400" />
+        </div>
+
+        <AnalysisSection
+          isAnalyzing={state.isAnalyzing}
+          analysisType={state.analysisType}
+          setAnalysisType={actions.setAnalysisType}
+          analysisScores={state.analysisScores}
+          highlights={state.highlights}
+          articleBody={state.articleBody}
+          analysisHasRun={state.analysisHasRun}
+          handleRunAnalysis={actions.handleRunAnalysis}
+          onBackToEditor={() => router.push(`/write/${mode}?id=${articleId}`)}
+        />
 
         <div className="flex justify-center">
           <div className="w-[90%] border-t border-gray-400" />
@@ -118,6 +135,7 @@ export default function PublishArticlePage() {
           liUsername={state.liUsername}
           showShareText={state.showShareText}
           shareText={state.shareText}
+          handleConnectLinkedIn={actions.handleConnectLinkedIn}
         />
 
         <div className="flex justify-center">
@@ -126,10 +144,13 @@ export default function PublishArticlePage() {
 
         <LinkedInCaptionSection
           shareLinkedIn={state.shareLinkedIn}
+          liConnected={state.liConnected}
           linkedinCaption={state.linkedinCaption}
           setLinkedinCaption={actions.setLinkedinCaption}
           linkedinWordCount={state.linkedinWordCount}
           isLiCaptionOverLimit={state.isLiCaptionOverLimit}
+          handleDisconnectLinkedIn={actions.handleDisconnectLinkedIn}
+          handleConnectLinkedIn={actions.handleConnectLinkedIn}
         />
 
         <div className="flex justify-center">
@@ -172,5 +193,13 @@ export default function PublishArticlePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PublishArticlePage(props) {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-gray-500">Loading...</p></div>}>
+      <PublishArticlePageContent {...props} />
+    </Suspense>
   );
 }

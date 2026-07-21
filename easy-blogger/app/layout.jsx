@@ -5,6 +5,9 @@ import { AuthProvider } from "./context/AuthContext";
 export const metadata = {
   title: "Easy Blogger",
   description: "A simple blogging platform",
+  icons: {
+    icon: "/images/easy-blogger-logo.png",
+  },
 };
 
 export default function RootLayout({ children }) {

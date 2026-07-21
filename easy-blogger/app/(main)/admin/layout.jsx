@@ -1,10 +1,29 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../../../components/layout/Header";
 import AdminSidebar from "../../../components/admin/AdminSidebar";
 
+import { auth } from "../../../lib/firebase";
+import { api } from "../../../lib/api";
+
 export default function AdminLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        try {
+          const token = await user.getIdToken();
+          // Silently register the admin device globally across the admin panel
+          await api.registerSession(token); 
+        } catch (error) {
+          console.error("Global session registration failed:", error);
+        }
+      }
+    });
+    
+    return () => unsubscribe();
+  }, []);
 
   return (
     <div className="grid grid-rows-[auto,1fr] h-screen w-full bg-gray-100 overflow-hidden">

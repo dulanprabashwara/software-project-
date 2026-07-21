@@ -1,5 +1,5 @@
 "use client";
-//display a user profile other than the one currently logged in
+//display other user's profiles
 import { useState, use, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -41,16 +41,15 @@ export default function UserProfilePage({ params }) {
   const [articlesLoading, setArticlesLoading] = useState(true);
 
   useEffect(() => {
+    //fetch published articles of this profile user
     const fetchPublishedArticles = async () => {
       // Stop request if username is missing
-      if (!username) 
-        return;
+      if (!username) return;
 
       try {
         // Show loading state while fetching articles
         setArticlesLoading(true);
 
-        // Get only published articles of this profile user
         const response = await getPublishedArticlesByUsername(username, 1, 20);
 
         // Save articles from backend response
@@ -362,7 +361,14 @@ export default function UserProfilePage({ params }) {
 
           <h2 className="text-base font-bold text-[#111827] mb-1 font-serif flex items-center gap-2">
             {displayName}
-            {isPremium && <BadgeCheck className="w-5 h-5 shrink-0" fill="#1ABC9C" stroke="white" strokeWidth="1.5" />}
+            {isPremium && (
+              <BadgeCheck
+                className="w-5 h-5 shrink-0"
+                fill="#1ABC9C"
+                stroke="white"
+                strokeWidth="1.5"
+              />
+            )}
           </h2>
 
           <div className="flex items-center gap-1 text-[13px] text-gray-500 mb-3">

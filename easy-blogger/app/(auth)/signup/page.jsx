@@ -18,7 +18,7 @@ import {
 } from "../../../components/ui/Icons";
 
 /**
- * High-level signup interface combining the landing page background with an overarching authentication modal.
+ * signup interface combining the landing page background with an overarching authentication modal.
  */
 export default function SignupPage() {
   const router = useRouter();
@@ -30,7 +30,7 @@ export default function SignupPage() {
     router.push("/");
   };
 
-  // Triggers the Firebase Google provider popup for instant registration.
+  //  Firebase Google provider popup for instant registration.
   const handleGoogleSignup = async () => {
     try {
       const provider = new GoogleAuthProvider();
@@ -47,7 +47,7 @@ export default function SignupPage() {
     }
   };
 
-  // Triggers the Firebase Facebook provider popup for instant registration.
+  //  Firebase Facebook provider popup for instant registration.
 
   const handleFacebookSignup = async () => {
     try {
@@ -66,7 +66,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col relative">
-      {/* ========== LANDING PAGE CONTENT IN BACKGROUND ========== */}
+      {/* LANDING PAGE CONTENT IN BACKGROUND  */}
 
       {/* Header */}
       <header className="w-full px-6 md:px-12 py-4 flex items-center justify-between border-b border-[#E5E7EB]">

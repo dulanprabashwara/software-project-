@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ConversationList from "./ConversationList";
 import MessageList from "./MessageList";
@@ -52,6 +53,7 @@ export default function ChatInterface() {
             user: {
               id: c.user.id,
               name: c.user.displayName || c.user.username,
+              username: c.user.username,
               avatar:
                 c.user.avatarUrl ||
                 `https://ui-avatars.com/api/?name=${c.user.username}`,
@@ -89,6 +91,7 @@ export default function ChatInterface() {
                     id: profileRes.data.id,
                     name:
                       profileRes.data.displayName || profileRes.data.username,
+                    username: profileRes.data.username,
                     avatar:
                       profileRes.data.avatarUrl ||
                       `https://ui-avatars.com/api/?name=${profileRes.data.username}`,
@@ -250,7 +253,7 @@ export default function ChatInterface() {
         });
       }
 
-      //update the sidebar by push the conversation up and update the last message and unread count by +1
+      //if new message comes update the sidebar by push the conversation up and update the last message and unread count by +1
       setConversations((prev) => {
         let exists = prev.find((c) => c.id === message.senderId);
         const others = prev.filter((c) => c.id !== message.senderId);
@@ -271,6 +274,7 @@ export default function ChatInterface() {
             user: {
               id: message.sender.id,
               name: message.sender.displayName || message.sender.username,
+              username: message.sender.username,
               avatar:
                 message.sender.avatarUrl ||
                 `https://ui-avatars.com/api/?name=${message.sender.username}`,
@@ -392,7 +396,7 @@ export default function ChatInterface() {
     };
   }, [socket, activeConversationId, userProfile, user]);
 
-  //handling sending a message
+  //handles sending a message
   const handleSendMessage = (text) => {
     if (!socket || !activeConversationId || !userProfile) return;
 
@@ -621,9 +625,11 @@ export default function ChatInterface() {
                   )}
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 leading-tight">
-                    {activeConversation.user.name}
-                  </h3>
+                  <Link href={`/profile/${activeConversation.user.username}`}>
+                    <h3 className="font-bold text-gray-900 leading-tight hover:text-[#1ABC9C] transition-colors cursor-pointer">
+                      {activeConversation.user.name}
+                    </h3>
+                  </Link>
                   <span className="text-xs text-gray-500">
                     {typingUserId === activeConversationId
                       ? "Typing..."

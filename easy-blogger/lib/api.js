@@ -31,7 +31,9 @@ export async function fetchAPI(endpoint, options = {}) {
     const data = await response.json();
 
     if (!response.ok) {
-      const error = new Error(data.message || `API error: ${response.statusText}`);
+      const error = new Error(
+        data.message || `API error: ${response.statusText}`,
+      );
       error.status = response.status;
       error.data = data;
       throw error;
@@ -74,13 +76,22 @@ export const api = {
 
   // User Endpoints
   updateProfile: (data, token) =>
-    fetchAPI("/api/users/profile", { method: "PUT", body: data, token }),
+    fetchAPI("/api/admin/profile", { method: "PUT", body: data, token }),
 
   getUserProfile: (identifier) => 
     fetchAPI(`/api/users/${identifier}`),
 
   getUserProfileAuth: (identifier, token) =>
     fetchAPI(`/api/users/${identifier}`, { token }),
+
+  registerSession: (token) =>
+    fetchAPI("/api/admin/sessions/register", { method: "POST", token }),
+
+  getActiveSessions: (token) =>
+    fetchAPI("/api/admin/sessions", { token }),
+
+  revokeSession: (sessionId, token) =>
+    fetchAPI(`/api/admin/sessions/${sessionId}`, { method: "DELETE", token }),
 
   // Follow System
   toggleFollow: (userId, token) =>
@@ -128,6 +139,13 @@ export const api = {
   deleteScrapingSource: (id, token) =>
     fetchAPI(`/api/admin/scraping-sources/${id}`, { method: "DELETE", token }),
 
+  // Scraper Test Endpoints
+  triggerScrape: (token) =>
+    fetchAPI("/api/scraper/trigger", { method: "POST", token }),
+
+  triggerEnrichment: (token) =>
+    fetchAPI("/api/scraper/enrich", { method: "POST", token }),
+
   // ─── Messages / Chat ──────────────────────
   getConversations: (token) =>
     fetchAPI("/api/messages/conversations", { token }),
@@ -150,15 +168,26 @@ export const api = {
     fetchAPI(`/api/admin/reports${query}`, { token }),
 
   resolveReport: (reportId, status, token) =>
-    fetchAPI(`/api/admin/reports/${reportId}`, {method: "PUT",body:{ status },token,}),
+    fetchAPI(`/api/admin/reports/${reportId}`, {
+      method: "PUT",
+      body: { status },
+      token,
+    }),
 
   banUser: (userId, reason, token) =>
-    fetchAPI(`/api/admin/users/${userId}/ban`, {method: 'POST',body: { reason },token,}),
+    fetchAPI(`/api/admin/users/${userId}/ban`, {
+      method: "POST",
+      body: { reason },
+      token,
+    }),
 
-  unbanUser: (userId, token) => 
-    fetchAPI(`/api/admin/users/${userId}/ban`, { method: 'DELETE', token}),
+  unbanUser: (userId, token) =>
+    fetchAPI(`/api/admin/users/${userId}/ban`, {
+      method: "DELETE",
+      token,
+    }),
 
-  // ─── Payment / Subscription ───────────────
+  //Payment / Subscription
   getActiveOffers: () => fetchAPI("/api/payments/offers"),
 
   createCheckoutSession: (offerId, token) =>
@@ -190,9 +219,6 @@ export const api = {
 
   getDefaultKeywords: (token) =>
     fetchAPI(`/api/admin/scraping/default-keywords`, { token }),
-
-  getAdminMetrics: (token) => 
-    fetchAPI(`/api/admin/metrics`, { token }),
 
   // Comments and articleRating
   getArticleComments: (articleId) => 
@@ -265,11 +291,6 @@ deleteComment: (commentId, token) =>
     fetchAPI(`/api/articleRatings?articleId=${articleId}`, { token }).then(res => res.data || null),
 
   //for article stats
-
-// for article stats
-  // lib/api.js
-getUserArticleStats: (token) => 
+  getUserArticleStats: (token) => 
     fetchAPI("/api/articleStats", { token }).then(res => res.data || []),
-  
-
 };
