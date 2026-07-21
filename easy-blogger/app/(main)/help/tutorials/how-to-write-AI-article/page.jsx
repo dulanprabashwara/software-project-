@@ -32,9 +32,9 @@ export default function TutorialPage() {
                 Click on the "Write" button located in the top navigation bar. This will take you to the editor.
               </p>
               {/* Placeholder for Image */}
-              <img
-              src="/images/tutorials/write-an-article/header.png"
-              />
+              <div className="w-full h-64 bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center text-gray-400">
+                [Insert Picture: Header with Write button highlighted]
+              </div>
             </section>
 
             {/* Step 2 */}
