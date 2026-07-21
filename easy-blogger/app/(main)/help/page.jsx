@@ -13,18 +13,7 @@ export default function HelpPage() {
     e.preventDefault();
     setStatus("submitting");
     try {
-      // Assuming api.post exists, if not we use fetch
-      const response = await fetch("http://localhost:5000/api/v1/support", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, problem }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to submit");
-      }
+      await api.submitSupportRequest({ email, problem });
 
       setStatus("success");
       setEmail("");
