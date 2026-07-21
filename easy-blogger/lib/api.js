@@ -226,16 +226,24 @@ export const api = {
   
   addComment: (data, token) => 
     fetchAPI("/api/comments", { method: "POST", body: data, token }),
-    
+
+// RIGHT: Appends the commentId directly into the URL path to match your router.delete('/:id')
+deleteComment: (commentId, token) => 
+    fetchAPI(`/api/comments/${commentId}`, { method: "DELETE", token }),
+  
   rateArticle: (articleId, rating, token) => 
     fetchAPI(`/api/comments/${articleId}/rate`, { method: "POST", body: { rating }, token }),
 
   // Feeds
-  getFollowingFeed: (page = 1, token = null) => 
-    fetchAPI(`/api/homefeed/following?page=${page}`, { token }),
-
+  getFollowingFeed: (page = 1, token = null) => {
+  console.log("MY POSTMAN TOKEN:", token);
+  return fetchAPI(`/api/homefeed/following?page=${page}`, { token });
+},
   getNewFeed: (page = 1, token = null) => 
     fetchAPI(`/api/homefeed/main?page=${page}`, { token }),
+
+  getTopUserArticles: (token = null) => 
+    fetchAPI(`/api/TopUserArticles`, { token }),
 
   // Notifications
   getNotifications: (token) => 
@@ -249,8 +257,8 @@ export const api = {
     }),
 
     // Saved Articles
-  getSavedArticles: (token) => 
-    fetchAPI("/api/savedArticle", { token }),
+  getSavedArticles: (token, page = 1) => 
+    fetchAPI(`/api/savedArticle?page=${page}`, { token }),
     
   getSavedList: (token) => 
     fetchAPI("/api/savedArticle/savedList", { token }),
@@ -266,15 +274,15 @@ export const api = {
     fetchAPI(`/api/trendingArticles/trendingArticles`).then(res=> Array.isArray(res)? res: res.trending || [] ),
 
   // User History & Content
-  getReadHistory: (token) => 
-    fetchAPI("/api/readHistory", { token }).then(res => res.data || []),
+  getReadHistory: (token, page = 1) => 
+    fetchAPI(`/api/readHistory?page=${page}`, { token }).then(res => res.data || []),
 
   getPublishedArticles: (token) => 
     fetchAPI("/api/publishedArticles", { token }).then(res => res.data || []),
 
   // User Interactions & Ratings
-  getInteractedArticles: (token) => 
-    fetchAPI("/api/interactedArticles", { token }).then(res => res.data || []),
+  getInteractedArticles: (token, page = 1) => 
+    fetchAPI(`/api/interactedArticles?page=${page}`, { token }).then(res => res.data || []),
 
    getInteractedList: (token) => 
     fetchAPI("/api/interactedArticles/interactedList", { token }),
