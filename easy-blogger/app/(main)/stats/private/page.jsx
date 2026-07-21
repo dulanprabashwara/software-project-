@@ -2,23 +2,23 @@
 
 import { Star, Loader2 } from 'lucide-react';
 import ArticleCard from '../../../../components/article/ArticleCard';
-import { useArticleStats } from '../../../../hooks/useArticleStats';
+// Import your new hook
+import { useTopUserArticles } from '../../../../hooks/feeds/useTopUserArticles'; 
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from "next/navigation";
 
 export default function PrivateStats() {
-    // 1. Fetch real data using your hook
-    const { stats, isLoading, error } = useArticleStats();
+    // Fetch data using the new hook
+    const { articles, isLoading } = useTopUserArticles();
     const { userProfile } = useAuth();
     const router = useRouter();
     
-    const topArticles = stats 
-        ? [...stats].sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0)).slice(0, 5)
-        : [];
+    // The backend already sorts by trending score and limits to top 5
+    const topArticles = articles || [];
         
-    const totalRatings = stats ? stats.reduce((acc, curr) => acc + (curr.ratingCount || 0), 0) : 0;
+    const totalRatings = topArticles.reduce((acc, curr) => acc + (curr.ratingCount || 0), 0);
     const avgRating = totalRatings > 0 
-      ? (stats.reduce((acc, curr) => acc + (curr.averageRating || 0) * (curr.ratingCount || 0), 0) / totalRatings).toFixed(1) 
+      ? (topArticles.reduce((acc, curr) => acc + (curr.averageRating || 0) * (curr.ratingCount || 0), 0) / totalRatings).toFixed(1) 
       : "0.0";
 
     return (
@@ -110,9 +110,9 @@ export default function PrivateStats() {
                             </tr>
                         </thead>
                         <tbody className="bg-white">
-                            {/*Map through the stats array */}
-                            {!isLoading && stats.length > 0 ? (
-                                stats.map((article) => (
+                            {/* Map through the topArticles array */}
+                            {!isLoading && topArticles.length > 0 ? (
+                                topArticles.map((article) => (
                                     <tr key={article.id} 
                                     className="group hover:bg-teal-50 transition-colors cursor-pointer transition-transform hover:scale-102 duration-200"
                                      onClick={() => router.push(`/home/read?id=${article.id}`)} >
@@ -145,7 +145,7 @@ export default function PrivateStats() {
                             ) : !isLoading && (
                                 <tr>
                                     <td colSpan="5" className="text-center py-10 text-gray-400 italic">
-                                        {error ? "Error loading stats" : "No articles found yet."}
+                                        No articles found yet.
                                     </td>
                                 </tr>
                             )}

@@ -135,6 +135,8 @@ export default function Page() {
     }
   };
 
+  //for reporting
+
   const handleReportSubmit = async () => {
     if (!user) {
       alert("You must be logged in to report an article.");
