@@ -359,7 +359,7 @@ export default function Header({ onToggleSidebar }) {
               </div>
               <div className="border-t border-[#e5e7eb] my-1" />
               <Link
-                href="#"
+                href="/help"
                 onClick={() => setUserMenuOpen(false)}
                 className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
               >
