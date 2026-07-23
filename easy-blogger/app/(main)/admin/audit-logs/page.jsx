@@ -1,26 +1,40 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Filter, ChevronDown, X } from "lucide-react";
 
 import { auth } from "../../../../lib/firebase";
 import { api } from "../../../../lib/api";
+import Pagination from "../../../../components/admin/Pagination";
 
 export default function AuditLogPage() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [meta, setMeta] = useState(null);
+  const [availableAdmins, setAvailableAdmins] = useState(["All Admins"]);
+  const [availableActions, setAvailableActions] = useState(["All Actions"]);
 
   const [selectedAdmin, setSelectedAdmin] = useState("All Admins");
   const [selectedAction, setSelectedAction] = useState("All Actions");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
+    setLoading(true);
     try {
       const user = auth.currentUser;
       if (!user) return;
       const token = await user.getIdToken();
 
-      const response = await api.getAuditLogs("?limit=500", token);
+      let url = `/paginated?page=${page}&limit=${limit}`;
+      if (selectedAdmin !== "All Admins") url += `&admin=${encodeURIComponent(selectedAdmin)}`;
+      if (selectedAction !== "All Actions") url += `&action=${encodeURIComponent(selectedAction)}`;
+      if (startDate) url += `&startDate=${startDate}`;
+      if (endDate) url += `&endDate=${endDate}`;
+
+      const response = await api.getAuditLogs(url, token);
 
       const logsArray = Array.isArray(response.data)
         ? response.data
@@ -41,23 +55,40 @@ export default function AuditLogPage() {
       }));
 
       setLogs(mappedLogs);
+      setMeta(response.meta);
     } catch (error) {
       console.error("Failed to fetch audit logs:", error);
     } finally {
       setLoading(false);
     }
-  };
+  },[page, limit, selectedAdmin, selectedAction, startDate, endDate]);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async(user) => {
       if (user) {
+        const token = await user.getIdToken();
+        
+        // Fetch the dropdown options ONCE on load
+        api.getAuditLogFilters(token).then(res => {
+          if (res.success) {
+            setAvailableActions(["All Actions", ...res.data.actions]);
+            setAvailableAdmins(["All Admins", ...res.data.admins]);
+          }
+        });
+
         fetchLogs();
       } else {
         setLoading(false);
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [fetchLogs]);
+
+  // Function to reset page to 1 when a user types a new filter
+  const handleFilterChange = (setter) => (e) => {
+    setter(e.target.value);
+    setPage(1); // Always go back to page 1 when searching
+  };
 
   const getBadgeStyle = (action) => {
     const act = action.toLowerCase();
@@ -120,7 +151,7 @@ export default function AuditLogPage() {
               onChange={(e) => setSelectedAction(e.target.value)}
               className="appearance-none bg-white border border-gray-200 rounded-xl px-5 py-2.5 pr-10 text-xs font-bold text-gray-600 outline-none shadow-sm cursor-pointer uppercase tracking-widest"
             >
-              {uniqueActions.map(action => (
+              {availableActions.map(action => (
                 <option key={action} value={action}>{action}</option>
               ))}
             </select>
@@ -160,7 +191,7 @@ export default function AuditLogPage() {
               onChange={(e) => setSelectedAdmin(e.target.value)}
               className="appearance-none bg-white border border-gray-200 rounded-xl px-5 py-2.5 pr-12 text-sm font-bold outline-none shadow-sm cursor-pointer"
             >
-              {uniqueAdmins.map(admin => (
+              {availableAdmins.map(admin => (
                 <option key={admin} value={admin}>{admin}</option>
               ))}
             </select>
@@ -215,6 +246,22 @@ export default function AuditLogPage() {
           </tbody>
         </table>
       </div>
+      {/* Pagination Controls */}
+      {meta && !loading && logs.length > 0 && (
+        <div className="mt-8">
+          <Pagination 
+            currentPage={page}
+            totalPages={meta.totalPages}
+            totalItems={meta.totalItems}
+            itemsPerPage={limit}
+            onPageChange={setPage}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+              setPage(1);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
