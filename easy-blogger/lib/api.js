@@ -124,8 +124,14 @@ export const api = {
     fetchAPI(`/api/admin/offers/${id}`, { method: "PUT", body: data, token }),
 
   //Scraping Sources Management
-  getScrapingSources: (token) =>
-    fetchAPI("/api/admin/scraping-sources", { token }),
+  getScrapingSources: (query = "", token) =>{
+    // Safety fallback just in case the token gets passed as the first argument
+    if (!token && typeof query === "string" && !query.startsWith("?")) {
+      token = query;
+      query = "";
+    }
+    return fetchAPI(`/api/admin/scraping-sources/paginated${query}`, { token });
+  },
 
   createScrapingSource: (data, token) =>
     fetchAPI("/api/admin/scraping-sources", {method: "POST",body: data,token,}),
@@ -162,6 +168,8 @@ export const api = {
   //Audit log
   getAuditLogs: (query = "", token) =>
     fetchAPI(`/api/admin/audit-logs${query}`, { token }),
+  getAuditLogFilters: (token) =>
+    fetchAPI("/api/admin/audit-logs/filters", { token }),
 
   //Admin Moderation Queue
   getAdminReports: (query = "", token) =>
