@@ -1,13 +1,19 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect,useCallback } from "react";
 import { Plus, Trash2, CheckCircle2, XCircle, X, Check, Edit2, Loader2 } from "lucide-react";
 
 import { auth } from "../../../../lib/firebase";
 import { api } from "../../../../lib/api";
+import Pagination from "../../../../components/admin/Pagination";
 
 export default function AdminAIConfig() {
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAuth, setIsAuth] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [meta, setMeta] = useState(null);
+
   const [defaultKeywordsMap, setDefaultKeywordsMap] = useState({});
   const [filterCategory, setFilterCategory] = useState("All Categories");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,40 +31,55 @@ export default function AdminAIConfig() {
     currentKeywordInput: ""
   });
 
-  const fetchRealSources = async () => {
+  const fetchRealSources = useCallback(async () => {
+    setLoading(true);
     try {
       const user = auth.currentUser;
       if (!user) return;
       const token = await user.getIdToken();
 
-      // Fetch BOTH sources and keywords at the same time
-      const [sourcesRes, keywordsRes] = await Promise.all([
-        api.getScrapingSources(token),
-        api.getDefaultKeywords(token).catch(() => ({ data: { data: {} } }))
-      ]);
+      let query = `?page=${page}&limit=${limit}`;
+      if (filterCategory !== "All Categories") {
+        query += `&category=${encodeURIComponent(filterCategory)}`;
+      }
+
+      const sourcesRes = await api.getScrapingSources(query, token);
 
       const sourcesData = Array.isArray(sourcesRes.data) ? sourcesRes.data : (sourcesRes.data?.data || []);
       setSources(sourcesData);
-
-      // Store the dictionary mapping categories to their default keywords for easy access when configuring sources
-      setDefaultKeywordsMap(keywordsRes.data?.data || keywordsRes.data || {});
+      setMeta(sourcesRes.meta);
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, filterCategory]);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        fetchRealSources();
+        setIsAuth(true);
+        const token = await user.getIdToken();
+        
+        // Fetch keywords silently in the background just once
+        api.getDefaultKeywords(token)
+          .then(res => setDefaultKeywordsMap(res.data?.data || res.data || {}))
+          .catch(err => console.error("Failed to load keywords", err));
+
       } else {
         setLoading(false);
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, []); 
+
+  //Listen for Pagination or Filter clicks
+  useEffect(() => {
+    // Check if already logged in to prevent fetching before Firebase is ready
+    if (auth.currentUser) {
+      fetchRealSources();
+    }
+  }, [fetchRealSources]);
 
   // URL Validation
   const handleUrlChange = async (e) => {
@@ -526,6 +547,22 @@ export default function AdminAIConfig() {
           </tbody>
         </table>
       </div>
+      {/* Pagination Controls */}
+      {meta && !loading && sources.length > 0 && (
+        <div className="mt-8">
+          <Pagination 
+            currentPage={page}
+            totalPages={meta.totalPages}
+            totalItems={meta.totalItems}
+            itemsPerPage={limit}
+            onPageChange={setPage}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+              setPage(1);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
