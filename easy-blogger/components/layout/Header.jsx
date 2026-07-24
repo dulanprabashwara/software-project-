@@ -5,7 +5,7 @@
 import NotificationPanel from "../notifications/NotificationPanel";
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   HelpCircle,
   Sparkles,
@@ -14,6 +14,7 @@ import {
   PenSquare,
   // Bell, // Removed Bell since NotificationPanel handles it internally
   Menu,
+  X,
   LogOut,
   BadgeCheck,
 } from "lucide-react";
@@ -23,14 +24,19 @@ import { useAuth } from "../../app/context/AuthContext";
 import { api } from "../../lib/api";
 import { getSearchSuggestions } from "../../lib/searchApi";
 
-export default function Header({ onToggleSidebar }) {
+export default function Header({ onToggleSidebar, isSidebarOpen }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isPremium } = useSubscription();
   const { user, userProfile, logout } = useAuth(); // get user + logout from backend/auth
 
   const [userMenuOpen, setUserMenuOpen] = useState(false); //for user menu open and close check
   const [mounted, setMounted] = useState(false);
   const menuRef = useRef(null); //for outside clicks for user menu
+
+  // --- Context Check ---
+  // If the URL starts with /admin, we hide user-specific social features
+  const isAdminMode = pathname?.startsWith("/admin");
 
   // ── Search state ──────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState("");
@@ -161,10 +167,11 @@ export default function Header({ onToggleSidebar }) {
         <button
           data-skip-save-prompt="true"
           onClick={onToggleSidebar}
-          className="p-2 hover:bg-gray-100 rounded-lg"
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           aria-label="Toggle sidebar"
         >
-          <Menu size={20} />
+          {/* 2. Swap the icon based on the state */}
+          {isSidebarOpen ? <X size={20} /> :<Menu size={20} />}
         </button>
         <Link href="/home" className="flex items-center gap-2">
           <img
@@ -178,7 +185,8 @@ export default function Header({ onToggleSidebar }) {
         </Link>
       </div>
 
-      {/* Search */}
+      {/* Search- Hidden in Admin Mode */}
+      {!isAdminMode && (
       <div
         ref={searchContainerRef}
         className="flex-1 max-w-md mx-8 relative hidden md:block"
@@ -282,9 +290,12 @@ export default function Header({ onToggleSidebar }) {
           </div>
         )}
       </div>
+      )}
 
       {/* Right */}
       <div className="relative flex items-center gap-3">
+        {/* Write Button - Hidden in Admin Mode */}
+        {!isAdminMode && (
         <Link
           href="/write/choose-method"
           className="bg-[#1ABC9C] text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 hover:bg-[#17a589]"
@@ -292,11 +303,13 @@ export default function Header({ onToggleSidebar }) {
           <PenSquare size={16} />
           <span className="hidden sm:inline">Write</span>
         </Link>
+        )}
 
         {/* Place Notificatin panel*/}
         <NotificationPanel userId={user?.uid || user?.id} />
 
-        {/* Messages */}
+        {/* Messages - Hidden in Admin Mode */}
+        {!isAdminMode && (
         <Link 
           href="/chat" 
           className="p-2 hover:bg-emerald-50 rounded-full transition-colors text-gray-600"
@@ -304,6 +317,7 @@ export default function Header({ onToggleSidebar }) {
         >
           <MessageCircle className="w-6 h-6" />
         </Link>
+        )}
 
         {/* Avatar + Dropdown */}
         <div className="relative" ref={menuRef}>
