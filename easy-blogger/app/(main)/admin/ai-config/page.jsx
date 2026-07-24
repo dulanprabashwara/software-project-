@@ -476,11 +476,11 @@ export default function AdminAIConfig() {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-800 rounded-2xl overflow-x-auto shadow-sm">
-        <table className="w-full text-left border-collapse">
+      <div className="w-full overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
+        <table className="w-full min-w-[900px] text-left border-collapse">
           <thead>
-            <tr className="border-b border-gray-800 text-sm font-serif text-gray-800 bg-gray-50">
-              <th className="p-5 font-medium">Source</th>
+            <tr className="border-b border-gray-800">
+              <th className="sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] p-4 ...">Source</th>
               <th className="p-5 font-medium text-center">Category</th>
               <th className="p-5 font-medium text-center">Article Age Limit</th>
               <th className="p-5 font-medium text-center">Safety Rules</th>
@@ -496,7 +496,7 @@ export default function AdminAIConfig() {
             ) : (
               filteredSources.map((source) => (
                 <tr key={source.id} className="hover:bg-gray-50">
-                  <td className="p-5">
+                  <td className="sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] p-4 ...">
                     <p className="font-bold text-gray-900 font-serif text-base">{source.name}</p>
                     <a href={source.url} target="_blank" className="text-xs text-gray-500 underline hover:text-[#1ABC9C]">{source.url}</a>
                   </td>
@@ -531,7 +531,7 @@ export default function AdminAIConfig() {
                     </label>
                   </td>
 
-                  <td className="p-5">
+                  <td className="p-5 text-center">
                     <div className="flex items-center justify-center gap-4">
                       <button onClick={() => handleEdit(source)} className="text-gray-600 hover:text-gray-900 transition-colors" title="Edit Source">
                         <Edit2 size={16} strokeWidth={2.5} />
