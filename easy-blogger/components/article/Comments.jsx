@@ -6,7 +6,7 @@ import { useComments } from "../../hooks/useComments";
 // Import the ratings hook
 import { useArticleRatings } from "../../hooks/useArticleRatings";
 
-export const Comments = ({ articleId, token }) => {
+export const Comments = ({ articleId, currentUser, token, articleAuthorId }) => {
   //Guard against missing ID
   if (!articleId) {
     return (
@@ -98,42 +98,44 @@ export const Comments = ({ articleId, token }) => {
     <div className="space-y-8 py-6">
       
       {/* RATING SECTION */}
-      <div className="flex items-center gap-4 p-4 border rounded-xl bg-gray-50">
-        <span className="text-sm font-bold text-gray-600">Rate this article:</span>
-        {/* Map the users rating onto the stars if available / get users rating */}
-        <div className="flex gap-1">
-          <Star 
-            size={24} 
-            onClick={() => onRate(1)} 
-            className={`cursor-pointer transition ${localRating >= 1 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
-          />
-          <Star 
-            size={24} 
-            onClick={() => onRate(2)} 
-            className={`cursor-pointer transition ${localRating >= 2 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
-          />
-          <Star 
-            size={24} 
-            onClick={() => onRate(3)} 
-            className={`cursor-pointer transition ${localRating >= 3 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
-          />
-          <Star 
-            size={24} 
-            onClick={() => onRate(4)} 
-            className={`cursor-pointer transition ${localRating >= 4 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
-          />
-          <Star 
-            size={24} 
-            onClick={() => onRate(5)} 
-            className={`cursor-pointer transition ${localRating >= 5 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
-          />
+      {currentUser?.id !== articleAuthorId && (
+        <div className="flex items-center gap-4 p-4 border rounded-xl bg-gray-50">
+          <span className="text-sm font-bold text-gray-600">Rate this article:</span>
+          {/* Map the users rating onto the stars if available / get users rating */}
+          <div className="flex gap-1">
+            <Star 
+              size={24} 
+              onClick={() => onRate(1)} 
+              className={`cursor-pointer transition ${localRating >= 1 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
+            />
+            <Star 
+              size={24} 
+              onClick={() => onRate(2)} 
+              className={`cursor-pointer transition ${localRating >= 2 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
+            />
+            <Star 
+              size={24} 
+              onClick={() => onRate(3)} 
+              className={`cursor-pointer transition ${localRating >= 3 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
+            />
+            <Star 
+              size={24} 
+              onClick={() => onRate(4)} 
+              className={`cursor-pointer transition ${localRating >= 4 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
+            />
+            <Star 
+              size={24} 
+              onClick={() => onRate(5)} 
+              className={`cursor-pointer transition ${localRating >= 5 ? "fill-teal-500 text-teal-500" : "text-gray-300 hover:text-teal-400"}`} 
+            />
+          </div>
+          
+          {/* Rating Loading Message */}
+          {isSubmittingRating && (
+            <span className="text-xs text-teal-500 animate-pulse font-medium">Submitting rating...</span>
+          )}
         </div>
-        
-        {/* Rating Loading Message */}
-        {isSubmittingRating && (
-          <span className="text-xs text-teal-500 animate-pulse font-medium">Submitting rating...</span>
-        )}
-      </div>
+      )}
 
       {/* POST COMMENT SECTION */}
       <div>

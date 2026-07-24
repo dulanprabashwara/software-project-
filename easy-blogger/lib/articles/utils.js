@@ -123,3 +123,32 @@ export function formatFullTime(dateValue) {
     minute: "2-digit",
   });
 }
+
+/*
+ Injects highlight tags into HTML content safely without breaking existing tags.
+*/
+export function injectHighlights(htmlContent, highlights) {
+  if (!htmlContent || !highlights || highlights.length === 0) return htmlContent;
+
+  let processedHtml = htmlContent;
+
+  // Sort highlights by length descending to match longer phrases first, preventing nested highlights
+  const sortedHighlights = [...highlights].sort((a, b) => b.text.length - a.text.length);
+
+  sortedHighlights.forEach(({ text, type }) => {
+    if (!text) return;
+    
+    const colorClass = type === "AI" ? "bg-yellow-200" : "bg-red-200";
+    const escapedText = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    
+    // Regex matches the text only if it's NOT inside an HTML tag
+    // (?![^<]*>) ensures we are not currently inside a tag
+    // (?![^<]*</mark>) ensures we don't highlight inside an already created <mark> tag
+    const regex = new RegExp(`(?![^<]*>)(?![^<]*</mark>)(${escapedText})`, 'gi');
+    
+    processedHtml = processedHtml.replace(regex, `<mark class="${colorClass} rounded-sm px-0.5">$1</mark>`);
+  });
+
+  return processedHtml;
+}
+

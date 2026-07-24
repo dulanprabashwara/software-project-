@@ -208,11 +208,16 @@ const { user, profileLoading, userProfile } = useAuth();
         
         {/* --- Author & Date Header --- */}
         <div className="flex items-center gap-2 mb-3">
-          <img src={authorAvatar} alt={authorName} className="w-8 h-8 rounded-full object-cover" />
-          <span className="text-xl font-medium text-[#111827]">
-            {authorName}
-            <span className="text-xs text-gray-500"> @{authorUsername}</span>
+          <div 
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => router.push(`/profile/${authorUsername}`)}
+          >
+            <img src={authorAvatar} alt={authorName} className="w-8 h-8 rounded-full object-cover" />
+            <span className="text-xl font-medium text-[#111827]">
+              {authorName}
+              <span className="text-xs text-gray-500"> @{authorUsername}</span>
             </span>
+          </div>
           {article.author?.isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" title="Premium Author" />} {/* premium check */}
 
           {/*Display published or scheduled date */}

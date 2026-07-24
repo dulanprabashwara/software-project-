@@ -5,6 +5,7 @@ import { Search, Filter, X, AlertCircle, Download, Loader2 } from "lucide-react"
 
 import { auth } from "../../../../lib/firebase";
 import { api } from "../../../../lib/api";
+import Pagination from "../../../../components/admin/Pagination";
 
 function UserListPageContent() {
   const searchParams = useSearchParams();
@@ -18,6 +19,9 @@ function UserListPageContent() {
   const [banReason, setBanReason] = useState("");
   const [validationError, setValidationError] = useState("");
   const [activeFilters, setActiveFilters] = useState({ regular: false, premium: false, banned: false, active: false });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [meta, setMeta] = useState({ totalItems: 0, totalPages: 1 });
 
   useEffect(() => {
     if (initialFilter) {
@@ -29,12 +33,13 @@ function UserListPageContent() {
   }, [initialFilter]);
 
   const fetchRealUsers = async () => {
+    setLoading(true);
     try {
       const user = auth.currentUser;
       if (!user) return;
       const token = await user.getIdToken();
 
-      const response = await api.getAdminUsers("?limit=100", token);
+      const response = await api.getAdminUsers(`/paginated?page=${page}&limit=${limit}`, token);
 
       const mappedUsers = response.data.map(u => ({
         id: u.id,
@@ -48,6 +53,14 @@ function UserListPageContent() {
       }));
 
       setUsers(mappedUsers);
+
+      // Save the pagination math sent from Prisma backend
+      if (response.meta) {
+        setMeta({
+          totalItems: response.meta.totalItems,
+          totalPages: response.meta.totalPages
+        });
+      }
     } catch (error) {
       console.error("Failed to fetch users:", error);
     } finally {
@@ -64,7 +77,16 @@ function UserListPageContent() {
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [page, limit]);
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
+  const handleLimitChange = (newLimit) => {
+    setLimit(newLimit);
+    setPage(1); // Reset to page 1 to prevent getting stuck on an empty page
+  };
 
   // CSV export logic
   const exportToCSV = (filename, userList) => {
@@ -206,6 +228,20 @@ function UserListPageContent() {
             </tbody>
           </table>
         </div>
+
+        {/* PAGINATION COMPONENT HERE*/}
+        {!loading && (
+          <div className="px-10 pb-4">
+            <Pagination 
+              currentPage={page}
+              totalPages={meta.totalPages}
+              totalItems={meta.totalItems}
+              itemsPerPage={limit}
+              onPageChange={handlePageChange}
+              onLimitChange={handleLimitChange}
+            />
+          </div>
+        )}
 
         <div className="flex justify-end gap-3 px-10 mt-6 mb-4">
           <button onClick={() => exportToCSV("revenue_report.csv", filteredUsers.filter(u => u.type === "Premium"))} className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"><Download size={14} /> Download Revenue Report</button>
