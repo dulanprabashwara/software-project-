@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Header from "../../components/layout/Header";
 import Sidebar from "../../components/layout/Sidebar";
 
@@ -10,15 +11,23 @@ import { SocketProvider } from "../context/SocketContext";
 // Layout for the main app section
 export default function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  const pathname = usePathname();
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  // Check if the user is currently navigating the admin panel
+  const isAdminMode = pathname?.startsWith("/admin");
+
   return (
     <SocketProvider>
+      {isAdminMode ? (
+        /* ADMIN MODE: Completely remove the user-side layout wrappers 
+           so the AdminLayout can take full screen control */
+        children
+      ) : (
       <div className="h-screen overflow-hidden bg-white">
-        <Header onToggleSidebar={toggleSidebar} />
+        <Header onToggleSidebar={toggleSidebar} isSidebarOpen={sidebarOpen} />
         <Sidebar isOpen={sidebarOpen} />
 
         {/* Main content with sidebar offset */}
@@ -30,6 +39,7 @@ export default function MainLayout({ children }) {
           {children}
         </main>
       </div>
+      )}
     </SocketProvider>
   );
 }
