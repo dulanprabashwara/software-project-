@@ -305,4 +305,15 @@ deleteComment: (commentId, token) =>
   // Support Request
   submitSupportRequest: (data) =>
     fetchAPI("/api/support", { method: "POST", body: data }),
+
+  getSupportRequests: (query = "", token) => {
+    if (!token && typeof query === "string" && !query.startsWith("?")) {
+      token = query;
+      query = "";
+    }
+    return fetchAPI(`/api/admin/support-requests/paginated${query}`, { token });
+  },
+  
+  updateSupportRequest: (id, data, token) =>
+    fetchAPI(`/api/admin/support-requests/${id}`, { method: "PUT", body: data, token }),
 };
