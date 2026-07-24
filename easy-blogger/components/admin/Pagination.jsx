@@ -13,15 +13,15 @@ export default function Pagination({
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div className="flex items-center justify-between pt-4 mt-6 border-t border-gray-200 w-full">
+    <div className="flex flex-col lg:flex-row items-center justify-between gap-4 pt-4 mt-6 border-t border-gray-200 w-full">
       
       {/* Left Side: Showing 1-10 of 18 results */}
-      <div className="text-sm text-gray-500 font-medium">
+      <div className="text-sm text-gray-500 font-medium text-center lg:text-left">
         Showing {startItem}-{endItem} of {totalItems} results
       </div>
 
       {/* Right Side: Rows Dropdown & Navigation */}
-      <div className="flex items-center gap-6">
+      <div className="flex flex-wrap items-center justify-center lg:justify-end gap-4 lg:gap-6">
         
         {/* Rows Per Page Dropdown */}
         <div className="flex items-center gap-2">
