@@ -57,7 +57,7 @@ export default function Sidebar({ isOpen }) {
     { label: "Profile", href: "/profile", icon: User },
     { label: "Stories", href: "/stories/published", icon: FileText },
     { label: "Stats", href: "/stats", icon: BarChart },
-    { label: "Shares", href: "/shares", icon: Share2 },
+    { label: "Shares", href: "/shares/all", icon: Share2 },
     { label: "AI Generate",href: isPremium ? "/ai-generate" : "/subscription/upgrade",icon: Sparkles, },
     { label: "Following", href: "/profile?modal=following", icon: Users },
     { label: "Membership", href: "/subscription/upgrade",icon: CreditCard,onClick: handleMembershipClick,},
