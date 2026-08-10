@@ -21,9 +21,6 @@ export default function SharesLayout({ children }) {
         {/* Header + Tabs */}
         <div className="p-3 border-b border-[#e5e7eb] px-8">
           <h1 className="text-4xl font-bold font-[Georgia]">Shares</h1>
-          <p className="text-sm text-gray-500 mt-1 mb-3">
-            Track and manage your published content across connected platforms: WordPress, LinkedIn, or both.
-          </p>
 
           {/* Section links map */}
           <div className="flex gap-10">
