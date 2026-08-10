@@ -3,16 +3,17 @@
 import ArticleCard from "../../../../components/article/ArticleCard";
 import { useReadHistory } from "../../../../hooks/feeds/useReadHistory";
 import { useSavedList } from "../../../../hooks/feeds/useSavedArticles";
+import InfiniteScroll from "../../../../components/ui/InfiniteScroll";
 import { Loader2 } from "lucide-react";
 
 export default function History() {
   //get history articles
-  const { readHistory, isLoading: historyLoading } = useReadHistory();
+  const { readHistory, isLoading: historyLoading, isFetchingMore, hasMore, loadMore } = useReadHistory();
   const { savedList} = useSavedList();
 
   const isLoading = historyLoading;
 
-//still loading
+  //still loading
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -33,16 +34,23 @@ export default function History() {
   //map articles to articlecard
   return (
     <section className="px-8 min-w-0">
-      <div className=" w-full">
-         {readHistory.map((item) => (
-          <ArticleCard 
-            key={item.id} 
-            article={item.article} 
-            readHistory={readHistory} 
-            savedArticles={savedList}
-          />
-        ))}
-      </div>
+      <InfiniteScroll
+        loadMore={loadMore}
+        hasMore={hasMore}
+        isFetchingMore={isFetchingMore}
+        endMessage="You've reached the end of your reading history."
+      >
+        <div className="w-full">
+          {readHistory.map((item) => (
+            <ArticleCard 
+              key={item.id} 
+              article={item.article} 
+              readHistory={readHistory} 
+              savedArticles={savedList}
+            />
+          ))}
+        </div>
+      </InfiniteScroll>
     </section>
   );
 }

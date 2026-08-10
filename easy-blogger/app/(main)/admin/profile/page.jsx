@@ -2,11 +2,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Shield, Activity, Clock, Laptop, ShieldAlert, Monitor } from "lucide-react";
-
+import { useRouter } from "next/navigation";
 import { auth } from "../../../../lib/firebase";
 import { api } from "../../../../lib/api";
 
 export default function AdminProfilePage() {
+  const router = useRouter();
   const [adminData, setAdminData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -22,14 +23,36 @@ export default function AdminProfilePage() {
 
       let actionsCount = 0;
       let resolvedCount = 0;
+      let realSessions = [];
 
       try {
         const metricsResponse = await api.getAdminMetrics(token);
-        // Extract the numbers from the backend response
         if (metricsResponse.data?.data) {
+          const metrics = metricsResponse.data.data || metricsResponse.data;
           actionsCount = metricsResponse.data.data.totalActions;
           resolvedCount = metricsResponse.data.data.totalResolved;
         }
+        await api.registerSession(token); 
+        const sessionsResponse = await api.getActiveSessions(token);
+
+        console.log("Real Sessions from DB:", sessionsResponse);
+
+        // Safely extract the array whether it is in response.data or response.data.data
+        let sessionsArray = [];
+        if (Array.isArray(sessionsResponse)) sessionsArray = sessionsResponse;
+        else if (Array.isArray(sessionsResponse.data)) sessionsArray = sessionsResponse.data;
+        else if (Array.isArray(sessionsResponse.data?.data)) sessionsArray = sessionsResponse.data.data;
+        
+        // Map the backend data to match UI format
+        if (sessionsArray.length > 0) {
+          realSessions = sessionsArray.map(sess => ({
+            id: sess.id,
+            device: sess.deviceInfo,
+            location: sess.ipAddress || "Active Session",
+            status: "Online Now"
+          }));
+        }
+
       } catch (metricsErr) {
         console.error("Could not fetch metrics endpoint:", metricsErr);
       }
@@ -48,13 +71,18 @@ export default function AdminProfilePage() {
           resolved: resolvedCount
         },
         permissions: ["Full Content Moderation", "User Data Access", "System API Management"],
-        sessions: [
-          { id: 1, device: "Current Device", location: "Active Session", status: "Online Now" }
+        sessions: realSessions.length > 0 ? realSessions : [
+          { id: "fallback", device: "Current Device", location: "Active Session", status: "Online Now" }
         ]
       });
 
     } catch (error) {
       console.error("Failed to fetch admin profile:", error);
+      if (error.status === 401 || error.message.includes("401")) {
+          alert("Your session was revoked. You are being logged out.");
+          await auth.signOut();
+          window.location.href = "/login"; 
+        }
     } finally {
       setLoading(false);
     }
@@ -75,11 +103,27 @@ export default function AdminProfilePage() {
     const confirm = window.confirm(`Are you sure you want to terminate the session on ${deviceName}?`);
     if (!confirm) return;
 
-    // In the future, this would hit an endpoint like api.revokeSession(sessionId, token)
-    alert("Session revocation endpoint needs to be added to backend.");
+    try {
+      const user = auth.currentUser;
+      const token = await user.getIdToken();
+      
+      await api.revokeSession(sessionId, token);
+      
+      alert("Session revoked successfully.");
+      fetchProfile(); 
+      
+    } catch (error) {
+      console.error("Failed to revoke session:", error);
+      if (error.status === 401) {
+        await auth.signOut();
+        window.location.href = "/login"; // Hard redirect
+      } else {
+        alert("Failed to revoke session. Check the console.");
+      }
+    }
   };
 
-  if (loading) return <div className="p-8 text-gray-500 font-bold">Loading System Governance Data...</div>;
+  if (loading) return <div className="p-8 text-gray-500 font-bold">Loading Data...</div>;
   if (!adminData) return <div className="p-8 text-red-500 font-bold">Failed to load profile. Are you logged in?</div>;
 
   return (

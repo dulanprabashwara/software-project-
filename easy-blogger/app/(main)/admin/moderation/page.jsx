@@ -38,7 +38,7 @@ export default function ModerationIndexPage() {
       </div>
 
       {/* Modal*/}
-      <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/5 backdrop-blur-[2px] pointer-events-auto">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-[2px] pointer-events-auto">
         <div className="bg-white p-10 rounded-[40px] shadow-2xl border border-gray-100 text-center max-w-lg animate-in fade-in zoom-in duration-300">
 
           <div className="w-20 h-20 bg-[#F0FDFA] text-[#1ABC9C] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">

@@ -76,13 +76,22 @@ export const api = {
 
   // User Endpoints
   updateProfile: (data, token) =>
-    fetchAPI("/api/users/profile", { method: "PUT", body: data, token }),
+    fetchAPI("/api/admin/profile", { method: "PUT", body: data, token }),
 
   getUserProfile: (identifier) => 
     fetchAPI(`/api/users/${identifier}`),
 
   getUserProfileAuth: (identifier, token) =>
     fetchAPI(`/api/users/${identifier}`, { token }),
+
+  registerSession: (token) =>
+    fetchAPI("/api/admin/sessions/register", { method: "POST", token }),
+
+  getActiveSessions: (token) =>
+    fetchAPI("/api/admin/sessions", { token }),
+
+  revokeSession: (sessionId, token) =>
+    fetchAPI(`/api/admin/sessions/${sessionId}`, { method: "DELETE", token }),
 
   // Follow System
   toggleFollow: (userId, token) =>
@@ -115,8 +124,14 @@ export const api = {
     fetchAPI(`/api/admin/offers/${id}`, { method: "PUT", body: data, token }),
 
   //Scraping Sources Management
-  getScrapingSources: (token) =>
-    fetchAPI("/api/admin/scraping-sources", { token }),
+  getScrapingSources: (query = "", token) =>{
+    // Safety fallback just in case the token gets passed as the first argument
+    if (!token && typeof query === "string" && !query.startsWith("?")) {
+      token = query;
+      query = "";
+    }
+    return fetchAPI(`/api/admin/scraping-sources/paginated${query}`, { token });
+  },
 
   createScrapingSource: (data, token) =>
     fetchAPI("/api/admin/scraping-sources", {method: "POST",body: data,token,}),
@@ -153,6 +168,8 @@ export const api = {
   //Audit log
   getAuditLogs: (query = "", token) =>
     fetchAPI(`/api/admin/audit-logs${query}`, { token }),
+  getAuditLogFilters: (token) =>
+    fetchAPI("/api/admin/audit-logs/filters", { token }),
 
   //Admin Moderation Queue
   getAdminReports: (query = "", token) =>
@@ -217,16 +234,24 @@ export const api = {
   
   addComment: (data, token) => 
     fetchAPI("/api/comments", { method: "POST", body: data, token }),
-    
+
+// RIGHT: Appends the commentId directly into the URL path to match your router.delete('/:id')
+deleteComment: (commentId, token) => 
+    fetchAPI(`/api/comments/${commentId}`, { method: "DELETE", token }),
+  
   rateArticle: (articleId, rating, token) => 
     fetchAPI(`/api/comments/${articleId}/rate`, { method: "POST", body: { rating }, token }),
 
   // Feeds
-  getFollowingFeed: (page = 1, token = null) => 
-    fetchAPI(`/api/homefeed/following?page=${page}`, { token }),
-
+  getFollowingFeed: (page = 1, token = null) => {
+  console.log("MY POSTMAN TOKEN:", token);
+  return fetchAPI(`/api/homefeed/following?page=${page}`, { token });
+},
   getNewFeed: (page = 1, token = null) => 
     fetchAPI(`/api/homefeed/main?page=${page}`, { token }),
+
+  getTopUserArticles: (token = null) => 
+    fetchAPI(`/api/TopUserArticles`, { token }),
 
   // Notifications
   getNotifications: (token) => 
@@ -240,8 +265,8 @@ export const api = {
     }),
 
     // Saved Articles
-  getSavedArticles: (token) => 
-    fetchAPI("/api/savedArticle", { token }),
+  getSavedArticles: (token, page = 1) => 
+    fetchAPI(`/api/savedArticle?page=${page}`, { token }),
     
   getSavedList: (token) => 
     fetchAPI("/api/savedArticle/savedList", { token }),
@@ -257,15 +282,15 @@ export const api = {
     fetchAPI(`/api/trendingArticles/trendingArticles`).then(res=> Array.isArray(res)? res: res.trending || [] ),
 
   // User History & Content
-  getReadHistory: (token) => 
-    fetchAPI("/api/readHistory", { token }).then(res => res.data || []),
+  getReadHistory: (token, page = 1) => 
+    fetchAPI(`/api/readHistory?page=${page}`, { token }).then(res => res.data || []),
 
   getPublishedArticles: (token) => 
     fetchAPI("/api/publishedArticles", { token }).then(res => res.data || []),
 
   // User Interactions & Ratings
-  getInteractedArticles: (token) => 
-    fetchAPI("/api/interactedArticles", { token }).then(res => res.data || []),
+  getInteractedArticles: (token, page = 1) => 
+    fetchAPI(`/api/interactedArticles?page=${page}`, { token }).then(res => res.data || []),
 
    getInteractedList: (token) => 
     fetchAPI("/api/interactedArticles/interactedList", { token }),
@@ -276,4 +301,19 @@ export const api = {
   //for article stats
   getUserArticleStats: (token) => 
     fetchAPI("/api/articleStats", { token }).then(res => res.data || []),
+
+  // Support Request
+  submitSupportRequest: (data) =>
+    fetchAPI("/api/support", { method: "POST", body: data }),
+
+  getSupportRequests: (query = "", token) => {
+    if (!token && typeof query === "string" && !query.startsWith("?")) {
+      token = query;
+      query = "";
+    }
+    return fetchAPI(`/api/admin/support-requests/paginated${query}`, { token });
+  },
+  
+  updateSupportRequest: (id, data, token) =>
+    fetchAPI(`/api/admin/support-requests/${id}`, { method: "PUT", body: data, token }),
 };
