@@ -1,0 +1,58 @@
+// easy-blogger\app\(main)\shares\layout.jsx
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import RightFeed from "../../../components/article/RightFeed";
+
+export default function SharesLayout({ children }) {
+  const pathname = usePathname();
+
+  const tabs = [
+    { name: "All shares", href: "/shares/all" },
+    { name: "Linkedin", href: "/shares/linkedin" },
+    { name: "Wordpress", href: "/shares/wordpress" },
+  ];
+
+  return (
+    <div className="flex h-full overflow-hidden mx-auto">
+      {/* Left Main Section */}
+      <div className="h-full flex flex-col flex-1 min-w-0">
+        {/* Header + Tabs */}
+        <div className="p-3 border-b border-[#e5e7eb] px-8">
+          <h1 className="text-4xl font-bold font-[Georgia]">Shares</h1>
+          <p className="text-sm text-gray-500 mt-1 mb-3">
+            Track and manage your published content across connected platforms: WordPress, LinkedIn, or both.
+          </p>
+
+          {/* Section links map */}
+          <div className="flex gap-10">
+            {tabs.map((tab) => (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`py-3 font-semibold ${
+                  pathname === tab.href
+                    ? "text-black underline underline-offset-8"
+                    : "text-gray-500 hover:text-black"
+                }`}
+              >
+                {tab.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Page content injected here */}
+        <div className="flex-1 overflow-y-auto">
+          {children}
+        </div>
+      </div>
+
+      {/* Rightfeed */}
+      <aside className="hidden lg:block w-80 overflow-y-auto ml-auto">
+        <RightFeed />
+      </aside>
+    </div>
+  );
+}

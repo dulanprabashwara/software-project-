@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { 
   BadgeCheck, MessageCircle, Star, Bookmark, 
-  MoreHorizontal, BookOpen, Sparkles, Clock, Flag,Trash2 
+  MoreHorizontal, BookOpen, Sparkles, Clock, Flag, Trash2,
+  Linkedin, Globe
 } from "lucide-react";
 import { useAuth } from "../../app/context/AuthContext";  
  
@@ -14,8 +15,9 @@ export default function ArticleCard({
   article, 
   savedArticles = [], 
   interactedArticles = [], 
-  readHistory = [] 
-  
+  readHistory = [],
+  showShareBadges = false,
+  forcedPlatform = null
 }) {
 
 
@@ -236,6 +238,28 @@ const { user, profileLoading, userProfile } = useAuth();
             <span className="flex items-center gap-1 ml-2 text-[10px] font-semibold border border-[#1ABC9C] text-[#1ABC9C] bg-purple-50 px-2 py-0.5 rounded-full">
               <Sparkles className="w-3 h-3" /> AI Generated
             </span>
+          )}
+
+          {/* Platform share badges */}
+          {showShareBadges && (
+            <div className="flex items-center gap-1.5 ml-auto">
+              {(forcedPlatform === "linkedin" ||
+                article?.shareLinkedIn ||
+                article?.shares?.some((s) => s.platform?.toLowerCase().includes("linkedin")) ||
+                (article?.liPublishJobs && article?.liPublishJobs?.length > 0)) && (
+                <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#0077B5]/10 text-[#0077B5] border border-[#0077B5]/30">
+                  <Linkedin className="w-3.5 h-3.5 fill-[#0077B5]" /> LinkedIn
+                </span>
+              )}
+              {(forcedPlatform === "wordpress" ||
+                article?.shareWordPress ||
+                article?.shares?.some((s) => s.platform?.toLowerCase().includes("wordpress")) ||
+                (article?.wpPublishJobs && article?.wpPublishJobs?.length > 0)) && (
+                <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#21759B]/10 text-[#21759B] border border-[#21759B]/30">
+                  <Globe className="w-3.5 h-3.5 text-[#21759B]" /> WordPress
+                </span>
+              )}
+            </div>
           )}
         </div>
 
