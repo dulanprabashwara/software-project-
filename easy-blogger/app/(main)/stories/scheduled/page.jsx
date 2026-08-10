@@ -27,11 +27,14 @@ export default function Scheduled() {
     <section className="px-8 min-w-0">
       <div className="w-full">
         {isLoading ? (
-          <p className="text-sm text-gray-500">Loading scheduled articles...</p>
+          <p className="text-sm text-gray-500 py-6">Loading scheduled articles...</p>
         ) : articles.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            You have not scheduled any articles yet.
-          </p>
+          <div className="py-12 text-center text-gray-500">
+            <p className="text-base font-medium">You have not scheduled any articles yet.</p>
+            <p className="text-xs text-gray-400 mt-1">
+              When you schedule an article to publish later, it will appear here.
+            </p>
+          </div>
         ) : (
           articles.map((article) => (
             <ArticleCard 
