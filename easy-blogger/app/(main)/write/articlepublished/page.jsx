@@ -195,15 +195,15 @@ function ArticlePublishedContent() {
       onButtonClick={() => router.push("/home")}
     >
       <InfoCard icon={BookOpen} title="Article title">
-        <p className="mt-1 text-xl font-bold text-gray-800 leading-tight tracking-tight">{article.title}</p>
+        <p className="mt-0.5 text-base font-bold text-gray-800 leading-snug line-clamp-2">{article.title}</p>
       </InfoCard>
 
       <InfoCard icon={Tag} title="Tags">
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
           {(article.tags || []).map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-gray-100 bg-white px-5 py-1.5 text-sm font-semibold text-gray-600 shadow-xs"
+              className="rounded-full border border-gray-100 bg-white px-3 py-1 text-xs font-semibold text-gray-600 shadow-2xs"
             >
               {tag}
             </span>
@@ -212,7 +212,7 @@ function ArticlePublishedContent() {
       </InfoCard>
 
       <InfoCard icon={Share2} title="Published to">
-        <div className="mt-4 space-y-4 w-full">
+        <div className="mt-2 space-y-2 w-full">
           {platforms.map((platform) => (
             <PlatformItem
               key={platform}
