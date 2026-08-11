@@ -18,11 +18,15 @@ export default function AllShares() {
   const filterSharedArticles = (items) => {
     return items.filter(
       (article) =>
-        article.shareLinkedIn === true ||
-        article.shareWordPress === true ||
-        (article.shares && article.shares.length > 0) ||
-        (article.liPublishJobs && article.liPublishJobs.length > 0) ||
-        (article.wpPublishJobs && article.wpPublishJobs.length > 0)
+        (article.liPublishJobs &&
+          article.liPublishJobs.some(
+            (job) => job.status === "PUBLISHED" || job.status === "SUCCESS"
+          )) ||
+        (article.wpPublishJobs &&
+          article.wpPublishJobs.some(
+            (job) => job.status === "PUBLISHED" || job.status === "SUCCESS"
+          )) ||
+        (article.shares && article.shares.length > 0)
     );
   };
 

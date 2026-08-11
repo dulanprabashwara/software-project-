@@ -250,10 +250,10 @@ const { user, profileLoading, userProfile } = useAuth();
           {showShareBadges && (
             <div className="flex items-center gap-1.5 ml-auto">
               {(!forcedPlatform || forcedPlatform === "linkedin") &&
-                (forcedPlatform === "linkedin" ||
-                  article?.shareLinkedIn ||
-                  article?.shares?.some((s) => s.platform?.toLowerCase().includes("linkedin")) ||
-                  (article?.liPublishJobs && article?.liPublishJobs?.length > 0)) && (
+                (article?.shares?.some((s) => s.platform?.toLowerCase().includes("linkedin")) ||
+                  article?.liPublishJobs?.some(
+                    (job) => job.status === "PUBLISHED" || job.status === "SUCCESS"
+                  )) && (
                   <a
                     href={linkedinPostUrl}
                     target="_blank"
@@ -268,10 +268,10 @@ const { user, profileLoading, userProfile } = useAuth();
                 )}
 
               {(!forcedPlatform || forcedPlatform === "wordpress") &&
-                (forcedPlatform === "wordpress" ||
-                  article?.shareWordPress ||
-                  article?.shares?.some((s) => s.platform?.toLowerCase().includes("wordpress")) ||
-                  (article?.wpPublishJobs && article?.wpPublishJobs?.length > 0)) && (
+                (article?.shares?.some((s) => s.platform?.toLowerCase().includes("wordpress")) ||
+                  article?.wpPublishJobs?.some(
+                    (job) => job.status === "PUBLISHED" || job.status === "SUCCESS"
+                  )) && (
                   <a
                     href={wordpressPostUrl || "#"}
                     target={wordpressPostUrl ? "_blank" : "_self"}

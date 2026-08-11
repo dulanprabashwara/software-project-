@@ -18,12 +18,14 @@ export default function LinkedinShares() {
   const filterLinkedinArticles = (items) => {
     return items.filter(
       (article) =>
-        article.shareLinkedIn === true ||
+        (article.liPublishJobs &&
+          article.liPublishJobs.some(
+            (job) => job.status === "PUBLISHED" || job.status === "SUCCESS"
+          )) ||
         (article.shares &&
           article.shares.some(
             (s) => s.platform && s.platform.toLowerCase().includes("linkedin")
-          )) ||
-        (article.liPublishJobs && article.liPublishJobs.length > 0)
+          ))
     );
   };
 

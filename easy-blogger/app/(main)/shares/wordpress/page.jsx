@@ -18,12 +18,14 @@ export default function WordpressShares() {
   const filterWordpressArticles = (items) => {
     return items.filter(
       (article) =>
-        article.shareWordPress === true ||
+        (article.wpPublishJobs &&
+          article.wpPublishJobs.some(
+            (job) => job.status === "PUBLISHED" || job.status === "SUCCESS"
+          )) ||
         (article.shares &&
           article.shares.some(
             (s) => s.platform && s.platform.toLowerCase().includes("wordpress")
-          )) ||
-        (article.wpPublishJobs && article.wpPublishJobs.length > 0)
+          ))
     );
   };
 
