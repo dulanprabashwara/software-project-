@@ -43,13 +43,14 @@ function ArticlePublishedContent() {
   const [wpError, setWpError] = useState("");
   const [isRetrying, setIsRetrying] = useState(false);
 
+  const [liPostUrl, setLiPostUrl] = useState("");
+  const [liError, setLiError] = useState("");
+  const [isLiRetrying, setIsLiRetrying] = useState(false);
+
   /*
    Loads specific publish details for WordPress if connected.
-   WHY: While the main article is fetched by the shared hook, WordPress-specific 
-   metadata (like the remote post ID and live URL) requires a specialized endpoint.
    */
   const loadWordPressPublishStatus = useCallback(async () => {
-    // Exit if user is not authenticated or article ID is missing to prevent invalid API calls
     if (!firebaseUser || !articleId) return;
 
     try {
@@ -66,14 +67,12 @@ function ArticlePublishedContent() {
       const url = getWordPressUrl(data);
       const error = getWordPressError(data);
 
-      // Prioritize the live URL; if found, we clear any previous errors
       if (url) {
         setWpPostUrl(url);
         setWpError("");
         return;
       }
 
-      // If no URL but an error message is returned, capture it for the UI retry button
       if (error) {
         setWpError(error);
       }
@@ -83,21 +82,41 @@ function ArticlePublishedContent() {
   }, [firebaseUser, articleId]);
 
   /*
-   Syncs WordPress publish status when connection is confirmed.
-   WHY: We wait for the global WordPress connection status (from usePublishStatus) 
-   before attempting to fetch the specific post metadata to avoid unnecessary 401/404 errors.
+   Loads specific publish details for LinkedIn.
    */
+  const loadLinkedInPublishStatus = useCallback(async () => {
+    if (!firebaseUser || !articleId) return;
+
+    try {
+      const token = await firebaseUser.getIdToken();
+
+      const res = await fetch(
+        `${API_BASE_URL}/api/linkedin/publish-status/${articleId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const data = await res.json();
+      if (!res.ok || !data?.success) return;
+
+      const job = data?.data;
+      if (job?.liPostUrl) {
+        setLiPostUrl(job.liPostUrl);
+        setLiError("");
+      } else if (job?.status === "FAILED" && job?.errorMsg) {
+        setLiError(job.errorMsg);
+      }
+    } catch (error) {
+      console.error("Failed to load LinkedIn publish status:", error);
+    }
+  }, [firebaseUser, articleId]);
+
   useEffect(() => {
     if (wpConnected) {
       void loadWordPressPublishStatus();
     }
-  }, [wpConnected, loadWordPressPublishStatus]);
+    void loadLinkedInPublishStatus();
+  }, [wpConnected, loadWordPressPublishStatus, loadLinkedInPublishStatus]);
 
-  /*
-   Handles retrying the WordPress publication if it failed initially.
-   WHY: WordPress connections can be flaky. This allows the user to manually 
-   trigger a re-publish attempt without leaving the success page.
-   */
   const handleWpRetry = useCallback(async () => {
     if (!firebaseUser || !articleId) return;
 
@@ -113,21 +132,18 @@ function ArticlePublishedContent() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        // We pass scheduledAt: null to force immediate publication during a retry
         body: JSON.stringify({ articleId, scheduledAt: null }),
       });
 
       const data = await res.json();
       const url = getWordPressUrl(data);
 
-      // Successful retry: update the URL and clear errors
       if (data?.success && url) {
         setWpPostUrl(url);
         setWpError("");
         return;
       }
 
-      // Capture failure message or provide a generic fallback
       setWpError(getWordPressError(data) || "WordPress publish failed. Please try again.");
     } catch {
       setWpError("Could not reach server. Please try again.");
@@ -136,36 +152,60 @@ function ArticlePublishedContent() {
     }
   }, [firebaseUser, articleId]);
 
-  /*
-   List of platforms where the article is live.
-   WHY: We check the article status for 'Easy Blogger' and look at
-   the publish jobs arrays to accurately determine if LinkedIn or WordPress
-   were published successfully.
-   */
+  const handleLiRetry = useCallback(async () => {
+    if (!firebaseUser || !articleId) return;
+
+    setIsLiRetrying(true);
+    setLiError("");
+
+    try {
+      const token = await firebaseUser.getIdToken();
+
+      const res = await fetch(`${API_BASE_URL}/api/linkedin/publish`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ articleId, scheduledAt: null }),
+      });
+
+      const data = await res.json();
+      const result = data?.data;
+
+      if (data?.success && result?.liPostUrl) {
+        setLiPostUrl(result.liPostUrl);
+        setLiError("");
+        return;
+      }
+
+      setLiError(result?.message || "LinkedIn publish failed. Please try again.");
+    } catch {
+      setLiError("Could not reach server. Please try again.");
+    } finally {
+      setIsLiRetrying(false);
+    }
+  }, [firebaseUser, articleId]);
+
   const platforms = useMemo(() => {
     const list = [];
     if (article?.status === "PUBLISHED" || article?.status === "SCHEDULED") {
       list.push("Easy Blogger");
     }
     
-    const validStatuses = ["PENDING", "IN_PROGRESS", "PUBLISHED", "SCHEDULED"];
+    const validStatuses = ["PENDING", "IN_PROGRESS", "PUBLISHED", "SCHEDULED", "FAILED"];
     
     if (article?.wpPublishJobs?.some(job => validStatuses.includes(job.status))) {
       list.push("WordPress");
     }
     
-    if (article?.liPublishJobs?.some(job => validStatuses.includes(job.status))) {
+    if (article?.liPublishJobs?.some(job => validStatuses.includes(job.status)) || liPostUrl || liError) {
       list.push("LinkedIn");
     }
     
     return list;
-  }, [article]);
+  }, [article, liPostUrl, liError]);
 
-  /*
-   Human-readable publication date.
-   WHY: If publishedAt is not yet synced in the DB, we fallback to createdAt 
-   to ensure the user sees a valid timestamp for their action.
-   */
   const formattedDate = useMemo(() => {
     return formatFullDate(article?.publishedAt || article?.createdAt);
   }, [article]);
@@ -221,6 +261,10 @@ function ArticlePublishedContent() {
               wpError={platform === "WordPress" ? wpError : ""}
               isRetrying={platform === "WordPress" ? isRetrying : false}
               onRetry={platform === "WordPress" ? handleWpRetry : undefined}
+              liPostUrl={platform === "LinkedIn" ? liPostUrl : ""}
+              liError={platform === "LinkedIn" ? liError : ""}
+              isLiRetrying={platform === "LinkedIn" ? isLiRetrying : false}
+              onLiRetry={platform === "LinkedIn" ? handleLiRetry : undefined}
             />
           ))}
         </div>
