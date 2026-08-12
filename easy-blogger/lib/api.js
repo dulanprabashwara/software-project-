@@ -316,4 +316,8 @@ deleteComment: (commentId, token) =>
   
   updateSupportRequest: (id, data, token) =>
     fetchAPI(`/api/admin/support-requests/${id}`, { method: "PUT", body: data, token }),
+
+  // Dashboard Feeds
+  getDashboardFeeds: (token) =>
+    fetchAPI(`/api/admin/dashboard/feeds`, { method: "GET", token }),
 };
