@@ -14,6 +14,7 @@ import {
   CreditCard,
   Plus,
   Loader2,
+  Share2,
 } from "lucide-react";
 import { useSubscription } from "../../app/context/SubscriptionContext"; //get subscription status
 import { useAuth } from "../../app/context/AuthContext"; //get user instance details
@@ -56,6 +57,7 @@ export default function Sidebar({ isOpen }) {
     { label: "Profile", href: "/profile", icon: User },
     { label: "Stories", href: "/stories/published", icon: FileText },
     { label: "Stats", href: "/stats", icon: BarChart },
+    { label: "Shares", href: "/shares/all", icon: Share2 },
     { label: "AI Generate",href: isPremium ? "/ai-generate" : "/subscription/upgrade",icon: Sparkles, },
     { label: "Following", href: "/profile?modal=following", icon: Users },
     { label: "Membership", href: "/subscription/upgrade",icon: CreditCard,onClick: handleMembershipClick,},
@@ -71,7 +73,11 @@ export default function Sidebar({ isOpen }) {
               key={link.label}
               href={link.href}
               onClick={link.onClick} 
-              className={`flex items-center gap-3 p-3 rounded-lg text-sm ${pathname === link.href ? "bg-teal-50 text-teal-600" : "text-gray-500"}`}
+              className={`flex items-center gap-3 p-3 rounded-lg text-sm ${
+                pathname === link.href || (link.href !== "/home" && pathname?.startsWith(link.href))
+                  ? "bg-teal-50 text-teal-600 font-medium"
+                  : "text-gray-500 hover:bg-gray-50 transition-colors"
+              }`}
             >
               {/* loading for membership icon*/}
               {link.label === "Membership" && portalLoading ? (

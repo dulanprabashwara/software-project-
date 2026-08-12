@@ -23,57 +23,75 @@ export default function PlatformItem({
   wpError,
   isRetrying,
   onRetry,
+  liPostUrl,
+  liError,
+  isLiRetrying,
+  onLiRetry,
 }) {
   const config = PLATFORM_CONFIG[name];
   if (!config) return null;
 
+  const postUrl = name === "LinkedIn" ? liPostUrl : wpPostUrl;
+  const error = name === "LinkedIn" ? liError : wpError;
+  const retrying = name === "LinkedIn" ? isLiRetrying : isRetrying;
+  const handleRetry = name === "LinkedIn" ? onLiRetry : onRetry;
+
   return (
-    <div className="flex items-center justify-between gap-4 w-full group">
-      <div className="flex items-center gap-3">
-        <div className="relative h-10 w-10 flex items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100 transition-all group-hover:shadow-md">
-          <Image src={config.iconSrc} alt={config.iconAlt} width={28} height={28} className="object-contain" />
+    <div className="flex items-center justify-between gap-3 w-full group py-0.5">
+      <div className="flex items-center gap-2.5">
+        <div className="relative h-8 w-8 flex items-center justify-center rounded-lg bg-white shadow-xs border border-gray-100 transition-all group-hover:shadow-md shrink-0">
+          <Image src={config.iconSrc} alt={config.iconAlt} width={20} height={20} className="object-contain" />
         </div>
-        <span className="text-lg font-semibold text-gray-800">{name}</span>
+        <span className="text-sm font-semibold text-gray-800">{name}</span>
       </div>
 
       <div className="flex items-center gap-2">
-        {name === "WordPress" && isRetrying && (
-          <span className="flex items-center gap-2 rounded-full bg-amber-50 px-4 py-1.5 text-sm font-bold text-amber-600 border border-amber-100">
-            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+        {(name === "WordPress" || name === "LinkedIn") && retrying && (
+          <span className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-600 border border-amber-100">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
             Syncing...
           </span>
         )}
 
-        {name === "WordPress" && !isRetrying && wpPostUrl && (
+        {(name === "WordPress" || name === "LinkedIn") && !retrying && postUrl && (
           <a
-            href={wpPostUrl}
+            href={postUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-bold text-emerald-600 border border-emerald-100 transition-all hover:bg-emerald-100"
+            className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600 border border-emerald-100 transition-all hover:bg-emerald-100"
           >
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             Live ↗
           </a>
         )}
 
-        {name === "WordPress" && !isRetrying && !wpPostUrl && wpError && (
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-2 rounded-full bg-red-50 px-4 py-1.5 text-sm font-bold text-red-600 border border-red-100">
-              <span className="h-2 w-2 rounded-full bg-red-500" />
+        {(name === "WordPress" || name === "LinkedIn") && !retrying && !postUrl && error && (
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-600 border border-red-100">
+              <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
               Failed
             </span>
-            <button 
-              onClick={onRetry} 
-              className="text-sm font-bold text-emerald-600 hover:text-emerald-700 underline underline-offset-4"
-            >
-              Retry
-            </button>
+            {handleRetry && (
+              <button 
+                onClick={handleRetry} 
+                className="text-xs font-bold text-emerald-600 hover:text-emerald-700 underline underline-offset-4 cursor-pointer"
+              >
+                Retry
+              </button>
+            )}
           </div>
         )}
 
+        {(name === "WordPress" || name === "LinkedIn") && !retrying && !postUrl && !error && (
+          <span className="flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-600 border border-sky-100">
+            <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
+            Live
+          </span>
+        )}
+
         {name === "Easy Blogger" && (
-          <span className="flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-bold text-emerald-600 border border-emerald-100">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600 border border-emerald-100">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             Live
           </span>
         )}
