@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { 
   BadgeCheck, MessageCircle, Star, Bookmark, 
   MoreHorizontal, BookOpen, Sparkles, Clock, Flag, Trash2,
-  Linkedin, Globe
+  Linkedin, Globe, ExternalLink
 } from "lucide-react";
 import { useAuth } from "../../app/context/AuthContext";  
  
@@ -87,8 +87,14 @@ const { user, profileLoading, userProfile } = useAuth();
     : "Scheduled date unknown";
 
 
- 
-//more options
+    // Extract URLs for social posts if available
+  const linkedinJob = article?.liPublishJobs?.find((job) => job.liPostUrl) || article?.liPublishJobs?.[0];
+  const linkedinPostUrl = linkedinJob?.liPostUrl || article?.linkedinPostUrl || "https://www.linkedin.com/feed/";
+
+  const wpJob = article?.wpPublishJobs?.find((job) => job.wpPostUrl) || article?.wpPublishJobs?.[0];
+  const wordpressPostUrl = wpJob?.wpPostUrl || article?.wordpressPostUrl || null;
+
+  //more options
   const toggleMoreOptions = () => setMoreOptions(!moreOptions);
 
   // Handle Bookmarking
@@ -243,22 +249,44 @@ const { user, profileLoading, userProfile } = useAuth();
           {/* Platform share badges */}
           {showShareBadges && (
             <div className="flex items-center gap-1.5 ml-auto">
-              {(forcedPlatform === "linkedin" ||
-                article?.shareLinkedIn ||
-                article?.shares?.some((s) => s.platform?.toLowerCase().includes("linkedin")) ||
-                (article?.liPublishJobs && article?.liPublishJobs?.length > 0)) && (
-                <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#0077B5]/10 text-[#0077B5] border border-[#0077B5]/30">
-                  <Linkedin className="w-3.5 h-3.5 fill-[#0077B5]" /> LinkedIn
-                </span>
-              )}
-              {(forcedPlatform === "wordpress" ||
-                article?.shareWordPress ||
-                article?.shares?.some((s) => s.platform?.toLowerCase().includes("wordpress")) ||
-                (article?.wpPublishJobs && article?.wpPublishJobs?.length > 0)) && (
-                <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#21759B]/10 text-[#21759B] border border-[#21759B]/30">
-                  <Globe className="w-3.5 h-3.5 text-[#21759B]" /> WordPress
-                </span>
-              )}
+              {(!forcedPlatform || forcedPlatform === "linkedin") &&
+                (article?.shares?.some((s) => s.platform?.toLowerCase().includes("linkedin")) ||
+                  article?.liPublishJobs?.some(
+                    (job) => job.status === "PUBLISHED" || job.status === "SUCCESS"
+                  )) && (
+                  <a
+                    href={linkedinPostUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    title="View post on LinkedIn"
+                    className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#0077B5]/10 text-[#0077B5] border border-[#0077B5]/30 hover:bg-[#0077B5]/20 hover:scale-105 transition-all cursor-pointer"
+                  >
+                    <Linkedin className="w-3.5 h-3.5 fill-[#0077B5]" /> LinkedIn
+                    <ExternalLink className="w-2.5 h-2.5 opacity-70 ml-0.5" />
+                  </a>
+                )}
+
+              {(!forcedPlatform || forcedPlatform === "wordpress") &&
+                (article?.shares?.some((s) => s.platform?.toLowerCase().includes("wordpress")) ||
+                  article?.wpPublishJobs?.some(
+                    (job) => job.status === "PUBLISHED" || job.status === "SUCCESS"
+                  )) && (
+                  <a
+                    href={wordpressPostUrl || "#"}
+                    target={wordpressPostUrl ? "_blank" : "_self"}
+                    rel="noopener noreferrer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!wordpressPostUrl) e.preventDefault();
+                    }}
+                    title={wordpressPostUrl ? "View post on WordPress" : "WordPress Share"}
+                    className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#21759B]/10 text-[#21759B] border border-[#21759B]/30 hover:bg-[#21759B]/20 hover:scale-105 transition-all cursor-pointer"
+                  >
+                    <Globe className="w-3.5 h-3.5 text-[#21759B]" /> WordPress
+                    {wordpressPostUrl && <ExternalLink className="w-2.5 h-2.5 opacity-70 ml-0.5" />}
+                  </a>
+                )}
             </div>
           )}
         </div>
