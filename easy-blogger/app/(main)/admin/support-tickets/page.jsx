@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ChevronDown, Search, MousePointer2 } from "lucide-react";
+import { ChevronDown, Search, MousePointer2, CheckCircle} from "lucide-react";
 import { auth } from "../../../../lib/firebase";
 import { api } from "../../../../lib/api";
 import Pagination from "../../../../components/admin/Pagination";
@@ -85,7 +85,7 @@ export default function AdminSupportTickets() {
 
   // Handle clicking a ticket (Marks as read automatically)
   const handleSelectTicket = async (ticket) => {
-    setSelectedTicket(ticket);
+    setSelectedId(ticket.id);
     
     if (!ticket.isRead) {
       try {
