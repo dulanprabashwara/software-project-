@@ -379,6 +379,77 @@ export async function discardEditAsNew(articleId) {
   );
 }
 
+/*
+ Edit-published flow
+ */
+export async function startEditPublished(articleId) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-published/start`,
+    {
+      method: "POST",
+    },
+  );
+}
+
+export async function autosaveEditPublished(articleId, payload) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-published/autosave`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function saveEditPublishedForPreview(articleId, payload) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-published/preview`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function republishArticle(articleId, payload) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-published/republish`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function discardEditPublished(articleId) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-published/discard`,
+    {
+      method: "POST",
+    },
+  );
+}
+
 export async function getPublishedArticlesByUsername(username, page = 1, limit = 10) {
   const query = new URLSearchParams({
     page: String(page),

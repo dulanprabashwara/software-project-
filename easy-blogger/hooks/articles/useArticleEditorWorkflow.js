@@ -123,7 +123,7 @@ export function useArticleEditorWorkflow(mode) {
           if (isCorrectArticle && isCorrectSource) {
             const response = await getDraftById(previewContext.id);
             const article = getArticleFromResponse(response);
-            const isWorkInProgress = article?.status === "DRAFT" || article?.status === "EDITING";
+            const isWorkInProgress = article?.status === "DRAFT" || article?.status === "EDITING" || article?.status === "EDITING_PUBLISHED";
 
             if (article && (mode !== "create" || isWorkInProgress)) {
               setDraftId(article.id);

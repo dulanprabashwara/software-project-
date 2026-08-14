@@ -377,7 +377,7 @@ const { user, profileLoading, userProfile } = useAuth();
             }
 
               {/* Delete Option */}
-             {userProfile.id == article.author.id && (
+             {userProfile?.id == (article.author?.id || article.authorId) && (
              <div>
              <button 
                 onClick={() => {
@@ -392,8 +392,18 @@ const { user, profileLoading, userProfile } = useAuth();
 
 
                <button 
-                onClick={() => router.push(`/write/edit-existing?id=${article.id}`)}
-
+                onClick={() => {
+                  setMoreOptions(false);
+                  const isPublishedState =
+                    article.status === "PUBLISHED" ||
+                    article.status === "REPUBLISHED" ||
+                    article.status === "EDITING_PUBLISHED";
+                  if (isPublishedState) {
+                    router.push(`/write/edit-published?id=${article.id}`);
+                  } else {
+                    router.push(`/write/edit-existing?id=${article.id}`);
+                  }
+                }}
                 className="flex items-center gap-3 w-full h-10 px-4 hover:bg-red-50 transition-colors"
               >
                 <SquarePen className="w-4 h-4 text-red-600" />
@@ -401,8 +411,6 @@ const { user, profileLoading, userProfile } = useAuth();
               </button> 
 
              </div> 
-
-              
            ) }
 
 
