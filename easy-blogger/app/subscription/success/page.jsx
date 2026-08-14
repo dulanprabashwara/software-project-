@@ -45,7 +45,7 @@ export default function SubscriptionSuccessPage() {
 
       <main
         className={`pt-16 transition-all duration-300 ease-in-out min-h-screen flex items-center justify-center ${
-          sidebarOpen ? "ml-60" : "ml-0"
+          sidebarOpen ? "lg:ml-64" : "lg:ml-0"
         }`}
       >
         <div 
@@ -54,16 +54,16 @@ export default function SubscriptionSuccessPage() {
           }`}
         >
           {/* Main Card */}
-          <div className="bg-white rounded-3xl p-10 text-center relative shadow-[0_20px_50px_rgba(26,188,156,0.15)] border border-[#E8F8F5]">
+          <div className="bg-white rounded-2xl p-10 text-center relative shadow-[0_20px_50px_rgba(26,188,156,0.15)] border border-[#E8F8F5]">
             
             {/* Background Glows */}
-            <div className="absolute -top-32 -right-32 w-64 h-64 bg-gradient-to-br from-[#1ABC9C] to-[#34D399] rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
-            <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-gradient-to-tr from-[#F59E0B] to-[#FCD34D] rounded-full blur-[80px] opacity-10 pointer-events-none"></div>
+            <div className="absolute -top-32 -right-32 w-64 h-64 bg-linear-to-br from-[#1ABC9C] to-[#34D399] rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
+            <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-linear-to-tr from-[#F59E0B] to-[#FCD34D] rounded-full blur-[80px] opacity-10 pointer-events-none"></div>
 
             {/* Success Icon */}
             <div className="relative w-24 h-24 mx-auto mb-8">
               <div className="absolute inset-0 bg-[#1ABC9C] rounded-full opacity-20 animate-ping"></div>
-              <div className="relative w-full h-full bg-gradient-to-br from-[#1ABC9C] to-[#10B981] rounded-full flex items-center justify-center shadow-lg shadow-[#1ABC9C]/30">
+              <div className="relative w-full h-full bg-linear-to-br from-[#1ABC9C] to-[#10B981] rounded-full flex items-center justify-center shadow-lg shadow-[#1ABC9C]/30">
                 <Crown className="w-12 h-12 text-white" />
               </div>
             </div>
@@ -105,7 +105,7 @@ export default function SubscriptionSuccessPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
               <button
                 onClick={() => router.push("/write/choose-method")}
-                className="px-8 py-4 bg-gradient-to-r from-[#1ABC9C] to-[#10B981] hover:from-[#17a589] hover:to-[#059669] text-white rounded-2xl font-bold text-lg transition-all duration-300 shadow-lg shadow-[#1ABC9C]/30 hover:shadow-xl hover:shadow-[#1ABC9C]/40 hover:-translate-y-1 flex items-center justify-center gap-2 group"
+                className="px-8 py-4 bg-linear-to-r from-[#1ABC9C] to-[#10B981] hover:from-[#17a589] hover:to-[#059669] text-white rounded-full font-medium text-lg transition-all duration-300 shadow-lg shadow-[#1ABC9C]/30 hover:shadow-xl hover:shadow-[#1ABC9C]/40 hover:-translate-y-0.5 flex items-center justify-center gap-2 group"
               >
                 Start Writing Now
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -113,7 +113,7 @@ export default function SubscriptionSuccessPage() {
               <button
                 onClick={handleManagePlan}
                 disabled={portalLoading}
-                className="px-8 py-4 bg-white border-2 border-[#E5E7EB] text-[#4B5563] rounded-2xl font-semibold text-lg hover:border-[#1ABC9C] hover:text-[#1ABC9C] hover:bg-[#F0FDF4] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-8 py-4 bg-white border-2 border-[#E5E7EB] text-[#4B5563] rounded-full font-medium text-lg hover:border-[#1ABC9C] hover:text-[#1ABC9C] hover:bg-[#F0FDF4] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 hover:shadow-md"
               >
                 {portalLoading ? "Loading..." : "Manage Plan"}
               </button>

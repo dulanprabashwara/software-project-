@@ -121,7 +121,7 @@ export default function MembershipPage() {
 
             <Link
               href="/signup"
-              className="block w-full py-3 px-6 border-2 border-[#E5E7EB] text-[#6B7280] rounded-xl text-sm font-medium hover:bg-[#F9FAFB] transition-colors text-center"
+              className="block w-full py-3 px-6 border-2 border-[#E5E7EB] text-[#6B7280] rounded-full text-sm font-medium hover:bg-[#F9FAFB] transition-all hover:-translate-y-0.5 hover:shadow-md text-center"
             >
               Get Started Free
             </Link>
@@ -184,7 +184,7 @@ export default function MembershipPage() {
 
             <Link
               href="/signup"
-              className="block w-full py-3 px-6 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-xl text-sm font-medium transition-colors text-center"
+              className="block w-full py-3 px-6 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-all hover:-translate-y-0.5 hover:shadow-md text-center"
             >
               Upgrade to Premium
             </Link>
