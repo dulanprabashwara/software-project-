@@ -57,6 +57,7 @@ export default function ArticleEditorShell({
   headerTitle,
   headerSubtitle,
   modeBadge,
+  saveDraftLabel = "Save as Draft",
   onSaveAsDraft,
   onPreview,
   onDiscard,
@@ -114,7 +115,7 @@ export default function ArticleEditorShell({
               disabled={disableSaveAsDraft || isSaving || isHydrating}
               className="h-10 min-w-[100px] rounded-full bg-[#111827] px-6 text-sm font-medium text-white hover:bg-[#1f2937] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Save as Draft
+              {saveDraftLabel}
             </button>
 
             <span className="flex h-10 min-w-[100px] items-center rounded-full bg-[#1ABC9C] px-6 text-sm font-medium text-white">
