@@ -31,7 +31,7 @@ export default function UpgradePage() {
 
       <main
         className={`pt-16 transition-all duration-300 ease-in-out ${
-          sidebarOpen ? "ml-60" : "ml-0"
+          sidebarOpen ? "lg:ml-64" : "lg:ml-0"
         }`}
       >
         <div className="max-w-5xl mx-auto px-8 py-12">
@@ -87,7 +87,7 @@ export default function UpgradePage() {
               </ul>
 
               {/* Current Plan Button */}
-              <button className="w-full py-3 px-6 border-2 border-[#E5E7EB] text-[#6B7280] rounded-xl text-sm font-medium hover:bg-[#F9FAFB] transition-colors">
+              <button className="w-full py-3 px-6 border-2 border-[#E5E7EB] text-[#6B7280] rounded-full text-sm font-medium hover:bg-[#F9FAFB] transition-all hover:-translate-y-0.5 hover:shadow-md">
                 Current Plan
               </button>
             </div>
@@ -151,7 +151,7 @@ export default function UpgradePage() {
               {/* Upgrade Button */}
               <button
                 onClick={handleUpgrade}
-                className="w-full py-3 px-6 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-xl text-sm font-medium transition-colors"
+                className="w-full py-3 px-6 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-all hover:-translate-y-0.5 hover:shadow-md"
               >
                 Upgrade to Premium
               </button>

@@ -29,24 +29,24 @@ export default function LandingPage() {
           >
             Membership
           </Link>
-          <a
+          <Link
             href="/signup"
             className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
           >
             Write
-          </a>
-          <a
+          </Link>
+          <Link
             href="/login"
             className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors"
           >
             Sign in
-          </a>
-          <a
+          </Link>
+          <Link
             href="/signup"
             className="px-4 py-2 bg-[#111827] text-white text-sm rounded-full hover:bg-[#1f2937] transition-colors"
           >
             Get started
-          </a>
+          </Link>
         </nav>
       </header>
 
@@ -67,12 +67,12 @@ export default function LandingPage() {
             <p className="mt-8 text-lg md:text-xl text-[#374151] max-w-md animate-fade-in-up animation-delay-200">
               A place to read, write, and deepen your understanding
             </p>
-            <a
+            <Link
               href="/signup"
               className="inline-block mt-8 mb-16 px-6 py-3 bg-[#111827] text-white text-base rounded-full hover:bg-[#1f2937] hover:scale-105 transition-all duration-300 w-fit animate-fade-in-up animation-delay-400"
             >
               Start reading
-            </a>
+            </Link>
           </div>
 
           {/* Vertical Divider Line */}

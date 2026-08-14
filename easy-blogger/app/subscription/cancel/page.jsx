@@ -26,7 +26,7 @@ export default function SubscriptionCancelPage() {
 
       <main
         className={`pt-16 transition-all duration-300 ease-in-out min-h-screen flex items-center justify-center ${
-          sidebarOpen ? "ml-60" : "ml-0"
+          sidebarOpen ? "lg:ml-64" : "lg:ml-0"
         }`}
       >
         <div 
@@ -35,16 +35,16 @@ export default function SubscriptionCancelPage() {
           }`}
         >
           {/* Main Card */}
-          <div className="bg-white rounded-3xl p-10 text-center relative shadow-[0_20px_50px_rgba(239,68,68,0.1)] border border-[#FEF2F2]">
+          <div className="bg-white rounded-2xl p-10 text-center relative shadow-[0_20px_50px_rgba(239,68,68,0.1)] border border-[#FEF2F2]">
             
             {/* Background Glows */}
-            <div className="absolute -top-32 -left-32 w-64 h-64 bg-gradient-to-br from-[#EF4444] to-[#F87171] rounded-full blur-[80px] opacity-10 pointer-events-none"></div>
-            <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-gradient-to-tl from-[#FCA5A5] to-[#FEF2F2] rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
+            <div className="absolute -top-32 -left-32 w-64 h-64 bg-linear-to-br from-[#EF4444] to-[#F87171] rounded-full blur-[80px] opacity-10 pointer-events-none"></div>
+            <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-linear-to-tl from-[#FCA5A5] to-[#FEF2F2] rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
 
             {/* Cancel Icon */}
             <div className="relative w-24 h-24 mx-auto mb-8">
               <div className="absolute inset-0 bg-[#EF4444] rounded-full opacity-10 animate-pulse"></div>
-              <div className="relative w-full h-full bg-gradient-to-br from-[#FEF2F2] to-[#FEE2E2] rounded-full flex items-center justify-center shadow-inner border border-[#FCA5A5]/30">
+              <div className="relative w-full h-full bg-linear-to-br from-[#FEF2F2] to-[#FEE2E2] rounded-full flex items-center justify-center shadow-inner border border-[#FCA5A5]/30">
                 <XCircle className="w-10 h-10 text-[#EF4444]" />
               </div>
             </div>
@@ -88,14 +88,14 @@ export default function SubscriptionCancelPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
               <button
                 onClick={() => router.push("/subscription/upgrade-to-premium")}
-                className="px-8 py-4 bg-[#111827] hover:bg-[#374151] text-white rounded-2xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 flex items-center justify-center gap-2 group"
+                className="px-8 py-4 bg-[#111827] hover:bg-[#374151] text-white rounded-full font-medium text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 group"
               >
                 <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                 Return to Plans
               </button>
               <button
                 onClick={() => router.push("/home")}
-                className="px-8 py-4 bg-white border-2 border-[#E5E7EB] text-[#4B5563] rounded-2xl font-semibold text-lg hover:border-[#1ABC9C] hover:text-[#1ABC9C] transition-all duration-300"
+                className="px-8 py-4 bg-white border-2 border-[#E5E7EB] text-[#4B5563] rounded-full font-medium text-lg hover:border-[#1ABC9C] hover:text-[#1ABC9C] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
               >
                 Go to Homepage
               </button>

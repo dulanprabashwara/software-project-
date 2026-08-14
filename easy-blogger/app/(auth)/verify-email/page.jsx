@@ -129,7 +129,7 @@ function VerifyEmailContent() {
             type="button"
             onClick={handleResend}
             disabled={resending}
-            className="w-full py-4 px-4 rounded-full text-sm font-semibold text-[#111827] bg-white border border-[#E5E7EB] hover:border-[#1ABC9C] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 px-4 rounded-full text-sm font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:border-[#1ABC9C] transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 hover:shadow-md"
           >
             {resending ? "Sending..." : "Resend Email"}
           </button>
@@ -138,7 +138,7 @@ function VerifyEmailContent() {
           <div className="mt-6">
             <Link
               href="/login"
-              className="w-full py-4 px-4 rounded-full text-sm font-semibold text-[#3B82F6] bg-white border border-[#E5E7EB] hover:border-[#1ABC9C] transition-all flex items-center justify-center gap-1"
+              className="w-full py-4 px-4 rounded-full text-sm font-medium text-[#1ABC9C] bg-white border border-[#E5E7EB] hover:border-[#1ABC9C] transition-all flex items-center justify-center gap-1 hover:-translate-y-0.5 hover:shadow-md"
             >
               ← Back to Sign In
             </Link>
@@ -157,7 +157,7 @@ export default function VerifyEmailPage() {
         {/* Left gradient blob */}
         <div className="absolute left-0 top-0 w-1/3 h-full bg-linear-to-r from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
         {/* Right gradient blob */}
-        <div className="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
+        <div className="absolute right-0 top-0 w-1/3 h-full bg-linear-to-l from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
       </div>
 
       {/* Back to Home Link */}
