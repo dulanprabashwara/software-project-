@@ -13,7 +13,7 @@ export function useNewArticles() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const articleLimit =5;
+  const articleLimit =3;
 
   //Initial Load
   useEffect(() => {

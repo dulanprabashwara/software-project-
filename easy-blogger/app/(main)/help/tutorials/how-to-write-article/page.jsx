@@ -27,11 +27,11 @@ export default function TutorialPage() {
             
             {/* Step 1 */}
             <section>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Step 1: Open the Editor</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Open the Editor</h2>
               <p className="text-gray-700 mb-4">
                 Click on the "Write" button located in the top navigation bar. This will take you to the editor.
               </p>
-              {/* Placeholder for Image */}
+             
               <img
               src="/images/tutorials/write-an-article/header.png"
               />
@@ -39,26 +39,86 @@ export default function TutorialPage() {
 
             {/* Step 2 */}
             <section>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Step 2: Add Title and Content</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Select Create New Article </h2>
               <p className="text-gray-700 mb-4">
-                Start by typing your title in the big text field. Then, click below it to start writing your content. You can use the formatting tools to make your text look great.
-              </p>
-              {/* Placeholder for Image */}
-              <div className="w-full h-64 bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center text-gray-400">
-                [Insert Picture: Editor with title and text]
-              </div>
+                This will take you to choose the article type
+               </p>
+               
+              <img
+              src="/images/tutorials/write-an-article/createNewArticle.png"
+              />
             </section>
 
             {/* Step 3 */}
             <section>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Step 3: Publish Your Article</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Select As a Regular Article </h2>
               <p className="text-gray-700 mb-4">
-                Once you are happy with your article, click the "Publish" button at the top right of the editor. You can also add tags to help people find your article.
-              </p>
-              {/* Placeholder for Image */}
-              <div className="w-full h-64 bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center text-gray-400">
-                [Insert Picture: Publish modal with tags]
-              </div>
+                This will take you to the Article Editor
+               </p>
+               
+              <img
+              src="/images/tutorials/write-an-article/asRegularArticle.png"
+              />
+            </section>
+
+            {/* Step 4 */}
+            <section>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">You are in the article editor </h2>
+              <p className="text-gray-700 mb-4">
+                Write your article here
+               </p>
+               
+              <img
+              src="/images/tutorials/write-an-article/articleEditor.png"
+              />
+            </section>
+
+            {/* Step 4 */}
+            <section>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">To save article for later: click "Save as Draft" </h2>
+              <p className="text-gray-700 mb-4">
+                These can be accessed in the Unpublished Article section
+               </p>
+               
+              <img
+              src="/images/tutorials/write-an-article/saveDraft.png"
+              />
+            </section>
+
+            {/* Step 5 */}
+            <section>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Before publishing click "Preview"</h2>
+              <p className="text-gray-700 mb-4">
+                To see how your article look like
+               </p>
+               
+              <img
+              src="/images/tutorials/write-an-article/previewArticle.png"
+              />
+            </section>
+
+            {/* Step 6 */}
+            <section>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Save and Preview</h2>
+              <p className="text-gray-700 mb-4">
+                
+               </p>
+               
+              <img
+              src="/images/tutorials/write-an-article/saveAndPreview.png"
+              />
+            </section>
+
+             {/* Step 7*/}
+            <section>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">This is the article preview</h2>
+              <p className="text-gray-700 mb-4">
+                Your article is now also saved to Drafts. Use the correct button to Exit, Publish, or to Edit.
+               </p>
+               
+              <img
+              src="/images/tutorials/write-an-article/articlePreview.png"
+              />
             </section>
 
           </div>
