@@ -313,8 +313,9 @@ export function useArticleEditorWorkflow(mode) {
         hasDiscardedCopyRef.current = true;
 
       const targetId = draftId || articleIdFromParams;
+      let discardResult = null;
       if (targetId && config.discardFn) {
-        await config.discardFn(targetId);
+        discardResult = await config.discardFn(targetId);
       }
 
       if (mode === "create") {
@@ -328,11 +329,14 @@ export function useArticleEditorWorkflow(mode) {
       }
 
       clearPreviewContext();
-      return true;
+      const article = discardResult?.data || discardResult;
+      const isScheduled = article?.status === "SCHEDULED" || Boolean(article?.scheduledAt);
+
+      return { success: true, isScheduled };
     } catch (error) {
       console.error("Failed to discard changes:", error);
       setInlineError("Failed to discard the article.");
-      return false;
+      return { success: false, isScheduled: false };
     }
   }, [draftId, articleIdFromParams, config.discardFn, mode, resetEditorCoreState, setInlineError]);
 
@@ -344,10 +348,11 @@ export function useArticleEditorWorkflow(mode) {
       confirmText: "Yes",
       cancelText: "No",
       onConfirm: async () => {
-        const didDiscard = await discardWithoutRedirect();
-        if (didDiscard) {
+        const result = await discardWithoutRedirect();
+        if (result?.success) {
           closeModal();
-          router.push(config.exitPath);
+          const targetPath = result.isScheduled ? "/stories/scheduled" : config.exitPath;
+          router.push(targetPath);
         }
       },
     });
