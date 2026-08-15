@@ -43,7 +43,7 @@ function PublishArticlePageContent() {
   if (state.isPageLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-white to-emerald-50 p-6">
-        <p className="text-sm text-gray-500">Loading publish details...</p>
+        <p className="text-sm text-brand-muted">Loading publish details...</p>
       </div>
     );
   }
@@ -52,10 +52,10 @@ function PublishArticlePageContent() {
     <div className="flex min-h-screen items-center justify-center bg-linear-to-b from-white to-emerald-50 p-6">
       <div className="w-full max-w-2xl rounded-xl border border-gray-100 bg-white shadow-sm">
         <div className="p-10 text-center">
-          <h1 className="font-serif text-4xl font-bold text-[#111827]">
+          <h1 className="font-serif text-4xl font-bold text-brand-black">
             Publish your Article
           </h1>
-          <p className="mt-1 text-[#6B7280]">
+          <p className="mt-1 text-brand-muted">
             You can publish now or schedule a time to publish
           </p>
         </div>
@@ -181,7 +181,7 @@ function PublishArticlePageContent() {
 
 export default function PublishArticlePage(props) {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-gray-500">Loading...</p></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-brand-muted">Loading...</p></div>}>
       <PublishArticlePageContent {...props} />
     </Suspense>
   );

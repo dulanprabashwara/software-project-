@@ -22,7 +22,7 @@ import {
 
 /**
   allowing existing users to enter the platform.
- Provides aggregated authentication methods (Email, Google, Facebook) 
+ Provides aggregated authentication methods (Email, Google, Facebook)
  */
 export default function LoginPage() {
   const router = useRouter();
@@ -111,7 +111,7 @@ Firebase Facebook OAuth popup flow.
   };
 
   /**
-   email/password authnetication handler Validates the email format and credentials 
+   email/password authnetication handler Validates the email format and credentials
    */
   const handleEmailLogin = async (e) => {
     e.preventDefault();
@@ -183,10 +183,10 @@ Firebase Facebook OAuth popup flow.
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold text-[#111827] mb-2">
+              <h2 className="text-xl font-bold text-brand-black mb-2">
                 Account Suspended
               </h2>
-              <p className="text-sm text-[#6B7280] leading-relaxed mb-6">
+              <p className="text-sm text-brand-muted leading-relaxed mb-6">
                 {bannedReason}
               </p>
               <button
@@ -203,7 +203,7 @@ Firebase Facebook OAuth popup flow.
       <div className="relative z-10 p-6">
         <Link
           href="/"
-          className="text-sm text-[#6B7280] hover:text-[#111827] transition-colors"
+          className="text-sm text-brand-muted hover:text-brand-black transition-colors"
         >
           ← Back to Home
         </Link>
@@ -213,12 +213,12 @@ Firebase Facebook OAuth popup flow.
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-10">
           {/* Header */}
           <h1
-            className="text-3xl font-bold text-center text-[#111827] mb-3"
+            className="text-3xl font-bold text-center text-brand-black mb-3"
             style={{ fontFamily: "Georgia, serif" }}
           >
             Sign in to Easy Blogger
           </h1>
-          <p className="text-center text-[#6B7280] text-sm mb-8">
+          <p className="text-center text-brand-muted text-sm mb-8">
             Welcome back. Continue reading, writing, and discovering stories.
           </p>
 
@@ -276,7 +276,7 @@ Firebase Facebook OAuth popup flow.
             <div className="text-right">
               <Link
                 href="/forgot-password"
-                className="text-sm text-[#1ABC9C] hover:text-[#17a589] transition-colors"
+                className="text-sm text-brand-primary hover:text-brand-primary-hover transition-colors"
               >
                 Forgot password?
               </Link>
@@ -293,11 +293,11 @@ Firebase Facebook OAuth popup flow.
           </form>
 
           {/* Sign Up Link */}
-          <p className="text-center text-sm text-[#6B7280] mt-6">
+          <p className="text-center text-sm text-brand-muted mt-6">
             Don&apos;t have an account?{" "}
             <Link
               href="/signup"
-              className="text-[#1ABC9C] font-medium hover:text-[#17a589] transition-colors"
+              className="text-brand-primary font-medium hover:text-brand-primary-hover transition-colors"
             >
               Sign up
             </Link>

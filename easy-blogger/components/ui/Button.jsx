@@ -11,10 +11,10 @@ export default function Button({
     "w-full py-3 px-4 rounded-full text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md flex items-center justify-center gap-3";
 
   const variants = {
-    primary: "bg-[#1ABC9C] text-white hover:bg-[#16a085]",
+    primary: "bg-brand-primary text-white hover:bg-brand-primary-hover",
     outline:
-      "bg-white border border-[#E5E7EB] text-[#111827] hover:border-[#1ABC9C] hover:bg-[#F9FAFB]",
-    dark: "bg-[#111827] text-white hover:bg-[#1f2937]",
+      "bg-white border border-[#E5E7EB] text-brand-black hover:border-brand-primary hover:bg-[#F9FAFB]",
+    dark: "bg-brand-black text-white hover:bg-brand-black-hover",
   };
 
   return (

@@ -4,11 +4,11 @@ import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import { Loader2 } from "lucide-react";
 
-export default function InfiniteScroll({ 
-  children, 
-  loadMore, 
-  hasMore, 
-  isFetchingMore, 
+export default function InfiniteScroll({
+  children,
+  loadMore,
+  hasMore,
+  isFetchingMore,
   rootMargin = "200px",
   endMessage = "You've reached the end."
 }) {
@@ -31,14 +31,14 @@ export default function InfiniteScroll({
       {children}
 
       {/* 4. The Reusable Tripwire Element */}
-      <div 
-        ref={ref} 
+      <div
+        ref={ref}
         className="flex justify-center items-center py-6 h-16 w-full"
       >
         {isFetchingMore && (
-          <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
+          <Loader2 className="w-6 h-6 animate-spin text-brand-primary" />
         )}
-        
+
         {!hasMore && (
           <p className="text-gray-400 text-sm">
             {endMessage}

@@ -9,10 +9,10 @@ export default function ModerationIndexPage() {
       {/*Ghost Background*/}
       <div className="flex w-full gap-6 opacity-30 pointer-events-none select-none">
         <div className="w-1/3 flex flex-col gap-4">
-          <h1 className="text-2xl font-bold text-[#111827]" style={{ fontFamily: "Georgia, serif" }}>Moderation</h1>
+          <h1 className="text-2xl font-bold text-brand-black" style={{ fontFamily: "Georgia, serif" }}>Moderation</h1>
 
           <div className="flex gap-2">
-            <div className="btn bg-[#E5E7EB] text-gray-500 border-none min-h-0 h-10 px-4 rounded-lg w-28 flex items-center justify-between">
+            <div className="btn bg-[#E5E7EB] text-brand-muted border-none min-h-0 h-10 px-4 rounded-lg w-28 flex items-center justify-between">
               <span className="text-sm">Status</span>
               <ChevronDown size={16} />
             </div>
@@ -41,23 +41,23 @@ export default function ModerationIndexPage() {
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-[2px] pointer-events-auto">
         <div className="bg-white p-10 rounded-[40px] shadow-2xl border border-gray-100 text-center max-w-lg animate-in fade-in zoom-in duration-300">
 
-          <div className="w-20 h-20 bg-[#F0FDFA] text-[#1ABC9C] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+          <div className="w-20 h-20 bg-[#F0FDFA] text-brand-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
             <LayoutTemplate size={40} />
           </div>
 
-          <h2 className="text-2xl font-bold text-[#111827] mb-3">Moderation Dashboard</h2>
-          <p className="text-[#6B7280] mb-10 text-base font-medium">Please select a category to begin your reviewing session.</p>
+          <h2 className="text-2xl font-bold text-brand-black mb-3">Moderation Dashboard</h2>
+          <p className="text-brand-muted mb-10 text-base font-medium">Please select a category to begin your reviewing session.</p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               href="/admin/moderation/queue"
-              className="whitespace-nowrap bg-white border border-gray-200 text-gray-600 hover:border-[#1ABC9C] hover:text-[#1ABC9C] hover:bg-[#F0FDFA] rounded-xl px-8 h-12 text-base font-bold flex items-center justify-center shadow-sm transition-all active:scale-95 w-full sm:w-auto"
+              className="whitespace-nowrap bg-white border border-gray-200 text-brand-muted hover:border-brand-primary hover:text-brand-primary hover:bg-[#F0FDFA] rounded-xl px-8 h-12 text-base font-bold flex items-center justify-center shadow-sm transition-all active:scale-95 w-full sm:w-auto"
             >
               Go to Queue
             </Link>
             <Link
               href="/admin/moderation/offers"
-              className="whitespace-nowrap bg-white border border-gray-200 text-gray-600 hover:border-[#1ABC9C] hover:text-[#1ABC9C] hover:bg-[#F0FDFA] rounded-xl px-8 h-12 text-base font-bold flex items-center justify-center shadow-sm transition-all active:scale-95 w-full sm:w-auto"
+              className="whitespace-nowrap bg-white border border-gray-200 text-brand-muted hover:border-brand-primary hover:text-brand-primary hover:bg-[#F0FDFA] rounded-xl px-8 h-12 text-base font-bold flex items-center justify-center shadow-sm transition-all active:scale-95 w-full sm:w-auto"
             >
               Manage Offers
             </Link>

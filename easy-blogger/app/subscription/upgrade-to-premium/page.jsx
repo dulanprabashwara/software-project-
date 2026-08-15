@@ -88,7 +88,7 @@ export default function UpgradeToPremiumPage() {
           {/* Back Button */}
           <button
             onClick={() => router.push("/subscription/upgrade")}
-            className="flex items-center gap-2 text-[#6B7280] hover:text-[#111827] mb-6 transition-colors"
+            className="flex items-center gap-2 text-brand-muted hover:text-brand-black mb-6 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="text-sm">Back to plans</span>
@@ -96,12 +96,12 @@ export default function UpgradeToPremiumPage() {
 
           {/* Header */}
           <h1
-            className="text-3xl font-bold text-[#111827] mb-2"
+            className="text-3xl font-bold text-brand-black mb-2"
             style={{ fontFamily: "Georgia, serif" }}
           >
             Upgrade to Premium
           </h1>
-          <p className="text-[#6B7280] text-sm mb-8">
+          <p className="text-brand-muted text-sm mb-8">
             You will be redirected to Stripe's secure checkout page.
           </p>
 
@@ -111,12 +111,12 @@ export default function UpgradeToPremiumPage() {
               {/* Active Offers */}
               {offersLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
+                  <Loader2 className="w-6 h-6 animate-spin text-brand-primary" />
                 </div>
               ) : offers.length > 0 ? (
                 <div className="space-y-4">
-                  <h2 className="text-lg font-semibold text-[#111827] flex items-center gap-2">
-                    <Tag className="w-5 h-5 text-[#1ABC9C]" />
+                  <h2 className="text-lg font-semibold text-brand-black flex items-center gap-2">
+                    <Tag className="w-5 h-5 text-brand-primary" />
                     Available Offers
                   </h2>
                   {offers.map((offer) => (
@@ -129,27 +129,27 @@ export default function UpgradeToPremiumPage() {
                       }
                       className={`w-full text-left p-5 rounded-xl border-2 transition-all ${
                         selectedOffer?.id === offer.id
-                          ? "border-[#1ABC9C] bg-[#F0FDFA] shadow-md"
+                          ? "border-brand-primary bg-[#F0FDFA] shadow-md"
                           : "border-[#E5E7EB] bg-white hover:border-[#D1D5DB]"
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-semibold text-[#111827]">
+                          <p className="font-semibold text-brand-black">
                             {offer.name}
                           </p>
-                          <p className="text-sm text-[#6B7280] mt-1">
+                          <p className="text-sm text-brand-muted mt-1">
                             {offer.discount_percent}% off your subscription
                           </p>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-lg font-bold text-[#1ABC9C]">
+                          <span className="text-lg font-bold text-brand-primary">
                             -{offer.discount_percent}%
                           </span>
                           <div
                             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                               selectedOffer?.id === offer.id
-                                ? "border-[#1ABC9C] bg-[#1ABC9C]"
+                                ? "border-brand-primary bg-brand-primary"
                                 : "border-[#D1D5DB]"
                             }`}
                           >
@@ -162,7 +162,7 @@ export default function UpgradeToPremiumPage() {
                     </button>
                   ))}
                   {selectedOffer && (
-                    <p className="text-xs text-[#6B7280] italic">
+                    <p className="text-xs text-brand-muted italic">
                       Coupon will be applied automatically at checkout.
                     </p>
                   )}
@@ -172,12 +172,12 @@ export default function UpgradeToPremiumPage() {
               {/* Secure Checkout Notice */}
               <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-6">
                 <div className="flex items-start gap-3">
-                  <Lock className="w-5 h-5 text-[#6B7280] mt-0.5 shrink-0" />
+                  <Lock className="w-5 h-5 text-brand-muted mt-0.5 shrink-0" />
                   <div>
-                    <p className="font-medium text-[#111827] text-sm">
+                    <p className="font-medium text-brand-black text-sm">
                       Secure Payment via Stripe
                     </p>
-                    <p className="text-[#6B7280] text-xs mt-1">
+                    <p className="text-brand-muted text-xs mt-1">
                       Your payment details are handled entirely by Stripe. We
                       never see or store your card information. You can cancel
                       anytime.
@@ -190,7 +190,7 @@ export default function UpgradeToPremiumPage() {
               <button
                 onClick={handleCheckout}
                 disabled={loading}
-                className="w-full py-4 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-xl text-base font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-4 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-xl text-base font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -210,7 +210,7 @@ export default function UpgradeToPremiumPage() {
             <div className="lg:col-span-1">
               <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-6 sticky top-24">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold text-[#111827]">
+                  <h2 className="text-lg font-semibold text-brand-black">
                     Premium Plan
                   </h2>
                   <div className="text-right">
@@ -219,20 +219,20 @@ export default function UpgradeToPremiumPage() {
                         <p className="text-sm text-[#9CA3AF] line-through">
                           ${MONTHLY_PRICE}
                         </p>
-                        <p className="text-2xl font-bold text-[#1ABC9C]">
+                        <p className="text-2xl font-bold text-brand-primary">
                           ${discountedPrice.toFixed(2)}
                         </p>
                       </>
                     ) : (
-                      <p className="text-2xl font-bold text-[#111827]">
+                      <p className="text-2xl font-bold text-brand-black">
                         ${MONTHLY_PRICE}
                       </p>
                     )}
-                    <p className="text-xs text-[#6B7280]">/month</p>
+                    <p className="text-xs text-brand-muted">/month</p>
                   </div>
                 </div>
 
-                <p className="text-sm text-[#6B7280] mb-4">
+                <p className="text-sm text-brand-muted mb-4">
                   Billed monthly. Cancel anytime.
                 </p>
 
@@ -245,18 +245,18 @@ export default function UpgradeToPremiumPage() {
                     "Priority support",
                   ].map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
-                      <Check className="w-5 h-5 text-[#1ABC9C] shrink-0 mt-0.5" />
-                      <span className="text-sm text-[#374151]">{feature}</span>
+                      <Check className="w-5 h-5 text-brand-primary shrink-0 mt-0.5" />
+                      <span className="text-sm text-brand-muted">{feature}</span>
                     </li>
                   ))}
                 </ul>
 
                 <div className="border-t border-[#E5E7EB] pt-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-[#374151]">
+                    <p className="text-sm font-medium text-brand-muted">
                       Total due today
                     </p>
-                    <p className="text-lg font-bold text-[#111827]">
+                    <p className="text-lg font-bold text-brand-black">
                       ${discountedPrice.toFixed(2)}
                     </p>
                   </div>

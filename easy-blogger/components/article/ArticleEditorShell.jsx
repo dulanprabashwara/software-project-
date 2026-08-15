@@ -20,7 +20,7 @@ function FieldMeta({ required, limitReached, limitMessage, items = [] }) {
         {required ? "*Required" : limitReached ? limitMessage : ""}
       </div>
 
-      <div className="flex shrink-0 items-center gap-4 text-[#6B7280]">
+      <div className="flex shrink-0 items-center gap-4 text-brand-muted">
         {items.map((item) => (
           <span key={item}>{item}</span>
         ))}
@@ -31,10 +31,10 @@ function FieldMeta({ required, limitReached, limitMessage, items = [] }) {
 
 /*
  ArticleEditorShell
- 
- This is the primary UI layout for the editor. It handles the visual 
- arrangement of the title, cover image, and TinyMCE editor, while 
- keeping the actual business logic (saving/discarding) decoupled 
+
+ This is the primary UI layout for the editor. It handles the visual
+ arrangement of the title, cover image, and TinyMCE editor, while
+ keeping the actual business logic (saving/discarding) decoupled
  via props.
  */
 export default function ArticleEditorShell({
@@ -114,12 +114,12 @@ export default function ArticleEditorShell({
               type="button"
               onClick={onSaveAsDraft}
               disabled={disableSaveAsDraft || isSaving || isHydrating}
-              className="h-10 min-w-[100px] rounded-full bg-[#111827] px-6 text-sm font-medium text-white hover:bg-[#1f2937] disabled:cursor-not-allowed disabled:opacity-50"
+              className="h-10 min-w-[100px] rounded-full bg-brand-black px-6 text-sm font-medium text-white hover:bg-brand-black-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saveDraftLabel}
             </button>
 
-            <span className="text-sm font-medium text-[#6B7280]">
+            <span className="flex h-10 min-w-[100px] items-center rounded-full bg-brand-primary px-6 text-sm font-medium text-white">
               {modeBadge}
             </span>
           </>
@@ -142,7 +142,7 @@ export default function ArticleEditorShell({
           }}
         >
           <div className="rounded-lg bg-[#F8FAFC] p-4">
-            <label className="mb-3 block text-sm font-semibold text-[#111827]">
+            <label className="mb-3 block text-sm font-semibold text-brand-black">
               Blog Title
             </label>
 
@@ -154,10 +154,10 @@ export default function ArticleEditorShell({
               placeholder="Enter your blog title..."
               maxLength={TITLE_MAX_LENGTH} // Browser handles title limit directly here
               disabled={isHydrating}
-              className={`w-full rounded-lg border px-4 py-2.5 text-[#111827] ${
+              className={`w-full rounded-lg border px-4 py-2.5 text-brand-black ${
                 titleReadOnly
                   ? "cursor-not-allowed border-[#E5E7EB] bg-[#F3F4F6]"
-                  : "border-[#E5E7EB] bg-white placeholder-[#9CA3AF] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#1ABC9C]"
+                  : "border-[#E5E7EB] bg-white placeholder-[#9CA3AF] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-brand-primary"
               }`}
             />
 
@@ -169,7 +169,7 @@ export default function ArticleEditorShell({
             />
 
             {titleHelperText ? (
-              <p className="mt-2 text-xs text-[#6B7280]">
+              <p className="mt-2 text-xs text-brand-muted">
                 {titleHelperText}
               </p>
             ) : null}
@@ -187,11 +187,11 @@ export default function ArticleEditorShell({
 
           <div className="rounded-lg bg-[#F8FAFC] p-6">
             <div className="mb-3 flex items-center justify-between">
-              <label className="block text-sm font-semibold text-[#111827]">
+              <label className="block text-sm font-semibold text-brand-black">
                 Write
               </label>
 
-              <div className="flex items-center gap-2 text-xs text-[#6B7280]">
+              <div className="flex items-center gap-2 text-xs text-brand-muted">
                 <button
                   type="button"
                   onClick={() => onZoomChange(-10)}

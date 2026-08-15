@@ -160,7 +160,7 @@ export default function AdminSidebar() {
       {/* Admin Header */}
       <div className="p-4 border-b border-gray-700 shrink-0">
         <Link href="/admin" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#1ABC9C] rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-brand-primary rounded-lg flex items-center justify-center">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
@@ -182,7 +182,7 @@ export default function AdminSidebar() {
               <Link
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                  isActive(item.href) ? "bg-[#1ABC9C] text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                  isActive(item.href) ? "bg-brand-primary text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"
                 }`}
               >
                 {item.icon}

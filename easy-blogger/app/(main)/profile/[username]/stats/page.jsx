@@ -139,7 +139,7 @@ function OtherUserStatsPageContent({ params }) {
           <div className="p-6 border-b border-[#E5E7EB] shrink-0">
             <div className="flex items-center justify-between mb-4">
               <h2
-                className="text-2xl font-bold text-[#111827] flex items-center h-8"
+                className="text-2xl font-bold text-brand-black flex items-center h-8"
                 style={{ fontFamily: "Georgia, serif" }}
               >
                 {loading ? (
@@ -152,7 +152,7 @@ function OtherUserStatsPageContent({ params }) {
                 onClick={() => router.back()}
                 className="p-1 hover:bg-[#F9FAFB] rounded-full transition-colors"
               >
-                <X className="w-5 h-5 text-[#6B7280]" />
+                <X className="w-5 h-5 text-brand-muted" />
               </button>
             </div>
 
@@ -162,32 +162,32 @@ function OtherUserStatsPageContent({ params }) {
                 onClick={() => setActiveTab("followers")}
                 className={`pb-3 text-sm font-medium transition-colors relative ${
                   activeTab === "followers"
-                    ? "text-[#111827]"
-                    : "text-[#6B7280]"
+                    ? "text-brand-black"
+                    : "text-brand-muted"
                 }`}
               >
                 <span className="mr-1">Followers</span>
-                <span className="text-[#6B7280]">
+                <span className="text-brand-muted">
                   {profile?._count?.followers ?? ""}
                 </span>
                 {activeTab === "followers" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary" />
                 )}
               </button>
               <button
                 onClick={() => setActiveTab("following")}
                 className={`pb-3 text-sm font-medium transition-colors relative ${
                   activeTab === "following"
-                    ? "text-[#111827]"
-                    : "text-[#6B7280]"
+                    ? "text-brand-black"
+                    : "text-brand-muted"
                 }`}
               >
                 <span className="mr-1">Following</span>
-                <span className="text-[#6B7280]">
+                <span className="text-brand-muted">
                   {profile?._count?.following ?? ""}
                 </span>
                 {activeTab === "following" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary" />
                 )}
               </button>
             </div>
@@ -250,10 +250,10 @@ function OtherUserStatsPageContent({ params }) {
                                 className="w-12 h-12 rounded-full object-cover shrink-0"
                               />
                               <div className="min-w-0">
-                                <p className="font-semibold text-[#111827] text-sm truncate">
+                                <p className="font-semibold text-brand-black text-sm truncate">
                                   {person.displayName || person.username}
                                 </p>
-                                <p className="text-xs text-[#6B7280] truncate">
+                                <p className="text-xs text-brand-muted truncate">
                                   @{person.username}
                                 </p>
                               </div>
@@ -267,8 +267,8 @@ function OtherUserStatsPageContent({ params }) {
                                   disabled={isToggling}
                                   className={`shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
                                     isFollowing
-                                      ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
-                                      : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                                      ? "text-brand-muted border border-[#E5E7EB] hover:bg-[#F9FAFB]"
+                                      : "text-white bg-brand-primary hover:bg-brand-primary-hover"
                                   }`}
                                 >
                                   {isToggling ? (
@@ -282,7 +282,7 @@ function OtherUserStatsPageContent({ params }) {
                                 {isFollowing && (
                                   <Link
                                     href={`/chat?userId=${person.id}`}
-                                    className="shrink-0 px-4 py-1.5 text-sm rounded-full border border-[#1ABC9C] text-[#1ABC9C] hover:bg-[#1ABC9C] hover:text-white transition-colors"
+                                    className="shrink-0 px-4 py-1.5 text-sm rounded-full border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white transition-colors"
                                   >
                                     Message
                                   </Link>
@@ -331,10 +331,10 @@ function OtherUserStatsPageContent({ params }) {
                                 className="w-12 h-12 rounded-full object-cover shrink-0"
                               />
                               <div className="min-w-0">
-                                <p className="font-semibold text-[#111827] text-sm truncate">
+                                <p className="font-semibold text-brand-black text-sm truncate">
                                   {person.displayName || person.username}
                                 </p>
-                                <p className="text-xs text-[#6B7280] truncate">
+                                <p className="text-xs text-brand-muted truncate">
                                   @{person.username}
                                 </p>
                               </div>
@@ -348,8 +348,8 @@ function OtherUserStatsPageContent({ params }) {
                                   disabled={isToggling}
                                   className={`shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
                                     isFollowing
-                                      ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
-                                      : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
+                                      ? "text-brand-muted border border-[#E5E7EB] hover:bg-[#F9FAFB]"
+                                      : "text-white bg-brand-primary hover:bg-brand-primary-hover"
                                   }`}
                                 >
                                   {isToggling ? (
@@ -363,7 +363,7 @@ function OtherUserStatsPageContent({ params }) {
                                 {isFollowing && (
                                   <Link
                                     href={`/chat?userId=${person.id}`}
-                                    className="shrink-0 px-4 py-1.5 text-sm rounded-full border border-[#1ABC9C] text-[#1ABC9C] hover:bg-[#1ABC9C] hover:text-white transition-colors"
+                                    className="shrink-0 px-4 py-1.5 text-sm rounded-full border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white transition-colors"
                                   >
                                     Message
                                   </Link>
@@ -388,7 +388,7 @@ function OtherUserStatsPageContent({ params }) {
 
 export default function OtherUserStatsPage(props) {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-gray-500">Loading...</p></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-brand-muted">Loading...</p></div>}>
       <OtherUserStatsPageContent {...props} />
     </Suspense>
   );

@@ -16,7 +16,7 @@ export default function FollowingFeed() {
   if (isLoading) {
     return (
       <div className="flex justify-center p-10">
-        <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
+        <Loader2 className="w-6 h-6 animate-spin text-brand-primary" />
       </div>
     );
   }
@@ -30,7 +30,7 @@ return (
         <p className="mt-2 text-sm text--500">
           Follow authors to see their articles here.
         </p>
-        
+
         <button
            className="mt-5 w-full rounded bg-yellow-500 py-2 text-sm font-medium text-white transition-colors hover:bg-yellow-600 cursor-pointer"
            onClick={()=>{
@@ -46,16 +46,16 @@ return (
   );  }
 
   return (
-    <InfiniteScroll 
-      loadMore={loadMore} 
-      hasMore={hasMore} 
+    <InfiniteScroll
+      loadMore={loadMore}
+      hasMore={hasMore}
       isFetchingMore={isFetchingMore}
       endMessage="You've reached the end of your feed."
     >
       <div className="space-y-4 pb-10">
         {articles.map((article) => (
-          <ArticleCard 
-            key={article.id} 
+          <ArticleCard
+            key={article.id}
             article={article}
             savedArticles={savedArticles}
           />

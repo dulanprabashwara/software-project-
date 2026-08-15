@@ -63,15 +63,15 @@ export default function ManageSubscriptionPage() {
               <p className="text-red-500 mb-4">{error}</p>
               <button
                 onClick={() => router.push("/")}
-                className="px-6 py-2 bg-[#1ABC9C] text-white rounded-lg"
+                className="px-6 py-2 bg-brand-primary text-white rounded-lg"
               >
                 Go Home
               </button>
             </div>
           ) : (
             <>
-              <Loader2 className="w-8 h-8 animate-spin text-[#1ABC9C] mb-4" />
-              <p className="text-[#6B7280] text-sm">
+              <Loader2 className="w-8 h-8 animate-spin text-brand-primary mb-4" />
+              <p className="text-brand-muted text-sm">
                 Redirecting to Stripe billing portal...
               </p>
             </>

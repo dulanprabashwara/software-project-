@@ -52,6 +52,7 @@ export default function EditProfilePage() {
 
 
   const [isSaving, setIsSaving] = useState(false);
+  const [profileUpdateResult, setProfileUpdateResult] = useState(null);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -233,6 +234,7 @@ export default function EditProfilePage() {
   const handleSaveChanges = async () => {
     if (!firebaseUser) return;
     setIsSaving(true);
+    setProfileUpdateResult(null);
     try {
       const token = await firebaseUser.getIdToken();
 
@@ -265,10 +267,17 @@ export default function EditProfilePage() {
         ...(newAvatarUrl && { avatarUrl: newAvatarUrl }),
       });
 
-      router.push("/profile");
+      setProfileUpdateResult({
+        type: "success",
+        message: "Your profile details were updated successfully.",
+      });
     } catch (err) {
       console.error("Failed to update profile", err);
-      alert("Failed to update profile.");
+      setProfileUpdateResult({
+        type: "error",
+        message:
+          err?.message || "Failed to update profile. Please try again.",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -517,7 +526,7 @@ export default function EditProfilePage() {
       {/* Header with Save and Cancel Buttons */}
       <div className="flex items-center justify-between mb-8">
         <h1
-          className="text-3xl font-bold text-[#111827]"
+          className="text-3xl font-bold text-brand-black"
           style={{ fontFamily: "Georgia, serif" }}
         >
           Edit Profile
@@ -525,14 +534,14 @@ export default function EditProfilePage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/profile")}
-            className="px-6 py-2.5 bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] text-[#374151] rounded-full text-sm font-medium transition-colors"
+            className="px-6 py-2.5 bg-white hover:bg-[#F9FAFB] border border-[#E5E7EB] text-brand-muted rounded-full text-sm font-medium transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSaveChanges}
             disabled={isSaving}
-            className="px-6 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
+            className="px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
           >
             {isSaving ? "Saving..." : "Save Changes"}
           </button>
@@ -562,7 +571,7 @@ export default function EditProfilePage() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={profileLoading && !userProfile}
-                className="absolute bottom-0 right-0 w-10 h-10 bg-[#1ABC9C] hover:bg-[#17a589] rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute bottom-0 right-0 w-10 h-10 bg-brand-primary hover:bg-brand-primary-hover rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Camera className="w-5 h-5 text-white" />
               </button>
@@ -586,7 +595,7 @@ export default function EditProfilePage() {
                   >
                     <path
                       d="M22.5 12.5L20.1 15.3L20.4 19L16.8 19.8L14.9 23L11.5 21.6L8.1 23L6.2 19.8L2.6 19L2.9 15.3L0.5 12.5L2.9 9.7L2.6 6L6.2 5.2L8.1 2L11.5 3.4L14.9 2L16.8 5.2L20.4 6L20.1 9.7L22.5 12.5Z"
-                      fill="#1ABC9C"
+                      fill="var(--color-brand-primary)"
                       stroke="white"
                       strokeWidth="1.5"
                     />
@@ -625,34 +634,34 @@ export default function EditProfilePage() {
               <>
                 {/* Display Name */}
                 <div>
-                  <label className="text-sm font-semibold text-[#374151] mb-2 flex items-center gap-2">
+                  <label className="text-sm font-semibold text-brand-muted mb-2 flex items-center gap-2">
                     Display Name
                   </label>
                   <input
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-full text-[#111827] focus:outline-none focus:border-[#1ABC9C] transition-colors"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-full text-brand-black focus:outline-none focus:border-brand-primary transition-colors"
                     placeholder="Enter your name"
                   />
                 </div>
 
                 {/* Username (Read-only) */}
                 <div>
-                  <label className="block text-sm font-semibold text-[#374151] mb-2">
+                  <label className="block text-sm font-semibold text-brand-muted mb-2">
                     Username
                   </label>
                   <input
                     type="text"
                     value={username}
                     readOnly
-                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-full text-[#6B7280] bg-[#F9FAFB] cursor-not-allowed focus:outline-none"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-full text-brand-muted bg-[#F9FAFB] cursor-not-allowed focus:outline-none"
                   />
                 </div>
 
                 {/* About/Bio */}
                 <div>
-                  <label className="block text-sm font-semibold text-[#374151] mb-2">
+                  <label className="block text-sm font-semibold text-brand-muted mb-2">
                     About
                   </label>
                   <textarea
@@ -660,10 +669,10 @@ export default function EditProfilePage() {
                     onChange={(e) => setAbout(e.target.value)}
                     rows={4}
                     maxLength={200}
-                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-2xl text-[#111827] focus:outline-none focus:border-[#1ABC9C] transition-colors resize-none"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-2xl text-brand-black focus:outline-none focus:border-brand-primary transition-colors resize-none"
                     placeholder="Tell us about yourself..."
                   />
-                  <p className="text-xs text-[#6B7280] mt-1 text-right">
+                  <p className="text-xs text-brand-muted mt-1 text-right">
                     {about.length}/200
                   </p>
                 </div>
@@ -678,8 +687,8 @@ export default function EditProfilePage() {
         <div className="bg-[#F9FAFB] rounded-xl border border-[#E5E7EB] p-6 mb-6 animate-pulse h-25"></div>
       ) : isPremium ? (
         /* Premium Member Card */
-        <div className="bg-white rounded-xl border border-[#1ABC9C] p-6 mb-6 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-[#1ABC9C] to-transparent opacity-10 rounded-bl-full pointer-events-none"></div>
+        <div className="bg-white rounded-xl border border-brand-primary p-6 mb-6 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-br from-brand-primary to-transparent opacity-10 rounded-bl-full pointer-events-none"></div>
 
           <div className="flex items-center justify-between relative z-10">
             <div className="flex items-start gap-4">
@@ -689,7 +698,7 @@ export default function EditProfilePage() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <h3
-                    className="text-lg font-bold text-[#111827]"
+                    className="text-lg font-bold text-brand-black"
                     style={{ fontFamily: "Georgia, serif" }}
                   >
                     You are a Premium Member
@@ -698,14 +707,14 @@ export default function EditProfilePage() {
                     PREMIUM
                   </span>
                 </div>
-                <p className="text-sm text-[#6B7280]">
+                <p className="text-sm text-brand-muted">
                   Your subscription is currently active.
                 </p>
               </div>
             </div>
             <Link
               href="/subscription/manage"
-              className="px-6 py-2.5 bg-[#111827] hover:bg-[#374151] text-white rounded-full text-sm font-medium transition-colors whitespace-nowrap ml-4"
+              className="px-6 py-2.5 bg-brand-black hover:bg-brand-muted text-white rounded-full text-sm font-medium transition-colors whitespace-nowrap ml-4"
             >
               Manage Subscription
             </Link>
@@ -720,10 +729,10 @@ export default function EditProfilePage() {
                 <Crown className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-[#111827] mb-1">
+                <h3 className="text-lg font-bold text-brand-black mb-1">
                   Upgrade to Premium
                 </h3>
-                <p className="text-sm text-[#6B7280]">
+                <p className="text-sm text-brand-muted">
                   Get unlimited stories, advanced analytics, exclusive AI
                   writing tools, and expert support starting today.
                 </p>
@@ -731,7 +740,7 @@ export default function EditProfilePage() {
             </div>
             <button
               onClick={() => router.push("/subscription/upgrade")}
-              className="px-6 py-2.5 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors whitespace-nowrap ml-4"
+              className="px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-full text-sm font-medium transition-colors whitespace-nowrap ml-4"
             >
               Upgrade Now
             </button>
@@ -741,7 +750,7 @@ export default function EditProfilePage() {
 
       {/* Account Settings Card */}
       <div className="bg-white rounded-xl border border-[#E5E7EB] p-8 mb-6">
-        <h2 className="text-xl font-bold text-[#111827] mb-6">
+        <h2 className="text-xl font-bold text-brand-black mb-6">
           Account Settings
         </h2>
 
@@ -750,20 +759,20 @@ export default function EditProfilePage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-[#F3F4F6] rounded-lg flex items-center justify-center">
-                <Lock className="w-5 h-5 text-[#6B7280]" />
+                <Lock className="w-5 h-5 text-brand-muted" />
               </div>
               <div>
-                <h3 className="font-semibold text-[#111827] mb-1">
+                <h3 className="font-semibold text-brand-black mb-1">
                   Change Password
                 </h3>
-                <p className="text-sm text-[#6B7280]">
+                <p className="text-sm text-brand-muted">
                   Update your password to keep your account secure
                 </p>
               </div>
             </div>
             <button
               onClick={handleChangePassword}
-              className="px-5 py-2 border border-[#E5E7EB] hover:bg-[#F9FAFB] text-[#374151] rounded-full text-sm font-medium transition-colors"
+              className="px-5 py-2 border border-[#E5E7EB] hover:bg-[#F9FAFB] text-brand-muted rounded-full text-sm font-medium transition-colors"
             >
               {showPasswordChange ? "Hide" : "Change Password"}
             </button>
@@ -775,14 +784,14 @@ export default function EditProfilePage() {
               {isGoogleUser ? (
                 /* Google-only users cannot set a password */
                 <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="w-5 h-5 text-blue-500 mt-0.5 shrink-0">
+                  <div className="w-5 h-5 text-brand-blue mt-0.5 shrink-0">
                     ℹ️
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-blue-800">
+                    <p className="text-sm font-medium text-brand-blue">
                       Google Account
                     </p>
-                    <p className="text-sm text-blue-700 mt-1">
+                    <p className="text-sm text-brand-blue mt-1">
                       Your account uses Google Sign-In. To change your password,
                       please visit your{" "}
                       <a
@@ -827,12 +836,12 @@ export default function EditProfilePage() {
                         setPasswordError("");
                       }}
                       placeholder="Current password"
-                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-full text-[#111827] bg-white focus:outline-none focus:border-[#1ABC9C] transition-colors"
+                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-full text-brand-black bg-white focus:outline-none focus:border-brand-primary transition-colors"
                     />
                     <button
                       type="button"
                       onClick={() => setShowCurrentPw(!showCurrentPw)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-brand-muted"
                     >
                       {showCurrentPw ? (
                         <EyeOff className="w-4 h-4" />
@@ -852,12 +861,12 @@ export default function EditProfilePage() {
                         setPasswordError("");
                       }}
                       placeholder="New password (min. 8 characters)"
-                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-full text-[#111827] bg-white focus:outline-none focus:border-[#1ABC9C] transition-colors"
+                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-full text-brand-black bg-white focus:outline-none focus:border-brand-primary transition-colors"
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPw(!showNewPw)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-brand-muted"
                     >
                       {showNewPw ? (
                         <EyeOff className="w-4 h-4" />
@@ -877,12 +886,12 @@ export default function EditProfilePage() {
                         setPasswordError("");
                       }}
                       placeholder="Confirm new password"
-                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-full text-[#111827] bg-white focus:outline-none focus:border-[#1ABC9C] transition-colors"
+                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-full text-brand-black bg-white focus:outline-none focus:border-brand-primary transition-colors"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPw(!showConfirmPw)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-brand-muted"
                     >
                       {showConfirmPw ? (
                         <EyeOff className="w-4 h-4" />
@@ -897,7 +906,7 @@ export default function EditProfilePage() {
                     <button
                       onClick={handleUpdatePassword}
                       disabled={isUpdatingPassword}
-                      className="px-6 py-2.5 bg-[#111827] hover:bg-[#1F2937] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-6 py-2.5 bg-brand-black hover:bg-brand-black-hover text-white rounded-full text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                       {isUpdatingPassword ? (
                         <>
@@ -929,7 +938,7 @@ export default function EditProfilePage() {
                     <button
                       onClick={handleCancelPasswordChange}
                       disabled={isUpdatingPassword}
-                      className="px-6 py-2.5 text-[#6B7280] hover:text-[#111827] text-sm font-medium transition-colors disabled:opacity-60"
+                      className="px-6 py-2.5 text-brand-muted hover:text-brand-black text-sm font-medium transition-colors disabled:opacity-60"
                     >
                       Cancel
                     </button>
@@ -947,10 +956,10 @@ export default function EditProfilePage() {
               <Linkedin className="w-5 h-5 text-[#0077B5]" />
             </div>
             <div>
-              <h3 className="font-semibold text-[#111827] mb-1">
+              <h3 className="font-semibold text-brand-black mb-1">
                 LinkedIn Integration
               </h3>
-              <p className="text-sm text-[#6B7280]">
+              <p className="text-sm text-brand-muted">
                 Connect your LinkedIn account to easily share your blog articles
               </p>
             </div>
@@ -969,12 +978,12 @@ export default function EditProfilePage() {
                 <Linkedin className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="font-medium text-[#111827]">
+                <p className="font-medium text-brand-black">
                   {linkedInConnected
                     ? "LinkedIn Connected"
                     : "LinkedIn Disconnected"}
                 </p>
-                <p className="text-sm text-[#6B7280]">
+                <p className="text-sm text-brand-muted">
                   {linkedInConnected
                     ? `Connected as ${liUsername || "LinkedIn User"}`
                     : "Connect to share articles"}
@@ -1008,10 +1017,10 @@ export default function EditProfilePage() {
               <Globe className="w-5 h-5 text-[#21759B]" />
             </div>
             <div>
-              <h3 className="font-semibold text-[#111827] mb-1">
+              <h3 className="font-semibold text-brand-black mb-1">
                 WordPress Integration
               </h3>
-              <p className="text-sm text-[#6B7280]">
+              <p className="text-sm text-brand-muted">
                 Connect your WordPress site to publish blog articles directly
               </p>
             </div>
@@ -1030,12 +1039,12 @@ export default function EditProfilePage() {
                 <Globe className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="font-medium text-[#111827]">
+                <p className="font-medium text-brand-black">
                   {wordpressConnected
                     ? "WordPress Connected"
                     : "WordPress Disconnected"}
                 </p>
-                <p className="text-sm text-[#6B7280]">
+                <p className="text-sm text-brand-muted">
                   {wordpressConnected
                     ? `Connected as ${wpUsername || "WordPress User"}`
                     : "Connect to publish articles"}
@@ -1074,7 +1083,7 @@ export default function EditProfilePage() {
           </div>
           <div className="flex-1">
             <h3 className="font-bold text-[#DC2626] mb-1">Danger Zone</h3>
-            <p className="text-sm text-[#6B7280] mb-4">
+            <p className="text-sm text-brand-muted mb-4">
               Once you delete your account, there is no going back. Please be
               certain.
             </p>
@@ -1087,6 +1096,71 @@ export default function EditProfilePage() {
           </div>
         </div>
       </div>
+      {/* Profile Update Result Modal */}
+      {profileUpdateResult && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="profile-update-result-title"
+        >
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
+            <button
+              type="button"
+              onClick={() => setProfileUpdateResult(null)}
+              className="absolute right-4 top-3 text-2xl text-gray-400 hover:text-brand-muted"
+              aria-label="Close profile update message"
+            >
+              ×
+            </button>
+            <div className="mb-6 flex justify-center">
+              <div
+                className={`flex h-16 w-16 items-center justify-center rounded-full ${
+                  profileUpdateResult.type === "success"
+                    ? "bg-green-100"
+                    : "bg-red-100"
+                }`}
+              >
+                {profileUpdateResult.type === "success" ? (
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                ) : (
+                  <AlertTriangle className="h-8 w-8 text-red-600" />
+                )}
+              </div>
+            </div>
+            <h2
+              id="profile-update-result-title"
+              className="mb-2 text-center text-2xl font-bold text-brand-black"
+            >
+              {profileUpdateResult.type === "success"
+                ? "Profile Updated"
+                : "Update Failed"}
+            </h2>
+            <p className="mb-8 text-center text-brand-muted">
+              {profileUpdateResult.message}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                if (profileUpdateResult.type === "success") {
+                  router.push("/profile");
+                  return;
+                }
+                setProfileUpdateResult(null);
+              }}
+              className={`w-full rounded-full py-3 font-semibold text-white shadow-md transition-colors ${
+                profileUpdateResult.type === "success"
+                  ? "bg-brand-primary hover:bg-brand-primary-hover"
+                  : "bg-[#DC2626] hover:bg-[#B91C1C]"
+              }`}
+            >
+              {profileUpdateResult.type === "success"
+                ? "View Profile"
+                : "Try Again"}
+            </button>
+          </div>
+        </div>
+      )}
       {/* Delete Account Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm px-4">
@@ -1094,7 +1168,7 @@ export default function EditProfilePage() {
             <button
               type="button"
               onClick={() => setShowDeleteModal(false)}
-              className="absolute right-4 top-3 text-2xl text-gray-400 hover:text-gray-700"
+              className="absolute right-4 top-3 text-2xl text-gray-400 hover:text-brand-muted"
             >
               ×
             </button>
@@ -1103,10 +1177,10 @@ export default function EditProfilePage() {
                 <AlertTriangle className="w-8 h-8 text-[#DC2626]" />
               </div>
             </div>
-            <h2 className="mb-2 text-center text-2xl font-bold text-[#111827]">
+            <h2 className="mb-2 text-center text-2xl font-bold text-brand-black">
               Delete Account
             </h2>
-            <p className="text-center text-[#475569] mb-8">
+            <p className="text-center text-brand-muted mb-8">
               Are you sure you want to delete your account? This action cannot be undone. All your articles, comments, and data will be permanently removed.
             </p>
             <div className="space-y-4">
@@ -1122,7 +1196,7 @@ export default function EditProfilePage() {
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
                 disabled={isDeleting}
-                className="w-full rounded-full border border-gray-300 bg-white py-3 font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-full border border-gray-300 bg-white py-3 font-semibold text-brand-muted hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>

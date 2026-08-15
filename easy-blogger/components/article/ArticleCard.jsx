@@ -7,14 +7,14 @@ import {
   MoreHorizontal, BookOpen, Sparkles, Clock, CalendarClock, Flag, Trash2, SquarePen,
   Linkedin, Globe, ExternalLink
 } from "lucide-react";
-import { useAuth } from "../../app/context/AuthContext";  
- 
+import { useAuth } from "../../app/context/AuthContext";
+
 
 //Article card may use saved, interacted, read history depending on the context displayed
-export default function ArticleCard({ 
-  article, 
-  savedArticles = [], 
-  interactedArticles = [], 
+export default function ArticleCard({
+  article,
+  savedArticles = [],
+  interactedArticles = [],
   readHistory = [],
   showShareBadges = false,
   forcedPlatform = null,
@@ -42,9 +42,9 @@ const { user, profileLoading, userProfile } = useAuth();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-   
 
-  // Check if article is already bookmarked 
+
+  // Check if article is already bookmarked
   useEffect(() => {
     if (savedArticles.length > 0) {
       const isSavedInDb = savedArticles.some((obj) => obj.id === article.id);
@@ -52,7 +52,7 @@ const { user, profileLoading, userProfile } = useAuth();
     }
   }, [savedArticles, article.id]);
 
-   
+
 
   // User Interaction Checks
   const userInteraction = interactedArticles.find((obj) => obj.id === article.id);
@@ -61,17 +61,17 @@ const { user, profileLoading, userProfile } = useAuth();
 
   // Reading History
   const readMatch = readHistory.find((obj) => obj.articleId === article.id);
-  const rawReadDate = article.interactedAt || readMatch?.lastReadAt; 
+  const rawReadDate = article.interactedAt || readMatch?.lastReadAt;
   const readDateDisplay = rawReadDate
 
     ? new Date(rawReadDate).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
     : null;
 
   // Author Details
-  const authorName = article.author?.displayName || "Guest Writer"; 
+  const authorName = article.author?.displayName || "Guest Writer";
   const authorAvatar = article.author?.avatarUrl || "https://ui-avatars.com/api/?name=Guest";
   const authorUsername = article.author?.username || "guestAuthor"
-  
+
   // Date Formatting
   const isPublished = article.status;
   const rawPublishDate = isPublished === "PUBLISHED" ? article.publishedAt : "Unknown date";
@@ -102,7 +102,7 @@ const { user, profileLoading, userProfile } = useAuth();
   const toggleBookmark = async () => {
     if (!user) {
       alert("Please log in to save articles!");
-      return; 
+      return;
     }
 
     const nextState = !saved;
@@ -114,9 +114,9 @@ const { user, profileLoading, userProfile } = useAuth();
       const token = await user.getIdToken();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/savedArticle`, {
         method: nextState ? "POST" : "DELETE",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` 
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({ articleId: article.id }),
       });
@@ -134,14 +134,14 @@ const { user, profileLoading, userProfile } = useAuth();
   const handleReportSubmit = async () => {
     if (!user) {
       alert("You must be logged in to report an article.");
-      return; 
+      return;
     }
 
     setIsReporting(true);
 
     try {
       const token = await user.getIdToken();
-      
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articleReports`, {
         method: "POST",
         headers: {
@@ -151,7 +151,7 @@ const { user, profileLoading, userProfile } = useAuth();
         body: JSON.stringify({
           articleId: article.id,
           reason: reportReason,
-          description: reportDescription 
+          description: reportDescription
         }),
       });
 
@@ -182,7 +182,7 @@ const { user, profileLoading, userProfile } = useAuth();
 
     try {
       const token = await user.getIdToken();
-      
+
       // api call
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${article.id}`, {
         method: "DELETE",
@@ -198,8 +198,8 @@ const { user, profileLoading, userProfile } = useAuth();
 
       setIsDeleteOpen(false);
       alert("Article Successfully Deleted");
-      
-       
+
+
 
     } catch (err) {
       console.error(err);
@@ -212,25 +212,25 @@ const { user, profileLoading, userProfile } = useAuth();
 
   // UI
   return (
-    <div className="relative"> 
+    <div className="relative">
       <article className="py-6 border-b border-[#E5E7EB]  relative">
-        
+
         {/* --- Author & Date Header --- */}
         <div className="flex items-center gap-2 mb-3">
-          <div 
+          <div
             className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => router.push(`/profile/${authorUsername}`)}
           >
             <img src={authorAvatar} alt={authorName} className="w-8 h-8 rounded-full object-cover" />
-            <span className="text-base font-medium text-[#111827]">
+            <span className="text-base font-medium text-brand-black">
               {authorName}
-              <span className="text-xs text-[#6B7280] ml-1">@{authorUsername}</span>
+              <span className="text-xs text-brand-muted ml-1">@{authorUsername}</span>
             </span>
           </div>
-          {article.author?.isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" title="Premium Author" />} {/* premium check */}
+          {article.author?.isPremium && <BadgeCheck className="w-4 h-4 text-brand-primary" title="Premium Author" />} {/* premium check */}
 
           {/*Display published or scheduled date */}
-          <span className="text-sm text-[#6B7280]"> 
+          <span className="text-sm text-brand-muted">
             {isPublished === "PUBLISHED" ? (
               <span>{displayDate}</span>
             ) : isPublished === "SCHEDULED" ? (
@@ -239,10 +239,10 @@ const { user, profileLoading, userProfile } = useAuth();
               </span>
             ) : "date_unknown"}
           </span>
-          
+
           {/* AI generatted check */}
           {article.isAiGenerated && (
-            <span className="flex items-center gap-1 ml-2 text-[10px] font-semibold border border-[#1ABC9C] text-[#1ABC9C] bg-purple-50 px-2 py-0.5 rounded-full">
+            <span className="flex items-center gap-1 ml-2 text-[10px] font-semibold border border-brand-primary text-brand-primary bg-[#E8F8F5] px-2 py-0.5 rounded-full">
               <Sparkles className="w-3 h-3" /> AI Generated
             </span>
           )}
@@ -298,16 +298,16 @@ const { user, profileLoading, userProfile } = useAuth();
             <div className="h-14">
 
               {/* Push to article reading page */}
-              <h2 
-                className="text-xl font-bold text-[#111827] mb-2 leading-tight font-serif hover:text-[#1ABC9C] cursor-pointer transition-colors duration-150 line-clamp-2" 
-                onClick={() => router.push(`/home/read?id=${article.id}`)} 
+              <h2
+                className="text-xl font-bold text-brand-black mb-2 leading-tight font-serif hover:text-brand-primary cursor-pointer transition-colors duration-150 line-clamp-2"
+                onClick={() => router.push(`/home/read?id=${article.id}`)}
               >
                 {article.title || "Untitled Article"}
               </h2>
             </div>
-            
+
             {/*display article preview content*/}
-            <div className="line-clamp-3 h-18 text-gray-500 text-[16px] leading-6"
+            <div className="line-clamp-3 h-18 text-brand-muted text-[16px] leading-6"
                  dangerouslySetInnerHTML={{ __html: article.summary || "<p>No content available.</p>" }}
             />
           </div>
@@ -321,21 +321,21 @@ const { user, profileLoading, userProfile } = useAuth();
 
         {/*   Interaction Footer  */}
         <div className="flex items-center justify-between mt-4 relative">
-          <div className="flex items-center gap-4 text-sm text-[#6B7280]">
-            
-            <span className={`flex items-center gap-1.5 transition-colors duration-150 ${hasCommented ? 'text-[#1ABC9C]' : 'hover:text-[#1ABC9C]'}`}>
-              <MessageCircle className={`w-5 h-5 ${hasCommented ? 'fill-[#1ABC9C]' : ''}`} strokeWidth={1.5} />
+          <div className="flex items-center gap-4 text-sm text-brand-muted">
+
+            <span className={`flex items-center gap-1.5 transition-colors duration-150 ${hasCommented ? 'text-brand-primary' : 'hover:text-brand-primary'}`}>
+              <MessageCircle className={`w-5 h-5 ${hasCommented ? 'fill-brand-primary' : ''}`} strokeWidth={1.5} />
               <span>{article.commentCount || "-"}</span>
             </span>
 
-            <span className={`flex items-center gap-1.5 ${hasRated ? 'text-[#1ABC9C]' : ''}`}>
-              <Star className={`w-5 h-5 ${hasRated ? 'fill-[#1ABC9C]' : ''}`} strokeWidth={1.5} />
+            <span className={`flex items-center gap-1.5 ${hasRated ? 'text-brand-primary' : ''}`}>
+              <Star className={`w-5 h-5 ${hasRated ? 'fill-brand-primary' : ''}`} strokeWidth={1.5} />
               <span className="font-medium">{article.averageRating > 0 ? article.averageRating.toFixed(1) : "-"}</span>
-              <span className="text-[#6B7280]"> [{article.ratingCount || 0}]</span>
+              <span className="text-brand-muted"> [{article.ratingCount || 0}]</span>
             </span>
 
             {readDateDisplay && (
-              <div className="flex items-center gap-1.5 text-[#6B7280] ml-2">
+              <div className="flex items-center gap-1.5 text-brand-muted ml-2">
                 <span>{readDateDisplay}</span>
                 <BookOpen className="w-[18px] h-[18px]" strokeWidth={1.5} />
               </div>
@@ -345,19 +345,19 @@ const { user, profileLoading, userProfile } = useAuth();
           <div className="flex items-center gap-1 relative">
             <button
               onClick={toggleBookmark}
-              disabled={saving || profileLoading} 
+              disabled={saving || profileLoading}
               className={`group p-2 rounded-full transition-colors duration-150 ${saved ? "bg-white" : "hover:bg-[#E8F8F5]"} ${(saving || profileLoading) ? "opacity-70 cursor-not-allowed" : ""}`}
               title={saved ? "Saved" : "Save"}
             >
-              <Bookmark className={`w-5 h-5 transition-colors duration-150 ${saved ? "text-[#1abc9c] fill-[#1abc9c]" : "text-[#1abc9c] group-hover:text-[#1ABC9C]"}`} strokeWidth={1.5} />
+              <Bookmark className={`w-5 h-5 transition-colors duration-150 ${saved ? "text-brand-primary fill-brand-primary" : "text-brand-primary group-hover:text-brand-primary"}`} strokeWidth={1.5} />
             </button>
 
             {/* More Options Button */}
-            <button 
+            <button
               className="group p-2 hover:bg-[#E8F8F5] rounded-full transition-colors duration-150"
               onClick={toggleMoreOptions}
             >
-              <MoreHorizontal className="w-5 h-5 text-[#6B7280] group-hover:text-[#1ABC9C] transition-colors duration-150" />
+              <MoreHorizontal className="w-5 h-5 text-brand-muted group-hover:text-brand-primary transition-colors duration-150" />
             </button>
 
             {/* Dropdown Menu */}
@@ -365,15 +365,15 @@ const { user, profileLoading, userProfile } = useAuth();
             <div className="absolute right-0 top-full mt-1 flex flex-col bg-white w-36 border border-[#e5e7eb] rounded-xl drop-shadow-lg z-50 overflow-hidden">
               {/* Report Option */}
              { userProfile.id != article.author.id &&
-              <button 
+              <button
                 onClick={() => {
                   setIsReportOpen(true);
-                  setMoreOptions(false); 
+                  setMoreOptions(false);
                 }}
                 className="flex items-center gap-3 w-full h-10 px-4 hover:bg-gray-50 transition-colors border-b border-gray-100"
               >
-                <Flag className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Report</span>
+                <Flag className="w-4 h-4 text-brand-muted" />
+                <span className="text-sm font-medium text-brand-muted">Report</span>
               </button>
             }
 
@@ -383,7 +383,7 @@ const { user, profileLoading, userProfile } = useAuth();
              <button 
                 onClick={() => {
                   setIsDeleteOpen(true);
-                  setMoreOptions(false); 
+                  setMoreOptions(false);
                 }}
                 className="flex items-center gap-3 w-full h-10 px-4 hover:bg-red-50 transition-colors"
               >
@@ -435,13 +435,13 @@ const { user, profileLoading, userProfile } = useAuth();
       </article>
 
       {/*  report  popup mrnu */}
-      
+
       {isReportOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-bold mb-4 text-gray-900">Report Article</h3>
+            <h3 className="text-xl font-bold mb-4 text-brand-black">Report Article</h3>
 
-            <input 
+            <input
               type="text"
               className="w-full border border-gray-200 rounded-lg p-2 mb-3 focus:ring-2 focus:ring-red-500 outline-none"
               placeholder="Reason (e.g. Spam, Harassment)"
@@ -449,21 +449,21 @@ const { user, profileLoading, userProfile } = useAuth();
               onChange={(e) => setReportReason(e.target.value)}
             />
 
-            <textarea 
-              className="w-full border border-gray-200 rounded-lg p-2 mb-4 h-24 focus:ring-2 focus:ring-red-500 outline-none resize-none" 
+            <textarea
+              className="w-full border border-gray-200 rounded-lg p-2 mb-4 h-24 focus:ring-2 focus:ring-red-500 outline-none resize-none"
               placeholder="Provide details..."
               value={reportDescription}
               onChange={(e) => setReportDescription(e.target.value)}
             />
 
             <div className="flex gap-2 justify-end">
-              <button 
+              <button
                 onClick={() => setIsReportOpen(false)}
-                className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+                className="px-4 py-2 text-brand-muted hover:bg-gray-100 rounded-lg"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleReportSubmit}
                 disabled={isReporting || !reportReason}
                 className="px-4 py-2 bg-red-500 text-white font-bold rounded-lg disabled:opacity-50 hover:bg-red-600 transition-colors"
@@ -479,26 +479,26 @@ const { user, profileLoading, userProfile } = useAuth();
       {isDeleteOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-            
+
             <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
               <Trash2 className="w-6 h-6 text-red-600" />
             </div>
-            
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Article?</h3>
-            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
+
+            <h3 className="text-xl font-bold text-brand-black mb-2">Delete Article?</h3>
+            <p className="text-brand-muted mb-6 text-sm leading-relaxed">
               This action is permanent and cannot be undone. All comments and ratings associated with this article will be lost forever.
             </p>
-            
+
             <div className="flex gap-3">
-              <button 
-                onClick={() => setIsDeleteOpen(false)} 
+              <button
+                onClick={() => setIsDeleteOpen(false)}
                 disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
+                className="flex-1 px-4 py-2.5 text-sm font-semibold text-brand-muted bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
               >
                 Cancel
               </button>
-              <button 
-                onClick={handleDeleteSubmit} 
+              <button
+                onClick={handleDeleteSubmit}
                 disabled={isDeleting}
                 className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-all disabled:opacity-50"
               >

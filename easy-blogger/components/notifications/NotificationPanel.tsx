@@ -95,7 +95,7 @@ export default function NotificationPanel({
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 hover:bg-emerald-50 rounded-full transition-colors"
       >
-        <Bell className="w-6 h-6 text-gray-600" />
+        <Bell className="w-6 h-6 text-brand-muted" />
         {notifications.length > 0 && (
           <span className="absolute top-1 right-1 flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-emerald-500 border-2 border-white rounded-full">
             {notifications.length}
@@ -107,7 +107,7 @@ export default function NotificationPanel({
         <div className="absolute right-0 z-50 w-95 mt-3 bg-white border border-gray-100 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-emerald-50/30 rounded-t-2xl">
             <div>
-              <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
+              <h3 className="text-sm font-bold text-brand-black">Notifications</h3>
               <p className="text-[10px] text-emerald-600 uppercase tracking-widest font-black">
                 {notifications.length} Total
               </p>
@@ -153,7 +153,7 @@ export default function NotificationPanel({
                         className="flex-1 min-w-0"
                         onClick={() => setIsOpen(false)}
                       >
-                        <p className="text-sm font-bold text-gray-900">
+                        <p className="text-sm font-bold text-brand-black">
                           {title}
                         </p>
                         <p className="text-xs  mt-0.5  line-clamp-2">

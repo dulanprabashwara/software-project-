@@ -225,13 +225,13 @@ export default function UserProfilePage({ params }) {
     return (
       <div className="flex h-[calc(100vh-64px)] w-full items-center justify-center bg-white">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          <h2 className="text-2xl font-bold text-brand-black mb-2">
             User Not Found
           </h2>
-          <p className="text-gray-500 mb-4">{profileError}</p>
+          <p className="text-brand-muted mb-4">{profileError}</p>
           <Link
             href="/home"
-            className="px-6 py-2 bg-[#1ABC9C] text-white rounded-full text-sm font-medium hover:bg-[#16a085] transition-colors"
+            className="px-6 py-2 bg-brand-primary text-white rounded-full text-sm font-medium hover:bg-brand-primary-hover transition-colors"
           >
             Go Home
           </Link>
@@ -247,13 +247,13 @@ export default function UserProfilePage({ params }) {
         <div className="max-w-3xl mx-auto px-8 py-10">
           {/* Header Name & Options */}
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-[40px] font-bold text-[#111827] font-serif">
+            <h1 className="text-[40px] font-bold text-brand-black font-serif">
               {displayName}
             </h1>
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="text-gray-500 hover:text-gray-900 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                className="text-brand-muted hover:text-brand-black p-1 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <MoreHorizontal className="w-6 h-6" />
               </button>
@@ -262,7 +262,7 @@ export default function UserProfilePage({ params }) {
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
                   <button
                     onClick={handleCopyLink}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    className="w-full text-left px-4 py-2 text-sm text-brand-muted hover:bg-gray-50 flex items-center gap-2"
                   >
                     <svg
                       className="w-4 h-4"
@@ -291,26 +291,26 @@ export default function UserProfilePage({ params }) {
                 onClick={() => setActiveTab("home")}
                 className={`pb-4 text-[15px] font-medium transition-colors relative ${
                   activeTab === "home"
-                    ? "text-[#111827]"
-                    : "text-gray-500 hover:text-gray-900"
+                    ? "text-brand-black"
+                    : "text-brand-muted hover:text-brand-black"
                 }`}
               >
                 Home
                 {activeTab === "home" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-px bg-[#111827]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-px bg-brand-black" />
                 )}
               </button>
               <button
                 onClick={() => setActiveTab("about")}
                 className={`pb-4 text-[15px] font-medium transition-colors relative ${
                   activeTab === "about"
-                    ? "text-[#111827]"
-                    : "text-gray-500 hover:text-gray-900"
+                    ? "text-brand-black"
+                    : "text-brand-muted hover:text-brand-black"
                 }`}
               >
                 About
                 {activeTab === "about" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-px bg-[#111827]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-px bg-brand-black" />
                 )}
               </button>
             </div>
@@ -320,9 +320,9 @@ export default function UserProfilePage({ params }) {
           {activeTab === "home" ? (
             <div className="space-y-8">
               {articlesLoading ? (
-                <p className="text-sm text-gray-500">Loading articles...</p>
+                <p className="text-sm text-brand-muted">Loading articles...</p>
               ) : articles.length === 0 ? (
-                <div className="py-10 text-center text-gray-500">
+                <div className="py-10 text-center text-brand-muted">
                   <FileText className="mx-auto mb-3 h-8 w-8 text-gray-300" />
                   <p className="text-sm">No published articles yet.</p>
                 </div>
@@ -334,10 +334,10 @@ export default function UserProfilePage({ params }) {
             </div>
           ) : (
             <div className="py-8">
-              <h3 className="text-lg font-semibold text-[#111827] mb-3">
+              <h3 className="text-lg font-semibold text-brand-black mb-3">
                 About {displayName}
               </h3>
-              <p className="text-gray-600 leading-relaxed text-[15px]">
+              <p className="text-brand-muted leading-relaxed text-[15px]">
                 {bio || "This user hasn't added a bio yet."}
               </p>
             </div>
@@ -359,24 +359,24 @@ export default function UserProfilePage({ params }) {
             />
           </div>
 
-          <h2 className="text-base font-bold text-[#111827] mb-1 font-serif flex items-center gap-2">
+          <h2 className="text-base font-bold text-brand-black mb-1 font-serif flex items-center gap-2">
             {displayName}
             {isPremium && (
               <BadgeCheck
                 className="w-5 h-5 shrink-0"
-                fill="#1ABC9C"
+                fill="var(--color-brand-primary)"
                 stroke="white"
                 strokeWidth="1.5"
               />
             )}
           </h2>
 
-          <div className="flex items-center gap-1 text-[13px] text-gray-500 mb-3">
+          <div className="flex items-center gap-1 text-[13px] text-brand-muted mb-3">
             <Link
               href={`/profile/${username}/stats?tab=followers`}
-              className="hover:text-gray-900 transition-colors"
+              className="hover:text-brand-black transition-colors"
             >
-              <span className="font-medium text-[#111827]">
+              <span className="font-medium text-brand-black">
                 {followerCount}
               </span>{" "}
               Followers
@@ -384,16 +384,16 @@ export default function UserProfilePage({ params }) {
             <span>·</span>
             <Link
               href={`/profile/${username}/stats?tab=following`}
-              className="hover:text-gray-900 transition-colors"
+              className="hover:text-brand-black transition-colors"
             >
-              <span className="font-medium text-[#111827]">
+              <span className="font-medium text-brand-black">
                 {followingCount}
               </span>{" "}
               Following
             </Link>
           </div>
 
-          <p className="text-[13px] text-gray-500 leading-relaxed mb-6">
+          <p className="text-[13px] text-brand-muted leading-relaxed mb-6">
             {bio || "No bio yet."}
           </p>
 
@@ -407,8 +407,8 @@ export default function UserProfilePage({ params }) {
                   isFollowing ? "flex-1" : "w-full"
                 } ${
                   isFollowing
-                    ? "border border-gray-300 text-gray-700 hover:border-red-400 hover:text-red-500 hover:bg-red-50"
-                    : "bg-[#1ABC9C] text-white hover:bg-[#16a085]"
+                    ? "border border-gray-300 text-brand-muted hover:border-red-400 hover:text-red-500 hover:bg-red-50"
+                    : "bg-brand-primary text-white hover:bg-brand-primary-hover"
                 } disabled:opacity-50`}
               >
                 {isTogglingFollow ? (
@@ -422,7 +422,7 @@ export default function UserProfilePage({ params }) {
               {isFollowing && (
                 <Link
                   href={`/chat?userId=${profile.id}`}
-                  className="flex-1 px-4 py-2 rounded-full text-[14px] font-medium bg-[#1ABC9C] text-white hover:bg-[#16a085] transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 rounded-full text-[14px] font-medium bg-brand-primary text-white hover:bg-brand-primary-hover transition-colors flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-4 h-4" />
                   Message

@@ -10,7 +10,7 @@ import { formatDateMMDDYYYY, to12Hour, to24Hour, injectHighlights } from "../../
 export function Section({ title, children }) {
   return (
     <div className="p-10">
-      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+      <h2 className="text-lg font-semibold text-brand-black">{title}</h2>
       <div className="mt-5">{children}</div>
     </div>
   );
@@ -80,13 +80,13 @@ export function TagSection({
           {tags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-gray-100 px-3 py-1 text-xs text-gray-700"
+              className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-gray-100 px-3 py-1 text-xs text-brand-muted"
             >
               {tag}
               <button
                 type="button"
                 onClick={() => removeTag(tag)}
-                className="leading-none text-gray-700 hover:text-black"
+                className="leading-none text-brand-muted hover:text-black"
               >
                 ✕
               </button>
@@ -127,7 +127,7 @@ export function TimingSection({
           <button
             type="button"
             onClick={() => setTiming("now")}
-            className="flex items-center gap-3 text-sm text-gray-700"
+            className="flex items-center gap-3 text-sm text-brand-muted"
           >
             <Radio checked={timing === "now"} />
             Publish now
@@ -136,7 +136,7 @@ export function TimingSection({
           <button
             type="button"
             onClick={() => setTiming("schedule")}
-            className="flex items-center gap-3 text-sm text-gray-700"
+            className="flex items-center gap-3 text-sm text-brand-muted"
           >
             <Radio checked={timing === "schedule"} />
             Schedule for later
@@ -157,7 +157,7 @@ export function TimingSection({
             >
               {scheduledDate ? formatDateMMDDYYYY(scheduledDate) : "Pick a date"}
             </button>
-            <Calendar className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+            <Calendar className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted" />
             {/* Standard native date picker wrapped in a custom UI for better styling control */}
             {dateOpen && timing === "schedule" && (
               <div className="absolute right-0 z-20 mt-2 w-full rounded-md border border-gray-200 bg-white p-3 shadow-lg">
@@ -170,7 +170,7 @@ export function TimingSection({
                 <div className="mt-3 flex justify-end">
                   <button
                     type="button"
-                    className="text-sm text-gray-600 hover:text-gray-900"
+                    className="text-sm text-brand-muted hover:text-brand-black"
                     onClick={() => setDateOpen(false)}
                   >
                     Done
@@ -193,13 +193,13 @@ export function TimingSection({
             >
               {scheduledTime ? to12Hour(scheduledTime) : "Pick a time"}
             </button>
-            <Clock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+            <Clock className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted" />
 
             {timeOpen && timing === "schedule" && (
               <div className="absolute right-0 z-20 mt-2 w-full rounded-md border border-gray-200 bg-white p-3 shadow-lg">
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="text-xs text-gray-500">Hour</label>
+                    <label className="text-xs text-brand-muted">Hour</label>
                     <select
                       value={tpHour}
                       onChange={(e) => setTpHour(e.target.value)}
@@ -211,7 +211,7 @@ export function TimingSection({
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500">Minute</label>
+                    <label className="text-xs text-brand-muted">Minute</label>
                     <select
                       value={tpMinute}
                       onChange={(e) => setTpMinute(e.target.value)}
@@ -223,7 +223,7 @@ export function TimingSection({
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500">AM/PM</label>
+                    <label className="text-xs text-brand-muted">AM/PM</label>
                     <select
                       value={tpPeriod}
                       onChange={(e) => setTpPeriod(e.target.value)}
@@ -237,7 +237,7 @@ export function TimingSection({
                 <div className="mt-3 flex justify-end">
                   <button
                     type="button"
-                    className="text-sm text-gray-600 hover:text-gray-900"
+                    className="text-sm text-brand-muted hover:text-brand-black"
                     onClick={() => {
                       setScheduledTime(to24Hour(tpHour, tpMinute, tpPeriod));
                       setTimeOpen(false);
@@ -261,8 +261,8 @@ export function TimingSection({
 
       {scheduledDate && scheduledTime && (
         <div className="mt-6 text-sm">
-          <p className="text-gray-600">This article will be published on</p>
-          <p className="mt-1 font-semibold text-gray-900">
+          <p className="text-brand-muted">This article will be published on</p>
+          <p className="mt-1 font-semibold text-brand-black">
             {formatDateMMDDYYYY(scheduledDate)} at {to12Hour(scheduledTime)}
           </p>
         </div>
@@ -304,7 +304,7 @@ export function SocialSharingSection({
             />
           </div>
           <div className="flex items-center">
-            <p className="text-sm font-semibold text-gray-900">Share on LinkedIn</p>
+            <p className="text-sm font-semibold text-brand-black">Share on LinkedIn</p>
           </div>
           <div className="col-span-2">
             <div className={`grid grid-cols-[48px_1fr] items-center transition-all duration-300 ease-out ${shareLinkedIn ? "max-h-20 translate-y-0 opacity-100" : "max-h-0 -translate-y-1 overflow-hidden opacity-0"
@@ -315,11 +315,11 @@ export function SocialSharingSection({
               {!liCheckDone && shareLinkedIn ? (
                 <p className="text-sm text-gray-400">Checking LinkedIn connection...</p>
               ) : liConnected ? (
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-brand-muted">
                   Connected as <span className="font-semibold">{liUsername || "LinkedIn User"}</span>
                 </p>
               ) : (
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-brand-muted">
                   <button type="button" onClick={handleConnectLinkedIn} className="text-[#0077B5] underline hover:text-[#005582]">
                     Connect to LinkedIn
                   </button>
@@ -341,7 +341,7 @@ export function SocialSharingSection({
             />
           </div>
           <div className="flex items-center">
-            <p className="text-sm font-semibold text-gray-900">Share on WordPress</p>
+            <p className="text-sm font-semibold text-brand-black">Share on WordPress</p>
           </div>
           <div className="col-span-2">
             <div className={`grid grid-cols-[48px_1fr] items-center transition-all duration-300 ease-out ${shareWordPress ? "max-h-20 translate-y-0 opacity-100" : "max-h-0 -translate-y-1 overflow-hidden opacity-0"
@@ -352,11 +352,11 @@ export function SocialSharingSection({
               {!wpCheckDone && shareWordPress ? (
                 <p className="text-sm text-gray-400">Checking WordPress connection...</p>
               ) : wpConnected ? (
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-brand-muted">
                   Connected as <span className="font-semibold">{wpUsername || "WordPress User"}</span>
                 </p>
               ) : (
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-brand-muted">
                   <a href="/profile/edit" className="text-[#21759B] underline hover:text-[#1A5F7A]">
                     Connect to WordPress
                   </a>
@@ -374,7 +374,7 @@ export function SocialSharingSection({
 
         <div className={`transition-all duration-300 ease-out ${showShareText ? "max-h-20 translate-y-0 opacity-100" : "max-h-0 -translate-y-1 overflow-hidden opacity-0"
           }`}>
-          {shareText && <p className="text-sm text-gray-500">{shareText}</p>}
+          {shareText && <p className="text-sm text-brand-muted">{shareText}</p>}
         </div>
       </div>
     </Section>
@@ -408,9 +408,9 @@ export function LinkedInCaptionSection({
             />
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 text-sm">
-                <button 
-                  type="button" 
-                  onClick={handleDisconnectLinkedIn} 
+                <button
+                  type="button"
+                  onClick={handleDisconnectLinkedIn}
                   className="rounded-full border border-red-600 bg-red-500 px-4 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:border-red-700 hover:bg-red-600"
                 >
                   Disconnect
@@ -473,7 +473,7 @@ export function AnalysisSection({
             <div className="grid gap-6 sm:grid-cols-2">
               {(analysisType === "ai" || analysisType === "both") && (
                 <div className="flex flex-col gap-2 rounded-md bg-white p-4 shadow-sm">
-                  <span className="text-xs font-semibold uppercase text-gray-500">AI Generated</span>
+                  <span className="text-xs font-semibold uppercase text-brand-muted">AI Generated</span>
                   <div className="flex items-end gap-2">
                     <span className="text-3xl font-bold text-yellow-600">{analysisScores?.aiScore ?? 0}%</span>
                     <span className="mb-1 text-sm text-gray-400">confidence</span>
@@ -486,7 +486,7 @@ export function AnalysisSection({
 
               {(analysisType === "plagiarism" || analysisType === "both") && (
                 <div className="flex flex-col gap-2 rounded-md bg-white p-4 shadow-sm">
-                  <span className="text-xs font-semibold uppercase text-gray-500">Plagiarism</span>
+                  <span className="text-xs font-semibold uppercase text-brand-muted">Plagiarism</span>
                   <div className="flex items-end gap-2">
                     <span className="text-3xl font-bold text-red-600">{analysisScores?.plagiarismScore ?? 0}%</span>
                     <span className="mb-1 text-sm text-gray-400">match</span>
@@ -499,19 +499,19 @@ export function AnalysisSection({
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-gray-900">Analysis Preview</h3>
-              <p className="text-xs text-gray-500">
+              <h3 className="text-sm font-semibold text-brand-black">Analysis Preview</h3>
+              <p className="text-xs text-brand-muted">
                 <span className="mr-3 inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-400"></span> AI Generated</span>
                 <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500"></span> Plagiarism</span>
               </p>
-              <div 
+              <div
                 className="prose prose-sm max-h-96 max-w-none overflow-y-auto rounded-md border border-gray-200 bg-white p-4"
                 dangerouslySetInnerHTML={{ __html: highlightedHtml || "No content available to preview." }}
               />
             </div>
-            
+
             <div className="flex justify-end">
-              <button 
+              <button
                 type="button"
                 onClick={onBackToEditor}
                 className="text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline"

@@ -83,12 +83,12 @@ export default function ChatInput({
           value={message}
           onChange={handleChange}
           placeholder="Write a message..."
-          className="flex-1 px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:border-[#1ABC9C] focus:ring-1 focus:ring-[#1ABC9C] transition-all bg-gray-50 placeholder-gray-400"
+          className="flex-1 px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all bg-gray-50 placeholder-gray-400"
         />
         <button
           type="submit"
           disabled={!message.trim()}
-          className="p-3 rounded-full bg-[#1ABC9C] text-white hover:bg-[#17a589] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-3 rounded-full bg-brand-primary text-white hover:bg-brand-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <Send className="w-5 h-5" />
         </button>

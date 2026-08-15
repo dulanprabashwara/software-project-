@@ -206,7 +206,7 @@ export default function ArticleDetailsPage() {
   if (isLoading || loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1ABC9C]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
       </div>
     );
   }
@@ -222,7 +222,7 @@ export default function ArticleDetailsPage() {
           <p className="error-screen-message">{error}</p>
           <button
             onClick={() => router.push("/ai-generate")}
-            className="px-4 py-2 bg-[#1ABC9C] text-white rounded-lg hover:bg-[#16A085] transition-colors"
+            className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary-hover transition-colors"
           >
             Back to AI Generator
           </button>
@@ -240,7 +240,7 @@ export default function ArticleDetailsPage() {
           </h2>
           <button
             onClick={() => router.push("/ai-generate")}
-            className="px-4 py-2 bg-[#1ABC9C] text-white rounded-lg hover:bg-[#16A085] transition-colors"
+            className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary-hover transition-colors"
           >
             Back to AI Generator
           </button>
@@ -330,7 +330,7 @@ export default function ArticleDetailsPage() {
                   )}
                 </div>
                 <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
-                  <path d="M1 1L6 6L11 1" stroke="#000000" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M1 1L6 6L11 1" stroke="var(--color-brand-black)" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </div>
             </div>
@@ -369,7 +369,7 @@ export default function ArticleDetailsPage() {
             <div className="result-right-side">
               <div className="article-title-label" onClick={() => setShowPreview(true)}>
                 <span className="article-title-text">{articleData.title}</span>
-                <svg className="open-book-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E1E1E" strokeWidth="2">
+                <svg className="open-book-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-brand-black)" strokeWidth="2">
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                 </svg>
@@ -383,8 +383,8 @@ export default function ArticleDetailsPage() {
                 >
                   <svg
                     width="16" height="16" viewBox="0 0 24 24" strokeWidth="2"
-                    fill={userResponse === "satisfied" ? "#1ABC9C" : "none"}
-                    stroke={userResponse === "satisfied" ? "#1ABC9C" : "currentColor"}
+                    fill={userResponse === "satisfied" ? "var(--color-brand-primary)" : "none"}
+                    stroke={userResponse === "satisfied" ? "var(--color-brand-primary)" : "currentColor"}
                   >
                     <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
                   </svg>
@@ -396,8 +396,8 @@ export default function ArticleDetailsPage() {
                 >
                   <svg
                     width="16" height="16" viewBox="0 0 24 24" strokeWidth="2"
-                    fill={userResponse === "dissatisfied" ? "#1ABC9C" : "none"}
-                    stroke={userResponse === "dissatisfied" ? "#1ABC9C" : "currentColor"}
+                    fill={userResponse === "dissatisfied" ? "var(--color-brand-primary)" : "none"}
+                    stroke={userResponse === "dissatisfied" ? "var(--color-brand-primary)" : "currentColor"}
                   >
                     <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-3"></path>
                   </svg>
@@ -434,7 +434,7 @@ export default function ArticleDetailsPage() {
                   {isCopied ? (
                     <span className="preview-copied-message">copied to clipboard</span>
                   ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-brand-primary)" strokeWidth="2">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                     </svg>
