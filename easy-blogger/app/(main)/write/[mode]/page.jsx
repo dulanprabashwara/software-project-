@@ -36,6 +36,7 @@ export default function UnifiedArticleEditorPage() {
     fontSize,
     isHydrating,
     isSaving,
+    isManualSaving,
     lastSavedAt,
     inlineError,
     editorTextLength,
@@ -96,10 +97,12 @@ export default function UnifiedArticleEditorPage() {
             fontSize={fontSize}
             isHydrating={isHydrating}
             isSaving={isSaving}
+            isManualSaving={isManualSaving}
             lastSavedAt={lastSavedAt}
             headerTitle={config.headerTitle}
             headerSubtitle={config.headerSubtitle}
             modeBadge={config.getBadge(articleMode)}
+            saveDraftLabel={config.saveDraftLabel}
             onSaveAsDraft={handleSaveAsDraft}
             onPreview={handlePreview}
             onDiscard={handleDiscard}

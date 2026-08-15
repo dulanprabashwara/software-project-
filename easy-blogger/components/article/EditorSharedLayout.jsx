@@ -19,7 +19,7 @@ export function EditorHeader({
           ) : null}
         </div>
 
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-3">
           {rightContent}
         </div>
       </div>

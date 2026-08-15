@@ -241,6 +241,23 @@ export async function publishArticle(articleId, payload) {
   });
 }
 
+export async function rescheduleArticle(articleId, scheduledAt) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+  if (!scheduledAt) {
+    throw new ApiError("Scheduled date and time are required.", 400);
+  }
+
+  return apiRequest(`/articles/${encodeURIComponent(articleId)}/publish`, {
+    method: "POST",
+    body: JSON.stringify({
+      timing: "schedule",
+      scheduledAt,
+    }),
+  });
+}
+
 export async function startEditExisting(articleId) {
   if (!articleId) {
     throw new ApiError("Article id is required.", 400);
@@ -373,6 +390,77 @@ export async function discardEditAsNew(articleId) {
 
   return apiRequest(
     `/articles/${encodeURIComponent(articleId)}/edit-as-new/discard`,
+    {
+      method: "POST",
+    },
+  );
+}
+
+/*
+ Edit-published flow
+ */
+export async function startEditPublished(articleId) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-published/start`,
+    {
+      method: "POST",
+    },
+  );
+}
+
+export async function autosaveEditPublished(articleId, payload) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-published/autosave`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function saveEditPublishedForPreview(articleId, payload) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-published/preview`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function republishArticle(articleId, payload) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-published/republish`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function discardEditPublished(articleId) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+
+  return apiRequest(
+    `/articles/${encodeURIComponent(articleId)}/edit-published/discard`,
     {
       method: "POST",
     },

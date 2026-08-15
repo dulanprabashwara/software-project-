@@ -13,6 +13,11 @@ import {
   discardEditAsNew,
   startEditAsNew,
   saveEditExistingForPreview,
+  startEditPublished,
+  autosaveEditPublished,
+  saveEditPublishedForPreview,
+  republishArticle,
+  discardEditPublished,
 } from "./api";
 
 /*
@@ -68,6 +73,21 @@ export const WORKFLOW_CONFIG = {
     isTitleReadOnly: true,
     titleHelperText: "This title is copied from the original article and cannot be changed.",
     exitPath: "/write/unpublished",
+  },
+  "edit-published": {
+    mode: "edit-published",
+    headerTitle: "Edit Published Article",
+    headerSubtitle: "Update your published article here",
+    getBadge: () => "Editing Published",
+    saveDraftLabel: "Republish",
+    startFn: startEditPublished,
+    saveDraftFn: republishArticle,
+    autosaveFn: autosaveEditPublished,
+    previewSaveFn: saveEditPublishedForPreview,
+    discardFn: discardEditPublished,
+    discardTitle: "Discard changes?",
+    discardMessage: "This will restore the published article to how it was before you started editing.",
+    exitPath: "/stories/published",
   },
 };
 

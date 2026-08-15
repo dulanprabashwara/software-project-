@@ -29,6 +29,7 @@ export function useArticleEditorController({ initialFontSize = 16 } = {}) {
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isManualSaving, setIsManualSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [zoom, setZoom] = useState(100);
   const [inlineError, setInlineError] = useState("");
@@ -100,6 +101,7 @@ export function useArticleEditorController({ initialFontSize = 16 } = {}) {
     setContent("");
     setCoverImage(null);
     setIsSaving(false);
+    setIsManualSaving(false);
     setLastSavedAt(null);
     setZoom(100);
     setInlineError("");
@@ -143,6 +145,8 @@ export function useArticleEditorController({ initialFontSize = 16 } = {}) {
 
     isSaving,
     setIsSaving,
+    isManualSaving,
+    setIsManualSaving,
     lastSavedAt,
     setLastSavedAt,
 

@@ -23,16 +23,16 @@ export default function EditAdminProfile() {
       const response = await api.getMe(token);
       const userData = response.data || response;
 
+      console.log("FRESH DATA FROM BACKEND:", userData);
+
       setFormData({
         name: userData.displayName || userData.username || "",
-        email: userData.email || "",
+        email: userData.email || user.email ||"",
         bio: userData.bio || "",
         avatar: userData.avatarUrl || null,
         settings: {
           notifications: true,
-          criticalAlerts: true,
-          weeklyExport: false,
-          lockedIp: null
+          weeklyExport:userData.receiveWeeklyExport || false,
         }
       });
     } catch (error) {
@@ -63,9 +63,11 @@ export default function EditAdminProfile() {
         displayName: formData.name,
         bio: formData.bio,
         avatarUrl: formData.avatar,
+        receiveWeeklyExport: formData.settings.weeklyExport,
       };
 
       await api.updateProfile(payload, token);
+      router.refresh();
 
       router.push("/admin/profile");
     } catch (error) {
@@ -85,31 +87,11 @@ export default function EditAdminProfile() {
     }
   };
 
-  const handleIpLock = async () => {
-    const isLocked = formData.settings.lockedIp !== null;
-    const newIp = isLocked ? null : "124.43.15.2";
-    setFormData({ ...formData, settings: { ...formData.settings, lockedIp: newIp } });
-    alert("Notice: IP Locking requires a backend schema update to persist permanently.");
-  };
-
-  if (loading) return <div className="p-12 font-bold text-gray-500">Loading profile data...</div>;
-  if (!formData) return <div className="p-12 font-bold text-red-500">Failed to load profile. Please log in.</div>;
+  if (loading) return <div className="p-8 text-gray-500">Loading profile data...</div>;
+  if (!formData) return <div className="p-8 text-red-500">Failed to load profile. Please log in.</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-12 relative">
-      {/* 2FA QR MODAL */}
-      {show2FAModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
-          <div className="bg-white p-8 rounded-2xl shadow-xl w-96 text-center relative">
-            <button onClick={() => setShow2FAModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-black"><X size={20} /></button>
-            <h2 className="text-xl font-bold mb-2">Configure 2FA</h2>
-            <p className="text-sm text-gray-500 mb-6">Scan this QR code with Google Authenticator or Authy.</p>
-            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=otpauth://totp/EasyBlogger:${formData.email}?secret=JBSWY3DPEHPK3PXP&issuer=EasyBlogger`} alt="QR Code" className="mx-auto mb-6 border p-2 rounded-lg" />
-            <input type="text" placeholder="Enter 6-digit code" className="w-full p-3 border rounded-xl text-center tracking-widest text-lg font-bold mb-4 outline-none focus:border-[#1ABC9C]" maxLength={6} />
-            <button onClick={() => { alert("2FA paired! (Requires backend support to enforce)"); setShow2FAModal(false); }} className="w-full py-3 bg-[#1ABC9C] text-white font-bold rounded-xl">Verify & Save</button>
-          </div>
-        </div>
-      )}
 
       <div className="flex justify-between items-center mb-10">
         <h1 className="text-4xl font-bold text-gray-900" style={{ fontFamily: "serif" }}>Edit Profile</h1>
@@ -145,7 +127,7 @@ export default function EditAdminProfile() {
         <div className="bg-white border border-gray-100 rounded-3xl p-10 shadow-sm text-left opacity-75">
           <div className="flex items-center gap-2 mb-6">
             <Bell size={18} className="text-[#1ABC9C]" />
-            <h3 className="text-lg font-bold">System Governance Alerts <span className="text-xs font-normal text-gray-400 italic">(UI Preview Only)</span></h3>
+            <h3 className="text-lg font-bold">System Governance Alerts </h3>
           </div>
           <div className="space-y-6">
 
@@ -156,17 +138,6 @@ export default function EditAdminProfile() {
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" checked={formData.settings.notifications} onChange={() => setFormData({ ...formData, settings: { ...formData.settings, notifications: !formData.settings.notifications } })} />
-                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#1ABC9C] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between border-b border-gray-50 pb-4">
-              <div>
-                <p className="text-sm font-bold text-gray-800">Critical System Errors</p>
-                <p className="text-xs text-gray-400">Email alerts for AI scraper failures</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" checked={formData.settings.criticalAlerts} onChange={() => setFormData({ ...formData, settings: { ...formData.settings, criticalAlerts: !formData.settings.criticalAlerts } })} />
                 <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#1ABC9C] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
               </label>
             </div>
@@ -182,20 +153,6 @@ export default function EditAdminProfile() {
               </label>
             </div>
 
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-100 rounded-3xl p-10 shadow-sm text-left opacity-75">
-          <div className="flex items-center gap-2 mb-6"><ShieldCheck size={18} className="text-[#1ABC9C]" /><h3 className="text-lg font-bold">Account Security <span className="text-xs font-normal text-gray-400 italic">(UI Preview Only)</span></h3></div>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-              <div className="flex items-center gap-3"><Globe size={18} className="text-gray-400" /><div><p className="text-sm font-bold text-gray-800">IP-Based Access Control</p><p className="text-[10px] text-gray-400 uppercase font-bold">Current IP: 124.43.15.2</p></div></div>
-              <button onClick={handleIpLock} className="px-4 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold hover:bg-gray-50 uppercase tracking-tighter">{formData.settings.lockedIp ? "Unlock IP" : "Lock to IP"}</button>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-              <div className="flex items-center gap-3"><Smartphone size={18} className="text-gray-400" /><div><p className="text-sm font-bold text-gray-800">Administrative 2FA</p><p className="text-[10px] text-gray-400 uppercase font-bold">Secured via Google Authenticator</p></div></div>
-              <button onClick={() => setShow2FAModal(true)} className="px-4 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold hover:bg-gray-50 uppercase tracking-tighter">Reset Keys</button>
-            </div>
           </div>
         </div>
       </div>

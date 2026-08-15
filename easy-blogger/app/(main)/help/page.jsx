@@ -114,6 +114,18 @@ export default function HelpPage() {
                 A guide on how to write an AI article in detail
               </p>
             </Link>
+
+            <Link 
+              href="/help/tutorials/how-to-publish-article"
+              className="block p-6 border border-gray-100 rounded-xl hover:border-[#1ABC9C] hover:shadow-md transition-all group"
+            >
+              <h3 className="font-semibold text-lg text-gray-900 group-hover:text-[#1ABC9C] transition-colors mb-2">
+                How to Publish your Article
+              </h3>
+              <p className="text-sm text-gray-500">
+                A Guide on publishing articles 
+              </p>
+            </Link>
  
           </div>
         </div>
