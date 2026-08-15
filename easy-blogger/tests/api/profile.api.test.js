@@ -1,5 +1,7 @@
 // tests/api/profile.api.test.js
 
+const fs = require("fs");
+const path = require("path");
 const {
   mockFetch,
   mockFetchError,
@@ -30,6 +32,37 @@ describe("api.updateProfile", () => {
     );
   });
 
+  test("production API keeps user and admin profile routes separate", () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../lib/api.js"),
+      "utf8",
+    );
+    const updateProfileStart = source.indexOf("updateProfile:");
+    const updateAdminProfileStart = source.indexOf(
+      "updateAdminProfile:",
+      updateProfileStart,
+    );
+    const getUserProfileStart = source.indexOf(
+      "getUserProfile:",
+      updateAdminProfileStart,
+    );
+
+    const userProfileBlock = source.slice(
+      updateProfileStart,
+      updateAdminProfileStart,
+    );
+    const adminProfileBlock = source.slice(
+      updateAdminProfileStart,
+      getUserProfileStart,
+    );
+
+    expect(updateProfileStart).toBeGreaterThan(-1);
+    expect(updateAdminProfileStart).toBeGreaterThan(updateProfileStart);
+    expect(getUserProfileStart).toBeGreaterThan(updateAdminProfileStart);
+    expect(userProfileBlock).toContain('fetchAPI("/api/users/profile"');
+    expect(userProfileBlock).not.toContain("/api/admin/profile");
+    expect(adminProfileBlock).toContain('fetchAPI("/api/admin/profile"');
+  });
   test("uses PUT method", async () => {
     mockFetch({ success: true, data: {} });
 
