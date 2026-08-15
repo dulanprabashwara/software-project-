@@ -122,6 +122,35 @@ describe("api.updateProfile", () => {
   });
 });
 
+describe("profile result modals", () => {
+  test("profile updates display success and failure results", () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../app/(main)/profile/edit/page.jsx"),
+      "utf8",
+    );
+
+    expect(source).toContain("profileUpdateResult");
+    expect(source).toContain("Profile Updated");
+    expect(source).toContain("Update Failed");
+    expect(source).toContain("Your profile details were updated successfully.");
+  });
+
+  test("bio deletion runs immediately and displays its result", () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../app/(main)/profile/page.jsx"),
+      "utf8",
+    );
+
+    expect(source).toContain("bioDeleteResult");
+    expect(source).toContain("Bio Deleted");
+    expect(source).toContain("Delete Failed");
+    expect(source).toContain('isDeletingBio ? "Deleting..." : "Delete"');
+    expect(source).not.toContain(
+      'confirm("Are you sure you want to delete your bio?")',
+    );
+  });
+});
+
 // api.getUserProfile
 describe("api.getUserProfile", () => {
   test("calls GET /api/users/:identifier with the correct URL", async () => {
