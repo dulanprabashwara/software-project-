@@ -142,10 +142,10 @@ export default function OffersPage() {
     <div className="flex h-[calc(100vh-100px)] gap-6 p-6 bg-[#F9FAFB]">
       {/* LEFT COLUMN */}
       <div className="w-1/3 flex flex-col gap-4">
-        <h1 className="text-2xl font-bold text-brand-black" style={{ fontFamily: "Georgia, serif" }}>Moderation</h1>
+        <h1 className="text-2xl font-bold text-[#111827]" style={{ fontFamily: "Georgia, serif" }}>Moderation</h1>
         <div className="flex gap-2 relative z-20">
           <div className="relative w-36" ref={dropdownRef}>
-            <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className={`w-full h-10 px-4 rounded-lg font-medium flex items-center justify-between transition-all ${filterStatus ? 'bg-brand-primary text-white' : 'bg-white border border-[#E5E7EB] text-brand-muted'}`}>
+            <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className={`w-full h-10 px-4 rounded-lg font-medium flex items-center justify-between transition-all ${filterStatus ? 'bg-[#1ABC9C] text-white' : 'bg-white border border-[#E5E7EB] text-[#6B7280]'}`}>
               <span className="capitalize">{filterStatus || "Status"}</span>
               <ChevronDown size={16} />
             </button>
@@ -164,21 +164,21 @@ export default function OffersPage() {
         </div>
 
         <div className="bg-[#E5E7EB] p-1 rounded-full flex text-sm font-medium z-10">
-          <Link href="/admin/moderation/queue" className="flex-1 py-1.5 text-center text-brand-muted hover:text-brand-black">Queue</Link>
-          <div className="flex-1 py-1.5 text-center bg-white text-brand-black shadow-sm rounded-full">Offers</div>
+          <Link href="/admin/moderation/queue" className="flex-1 py-1.5 text-center text-[#6B7280] hover:text-[#111827]">Queue</Link>
+          <div className="flex-1 py-1.5 text-center bg-white text-[#111827] shadow-sm rounded-full">Offers</div>
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-3 pr-1 mt-2 custom-scrollbar">
-          <button onClick={handlePlusClick} className="w-full h-12 border-2 border-dashed border-brand-primary bg-[#E6F8F3] rounded-xl flex items-center justify-center text-brand-primary font-bold hover:bg-brand-primary hover:text-white transition-all shadow-sm"><Plus size={20} className="mr-2" /> Create New Offer</button>
+          <button onClick={handlePlusClick} className="w-full h-12 border-2 border-dashed border-[#1ABC9C] bg-[#E6F8F3] rounded-xl flex items-center justify-center text-[#1ABC9C] font-bold hover:bg-[#1ABC9C] hover:text-white transition-all shadow-sm"><Plus size={20} className="mr-2" /> Create New Offer</button>
           {filteredOffers.map((offer) => (
-            <div key={offer.id} onClick={() => handleSelectOffer(offer)} className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedId === offer.id ? "border-brand-primary bg-white shadow-md ring-1 ring-brand-primary" : "bg-white border-[#E5E7EB]"}`}>
+            <div key={offer.id} onClick={() => handleSelectOffer(offer)} className={`p-4 rounded-xl border cursor-pointer transition-all ${selectedId === offer.id ? "border-[#1ABC9C] bg-white shadow-md ring-1 ring-[#1ABC9C]" : "bg-white border-[#E5E7EB]"}`}>
               <div className="flex justify-between items-start">
-                <h3 className="font-bold text-brand-black text-sm leading-tight">{offer.name}</h3>
+                <h3 className="font-bold text-[#111827] text-sm leading-tight">{offer.name}</h3>
                 <div className={`w-8 h-2.5 rounded-full ${offer.is_active ? 'bg-[#22C55E]' : 'bg-[#EF4444]'}`}></div>
               </div>
               <div className="flex items-center gap-2 mt-1">
                 {offer.discount_percent > 0 && (
-                  <p className="text-[11px] font-bold text-brand-primary bg-[#E6F8F3] px-2 py-0.5 rounded-md">-{offer.discount_percent}%</p>
+                  <p className="text-[11px] font-bold text-[#1ABC9C] bg-[#E6F8F3] px-2 py-0.5 rounded-md">-{offer.discount_percent}%</p>
                 )}
               </div>
             </div>
@@ -190,7 +190,7 @@ export default function OffersPage() {
       <div className="w-2/3 bg-white rounded-2xl shadow-sm border border-[#E5E7EB] flex flex-col overflow-hidden relative">
         {(selectedId || isAddingNew) ? (
           <div className="p-10 flex-1 overflow-y-auto">
-            <h1 className="text-3xl font-black text-brand-black italic mb-8" style={{ fontFamily: "Georgia, serif" }}>
+            <h1 className="text-3xl font-black text-[#111827] italic mb-8" style={{ fontFamily: "Georgia, serif" }}>
               {isAddingNew ? "Add New Promo Offer" : `Update Promo: ${formData.name}`}
             </h1>
 
@@ -206,14 +206,14 @@ export default function OffersPage() {
               <div className="grid grid-cols-3 gap-6">
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Offer Name:</label>
-                  <input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Summer Sale" className={`w-full p-3 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-brand-primary ${errors.name ? 'border-red-500' : 'border-gray-200'}`} />
+                  <input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Summer Sale" className={`w-full p-3 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.name ? 'border-red-500' : 'border-gray-200'}`} />
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                 </div>
 
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Discount (%):</label>
                   <div className="relative">
-                    <input type="number" min="0" max="100" value={formData.discount_percent} onChange={(e) => setFormData({ ...formData, discount_percent: e.target.value })} placeholder="e.g. 50" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-brand-primary ${errors.discount_percent ? 'border-red-500' : 'border-gray-200'}`} />
+                    <input type="number" min="0" max="100" value={formData.discount_percent} onChange={(e) => setFormData({ ...formData, discount_percent: e.target.value })} placeholder="e.g. 50" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.discount_percent ? 'border-red-500' : 'border-gray-200'}`} />
                     <Percent className="absolute left-3 top-3.5 text-gray-400" size={16} />
                   </div>
                   {errors.discount_percent && <p className="text-red-500 text-xs mt-1">{errors.discount_percent}</p>}
@@ -222,7 +222,7 @@ export default function OffersPage() {
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase">Stripe Coupon ID:</label>
                   <div className="relative">
-                    <input type="text" value={formData.stripe_coupon_id} onChange={(e) => setFormData({ ...formData, stripe_coupon_id: e.target.value })} placeholder="e.g. SUMMER50" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm font-mono outline-none focus:ring-1 focus:ring-brand-primary ${errors.stripe_coupon_id ? 'border-red-500' : 'border-gray-200'}`} />
+                    <input type="text" value={formData.stripe_coupon_id} onChange={(e) => setFormData({ ...formData, stripe_coupon_id: e.target.value })} placeholder="e.g. SUMMER50" className={`w-full p-3 pl-10 border bg-white rounded-xl text-sm font-mono outline-none focus:ring-1 focus:ring-[#1ABC9C] ${errors.stripe_coupon_id ? 'border-red-500' : 'border-gray-200'}`} />
                     <Tag className="absolute left-3 top-3.5 text-gray-400" size={16} />
                   </div>
                   {errors.stripe_coupon_id && <p className="text-red-500 text-xs mt-1">{errors.stripe_coupon_id}</p>}
@@ -231,15 +231,15 @@ export default function OffersPage() {
 
 
               <div className="flex items-center justify-between pt-6">
-                <button onClick={validateAndTriggerVerify} className="bg-brand-primary hover:bg-brand-primary-hover text-white pl-6 pr-2 py-2 rounded-full flex items-center gap-3 shadow-md active:scale-95 transition-all">
+                <button onClick={validateAndTriggerVerify} className="bg-[#114A3F] text-white pl-6 pr-2 py-2 rounded-full flex items-center gap-3 shadow-md active:scale-95 transition-all">
                   <span className="font-bold text-sm">Save Action</span>
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white"><Save size={18} /></div>
+                  <div className="w-8 h-8 bg-[#4FD1C5] rounded-full flex items-center justify-center text-[#114A3F]"><Save size={18} /></div>
                 </button>
                 <div className="flex items-center gap-4">
-                  <span className="text-xl font-black text-brand-black">Visibility</span>
+                  <span className="text-xl font-black text-[#111827]">Visibility</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" className="sr-only peer" checked={formData.is_active} onChange={toggleVisibility} />
-                    <div className="w-14 h-7 bg-gray-300 rounded-full peer peer-checked:bg-brand-primary after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-7 shadow-inner"></div>
+                    <div className="w-14 h-7 bg-gray-300 rounded-full peer peer-checked:bg-[#1ABC9C] after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-7 shadow-inner"></div>
                   </label>
                 </div>
               </div>
@@ -250,7 +250,7 @@ export default function OffersPage() {
             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100">
               <MousePointer2 size={32} className="text-gray-300" />
             </div>
-            <h3 className="text-lg font-semibold text-brand-muted">No Offer Selected</h3>
+            <h3 className="text-lg font-semibold text-gray-700">No Offer Selected</h3>
             <p className="text-sm mt-2">Click an offer on the left to edit, or create a new one.</p>
           </div>
         )}
@@ -259,12 +259,12 @@ export default function OffersPage() {
       {showVerifyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white p-8 rounded-[40px] shadow-2xl max-w-sm w-full text-center">
-            <AlertCircle size={32} className="text-brand-primary mx-auto mb-4" />
+            <AlertCircle size={32} className="text-[#1ABC9C] mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Verify Changes</h2>
-            <p className="text-sm text-brand-muted mb-6">You are applying a <span className="text-brand-primary font-bold">{formData.discount_percent}% discount</span> using the Stripe coupon code <span className="font-mono bg-gray-100 px-1 rounded">{formData.stripe_coupon_id}</span>.</p>
+            <p className="text-sm text-gray-500 mb-6">You are applying a <span className="text-[#1ABC9C] font-bold">{formData.discount_percent}% discount</span> using the Stripe coupon code <span className="font-mono bg-gray-100 px-1 rounded">{formData.stripe_coupon_id}</span>.</p>
             <div className="flex gap-4">
-              <button onClick={() => setShowVerifyModal(false)} className="flex-1 font-bold text-gray-400 hover:text-brand-muted transition-colors">Back</button>
-              <button onClick={confirmFinalSave} className="flex-1 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-2xl py-3 font-bold transition-colors">Confirm</button>
+              <button onClick={() => setShowVerifyModal(false)} className="flex-1 font-bold text-gray-400 hover:text-gray-600 transition-colors">Back</button>
+              <button onClick={confirmFinalSave} className="flex-1 bg-[#114A3F] hover:bg-[#0a2e27] text-white rounded-2xl py-3 font-bold transition-colors">Confirm</button>
             </div>
           </div>
         </div>

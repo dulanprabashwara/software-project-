@@ -11,17 +11,17 @@ export default function Layout({ children }) {
 
   return (
     <div className="mx-auto overflow-hidden bg-white min-h-0   scale-90">
-      <div className="flex justify-between text-[1.75rem] px-50 py-4 h-full font-serif overflow-hidden">
+      <div className="flex justify-between text-[1.75rem] px-50 py-4 h-full font-[Georgia] overflow-hidden">
         <button
           onClick={() => router.push("/stats/public")}
-          className={isPublic ? "text-brand-primary bg-[#f0fdf9] px-7 rounded-4xl"  : "text-brand-muted px-7 rounded-4xl"}
+          className={isPublic ? "text-[#1abc9c] bg-[#f0fdf9] px-7 rounded-4xl"  : "text-[#6b6b6b] px-7 rounded-4xl"}
         >
           Public
         </button>
 
         <button
           onClick={() => router.push("/stats/private")}
-          className={isPrivate ?"text-brand-primary bg-[#f0fdf9] px-7 rounded-4xl": "text-brand-muted px-7 rounded-4xl"}
+          className={isPrivate ?"text-[#1abc9c] bg-[#f0fdf9] px-7 rounded-4xl": "text-[#6b6b6b] px-7 rounded-4xl"}
         >
           Private
         </button>

@@ -12,12 +12,12 @@ export default function CreateArticleTypeModal({
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-3 text-2xl text-gray-400 hover:text-brand-muted"
+          className="absolute right-4 top-3 text-2xl text-gray-400 hover:text-gray-700"
         >
           ×
         </button>
 
-        <h2 className="mb-8 text-center text-3xl font-serif font-bold text-brand-black">
+        <h2 className="mb-8 text-center text-3xl font-serif font-bold text-[#111827]">
           Create Your Article
         </h2>
 
@@ -25,7 +25,7 @@ export default function CreateArticleTypeModal({
           <button
             type="button"
             onClick={onUseAi}
-            className="w-full rounded-full bg-brand-primary py-3 font-semibold text-white shadow-md hover:bg-brand-primary-hover"
+            className="w-full rounded-full bg-[#1ABC9C] py-3 font-semibold text-white shadow-md hover:bg-[#159A80]"
           >
             Using AI
           </button>

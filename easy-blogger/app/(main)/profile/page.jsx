@@ -2,14 +2,7 @@
 import { useState, useRef, useEffect, useCallback , Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import {
-  X,
-  Loader2,
-  MessageCircle,
-  BadgeCheck,
-  CheckCircle,
-  AlertTriangle,
-} from "lucide-react";
+import { X, Loader2, MessageCircle, BadgeCheck, CheckCircle } from "lucide-react";
 import { useSubscription } from "../../context/SubscriptionContext";
 import { useAuth } from "../../context/AuthContext";
 import ArticleCard from "../../../components/article/ArticleCard";
@@ -62,9 +55,6 @@ function ProfilePageContent() {
   const [aboutText, setAboutText] = useState("");
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [hasAbout, setHasAbout] = useState(false);
-  const [isSavingAbout, setIsSavingAbout] = useState(false);
-  const [isDeletingBio, setIsDeletingBio] = useState(false);
-  const [bioDeleteResult, setBioDeleteResult] = useState(null);
 
   // active Stat modal tab
   const [statsActiveTab, setStatsActiveTab] = useState(modalTab || "followers");
@@ -210,7 +200,6 @@ function ProfilePageContent() {
   const handleSaveAbout = async () => {
     if (aboutText.trim() && userProfile) {
       try {
-        setIsSavingAbout(true);
         const token = await firebaseUser.getIdToken();
         await api.updateProfile({ bio: aboutText }, token);
         setHasAbout(true);
@@ -219,8 +208,6 @@ function ProfilePageContent() {
       } catch (err) {
         console.error("Failed to update bio", err);
         alert("Failed to save about text.");
-      } finally {
-        setIsSavingAbout(false);
       }
     }
   };
@@ -240,25 +227,17 @@ function ProfilePageContent() {
 
   //delete about
   const handleDeleteAbout = async () => {
-    try {
-      setIsDeletingBio(true);
-      const token = await firebaseUser.getIdToken();
-      await api.updateProfile({ bio: null }, token);
-      setHasAbout(false);
-      setAboutText("");
-      updateContextProfile({ bio: null }); //call authcotext to delete about from its memory
-      setBioDeleteResult({
-        type: "success",
-        message: "Your bio was deleted successfully.",
-      });
-    } catch (err) {
-      console.error("Failed to delete bio", err);
-      setBioDeleteResult({
-        type: "error",
-        message: err?.message || "Failed to delete your bio. Please try again.",
-      });
-    } finally {
-      setIsDeletingBio(false);
+    if (confirm("Are you sure you want to delete your bio?")) {
+      try {
+        const token = await firebaseUser.getIdToken();
+        await api.updateProfile({ bio: null }, token);
+        setHasAbout(false);
+        setAboutText("");
+        updateContextProfile({ bio: null }); //call authcotext to delete about from its memory
+      } catch (err) {
+        console.error("Failed to delete bio", err);
+        alert("Failed to delete bio.");
+      }
     }
   };
 
@@ -307,7 +286,7 @@ function ProfilePageContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center w-full h-[calc(100vh-64px)] pt-20 bg-gray-50">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-primary opacity-50" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#1ABC9C] opacity-50" />
       </div>
     );
   }
@@ -324,7 +303,7 @@ function ProfilePageContent() {
           {/* Profile Header */}
           <div className="flex items-center justify-between mb-6">
             <h1
-              className="text-3xl font-bold text-brand-black"
+              className="text-3xl font-bold text-[#111827]"
               style={{ fontFamily: "Georgia, serif" }}
             >
               {displayName}
@@ -335,7 +314,7 @@ function ProfilePageContent() {
                 className="p-2 hover:bg-[#F8FAFC] rounded-full transition-colors duration-150"
               >
                 <svg
-                  className="w-6 h-6 text-brand-muted"
+                  className="w-6 h-6 text-[#6B7280]"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -347,7 +326,7 @@ function ProfilePageContent() {
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
                   <button
                     onClick={handleCopyLink}
-                    className="w-full text-left px-4 py-2 text-sm text-brand-muted hover:bg-gray-50 flex items-center gap-2"
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                   >
                     <svg
                       className="w-4 h-4"
@@ -376,8 +355,8 @@ function ProfilePageContent() {
                 onClick={() => setActiveTab("home")}
                 className={`pb-3 text-sm font-medium transition-colors ${
                   activeTab === "home"
-                    ? "text-brand-black border-b-2 border-brand-black"
-                    : "text-brand-muted hover:text-brand-black"
+                    ? "text-[#111827] border-b-2 border-[#111827]"
+                    : "text-[#6B7280] hover:text-[#111827]"
                 }`}
               >
                 Home
@@ -386,8 +365,8 @@ function ProfilePageContent() {
                 onClick={() => setActiveTab("about")}
                 className={`pb-3 text-sm font-medium transition-colors ${
                   activeTab === "about"
-                    ? "text-brand-black border-b-2 border-brand-black"
-                    : "text-brand-muted hover:text-brand-black"
+                    ? "text-[#111827] border-b-2 border-[#111827]"
+                    : "text-[#6B7280] hover:text-[#111827]"
                 }`}
               >
                 About
@@ -398,9 +377,9 @@ function ProfilePageContent() {
           {activeTab === "home" ? (
             <div>
               {articlesLoading ? (
-                <p className="text-sm text-brand-muted">Loading articles...</p>
+                <p className="text-sm text-[#6B7280]">Loading articles...</p>
               ) : publishedArticles.length === 0 ? (
-                <p className="text-sm text-brand-muted">
+                <p className="text-sm text-[#6B7280]">
                   You have not published any articles yet.
                 </p>
               ) : (
@@ -413,31 +392,31 @@ function ProfilePageContent() {
             <div className="py-8">
               {!hasAbout && !isEditingAbout ? (
                 <div className="border border-[#E5E7EB] rounded-lg p-8 text-center max-w-xl mx-auto bg-[#F9FAFB] relative z-10 overflow-hidden">
-                  <h3 className="text-lg font-semibold text-brand-black mb-3">
+                  <h3 className="text-lg font-semibold text-[#111827] mb-3">
                     Tell the world about yourself
                   </h3>
-                  <p className="text-brand-muted text-sm mb-6 leading-relaxed">
+                  <p className="text-[#6B7280] text-sm mb-6 leading-relaxed">
                     Here's where you can share more about yourself: your
                     history, work experience, accomplishments, interests,
                     dreams, and more.
                   </p>
                   <button
                     onClick={handleGetStartedAbout}
-                    className="px-6 py-2.5 border border-brand-black text-brand-black rounded-full text-sm font-medium hover:bg-brand-black-hover hover:text-white transition-colors duration-150"
+                    className="px-6 py-2.5 border border-[#111827] text-[#111827] rounded-full text-sm font-medium hover:bg-[#111827] hover:text-white transition-colors duration-150"
                   >
                     Get started
                   </button>
                 </div>
               ) : isEditingAbout ? (
                 <div className="max-w-xl mx-auto relative z-10 overflow-hidden p-1">
-                  <label className="block text-sm font-semibold text-brand-muted mb-2">
+                  <label className="block text-sm font-semibold text-[#374151] mb-2">
                     About You
                   </label>
                   <textarea
                     value={aboutText}
                     onChange={(e) => setAboutText(e.target.value)}
                     rows={6}
-                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent resize-none mb-4 bg-white"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent resize-none mb-4 bg-white"
                     placeholder="Tell your story..."
                   />
                   <div className="flex gap-3 justify-end">
@@ -449,31 +428,30 @@ function ProfilePageContent() {
                     </button>
                     <button
                       onClick={handleSaveAbout}
-                      disabled={!aboutText.trim() || isSavingAbout}
-                      className="px-6 py-2 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
+                      disabled={!aboutText.trim()}
+                      className="px-6 py-2 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
                     >
-                      {isSavingAbout ? "Saving..." : "Save"}
+                      Save
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="max-w-xl mx-auto group relative z-10 overflow-hidden">
                   <div className="border border-[#E5E7EB] rounded-lg p-8 bg-white mb-3">
-                    <div className="prose prose-slate max-w-none text-brand-muted leading-relaxed whitespace-pre-wrap">
+                    <div className="prose prose-slate max-w-none text-[#374151] leading-relaxed whitespace-pre-wrap">
                       {aboutText}
                     </div>
                   </div>
                   <div className="flex justify-end gap-3 px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                       onClick={handleDeleteAbout}
-                      disabled={isDeletingBio}
-                      className="px-6 py-2 border border-black text-black rounded-full text-sm font-medium hover:bg-gray-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                      className="px-6 py-2 border border-black text-black rounded-full text-sm font-medium hover:bg-gray-50 transition-colors"
                     >
-                      {isDeletingBio ? "Deleting..." : "Delete"}
+                      Delete
                     </button>
                     <button
                       onClick={handleEditAbout}
-                      className="px-6 py-2 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-full text-sm font-medium transition-colors"
+                      className="px-6 py-2 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors"
                     >
                       Edit
                     </button>
@@ -500,19 +478,19 @@ function ProfilePageContent() {
               />
             </div>
 
-            <h2 className="text-base font-bold text-brand-black mb-2 flex items-center gap-2">
+            <h2 className="text-base font-bold text-[#111827] mb-2 flex items-center gap-2">
               {displayName}
               {isPremium && (
                 <BadgeCheck
                   className="w-5 h-5 shrink-0"
-                  fill="var(--color-brand-primary)"
+                  fill="#1ABC9C"
                   stroke="white"
                   strokeWidth="1.5"
                 />
               )}
             </h2>
 
-            <p className="text-sm text-brand-muted mb-1">
+            <p className="text-sm text-[#6B7280] mb-1">
               <Link
                 href="/profile?modal=followers"
                 className="hover:underline cursor-pointer"
@@ -528,7 +506,7 @@ function ProfilePageContent() {
               </Link>
             </p>
 
-            <p className="text-sm text-brand-muted mb-4">
+            <p className="text-sm text-[#6B7280] mb-4">
               <Link
                 href="/profile?modal=shares"
                 className="hover:underline cursor-pointer"
@@ -543,7 +521,7 @@ function ProfilePageContent() {
 
             <a
               href="/profile/edit"
-              className="text-sm text-brand-primary hover:text-brand-primary-hover transition-colors"
+              className="text-sm text-[#1ABC9C] hover:text-[#17a589] transition-colors"
             >
               Edit profile
             </a>
@@ -564,7 +542,7 @@ function ProfilePageContent() {
               <div className="p-6 border-b border-[#E5E7EB]">
                 <div className="flex items-center justify-between mb-4">
                   <h2
-                    className="text-2xl font-bold text-brand-black"
+                    className="text-2xl font-bold text-[#111827]"
                     style={{ fontFamily: "Georgia, serif" }}
                   >
                     {displayName}
@@ -573,7 +551,7 @@ function ProfilePageContent() {
                     onClick={closeModal}
                     className="p-1 hover:bg-[#F9FAFB] rounded-full transition-colors"
                   >
-                    <X className="w-5 h-5 text-brand-muted" />
+                    <X className="w-5 h-5 text-[#6B7280]" />
                   </button>
                 </div>
 
@@ -608,14 +586,14 @@ function ProfilePageContent() {
                       }}
                       className={`pb-3 text-sm font-medium transition-colors relative ${
                         statsActiveTab === key
-                          ? "text-brand-black"
-                          : "text-brand-muted"
+                          ? "text-[#111827]"
+                          : "text-[#6B7280]"
                       }`}
                     >
                       <span className="mr-1">{label}</span>
-                      <span className="text-brand-muted">{count}</span>
+                      <span className="text-[#6B7280]">{count}</span>
                       {statsActiveTab === key && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary" />
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1ABC9C]" />
                       )}
                     </button>
                   ))}
@@ -681,10 +659,10 @@ function ProfilePageContent() {
                                     className="w-12 h-12 rounded-full object-cover shrink-0"
                                   />
                                   <div className="min-w-0">
-                                    <p className="font-semibold text-brand-black text-sm truncate">
+                                    <p className="font-semibold text-[#111827] text-sm truncate">
                                       {person.displayName || person.username}
                                     </p>
-                                    <p className="text-xs text-brand-muted truncate">
+                                    <p className="text-xs text-[#6B7280] truncate">
                                       @{person.username}
                                     </p>
                                   </div>
@@ -698,8 +676,8 @@ function ProfilePageContent() {
                                       disabled={isToggling}
                                       className={`shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
                                         isFollowingPerson
-                                          ? "text-brand-muted border border-[#E5E7EB] hover:bg-[#F9FAFB]"
-                                          : "text-white bg-brand-primary hover:bg-brand-primary-hover"
+                                          ? "text-[#6B7280] border border-[#E5E7EB] hover:bg-[#F9FAFB]"
+                                          : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
                                       }`}
                                     >
                                       {isToggling ? (
@@ -713,7 +691,7 @@ function ProfilePageContent() {
                                     {isFollowingPerson && (
                                       <Link
                                         href={`/chat?userId=${person.id}`}
-                                        className="shrink-0 px-4 py-1.5 text-sm rounded-full border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white transition-colors"
+                                        className="shrink-0 px-4 py-1.5 text-sm rounded-full border border-[#1ABC9C] text-[#1ABC9C] hover:bg-[#1ABC9C] hover:text-white transition-colors"
                                       >
                                         Message
                                       </Link>
@@ -762,10 +740,10 @@ function ProfilePageContent() {
                                     className="w-12 h-12 rounded-full object-cover shrink-0"
                                   />
                                   <div className="min-w-0">
-                                    <p className="font-semibold text-brand-black text-sm truncate">
+                                    <p className="font-semibold text-[#111827] text-sm truncate">
                                       {person.displayName || person.username}
                                     </p>
-                                    <p className="text-xs text-brand-muted truncate">
+                                    <p className="text-xs text-[#6B7280] truncate">
                                       @{person.username}
                                     </p>
                                   </div>
@@ -779,8 +757,8 @@ function ProfilePageContent() {
                                       disabled={isToggling}
                                       className={`shrink-0 px-4 py-1.5 text-sm rounded-full transition-colors disabled:opacity-50 ${
                                         stillFollowing
-                                          ? "text-brand-muted border border-[#E5E7EB] hover:border-red-300 hover:text-red-500 hover:bg-red-50"
-                                          : "text-white bg-brand-primary hover:bg-brand-primary-hover"
+                                          ? "text-[#6B7280] border border-[#E5E7EB] hover:border-red-300 hover:text-red-500 hover:bg-red-50"
+                                          : "text-white bg-[#1ABC9C] hover:bg-[#17a589]"
                                       }`}
                                     >
                                       {isToggling ? (
@@ -793,7 +771,7 @@ function ProfilePageContent() {
                                     </button>
                                     <Link
                                       href={`/chat?userId=${person.id}`}
-                                      className="shrink-0 px-4 py-1.5 text-sm rounded-full border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white transition-colors"
+                                      className="shrink-0 px-4 py-1.5 text-sm rounded-full border border-[#1ABC9C] text-[#1ABC9C] hover:bg-[#1ABC9C] hover:text-white transition-colors"
                                     >
                                       Message
                                     </Link>
@@ -814,11 +792,11 @@ function ProfilePageContent() {
                             key={share.id}
                             className="border-b border-[#E5E7EB] pb-4 last:border-0"
                           >
-                            <h3 className="font-semibold text-brand-black mb-2">
+                            <h3 className="font-semibold text-[#111827] mb-2">
                               {share.title}
                             </h3>
                             <div className="flex items-center justify-between">
-                              <p className="text-sm text-brand-muted">
+                              <p className="text-sm text-[#6B7280]">
                                 Shared to {share.platform} · {share.date}
                               </p>
                               {share.likes && (
@@ -827,7 +805,7 @@ function ProfilePageContent() {
                                 </span>
                               )}
                               {share.comments && (
-                                <span className="px-2 py-1 bg-[#DBEAFE] text-brand-blue text-xs font-medium rounded">
+                                <span className="px-2 py-1 bg-[#DBEAFE] text-[#2563EB] text-xs font-medium rounded">
                                   {share.comments} comments
                                 </span>
                               )}
@@ -844,89 +822,30 @@ function ProfilePageContent() {
         </>
       )}
 
-      {/* Bio Delete Result Modal */}
-      {bioDeleteResult && (
-        <div
-          className="fixed inset-0 z-9999 flex items-center justify-center bg-black/10 backdrop-blur-sm px-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="bio-delete-result-title"
-        >
-          <div className="relative w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl animate-fade-in-up">
-            <button
-              type="button"
-              onClick={() => setBioDeleteResult(null)}
-              aria-label="Close bio deletion result"
-              className="absolute right-4 top-3 text-2xl text-gray-400 hover:text-brand-muted transition-colors"
-            >
-              ×
-            </button>
-            <div className="mb-6 flex justify-center">
-              <div
-                className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                  bioDeleteResult.type === "success"
-                    ? "bg-[#D1FAE5]"
-                    : "bg-[#FEE2E2]"
-                }`}
-              >
-                {bioDeleteResult.type === "success" ? (
-                  <CheckCircle className="w-8 h-8 text-brand-primary" />
-                ) : (
-                  <AlertTriangle className="w-8 h-8 text-[#DC2626]" />
-                )}
-              </div>
-            </div>
-            <h2
-              id="bio-delete-result-title"
-              className="mb-2 text-center text-xl font-bold text-brand-black"
-              style={{ fontFamily: "Georgia, serif" }}
-            >
-              {bioDeleteResult.type === "success"
-                ? "Bio Deleted"
-                : "Delete Failed"}
-            </h2>
-            <p className="text-center text-brand-muted mb-8 text-sm">
-              {bioDeleteResult.message}
-            </p>
-            <button
-              type="button"
-              onClick={() => setBioDeleteResult(null)}
-              className={`w-full rounded-full py-3 font-semibold text-white shadow-md transition-colors ${
-                bioDeleteResult.type === "success"
-                  ? "bg-brand-primary hover:bg-brand-primary-hover"
-                  : "bg-[#DC2626] hover:bg-[#B91C1C]"
-              }`}
-            >
-              {bioDeleteResult.type === "success" ? "Done" : "Try Again"}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Copy Success Modal */}
       {showCopyModal && (
         <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/10 backdrop-blur-sm px-4">
           <div className="relative w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl animate-fade-in-up">
             <button
               onClick={() => setShowCopyModal(false)}
-              className="absolute right-4 top-3 text-2xl text-gray-400 hover:text-brand-muted transition-colors"
+              className="absolute right-4 top-3 text-2xl text-gray-400 hover:text-gray-700 transition-colors"
             >
               ×
             </button>
             <div className="mb-6 flex justify-center">
               <div className="w-16 h-16 bg-[#D1FAE5] rounded-full flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-brand-primary" />
+                <CheckCircle className="w-8 h-8 text-[#1ABC9C]" />
               </div>
             </div>
-            <h2 className="mb-2 text-center text-xl font-bold text-brand-black" style={{ fontFamily: "Georgia, serif" }}>
+            <h2 className="mb-2 text-center text-xl font-bold text-[#111827]" style={{ fontFamily: "Georgia, serif" }}>
               Link Copied!
             </h2>
-            <p className="text-center text-brand-muted mb-8 text-sm">
+            <p className="text-center text-[#475569] mb-8 text-sm">
               Your profile link has been successfully copied to your clipboard.
             </p>
             <button
               onClick={() => setShowCopyModal(false)}
-              className="w-full rounded-full bg-brand-primary py-3 font-semibold text-white shadow-md hover:bg-brand-primary-hover transition-colors"
+              className="w-full rounded-full bg-[#1ABC9C] py-3 font-semibold text-white shadow-md hover:bg-[#17a589] transition-colors"
             >
               Done
             </button>
@@ -939,7 +858,7 @@ function ProfilePageContent() {
 
 export default function ProfilePage(props) {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-brand-muted">Loading...</p></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-gray-500">Loading...</p></div>}>
       <ProfilePageContent {...props} />
     </Suspense>
   );

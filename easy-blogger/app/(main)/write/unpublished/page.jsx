@@ -56,19 +56,19 @@ function EmptyState({ type, onCreate }) {
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#D1D5DB] bg-[#F9FAFB] px-6 py-16 text-center animate-pulse">
       <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm">
         {isAi ? (
-          <Bot className="h-8 w-8 text-brand-muted" />
+          <Bot className="h-8 w-8 text-[#6B7280]" />
         ) : (
-          <FileText className="h-8 w-8 text-brand-muted" />
+          <FileText className="h-8 w-8 text-[#6B7280]" />
         )}
       </div>
 
-      <h2 className="text-2xl font-semibold text-brand-black">
+      <h2 className="text-2xl font-semibold text-[#111827]">
         {isAi
           ? "You haven't created AI Generated articles yet"
           : "You haven't created Regular articles yet"}
       </h2>
 
-      <p className="mt-3 max-w-xl text-brand-muted">
+      <p className="mt-3 max-w-xl text-[#6B7280]">
         {isAi
           ? "Start with AI and save your generated work as a draft to view it here."
           : "Start writing and save your article as a draft to view it here."}
@@ -77,7 +77,7 @@ function EmptyState({ type, onCreate }) {
       <button
         type="button"
         onClick={onCreate}
-        className="mt-8 rounded-full bg-brand-primary px-8 py-3 text-white font-medium shadow-md transition-transform duration-200 hover:-translate-y-0.5 hover:bg-brand-primary-hover"
+        className="mt-8 rounded-full bg-[#10B981] px-8 py-3 text-white font-medium shadow-md transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[#0EA371]"
       >
         Let&apos;s Create your Article now
       </button>
@@ -112,7 +112,7 @@ export default function UnpublishedArticlesPage() {
     }, 2500);
   }, []);
 
-  //Loads drafts from the backend
+  //Loads drafts from the backend 
   const loadDrafts = useCallback(
     async (nextPage = 1, filter = activeFilter) => {
       const isFirstPage = nextPage === 1;
@@ -151,9 +151,9 @@ export default function UnpublishedArticlesPage() {
         console.error("Failed to load draft articles:", error);
         showError(error?.message || "Failed to load drafts.");
       } finally {
-        setIsLoading(false);
+        setIsLoading(false);      
         setIsLoadingMore(false);
-        //Loading states are cleared regardless of whether the API request succeeds or fails.
+        //Loading states are cleared regardless of whether the API request succeeds or fails. 
         // This prevents the UI from getting stuck in a loading state after an error.
       }
     },
@@ -161,7 +161,7 @@ export default function UnpublishedArticlesPage() {
   );
 
   useEffect(() => {
-    // Global click listener to automatically close any open edit or delete
+    // Global click listener to automatically close any open edit or delete 
     const handleClickOutside = (event) => {
       if (!event.target.closest(".interactive-controls")) {
         setEditingId(null);
@@ -241,7 +241,7 @@ export default function UnpublishedArticlesPage() {
       <header className="px-8 pt-10 pb-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <h1 className="text-4xl font-bold font-serif text-brand-black mb-2">
+            <h1 className="text-4xl font-bold font-[Georgia] text-[#111827] mb-2">
               Unpublished Articles
             </h1>
             <p className="text-gray-400 text-sm">
@@ -256,8 +256,8 @@ export default function UnpublishedArticlesPage() {
                 type="button"
                 onClick={() => setActiveFilter(FILTERS.REGULAR)}
                 className={`px-8 py-3 rounded-t-2xl font-bold text-sm transition-all ${activeFilter === FILTERS.REGULAR
-                  ? "bg-[#E9FFF7] text-brand-primary"
-                  : "text-brand-primary/60 hover:text-brand-primary"
+                  ? "bg-[#E9FFF7] text-[#10B981]"
+                  : "text-[#10B981]/60 hover:text-[#10B981]"
                   }`}
               >
                 Regular Articles
@@ -267,8 +267,8 @@ export default function UnpublishedArticlesPage() {
                 type="button"
                 onClick={() => setActiveFilter(FILTERS.AI)}
                 className={`px-8 py-3 rounded-t-2xl font-bold text-sm transition-all ${activeFilter === FILTERS.AI
-                  ? "bg-[#E9FFF7] text-brand-primary"
-                  : "text-brand-primary/60 hover:text-brand-primary"
+                  ? "bg-[#E9FFF7] text-[#10B981]"
+                  : "text-[#10B981]/60 hover:text-[#10B981]"
                   }`}
               >
                 AI Generated Articles
@@ -289,8 +289,8 @@ export default function UnpublishedArticlesPage() {
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-32 gap-4">
-            <div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-brand-muted font-medium">Loading your drafts...</p>
+            <div className="w-10 h-10 border-4 border-[#10B981] border-t-transparent rounded-full animate-spin" />
+            <p className="text-gray-500 font-medium">Loading your drafts...</p>
           </div>
         ) : displayedArticles.length === 0 ? (
           <EmptyState type={activeFilter} onCreate={handleCreateArticle} />
@@ -335,7 +335,7 @@ export default function UnpublishedArticlesPage() {
                           className="h-8 w-8 rounded-full object-cover bg-gray-100"
                         />
                         <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-semibold text-brand-black truncate">
+                          <span className="text-sm font-semibold text-gray-900 truncate">
                             {article.author}
                           </span>
                           <span className="text-[11px] text-gray-400">
@@ -363,7 +363,7 @@ export default function UnpublishedArticlesPage() {
                       {/* Card Content */}
                       <div className="p-4 flex-1 flex flex-col">
                         <div className="flex items-start gap-2 mb-2">
-                          <h2 className="text-lg font-bold text-brand-black leading-tight line-clamp-2 font-serif group-hover/card:text-brand-primary transition-colors">
+                          <h2 className="text-lg font-bold text-gray-900 leading-tight line-clamp-2 font-serif group-hover/card:text-[#10B981] transition-colors">
                             {article.title}
                           </h2>
                         </div>
@@ -375,21 +375,21 @@ export default function UnpublishedArticlesPage() {
                             </span>
                           )}
                           {article.isEditAsNew && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-brand-blue border border-blue-100 uppercase tracking-tighter">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100 uppercase tracking-tighter">
                               Recreated
                             </span>
                           )}
                         </div>
-
+                        
                         {/*Shows plain text preview from article content (limits it to 3 lines)*/}
-                        <p className="text-sm text-brand-muted line-clamp-3 leading-relaxed mb-4">
+                        <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed mb-4">
                           {article.desc}
                         </p>
 
                         <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between interactive-controls">
-                          {/*
-                            Inline confirmation prevents accidental deletions
-                            without requiring a disruptive modal popup.
+                          {/* 
+                            Inline confirmation prevents accidental deletions 
+                            without requiring a disruptive modal popup. 
                           */}
                           {deletingId === article.id ? (
                             <div className="w-full animate-in fade-in zoom-in duration-200">
@@ -405,16 +405,16 @@ export default function UnpublishedArticlesPage() {
                                 </button>
                                 <button
                                   onClick={() => setDeletingId(null)}
-                                  className="text-[11px] font-bold text-brand-muted hover:text-black transition-colors"
+                                  className="text-[11px] font-bold text-gray-500 hover:text-black transition-colors"
                                 >
                                   No
                                 </button>
                               </div>
                             </div>
                           ) : editingId === article.id ? (
-                            /*
-                              Split edit options allow the user to choose their
-                              preferred workflow (cloning vs modifying) directly from the card.
+                            /* 
+                              Split edit options allow the user to choose their 
+                              preferred workflow (cloning vs modifying) directly from the card. 
                             */
                             <div className="flex w-full gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
                               <button
@@ -434,7 +434,7 @@ export default function UnpublishedArticlesPage() {
                             <>
                               <button
                                 onClick={() => setEditingId(article.id)}
-                                className="flex items-center gap-2 text-sm font-bold text-brand-black hover:text-brand-primary transition-colors"
+                                className="flex items-center gap-2 text-sm font-bold text-black hover:text-[#10B981] transition-colors"
                               >
                                 <Edit className="w-4 h-4" />
                                 <span>EDIT</span>

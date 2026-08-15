@@ -34,17 +34,17 @@ function ArticleScheduledContent() {
     if (article?.status === "SCHEDULED" || article?.status === "PUBLISHED") {
       list.push("Easy Blogger");
     }
-
+    
     const validStatuses = ["PENDING", "IN_PROGRESS", "PUBLISHED", "SCHEDULED"];
-
+    
     if (article?.wpPublishJobs?.some(job => validStatuses.includes(job.status))) {
       list.push("WordPress");
     }
-
+    
     if (article?.liPublishJobs?.some(job => validStatuses.includes(job.status))) {
       list.push("LinkedIn");
     }
-
+    
     return list;
   }, [article]);
 
@@ -55,7 +55,7 @@ function ArticleScheduledContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6">
-        <p className="text-sm text-brand-muted">Loading scheduled article...</p>
+        <p className="text-sm text-gray-500">Loading scheduled article...</p>
       </div>
     );
   }
@@ -79,15 +79,15 @@ function ArticleScheduledContent() {
       onButtonClick={() => router.push("/home")}
     >
       <InfoCard icon={BookOpen} title="Article title">
-        <p className="mt-0.5 text-base font-bold text-brand-black leading-snug line-clamp-2">{article.title}</p>
+        <p className="mt-0.5 text-base font-bold text-gray-800 leading-snug line-clamp-2">{article.title}</p>
       </InfoCard>
-
+      
       <InfoCard icon={Tag} title="Tags">
         <div className="mt-1.5 flex flex-wrap gap-1.5">
           {(article.tags || []).map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-gray-100 bg-white px-3 py-1 text-xs font-semibold text-brand-muted shadow-2xs"
+              className="rounded-full border border-gray-100 bg-white px-3 py-1 text-xs font-semibold text-gray-600 shadow-2xs"
             >
               {tag}
             </span>
@@ -96,7 +96,7 @@ function ArticleScheduledContent() {
       </InfoCard>
 
       <InfoCard icon={CalendarDays} title="Scheduled for">
-        <p className="mt-0.5 text-sm font-semibold text-brand-black">
+        <p className="mt-0.5 text-sm font-semibold text-gray-800">
           {scheduledDate} at {scheduledTime}
         </p>
       </InfoCard>
@@ -114,8 +114,8 @@ function ArticleScheduledContent() {
 
 export default function ArticleScheduledPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-linear-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6"><p className="text-sm text-brand-muted">Loading...</p></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-linear-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6"><p className="text-sm text-gray-500">Loading...</p></div>}>
       <ArticleScheduledContent />
     </Suspense>
   );
-}
+}

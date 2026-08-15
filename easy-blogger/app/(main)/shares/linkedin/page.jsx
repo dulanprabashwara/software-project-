@@ -72,9 +72,9 @@ export default function LinkedinShares() {
     <section className="px-8 min-w-0 w-full py-4">
       <div className="w-full">
         {isLoading ? (
-          <p className="text-sm text-brand-muted py-6">Loading LinkedIn shared articles...</p>
+          <p className="text-sm text-gray-500 py-6">Loading LinkedIn shared articles...</p>
         ) : articles.length === 0 ? (
-          <div className="py-12 text-center text-brand-muted">
+          <div className="py-12 text-center text-gray-500">
             <p className="text-base font-medium">No articles shared to LinkedIn yet.</p>
             <p className="text-xs text-gray-400 mt-1">
               When you publish an article with LinkedIn sharing enabled, it will appear here.
@@ -97,7 +97,7 @@ export default function LinkedinShares() {
                 <button
                   onClick={handleLoadMore}
                   disabled={isLoadingMore}
-                  className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-brand-muted text-sm font-semibold rounded-full transition-all disabled:opacity-50"
+                  className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-full transition-all disabled:opacity-50"
                 >
                   {isLoadingMore ? "Loading..." : "Load More Articles"}
                 </button>

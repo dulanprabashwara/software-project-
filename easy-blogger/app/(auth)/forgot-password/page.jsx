@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
       <div className="relative z-10 p-8 pt-12">
         <Link
           href="/"
-          className="text-sm text-brand-muted hover:text-brand-black transition-colors inline-flex items-center gap-1"
+          className="text-sm text-[#6B7280] hover:text-[#111827] transition-colors inline-flex items-center gap-1"
         >
           ← Back to Home
         </Link>
@@ -74,12 +74,12 @@ export default function ForgotPasswordPage() {
           }}
         >
           {/* Green/Teal to Blue gradient bar at top */}
-          <div className="h-1.5 bg-linear-to-r from-brand-primary to-brand-blue"></div>
+          <div className="h-1.5 bg-linear-to-r from-[#1ABC9C] to-[#3B82F6]"></div>
 
           <div className="px-10 py-14">
             {/* Header */}
             <h1
-              className="text-3xl font-bold text-center text-brand-black mb-4"
+              className="text-3xl font-bold text-center text-[#111827] mb-4"
               style={{ fontFamily: "Georgia, serif" }}
             >
               Forgot your password?
@@ -109,14 +109,14 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full text-sm text-brand-black placeholder-[#9CA3AF] focus:outline-none focus:border-brand-primary focus:bg-white transition-all"
+                className="w-full px-5 py-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full text-sm text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:border-[#1ABC9C] focus:bg-white transition-all"
               />
 
               {/* Send Reset Link Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 px-4 rounded-full text-sm font-medium bg-brand-primary text-white hover:bg-brand-primary-hover transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 hover:shadow-md"
+                className="w-full py-4 px-4 rounded-full text-sm font-medium bg-[#1ABC9C] text-white hover:bg-[#16a085] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 hover:shadow-md"
               >
                 {loading ? "Sending..." : "Send Reset Link"}
               </button>
@@ -126,7 +126,7 @@ export default function ForgotPasswordPage() {
             <div className="mt-6">
               <Link
                 href="/login"
-                className="w-full py-4 px-4 rounded-full text-sm font-medium text-brand-primary bg-white border border-[#E5E7EB] hover:border-brand-primary transition-all flex items-center justify-center gap-1 hover:-translate-y-0.5 hover:shadow-md"
+                className="w-full py-4 px-4 rounded-full text-sm font-medium text-[#1ABC9C] bg-white border border-[#E5E7EB] hover:border-[#1ABC9C] transition-all flex items-center justify-center gap-1 hover:-translate-y-0.5 hover:shadow-md"
               >
                 ← Back to Sign In
               </Link>

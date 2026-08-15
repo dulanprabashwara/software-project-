@@ -21,14 +21,14 @@ export default function ConversationList({
       {/* Header */}
       <div className="p-4 flex justify-between items-center">
         <h2
-          className="text-xl font-bold text-brand-black"
+          className="text-xl font-bold text-gray-800"
           style={{ fontFamily: "Georgia, serif" }}
         >
           Messages
         </h2>
         <Link
           href="/profile?modal=following&returnTo=/chat"
-          className="text-brand-muted hover:text-brand-muted"
+          className="text-gray-500 hover:text-gray-700"
         >
           <Edit className="w-5 h-5" />
         </Link>
@@ -43,7 +43,7 @@ export default function ConversationList({
             placeholder="Search messages"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-lg text-sm text-brand-muted focus:outline-none focus:ring-1 focus:ring-gray-200"
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-200"
           />
         </div>
       </div>
@@ -59,7 +59,7 @@ export default function ConversationList({
             }`}
           >
             {activeConversationId === conv.id && (
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary" />
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1ABC9C]" />
             )}
             <div className="flex gap-3">
               <div className="relative shrink-0">
@@ -69,24 +69,24 @@ export default function ConversationList({
                   className="w-12 h-12 rounded-full"
                 />
                 {conv.user.isOnline && (
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-brand-primary border-2 border-white rounded-full" />
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#1ABC9C] border-2 border-white rounded-full" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-baseline mb-1">
-                  <h3 className="text-sm font-semibold text-brand-black truncate">
+                  <h3 className="text-sm font-semibold text-gray-900 truncate">
                     {conv.user.name}
                   </h3>
-                  <span className="text-xs text-brand-muted">
+                  <span className="text-xs text-gray-500">
                     {conv.lastMessageTime}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-brand-muted truncate">
+                  <p className="text-sm text-gray-500 truncate">
                     {conv.lastMessage}
                   </p>
                   {conv.unreadCount > 0 && (
-                    <span className="ml-2 bg-brand-primary text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-5 text-center">
+                    <span className="ml-2 bg-[#1ABC9C] text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-5 text-center">
                       {conv.unreadCount}
                     </span>
                   )}

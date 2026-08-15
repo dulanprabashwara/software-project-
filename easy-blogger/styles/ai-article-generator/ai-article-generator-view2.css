@@ -1,5 +1,5 @@
 /* AI Article Generator — contain styles for keyword selection, length, tone, generate,result article display, preview overlay */
-/* Typography inherits the shared Segoe UI and Georgia theme tokens. */
+/* Note: Google Fonts (Inter) is imported in ai-article-generator.css */
 
 /* ── Main container override for View 2 ─────────────────────────────────── */
 /* Extends .ai-generator-main from ai-article-generator.css: */
@@ -24,9 +24,9 @@
 }
 
 .selected-keywords-title {
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-size: 16px;
-  color: var(--color-brand-black);
+  color: #000000;
   margin-bottom: 15px;
   margin-top: 20px;
 }
@@ -43,7 +43,7 @@
   padding: 12px;
   border: 1px solid #A9A9A9;
   border-radius: 8px;
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -52,7 +52,7 @@
   justify-content: center;
   min-width: 80px;
   background-color: #F9F9F9;
-  color: var(--color-brand-black);
+  color: #2C2C2C;
 }
 
 .keyword-button:hover:not(:disabled) {
@@ -62,7 +62,7 @@
 }
 
 .keyword-button.selected {
-  background-color: var(--color-brand-primary);
+  background-color: #1ABC9C;
   color: #ffffff;
   border-color: #A9A9A9;
 }
@@ -85,9 +85,9 @@
 }
 
 .article-length-text {
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-size: 16px;
-  color: var(--color-brand-black);
+  color: #000000;
   margin-right: 100px;
   white-space: nowrap;
 }
@@ -103,9 +103,9 @@
   border: 1px solid #A9A9A9;
   border-radius: 8px;
   background-color: #ffffff;
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-size: 15px;
-  color: var(--color-brand-black);
+  color: #1E1E1E;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -122,9 +122,9 @@
 
 .dropdown-header-left,
 .dropdown-header-right {
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-size: 15px;
-  color: var(--color-brand-black);
+  color: #1E1E1E;
 }
 
 .dropdown-arrow {
@@ -152,9 +152,9 @@
 .menu-item {
   padding: 6px 12px;
   margin: 6px 12px;
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-size: 13px;
-  color: var(--color-brand-black);
+  color: #1E1E1E;
   cursor: pointer;
   transition: background-color 0.2s ease;
   display: flex;
@@ -167,9 +167,9 @@
 
 .menu-item-left,
 .menu-item-right {
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-size: 15px;
-  color: var(--color-brand-black);
+  color: #1E1E1E;
 }
 
 /* ── Tone selection ──────────────────────────────────────────────────────── */
@@ -187,9 +187,9 @@
 .tone-selection-section.dropdown-open { margin-top: 150px; }
 
 .tone-text {
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-size: 16px;
-  color: var(--color-brand-black);
+  color: #000000;
   margin-right: 80px;
   white-space: nowrap;
 }
@@ -210,7 +210,7 @@
 .radio-button {
   width: 18px;
   height: 18px;
-  border: 2px solid var(--color-brand-muted);
+  border: 2px solid #6B6B6B;
   border-radius: 50%;
   background-color: transparent;
   position: relative;
@@ -220,7 +220,7 @@
   padding: 0;
 }
 
-.radio-button:checked { border-color: var(--color-brand-primary); }
+.radio-button:checked { border-color: #1ABC9C; }
 
 .radio-button:checked::after {
   content: "";
@@ -231,13 +231,13 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background-color: var(--color-brand-primary);
+  background-color: #1ABC9C;
 }
 
 .tone-label {
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-size: 15px;
-  color: var(--color-brand-black);
+  color: #000000;
   text-transform: capitalize;
 }
 
@@ -245,8 +245,8 @@
 
 .prompt-detection-message {
   margin-left: 107px;
-  color: var(--color-brand-primary);
-  font-family: var(--font-sans);
+  color: #1ABC9C;
+  font-family: Inter, sans-serif;
   font-size: 14px;
   margin-top: 8px;
   margin-bottom: 8px;
@@ -266,10 +266,10 @@
   height: 48px;
   width: 90%;
   border-radius: 8px;
-  background-color: var(--color-brand-primary);
+  background-color: #1ABC9C;
   border: none;
   color: #ffffff;
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.2s ease;
@@ -279,10 +279,10 @@
   gap: 8px;
 }
 
-.generate-button:hover:not(:disabled) { background-color: var(--color-brand-primary-hover); }
+.generate-button:hover:not(:disabled) { background-color: #16A085; }
 
 .generate-button:disabled {
-  background-color: var(--color-brand-primary);
+  background-color: #1ABC9C;
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -296,7 +296,7 @@
 }
 
 .generate-button-text {
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-weight: 800;
 }
 
@@ -312,9 +312,9 @@
 }
 
 .heres-article-text {
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-size: 16px;
-  color: var(--color-brand-black);
+  color: #000000;
   margin: 0 0 8px 0;
 }
 
@@ -334,7 +334,7 @@
 }
 
 .article-title-label:hover {
-  border-color: var(--color-brand-primary);
+  border-color: #1ABC9C;
   box-shadow: 0 2px 8px rgba(26, 188, 156, 0.1);
 }
 
@@ -342,7 +342,7 @@
   font-family: Georgia, serif;
   font-weight: bold;
   font-size: 18px;
-  color: var(--color-brand-black);
+  color: #000000;
   flex: 1;
   text-align: left;
 }
@@ -380,13 +380,13 @@
   transition: color 0.2s ease;
 }
 
-.action-icon:hover svg { color: var(--color-brand-primary); }
+.action-icon:hover svg { color: #1ABC9C; }
 
 .back-button {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--color-brand-primary);
+  color: #1ABC9C;
   border: none;
   background: none;
   cursor: pointer;
@@ -400,9 +400,9 @@
 .back-button:hover { background-color: rgba(26, 188, 156, 0.1); }
 
 .back-text {
-  font-family: var(--font-sans);
+  font-family: Inter, sans-serif;
   font-size: 16px;
-  color: var(--color-brand-primary);
+  color: #1ABC9C;
 }
 
 /* ── Preview overlay ─────────────────────────────────────────────────────── */
@@ -494,9 +494,9 @@
 .preview-copy-icon:hover { background-color: rgba(26, 188, 156, 0.1); }
 
 .preview-copied-message {
-  font-family: var(--font-sans);
+  font-family: "Inter", sans-serif;
   font-size: 14px;
-  color: var(--color-brand-primary);
+  color: #1ABC9C;
   white-space: nowrap;
 }
 
@@ -516,9 +516,9 @@
 .preview-save-icon:hover { background-color: rgba(26, 188, 156, 0.1); }
 
 .preview-save-text {
-  font-family: var(--font-sans);
+  font-family: "Inter", sans-serif;
   font-size: 14px;
-  color: var(--color-brand-primary);
+  color: #1ABC9C;
 }
 
 .preview-edit-button {
@@ -531,15 +531,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-brand-primary);
+  background-color: #1ABC9C;
   transition: background-color 0.2s ease;
   margin-left: 10px;
 }
 
-.preview-edit-button:hover { background-color: var(--color-brand-primary-hover); }
+.preview-edit-button:hover { background-color: #16A085; }
 
 .preview-edit-text {
-  font-family: var(--font-sans);
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   color: #ffffff;
 }
@@ -561,15 +561,15 @@
   font-family: Georgia, serif;
   font-weight: bold;
   font-size: 20px;
-  color: var(--color-brand-black);
+  color: #000000;
   margin: 0 0 16px 0;
   text-align: center;
 }
 
 .preview-article-excerpt {
-  font-family: var(--font-sans);
+  font-family: "Inter", sans-serif;
   font-size: 15px;
-  color: var(--color-brand-black);
+  color: #333333;
   line-height: 1.6;
   margin: 0;
   background-color: #F3F5F5;
@@ -589,9 +589,9 @@
 }
 
 .preview-word-count {
-  font-family: var(--font-sans);
+  font-family: "Inter", sans-serif;
   font-size: 14px;
-  color: var(--color-brand-muted);
+  color: #6B6B6B;
   margin-left: 35px;
 }
 
@@ -602,7 +602,7 @@
   right: 20px;
   width: 32px;
   height: 32px;
-  background-color: var(--color-brand-muted);
+  background-color: #6B6B6B;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -641,7 +641,7 @@
 /* ── Generate error message ──────────────────────────────────────────────── */
 
 .generate-error-message {
-  font-family: var(--font-sans);
+  font-family: "Inter", sans-serif;
   font-size: 15px;
   color: #e25457;
   text-align: center;
@@ -655,16 +655,16 @@
 }
 
 .transition-error-message {
-  font-family: var(--font-sans);
+  font-family: "Inter", sans-serif;
   font-size: 16px;
   color: #ffffff;
   margin-bottom: 8px;
 }
 
 .transition-error-redirect {
-  font-family: var(--font-sans);
+  font-family: "Inter", sans-serif;
   font-size: 14px;
-  color: var(--color-brand-primary);
+  color: #1ABC9C;
 }
 
 body.loading { cursor: not-allowed !important; }

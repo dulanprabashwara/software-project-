@@ -22,7 +22,7 @@ export default function TopTopicsChart() {
   if (isLoading) {
     return (
       <div className="w-full h-[400px] bg-white p-6 rounded-xl shadow flex items-center justify-center">
-        <p className="text-brand-muted animate-pulse">Loading chart...</p>
+        <p className="text-gray-500 animate-pulse">Loading chart...</p>
       </div>
     );
   }
@@ -31,7 +31,7 @@ export default function TopTopicsChart() {
   if (!tags || tags.length === 0) {
     return (
       <div className="w-full h-[400px] bg-white p-6 rounded-xl shadow flex items-center justify-center">
-        <p className="text-brand-muted">No trending topics right now.</p>
+        <p className="text-gray-500">No trending topics right now.</p>
       </div>
     );
   }
@@ -82,7 +82,7 @@ export default function TopTopicsChart() {
         },
         // Ensures the Y-axis only shows whole numbers (1, 2, 3 instead of 1.5)
         ticks: {
-          stepSize: 1,
+          stepSize: 1, 
         },
       },
     },

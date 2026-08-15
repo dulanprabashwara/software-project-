@@ -31,7 +31,7 @@ export default function ConfirmDialog({
             onClick={onClose || onCancel}
             disabled={isLoading}
             aria-label="Close confirmation dialog"
-            className="absolute right-4 top-4 rounded-full p-2 text-brand-muted transition hover:bg-[#F3F4F6] hover:text-brand-black disabled:opacity-50"
+            className="absolute right-4 top-4 rounded-full p-2 text-[#6B7280] transition hover:bg-[#F3F4F6] hover:text-[#111827] disabled:opacity-50"
           >
             <X className="h-5 w-5" />
           </button>
@@ -42,8 +42,8 @@ export default function ConfirmDialog({
             </div>
 
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-brand-black">{title}</h2>
-              <p className="mt-2 text-sm leading-6 text-brand-muted">{message}</p>
+              <h2 className="text-lg font-semibold text-[#111827]">{title}</h2>
+              <p className="mt-2 text-sm leading-6 text-[#6B7280]">{message}</p>
             </div>
           </div>
         </div>
@@ -53,7 +53,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={isLoading}
-            className="rounded-full border border-[#D1D5DB] bg-white px-5 py-2.5 text-sm font-medium text-brand-muted transition hover:bg-[#F3F4F6] disabled:opacity-50"
+            className="rounded-full border border-[#D1D5DB] bg-white px-5 py-2.5 text-sm font-medium text-[#374151] transition hover:bg-[#F3F4F6] disabled:opacity-50"
           >
             {cancelText}
           </button>
@@ -62,7 +62,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={isLoading}
-            className="rounded-full bg-brand-black px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-black-hover disabled:opacity-50"
+            className="rounded-full bg-[#111827] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#1F2937] disabled:opacity-50"
           >
             {isLoading ? "Please wait..." : confirmText}
           </button>

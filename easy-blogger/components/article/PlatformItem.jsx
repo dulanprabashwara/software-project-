@@ -42,7 +42,7 @@ export default function PlatformItem({
         <div className="relative h-8 w-8 flex items-center justify-center rounded-lg bg-white shadow-xs border border-gray-100 transition-all group-hover:shadow-md shrink-0">
           <Image src={config.iconSrc} alt={config.iconAlt} width={20} height={20} className="object-contain" />
         </div>
-        <span className="text-sm font-semibold text-brand-black">{name}</span>
+        <span className="text-sm font-semibold text-gray-800">{name}</span>
       </div>
 
       <div className="flex items-center gap-2">
@@ -72,8 +72,8 @@ export default function PlatformItem({
               Failed
             </span>
             {handleRetry && (
-              <button
-                onClick={handleRetry}
+              <button 
+                onClick={handleRetry} 
                 className="text-xs font-bold text-emerald-600 hover:text-emerald-700 underline underline-offset-4 cursor-pointer"
               >
                 Retry
@@ -83,8 +83,8 @@ export default function PlatformItem({
         )}
 
         {(name === "WordPress" || name === "LinkedIn") && !retrying && !postUrl && !error && (
-          <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-600 border border-emerald-100">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          <span className="flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-600 border border-sky-100">
+            <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
             Live
           </span>
         )}

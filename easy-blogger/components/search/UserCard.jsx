@@ -101,7 +101,7 @@ export default function UserCard({ user }) {
         aria-label={`View ${displayName || username}'s profile`}
       >
         <div className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-colors duration-150 ${
-          isPremium ? "border-amber-400" : "border-transparent hover:border-brand-primary"
+          isPremium ? "border-amber-400" : "border-transparent hover:border-[#1ABC9C]"
         }`}>
           <img src={avatarSrc} alt={displayName || username} className="w-full h-full object-cover" />
         </div>
@@ -109,30 +109,30 @@ export default function UserCard({ user }) {
 
       <div className="flex-1 min-w-0">
         <button onClick={navigateToProfile} className="flex items-center gap-1.5 text-left focus:outline-none">
-          <span className="font-bold text-brand-black hover:text-brand-primary transition-colors duration-150 leading-tight">
+          <span className="font-bold text-[#111827] hover:text-[#1ABC9C] transition-colors duration-150 leading-tight">
             {displayName || username}
           </span>
-          {isPremium && <BadgeCheck className="w-4 h-4 text-brand-primary shrink-0" />}
+          {isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C] shrink-0" />}
         </button>
 
         {displayName && username && (
-          <p className="text-xs text-brand-muted mt-0.5">@{username}</p>
+          <p className="text-xs text-[#6B7280] mt-0.5">@{username}</p>
         )}
 
         {bio && (
-          <p className="text-sm text-brand-muted mt-1 line-clamp-2 leading-snug">{bio}</p>
+          <p className="text-sm text-[#6B7280] mt-1 line-clamp-2 leading-snug">{bio}</p>
         )}
 
-        <div className="flex items-center gap-4 mt-2 text-xs text-brand-muted">
+        <div className="flex items-center gap-4 mt-2 text-xs text-[#6B7280]">
           <span>
-            <span className="font-semibold text-brand-black">{formatCount(articleCount)}</span>
+            <span className="font-semibold text-[#111827]">{formatCount(articleCount)}</span>
             {" "}{articleCount === 1 ? "Article" : "Articles"}
           </span>
           <span className="flex items-center gap-1">
             {isRefetchingCount ? (
-              <Loader2 className="w-3 h-3 animate-spin text-brand-primary" />
+              <Loader2 className="w-3 h-3 animate-spin text-[#1ABC9C]" />
             ) : (
-              <span className="font-semibold text-brand-black">{formatCount(followerCount)}</span>
+              <span className="font-semibold text-[#111827]">{formatCount(followerCount)}</span>
             )}
             {" "}{followerCount === 1 && !isRefetchingCount ? "follower" : "followers"}
           </span>
@@ -144,8 +144,8 @@ export default function UserCard({ user }) {
         disabled={isTogglingFollow || !firebaseUser}
         className={`flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 shrink-0 min-w-25 disabled:opacity-50 disabled:cursor-not-allowed ${
           isFollowing
-            ? "bg-brand-primary text-white border-brand-primary hover:bg-brand-primary-hover hover:border-brand-primary-hover"
-            : "bg-white text-brand-primary border-brand-primary hover:bg-[#E8F8F5]"
+            ? "bg-[#1ABC9C] text-white border-[#1ABC9C] hover:bg-[#17a589] hover:border-[#17a589]"
+            : "bg-white text-[#1ABC9C] border-[#1ABC9C] hover:bg-[#E8F8F5]"
         }`}
         aria-pressed={isFollowing}
         title={!firebaseUser ? "Sign in to follow" : undefined}

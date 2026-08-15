@@ -16,14 +16,14 @@ export default function Layout({ children }) {
 
   return (
     <div className="flex h-full overflow-hidden mx-auto">
-
+      
       {/* Left */}
       <div className="h-full flex flex-col flex-1 min-w-0">
 
         {/* Header + Tabs */}
         <div className="p-3 border-b border-[#e5e7eb] px-8">
-          <h1 className="text-4xl font-bold font-serif">Library</h1>
-
+          <h1 className="text-4xl font-bold font-[Georgia]">Library</h1>
+          
           {/*maplibabry sections links*/}
           <div className="flex gap-10">
             {tabs.map((tab) => (
@@ -33,7 +33,7 @@ export default function Layout({ children }) {
                 className={`py-3 font-semibold ${
                   pathname === tab.href
                     ? "text-black underline underline-offset-8"
-                    : "text-brand-muted"
+                    : "text-gray-500"
                 }`}
               >
                 {tab.name}

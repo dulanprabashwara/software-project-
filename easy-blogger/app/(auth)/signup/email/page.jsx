@@ -32,7 +32,7 @@ export default function EmailSignupPage() {
   };
 
   /**
-    Creates the base user in Firebase
+    Creates the base user in Firebase 
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -101,7 +101,7 @@ export default function EmailSignupPage() {
       <div className="relative z-10 p-6">
         <Link
           href="/signup"
-          className="text-sm text-brand-muted hover:text-brand-black transition-colors"
+          className="text-sm text-[#6B7280] hover:text-[#111827] transition-colors"
         >
           ← Back
         </Link>
@@ -110,12 +110,12 @@ export default function EmailSignupPage() {
       <div className="relative z-10 flex-1 flex items-center justify-center px-4 pb-12">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-10">
           <h1
-            className="text-3xl font-bold text-center text-brand-black mb-3"
+            className="text-3xl font-bold text-center text-[#111827] mb-3"
             style={{ fontFamily: "Georgia, serif" }}
           >
             Create an account
           </h1>
-          <p className="text-center text-brand-muted text-sm mb-8">
+          <p className="text-center text-[#6B7280] text-sm mb-8">
             Enter your details to get started.
           </p>
 
@@ -164,11 +164,11 @@ export default function EmailSignupPage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-brand-muted mt-6">
+          <p className="text-center text-sm text-[#6B7280] mt-6">
             Already have an account?{" "}
             <Link
               href="/login"
-              className="text-brand-blue font-medium hover:text-brand-blue transition-colors"
+              className="text-[#3B82F6] font-medium hover:text-[#2563EB] transition-colors"
             >
               Sign in
             </Link>

@@ -1,5 +1,5 @@
 "use client";
-
+ 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 //navigation icons
@@ -29,8 +29,8 @@ export default function Sidebar({ isOpen }) {
 
   //manage membership link accrding to subscription status
   const handleMembershipClick = async (e) => {
-    if (!isPremium) return;
-
+    if (!isPremium) return;  
+    
     e.preventDefault();
     if (!user) return;
 
@@ -72,14 +72,14 @@ export default function Sidebar({ isOpen }) {
             <Link
               key={link.label}
               href={link.href}
-              onClick={link.onClick}
+              onClick={link.onClick} 
               className={`flex items-center gap-3 p-3 rounded-lg text-sm ${
                 (() => {
                   const checkHref = link.activeHref || link.href;
                   return pathname === checkHref || (checkHref !== "/home" && pathname?.startsWith(checkHref));
                 })()
-                  ? "bg-teal-50 text-brand-primary font-medium"
-                  : "text-brand-muted hover:bg-gray-50 transition-colors"
+                  ? "bg-teal-50 text-teal-600 font-medium"
+                  : "text-gray-500 hover:bg-gray-50 transition-colors"
               }`}
             >
               {/* loading for membership icon*/}
@@ -96,11 +96,11 @@ export default function Sidebar({ isOpen }) {
         {/*   Write Button*/}
         <Link
           href="/write/choose-method"
-          className="mt-auto border-t border-[#e5e7eb] pt-4 flex items-center gap-3 text-brand-muted"
+          className="mt-auto border-t border-[#e5e7eb] pt-4 flex items-center gap-3 text-gray-700"
         >
           <Plus
             size={24}
-            className="bg-brand-primary text-white rounded-full p-1"
+            className="bg-[#1ABC9C] text-white rounded-full p-1"
           />
           <span className="text-sm font-bold">Write Story</span>
         </Link>
