@@ -2,7 +2,14 @@
 import { useState, useRef, useEffect, useCallback , Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { X, Loader2, MessageCircle, BadgeCheck, CheckCircle } from "lucide-react";
+import {
+  X,
+  Loader2,
+  MessageCircle,
+  BadgeCheck,
+  CheckCircle,
+  AlertTriangle,
+} from "lucide-react";
 import { useSubscription } from "../../context/SubscriptionContext";
 import { useAuth } from "../../context/AuthContext";
 import ArticleCard from "../../../components/article/ArticleCard";
@@ -55,6 +62,9 @@ function ProfilePageContent() {
   const [aboutText, setAboutText] = useState("");
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [hasAbout, setHasAbout] = useState(false);
+  const [isSavingAbout, setIsSavingAbout] = useState(false);
+  const [isDeletingBio, setIsDeletingBio] = useState(false);
+  const [bioDeleteResult, setBioDeleteResult] = useState(null);
 
   // active Stat modal tab
   const [statsActiveTab, setStatsActiveTab] = useState(modalTab || "followers");
@@ -200,6 +210,7 @@ function ProfilePageContent() {
   const handleSaveAbout = async () => {
     if (aboutText.trim() && userProfile) {
       try {
+        setIsSavingAbout(true);
         const token = await firebaseUser.getIdToken();
         await api.updateProfile({ bio: aboutText }, token);
         setHasAbout(true);
@@ -208,6 +219,8 @@ function ProfilePageContent() {
       } catch (err) {
         console.error("Failed to update bio", err);
         alert("Failed to save about text.");
+      } finally {
+        setIsSavingAbout(false);
       }
     }
   };
@@ -227,17 +240,26 @@ function ProfilePageContent() {
 
   //delete about
   const handleDeleteAbout = async () => {
-    if (confirm("Are you sure you want to delete your bio?")) {
-      try {
-        const token = await firebaseUser.getIdToken();
-        await api.updateProfile({ bio: null }, token);
-        setHasAbout(false);
-        setAboutText("");
-        updateContextProfile({ bio: null }); //call authcotext to delete about from its memory
-      } catch (err) {
-        console.error("Failed to delete bio", err);
-        alert("Failed to delete bio.");
-      }
+    try {
+      setIsDeletingBio(true);
+      setBioDeleteResult(null);
+      const token = await firebaseUser.getIdToken();
+      await api.updateProfile({ bio: null }, token);
+      setHasAbout(false);
+      setAboutText("");
+      updateContextProfile({ bio: null }); //call authcotext to delete about from its memory
+      setBioDeleteResult({
+        type: "success",
+        message: "Your bio was deleted successfully.",
+      });
+    } catch (err) {
+      console.error("Failed to delete bio", err);
+      setBioDeleteResult({
+        type: "error",
+        message: err?.message || "Failed to delete your bio. Please try again.",
+      });
+    } finally {
+      setIsDeletingBio(false);
     }
   };
 
@@ -428,10 +450,10 @@ function ProfilePageContent() {
                     </button>
                     <button
                       onClick={handleSaveAbout}
-                      disabled={!aboutText.trim()}
+                      disabled={!aboutText.trim() || isSavingAbout}
                       className="px-6 py-2 bg-[#1ABC9C] hover:bg-[#17a589] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
                     >
-                      Save
+                      {isSavingAbout ? "Saving..." : "Save"}
                     </button>
                   </div>
                 </div>
@@ -445,9 +467,10 @@ function ProfilePageContent() {
                   <div className="flex justify-end gap-3 px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                       onClick={handleDeleteAbout}
-                      className="px-6 py-2 border border-black text-black rounded-full text-sm font-medium hover:bg-gray-50 transition-colors"
+                      disabled={isDeletingBio}
+                      className="px-6 py-2 border border-black text-black rounded-full text-sm font-medium hover:bg-gray-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Delete
+                      {isDeletingBio ? "Deleting..." : "Delete"}
                     </button>
                     <button
                       onClick={handleEditAbout}
@@ -820,6 +843,65 @@ function ProfilePageContent() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Bio Delete Result Modal */}
+      {bioDeleteResult && (
+        <div
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-black/10 backdrop-blur-sm px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="bio-delete-result-title"
+        >
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl animate-fade-in-up">
+            <button
+              type="button"
+              onClick={() => setBioDeleteResult(null)}
+              aria-label="Close bio deletion result"
+              className="absolute right-4 top-3 text-2xl text-gray-400 hover:text-[#475569] transition-colors"
+            >
+              x
+            </button>
+            <div className="mb-6 flex justify-center">
+              <div
+                className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                  bioDeleteResult.type === "success"
+                    ? "bg-[#D1FAE5]"
+                    : "bg-[#FEE2E2]"
+                }`}
+              >
+                {bioDeleteResult.type === "success" ? (
+                  <CheckCircle className="w-8 h-8 text-[#1ABC9C]" />
+                ) : (
+                  <AlertTriangle className="w-8 h-8 text-[#DC2626]" />
+                )}
+              </div>
+            </div>
+            <h2
+              id="bio-delete-result-title"
+              className="mb-2 text-center text-xl font-bold text-[#111827]"
+              style={{ fontFamily: "Georgia, serif" }}
+            >
+              {bioDeleteResult.type === "success"
+                ? "Bio Deleted"
+                : "Delete Failed"}
+            </h2>
+            <p className="text-center text-[#475569] mb-8 text-sm">
+              {bioDeleteResult.message}
+            </p>
+            <button
+              type="button"
+              onClick={() => setBioDeleteResult(null)}
+              className={`w-full rounded-full py-3 font-semibold text-white shadow-md transition-colors ${
+                bioDeleteResult.type === "success"
+                  ? "bg-[#1ABC9C] hover:bg-[#17a589]"
+                  : "bg-[#DC2626] hover:bg-[#B91C1C]"
+              }`}
+            >
+              {bioDeleteResult.type === "success" ? "Done" : "Try Again"}
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Copy Success Modal */}
