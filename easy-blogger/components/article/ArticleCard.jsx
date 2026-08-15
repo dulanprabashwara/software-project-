@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { 
   BadgeCheck, MessageCircle, Star, Bookmark, 
-  MoreHorizontal, BookOpen, Sparkles, Clock, Flag, Trash2,SquarePen,
+  MoreHorizontal, BookOpen, Sparkles, Clock, CalendarClock, Flag, Trash2, SquarePen,
   Linkedin, Globe, ExternalLink
 } from "lucide-react";
 import { useAuth } from "../../app/context/AuthContext";  
@@ -17,7 +17,8 @@ export default function ArticleCard({
   interactedArticles = [], 
   readHistory = [],
   showShareBadges = false,
-  forcedPlatform = null
+  forcedPlatform = null,
+  onReschedule = null
 }) {
 
 
@@ -390,6 +391,19 @@ const { user, profileLoading, userProfile } = useAuth();
                 <span className="text-sm font-medium text-red-600">Delete</span>
               </button> 
 
+
+               {article.status === "SCHEDULED" && (
+                <button 
+                  onClick={() => {
+                    setMoreOptions(false); 
+                    if (onReschedule) onReschedule(article);
+                  }}
+                  className="flex items-center gap-3 w-full h-10 px-4 hover:bg-emerald-50 transition-colors"
+                >
+                  <CalendarClock className="w-4 h-4 text-emerald-600" />
+                  <span className="text-sm font-medium text-emerald-700">Reschedule</span>
+                </button> 
+               )}
 
                <button 
                 onClick={() => {

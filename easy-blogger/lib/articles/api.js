@@ -241,6 +241,23 @@ export async function publishArticle(articleId, payload) {
   });
 }
 
+export async function rescheduleArticle(articleId, scheduledAt) {
+  if (!articleId) {
+    throw new ApiError("Article id is required.", 400);
+  }
+  if (!scheduledAt) {
+    throw new ApiError("Scheduled date and time are required.", 400);
+  }
+
+  return apiRequest(`/articles/${encodeURIComponent(articleId)}/publish`, {
+    method: "POST",
+    body: JSON.stringify({
+      timing: "schedule",
+      scheduledAt,
+    }),
+  });
+}
+
 export async function startEditExisting(articleId) {
   if (!articleId) {
     throw new ApiError("Article id is required.", 400);
