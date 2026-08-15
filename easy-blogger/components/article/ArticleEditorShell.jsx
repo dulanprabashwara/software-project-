@@ -53,6 +53,7 @@ export default function ArticleEditorShell({
   fontSize,
   isHydrating,
   isSaving,
+  isManualSaving = false,
   lastSavedAt,
   headerTitle,
   headerSubtitle,
@@ -125,7 +126,7 @@ export default function ArticleEditorShell({
         }
       />
 
-      {(isSaving || isHydrating) ? (
+      {(isManualSaving || isHydrating) ? (
         <div
           className="fixed inset-0 z-[9998] cursor-wait bg-transparent"
           aria-hidden="true"
