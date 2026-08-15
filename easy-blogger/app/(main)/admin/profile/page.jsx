@@ -27,15 +27,14 @@ export default function AdminProfilePage() {
 
       try {
         const metricsResponse = await api.getAdminMetrics(token);
-        if (metricsResponse.data?.data) {
-          const metrics = metricsResponse.data.data || metricsResponse.data;
-          actionsCount = metricsResponse.data.data.totalActions;
-          resolvedCount = metricsResponse.data.data.totalResolved;
+        if (metricsResponse.data) {
+          actionsCount = metricsResponse.data.totalActions || 0;
+          resolvedCount = metricsResponse.data.totalResolved || 0;
         }
         await api.registerSession(token); 
         const sessionsResponse = await api.getActiveSessions(token);
 
-        console.log("Real Sessions from DB:", sessionsResponse);
+        console.log("Real Sessions from Database:", sessionsResponse);
 
         // Safely extract the array whether it is in response.data or response.data.data
         let sessionsArray = [];
@@ -45,14 +44,21 @@ export default function AdminProfilePage() {
         
         // Map the backend data to match UI format
         if (sessionsArray.length > 0) {
-          realSessions = sessionsArray.map(sess => ({
-            id: sess.id,
-            device: sess.deviceInfo,
-            location: sess.ipAddress || "Active Session",
-            status: "Online Now"
-          }));
-        }
+          realSessions = sessionsArray.map((sess, index) => {
+            const isCurrentDevice = index === 0; // The newest session is your current one
+            const lastActiveDate = new Date(sess.lastActive).toLocaleString(undefined, {
+              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
 
+            return {
+              id: sess.id,
+              device: isCurrentDevice ? `${sess.deviceInfo} (This Device)` : sess.deviceInfo,
+              location: sess.ipAddress || "Unknown IP",
+              status: isCurrentDevice ? "Online Now" : `Last active: ${lastActiveDate}`,
+              isCurrentDevice: isCurrentDevice
+            };
+          });
+        }
       } catch (metricsErr) {
         console.error("Could not fetch metrics endpoint:", metricsErr);
       }
@@ -183,9 +189,15 @@ export default function AdminProfilePage() {
                     <p className="text-xs text-gray-400">{session.location} • {session.status}</p>
                   </div>
                 </div>
-                <button onClick={() => handleRevokeSession(session.id, session.device)} className="text-[10px] font-black text-red-500 uppercase hover:underline">
-                  Revoke Access
-                </button>
+                {/* Hide the revoke button for the current device */}
+                {!session.isCurrentDevice && (
+                  <button 
+                    onClick={() => handleRevokeSession(session.id, session.device)} 
+                    className="text-[10px] font-black text-red-500 uppercase hover:underline"
+                  >
+                    Revoke Access
+                  </button>
+                )}
               </div>
             ))}
           </section>

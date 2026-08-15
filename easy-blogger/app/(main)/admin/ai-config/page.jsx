@@ -175,6 +175,11 @@ export default function AdminAIConfig() {
 
   //CRUD Opeartions
   const handleSaveSource = async () => {
+    if (!modalData.name.trim() || !modalData.url.trim() || !modalData.minWordCount) {
+      alert("Please fill in all required fields (Name, URL, and Minimum Word Count).");
+      return;
+    }
+
     if (urlStatus === "invalid") {
       alert("Please enter a valid working URL before saving.");
       return;

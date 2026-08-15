@@ -23,16 +23,16 @@ export default function EditAdminProfile() {
       const response = await api.getMe(token);
       const userData = response.data || response;
 
+      console.log("FRESH DATA FROM BACKEND:", userData);
+
       setFormData({
         name: userData.displayName || userData.username || "",
-        email: userData.email || "",
+        email: userData.email || user.email ||"",
         bio: userData.bio || "",
         avatar: userData.avatarUrl || null,
         settings: {
           notifications: true,
-          criticalAlerts: true,
-          weeklyExport: false,
-          lockedIp: null
+          weeklyExport:userData.receiveWeeklyExport || false,
         }
       });
     } catch (error) {
@@ -63,9 +63,11 @@ export default function EditAdminProfile() {
         displayName: formData.name,
         bio: formData.bio,
         avatarUrl: formData.avatar,
+        receiveWeeklyExport: formData.settings.weeklyExport,
       };
 
-      await api.updateProfile(payload, token);
+      await api.updateAdminProfile(payload, token);
+      router.refresh();
 
       router.push("/admin/profile");
     } catch (error) {

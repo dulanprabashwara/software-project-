@@ -76,6 +76,9 @@ export const api = {
 
   // User Endpoints
   updateProfile: (data, token) =>
+    fetchAPI("/api/users/profile", { method: "PUT", body: data, token }),
+
+  updateAdminProfile: (data, token) =>
     fetchAPI("/api/admin/profile", { method: "PUT", body: data, token }),
 
   getUserProfile: (identifier) => 
@@ -320,4 +323,8 @@ deleteComment: (commentId, token) =>
   // Dashboard Feeds
   getDashboardFeeds: (token) =>
     fetchAPI(`/api/admin/dashboard/feeds`, { method: "GET", token }),
+
+  getAnalyticsCharts: (token) =>
+    fetchAPI(`/api/admin/dashboard/analytics-charts`, { method: "GET", token }),
 };
+
