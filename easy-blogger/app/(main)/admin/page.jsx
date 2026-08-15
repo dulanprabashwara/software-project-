@@ -13,7 +13,7 @@ import {
   Filler
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { ArrowLeft, Calendar, Loader2, Download } from "lucide-react";
+import { ArrowLeft, Calendar, Loader2, Download, FileText, Activity } from "lucide-react";
 
 import { auth } from "../../../lib/firebase";
 import { api } from "../../../lib/api";
@@ -21,9 +21,28 @@ import { api } from "../../../lib/api";
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
+// Helper function for relative time
+const timeAgo = (dateString) => {
+  const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + " years ago";
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + " months ago";
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + " days ago";
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + " hours ago";
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + " mins ago";
+  return Math.floor(seconds) + " seconds ago";
+};
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
+
+  const [feeds, setFeeds] = useState({ recentArticles: [], recentActivity: [] });
+  const [feedsLoading, setFeedsLoading] = useState(true);
 
   const [view, setView] = useState("platform"); // "platform" | "engagement"
   const [timeframe, setTimeframe] = useState("30"); // "7" | "30"
@@ -36,8 +55,16 @@ export default function AdminDashboard() {
           const token = await user.getIdToken();
           const response = await api.getAdminDashboard(token);
           setStats(response.data);
+
+          const feedRes = await api.getDashboardFeeds(token);
+          if (feedRes.success || feedRes.data) {
+            setFeeds(feedRes.data);
+          }
+
         } catch (err) {
           setError("Could not load analytics. Make sure the backend server is running!");
+        } finally {
+          setFeedsLoading(false);
         }
       } else {
         setError("You must be logged in to view this page.");
@@ -182,9 +209,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto p-8 relative">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8" style={{ fontFamily: "Georgia, serif" }}>
-        Dashboard
-      </h1>
 
       {/* KPI CARDS - Interactive Links */}
       <div className="grid grid-cols-4 gap-6 mb-10">
@@ -273,6 +297,102 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* FEEDS */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-8">
+        
+        {/* Recent Articles Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 relative overflow-hidden">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <FileText className="text-[#1ABC9C]" size={20} />
+              Recent Articles
+            </h2>
+          </div>
+          
+          {feedsLoading ? (
+            <div className="animate-pulse flex flex-col gap-4">
+              {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-12 bg-gray-100 rounded-lg w-full"></div>)}
+            </div>
+          ) : feeds.recentArticles.length === 0 ? (
+            <p className="text-sm text-gray-500 py-4">No recent articles found.</p>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {feeds.recentArticles.map((article) => (
+                <div key={article.id} className="flex items-center justify-between border-b border-gray-50 pb-4 last:border-0 last:pb-0">
+                  <div className="flex items-center gap-3">
+                    <img 
+                      src={article.author?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(article.author?.displayName || 'User')}&background=1ABC9C&color=fff`} 
+                      alt="Author" 
+                      className="w-10 h-10 rounded-full object-cover border border-gray-100"
+                    />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800 truncate max-w-[200px]">{article.title}</p>
+                      <p className="text-xs text-gray-500">{article.author?.displayName || 'Unknown Author'}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider ${article.status === 'PUBLISHED' ? 'bg-[#E8F8F5] text-[#1ABC9C]' : 'bg-gray-100 text-gray-600'}`}>
+                      {article.status}
+                    </span>
+                    <p className="text-xs text-gray-400 mt-1">{timeAgo(article.createdAt)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Platform Pulse Card */}
+        {/* Platform Pulse Card */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <Activity className="text-[#3B82F6]" size={20} />
+              Platform Pulse
+            </h2>
+          </div>
+          
+          {feedsLoading ? (
+            <div className="animate-pulse flex flex-col gap-4">
+              {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-12 bg-gray-100 rounded-lg w-full"></div>)}
+            </div>
+          ) : feeds.recentActivity.length === 0 ? (
+            <p className="text-sm text-gray-500 py-4">No activity events found yet.</p>
+          ) : (
+            <div className="flex flex-col">
+              {feeds.recentActivity.map((event, index) => (
+                <div key={event.id} className="flex gap-4">
+                  {/* The Timeline Line & Dot */}
+                  <div className="flex flex-col items-center relative min-w-[12px]">
+                    <div className="w-3 h-3 rounded-full border-2 border-[#3B82F6] bg-white mt-1.5 z-10 relative" />
+                    {/* Hides the line on the very last item for a cleaner look */}
+                    {index !== feeds.recentActivity.length - 1 && (
+                      <div className="w-0.5 h-full bg-gray-100 absolute top-3" />
+                    )}
+                  </div>
+                  
+                  {/* The Content Card */}
+                  <div className="flex-1 pb-5">
+                    <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[11px] font-bold text-[#3B82F6] uppercase tracking-wider">
+                          {event.type.replace('_', ' ')}
+                        </span>
+                        <span className="text-[10px] font-medium text-gray-400">
+                          {timeAgo(event.createdAt)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700">{event.message}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 }
