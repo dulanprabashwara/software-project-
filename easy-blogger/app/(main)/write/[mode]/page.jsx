@@ -100,6 +100,7 @@ export default function UnifiedArticleEditorPage() {
             headerTitle={config.headerTitle}
             headerSubtitle={config.headerSubtitle}
             modeBadge={config.getBadge(articleMode)}
+            saveDraftLabel={config.saveDraftLabel}
             onSaveAsDraft={handleSaveAsDraft}
             onPreview={handlePreview}
             onDiscard={handleDiscard}

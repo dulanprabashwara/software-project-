@@ -10,7 +10,7 @@ import {
 } from "../../../../components/article/EditorSharedLayout";
 import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
 import { useClearBackupOnLayoutNavigation } from "../../../../hooks/articles/useClearBackupOnLayoutNavigation";
-import { getDraftById, updateDraft } from "../../../../lib/articles/api";
+import { getDraftById, updateDraft, republishArticle } from "../../../../lib/articles/api";
 import { getArticleFromResponse } from "../../../../lib/articles/utils";
 
 function PreviewPageContent() {
@@ -23,6 +23,7 @@ function PreviewPageContent() {
 
   const [article, setArticle] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRepublishing, setIsRepublishing] = useState(false);
 
   const { modalState } = useConfirmDialog();
 
@@ -62,7 +63,7 @@ function PreviewPageContent() {
   }, [articleId, mode, router]);
 
   const handleExitEditor = () => {
-    router.push("/home");
+    router.push(mode === "edit-published" ? "/stories/published" : "/home");
   };
 
   const handlePublish = async () => {
@@ -80,10 +81,34 @@ function PreviewPageContent() {
     }
   };
 
+  const handleRepublish = async () => {
+    if (!article?.id) return;
+
+    try {
+      setIsRepublishing(true);
+      await republishArticle(article.id, {
+        title: article.title,
+        content: article.content,
+        coverImage: article.coverImage,
+      });
+
+      router.push("/stories/published");
+    } catch (error) {
+      console.error("Failed to republish article:", error);
+    } finally {
+      setIsRepublishing(false);
+    }
+  };
+
   const handleEditAgain = async () => {
     if (!article?.id) return;
 
     try {
+      if (mode === "edit-published" && articleId) {
+        router.push(`/write/edit-published?id=${articleId}`);
+        return;
+      }
+
       // Path 1: User is editing an existing published or draft article
       if (isEditExistingFlow && articleId) {
         router.push(`/write/edit-existing?id=${articleId}`);
@@ -176,23 +201,46 @@ function PreviewPageContent() {
               </div>
 
               <EditorBottomActions
-                actions={[
-                  {
-                    label: "Exit Editor",
-                    onClick: handleExitEditor,
-                  },
-                  {
-                    label: "Publish",
-                    onClick: handlePublish,
-                    variant: "primary",
-                    keepEditBackup: true,
-                  },
-                  {
-                    label: "Edit",
-                    onClick: handleEditAgain,
-                    keepEditBackup: true,
-                  },
-                ]}
+                actions={
+                  mode === "edit-published"
+                    ? [
+                        {
+                          label: "Exit Editor",
+                          onClick: handleExitEditor,
+                          disabled: isRepublishing,
+                        },
+                        {
+                          label: "Republish",
+                          onClick: handleRepublish,
+                          variant: "primary",
+                          disabled: isRepublishing,
+                          keepEditBackup: true,
+                        },
+                        {
+                          label: "Edit",
+                          onClick: handleEditAgain,
+                          disabled: isRepublishing,
+                          keepEditBackup: true,
+                        },
+                      ]
+                    : [
+                        {
+                          label: "Exit Editor",
+                          onClick: handleExitEditor,
+                        },
+                        {
+                          label: "Publish",
+                          onClick: handlePublish,
+                          variant: "primary",
+                          keepEditBackup: true,
+                        },
+                        {
+                          label: "Edit",
+                          onClick: handleEditAgain,
+                          keepEditBackup: true,
+                        },
+                      ]
+                }
               />
             </>
           )}
