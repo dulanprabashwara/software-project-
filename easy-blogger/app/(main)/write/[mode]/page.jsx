@@ -36,6 +36,7 @@ export default function UnifiedArticleEditorPage() {
     fontSize,
     isHydrating,
     isSaving,
+    isManualSaving,
     lastSavedAt,
     inlineError,
     editorTextLength,
@@ -96,6 +97,7 @@ export default function UnifiedArticleEditorPage() {
             fontSize={fontSize}
             isHydrating={isHydrating}
             isSaving={isSaving}
+            isManualSaving={isManualSaving}
             lastSavedAt={lastSavedAt}
             headerTitle={config.headerTitle}
             headerSubtitle={config.headerSubtitle}
