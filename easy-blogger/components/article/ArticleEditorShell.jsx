@@ -118,7 +118,7 @@ export default function ArticleEditorShell({
               {saveDraftLabel}
             </button>
 
-            <span className="flex h-10 min-w-[100px] items-center rounded-full bg-[#1ABC9C] px-6 text-sm font-medium text-white">
+            <span className="text-sm font-medium text-[#6B7280]">
               {modeBadge}
             </span>
           </>
