@@ -179,7 +179,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
             alt="Easy Blogger Logo"
             className="h-12 w-auto"
           />
-          <h1 className="text-2xl font-bold text-[#1ABC9C] font-serif">
+          <h1 className="text-2xl font-bold text-brand-primary font-serif">
             Easy Blogger
           </h1>
         </Link>
@@ -215,7 +215,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
           }}
           placeholder="Search..."
           autoComplete="off"
-          className="w-full pl-11 pr-4 py-2 bg-gray-50 border border-[#e5e7eb] rounded-full text-sm outline-none focus:ring-1 ring-[#1ABC9C]"
+          className="w-full pl-11 pr-4 py-2 bg-gray-50 border border-[#e5e7eb] rounded-full text-sm outline-none focus:ring-1 ring-brand-primary"
         />
 
         {/* Autocomplete dropdown */}
@@ -223,7 +223,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
           <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E5E7EB] rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100">
             {suggestions.articles?.length > 0 && (
               <>
-                <p className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[#6B7280]">
+                <p className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-brand-muted">
                   Articles
                 </p>
                 {suggestions.articles.map((a) => (
@@ -232,7 +232,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
                     onMouseDown={(e) => e.preventDefault()}
                     // type="article" → no &tab param → opens Articles tab
                     onClick={() => handleSuggestionClick(a.title, "article")}
-                    className="w-full text-left px-4 py-2 text-sm text-[#111827] hover:bg-[#E8F8F5] hover:text-[#1ABC9C] transition-colors duration-100 truncate"
+                    className="w-full text-left px-4 py-2 text-sm text-brand-black hover:bg-[#E8F8F5] hover:text-brand-primary transition-colors duration-100 truncate"
                   >
                     {a.title}
                   </button>
@@ -242,7 +242,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
 
             {suggestions.users?.length > 0 && (
               <>
-                <p className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[#6B7280]">
+                <p className="px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-brand-muted">
                   People
                 </p>
                 {suggestions.users.map((u) => (
@@ -253,7 +253,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
                     onClick={() =>
                       handleSuggestionClick(u.displayName || u.username, "user")
                     }
-                    className="w-full text-left px-4 py-2 text-sm text-[#111827] hover:bg-[#E8F8F5] hover:text-[#1ABC9C] transition-colors duration-100 flex items-center gap-2"
+                    className="w-full text-left px-4 py-2 text-sm text-brand-black hover:bg-[#E8F8F5] hover:text-brand-primary transition-colors duration-100 flex items-center gap-2"
                   >
                     <img
                       src={
@@ -269,7 +269,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
                       {u.displayName || u.username}
                     </span>
                     {u.username && u.displayName && (
-                      <span className="text-[#6B7280] text-xs ml-auto shrink-0">
+                      <span className="text-brand-muted text-xs ml-auto shrink-0">
                         @{u.username}
                       </span>
                     )}
@@ -282,7 +282,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={handleSearchSubmit}
-              className="w-full text-left px-4 py-2.5 text-sm text-[#1ABC9C] font-medium hover:bg-[#E8F8F5] transition-colors duration-100 border-t border-[#E5E7EB] flex items-center gap-2"
+              className="w-full text-left px-4 py-2.5 text-sm text-brand-primary font-medium hover:bg-[#E8F8F5] transition-colors duration-100 border-t border-[#E5E7EB] flex items-center gap-2"
             >
               <Search size={14} />
               Search for &ldquo;{searchQuery}&rdquo;
@@ -298,7 +298,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
         {!isAdminMode && (
         <Link
           href="/write/choose-method"
-          className="bg-[#1ABC9C] text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 hover:bg-[#17a589]"
+          className="bg-brand-primary text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 hover:bg-brand-primary-hover"
         >
           <PenSquare size={16} />
           <span className="hidden sm:inline">Write</span>
@@ -310,9 +310,9 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
 
         {/* Messages - Hidden in Admin Mode */}
         {!isAdminMode && (
-        <Link 
-          href="/chat" 
-          className="p-2 hover:bg-emerald-50 rounded-full transition-colors text-gray-600"
+        <Link
+          href="/chat"
+          className="p-2 hover:bg-emerald-50 rounded-full transition-colors text-brand-muted"
           title="Messages"
         >
           <MessageCircle className="w-6 h-6" />
@@ -340,7 +340,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
             </button>
             {isPremium && (
               <div className="absolute -bottom-0.5 -right-0.5 z-10 bg-white rounded-full flex items-center justify-center p-px shadow-sm pointer-events-none">
-                <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" fill="#1ABC9C" stroke="white" strokeWidth="1.5" />
+                <BadgeCheck className="w-4 h-4 text-brand-primary" fill="var(--color-brand-primary)" stroke="white" strokeWidth="1.5" />
               </div>
             )}
           </div>
@@ -363,19 +363,19 @@ export default function Header({ onToggleSidebar, isSidebarOpen }) {
                 <p className="font-bold">
                   <Link
                     href="/profile"
-                    className="flex items-center justify-between hover:text-[#1ABC9C] transition-colors"
+                    className="flex items-center justify-between hover:text-brand-primary transition-colors"
                   >
                     <span className="truncate">{displayName}</span>
-                    {isPremium && <BadgeCheck className="w-5 h-5 shrink-0 ml-2" fill="#1ABC9C" stroke="white" strokeWidth="1.5" />}
+                    {isPremium && <BadgeCheck className="w-5 h-5 shrink-0 ml-2" fill="var(--color-brand-primary)" stroke="white" strokeWidth="1.5" />}
                   </Link>
                 </p>
-                <p className="text-gray-500 text-xs truncate">{displayEmail}</p>
+                <p className="text-brand-muted text-xs truncate">{displayEmail}</p>
               </div>
               <div className="border-t border-[#e5e7eb] my-1" />
               <Link
                 href="/help"
                 onClick={() => setUserMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
+                className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 text-brand-muted"
               >
                 <HelpCircle size={16} /> Help
               </Link>

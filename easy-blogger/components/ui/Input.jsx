@@ -19,7 +19,7 @@ const Input = forwardRef(
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className={`w-full px-4 py-3 border border-[#E5E7EB] rounded-full text-sm text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:border-[#1ABC9C] transition-colors ${
+          className={`w-full px-4 py-3 border border-[#E5E7EB] rounded-full text-sm text-brand-black placeholder-[#9CA3AF] focus:outline-none focus:border-brand-primary transition-colors ${
             isPasswordInput ? "pr-12" : ""
           } ${className}`}
           {...props}
@@ -28,7 +28,7 @@ const Input = forwardRef(
           <button
             type="button"
             tabIndex="-1"
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280] focus:outline-none transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-brand-muted focus:outline-none transition-colors"
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? (

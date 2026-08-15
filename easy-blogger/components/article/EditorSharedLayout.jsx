@@ -8,14 +8,14 @@ export function EditorHeader({
   return (
     <div className="sticky top-0 z-30 border-b border-[#E5E7EB] bg-white px-6 py-1">
       <div className="mx-auto grid max-w-6xl grid-cols-3 items-center gap-2">
-        <div className="text-sm text-[#6B7280]">{statusText}</div>
+        <div className="text-sm text-brand-muted">{statusText}</div>
 
         <div className="text-center">
-          <h1 className="font-serif text-3xl font-bold text-[#111827]">
+          <h1 className="font-serif text-3xl font-bold text-brand-black">
             {title}
           </h1>
           {subtitle ? (
-            <p className="mt-0 text-sm text-[#6B7280]">{subtitle}</p>
+            <p className="mt-0 text-sm text-brand-muted">{subtitle}</p>
           ) : null}
         </div>
 
@@ -40,8 +40,8 @@ export function EditorBottomActions({ actions }) {
             disabled={action.disabled}
             className={`h-10 min-w-[100px] rounded-full px-5 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               action.variant === "primary"
-                ? "bg-[#1ABC9C] hover:bg-[#17a589]"
-                : "bg-[#111827] hover:bg-[#1f2937]"
+                ? "bg-brand-primary hover:bg-brand-primary-hover"
+                : "bg-brand-black hover:bg-brand-black-hover"
             }`}
           >
             {action.label}

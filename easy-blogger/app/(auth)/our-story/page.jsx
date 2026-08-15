@@ -12,38 +12,38 @@ export default function OurStoryPage() {
           className="text-2xl font-bold"
           style={{ fontFamily: "Georgia, serif" }}
         >
-          <span className="text-[#111827]">Easy </span>
-          <span className="text-[#111827]">Blogger</span>
+          <span className="text-brand-black">Easy </span>
+          <span className="text-brand-black">Blogger</span>
         </Link>
 
         <nav className="flex items-center gap-6">
           <Link
             href="/our-story"
-            className="text-sm font-medium text-[#111827] hidden md:block"
+            className="text-sm font-medium text-brand-black hidden md:block"
           >
             Our story
           </Link>
           <Link
             href="/membership"
-            className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
+            className="text-sm text-brand-muted hover:text-[#000000] transition-colors hidden md:block"
           >
             Membership
           </Link>
           <Link
             href="/signup"
-            className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
+            className="text-sm text-brand-muted hover:text-[#000000] transition-colors hidden md:block"
           >
             Write
           </Link>
           <Link
             href="/login"
-            className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors"
+            className="text-sm text-brand-muted hover:text-[#000000] transition-colors"
           >
             Sign in
           </Link>
           <Link
             href="/signup"
-            className="px-4 py-2 bg-[#111827] text-white text-sm rounded-full hover:bg-[#1f2937] transition-colors"
+            className="px-4 py-2 bg-brand-black text-white text-sm rounded-full hover:bg-brand-black-hover transition-colors"
           >
             Get started
           </Link>
@@ -53,7 +53,7 @@ export default function OurStoryPage() {
       {/* Hero Section */}
       <section className="w-full max-w-5xl mx-auto px-6 md:px-12 pt-20 pb-16">
         <h1
-          className="text-5xl md:text-7xl font-bold text-[#111827] leading-tight tracking-tight"
+          className="text-5xl md:text-7xl font-bold text-brand-black leading-tight tracking-tight"
           style={{ fontFamily: "Georgia, serif" }}
         >
           Everyone has
@@ -71,7 +71,7 @@ export default function OurStoryPage() {
         <div className="grid md:grid-cols-2 gap-12">
           <div>
             <p
-              className="text-xl md:text-2xl leading-relaxed text-[#374151]"
+              className="text-xl md:text-2xl leading-relaxed text-brand-muted"
               style={{ fontFamily: "Georgia, serif" }}
             >
               Easy Blogger is a home for human stories and ideas. Here, anyone
@@ -82,7 +82,7 @@ export default function OurStoryPage() {
           </div>
           <div>
             <p
-              className="text-xl md:text-2xl leading-relaxed text-[#374151]"
+              className="text-xl md:text-2xl leading-relaxed text-brand-muted"
               style={{ fontFamily: "Georgia, serif" }}
             >
               The internet is noisy and chaotic; Easy Blogger is quiet yet full
@@ -101,7 +101,7 @@ export default function OurStoryPage() {
       {/* Beliefs Section */}
       <section className="w-full max-w-5xl mx-auto px-6 md:px-12 py-16">
         <h2
-          className="text-3xl md:text-4xl font-bold text-[#111827] mb-12"
+          className="text-3xl md:text-4xl font-bold text-brand-black mb-12"
           style={{ fontFamily: "Georgia, serif" }}
         >
           We believe in
@@ -113,12 +113,12 @@ export default function OurStoryPage() {
             <div className="flex items-start justify-between gap-8">
               <div className="flex-1">
                 <h3
-                  className="text-xl md:text-2xl font-bold text-[#111827] mb-3"
+                  className="text-xl md:text-2xl font-bold text-brand-black mb-3"
                   style={{ fontFamily: "Georgia, serif" }}
                 >
                   Words matter.
                 </h3>
-                <p className="text-[#6B7280] text-base max-w-2xl leading-relaxed">
+                <p className="text-brand-muted text-base max-w-2xl leading-relaxed">
                   We believe that what you read and write matters. Words can
                   divide or empower us, inspire or discourage us. In a world
                   where the most sensational and surface-level stories often
@@ -140,12 +140,12 @@ export default function OurStoryPage() {
             <div className="flex items-start justify-between gap-8">
               <div className="flex-1">
                 <h3
-                  className="text-xl md:text-2xl font-bold text-[#111827] mb-3"
+                  className="text-xl md:text-2xl font-bold text-brand-black mb-3"
                   style={{ fontFamily: "Georgia, serif" }}
                 >
                   Anyone can contribute.
                 </h3>
-                <p className="text-[#6B7280] text-base max-w-2xl leading-relaxed">
+                <p className="text-brand-muted text-base max-w-2xl leading-relaxed">
                   We've built a platform where anyone can participate. Someone's
                   ability to contribute valuable ideas doesn't depend on who
                   they are or where they come from. If you've got a perspective
@@ -166,12 +166,12 @@ export default function OurStoryPage() {
             <div className="flex items-start justify-between gap-8">
               <div className="flex-1">
                 <h3
-                  className="text-xl md:text-2xl font-bold text-[#111827] mb-3"
+                  className="text-xl md:text-2xl font-bold text-brand-black mb-3"
                   style={{ fontFamily: "Georgia, serif" }}
                 >
                   Readers deserve quality.
                 </h3>
-                <p className="text-[#6B7280] text-base max-w-2xl leading-relaxed">
+                <p className="text-brand-muted text-base max-w-2xl leading-relaxed">
                   We measure success not by clicks or views, but by time
                   meaningfully spent. Our model aligns the interests of writers
                   and readers, creating a virtuous cycle of high-quality
@@ -192,12 +192,12 @@ export default function OurStoryPage() {
             <div className="flex items-start justify-between gap-8">
               <div className="flex-1">
                 <h3
-                  className="text-xl md:text-2xl font-bold text-[#111827] mb-3"
+                  className="text-xl md:text-2xl font-bold text-brand-black mb-3"
                   style={{ fontFamily: "Georgia, serif" }}
                 >
                   Ideas should spread.
                 </h3>
-                <p className="text-[#6B7280] text-base max-w-2xl leading-relaxed">
+                <p className="text-brand-muted text-base max-w-2xl leading-relaxed">
                   Great ideas can come from anywhere. We're building tools and
                   surfaces that help good ideas find an audience, and help
                   curious readers discover stories they won't find anywhere
@@ -219,15 +219,15 @@ export default function OurStoryPage() {
       <section className="w-full max-w-5xl mx-auto px-6 md:px-12 pt-8 pb-4">
         <Link
           href="/signup"
-          className="group flex items-center justify-between py-10 border-b border-[#E5E7EB] hover:border-[#111827] transition-colors"
+          className="group flex items-center justify-between py-10 border-b border-[#E5E7EB] hover:border-brand-black transition-colors"
         >
           <h2
-            className="text-4xl md:text-6xl font-bold text-[#111827] group-hover:text-[#1ABC9C] transition-colors"
+            className="text-4xl md:text-6xl font-bold text-brand-black group-hover:text-brand-primary transition-colors"
             style={{ fontFamily: "Georgia, serif" }}
           >
             Start reading
           </h2>
-          <span className="text-4xl md:text-6xl text-[#E5E7EB] group-hover:text-[#1ABC9C] transition-colors">
+          <span className="text-4xl md:text-6xl text-[#E5E7EB] group-hover:text-brand-primary transition-colors">
             →
           </span>
         </Link>
@@ -236,15 +236,15 @@ export default function OurStoryPage() {
       <section className="w-full max-w-5xl mx-auto px-6 md:px-12 pb-20">
         <Link
           href="/signup"
-          className="group flex items-center justify-between py-10 border-b border-[#E5E7EB] hover:border-[#111827] transition-colors"
+          className="group flex items-center justify-between py-10 border-b border-[#E5E7EB] hover:border-brand-black transition-colors"
         >
           <h2
-            className="text-4xl md:text-6xl font-bold text-[#111827] group-hover:text-[#1ABC9C] transition-colors"
+            className="text-4xl md:text-6xl font-bold text-brand-black group-hover:text-brand-primary transition-colors"
             style={{ fontFamily: "Georgia, serif" }}
           >
             Start writing
           </h2>
-          <span className="text-4xl md:text-6xl text-[#E5E7EB] group-hover:text-[#1ABC9C] transition-colors">
+          <span className="text-4xl md:text-6xl text-[#E5E7EB] group-hover:text-brand-primary transition-colors">
             →
           </span>
         </Link>
@@ -255,34 +255,34 @@ export default function OurStoryPage() {
 
       {/* Footer — matches landing page */}
       <footer className="w-full py-6">
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-[#6B7280]">
+        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-brand-muted">
           <Link
             href="/"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Home
           </Link>
           <Link
             href="/membership"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Membership
           </Link>
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Help
           </a>
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Privacy
           </a>
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Terms
           </a>

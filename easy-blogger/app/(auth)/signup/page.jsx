@@ -74,37 +74,37 @@ export default function SignupPage() {
           className="text-2xl font-bold"
           style={{ fontFamily: "Georgia, serif" }}
         >
-          <span className="text-[#111827]">Easy </span>
-          <span className="text-[#111827]">Blogger</span>
+          <span className="text-brand-black">Easy </span>
+          <span className="text-brand-black">Blogger</span>
         </h1>
         <nav className="flex items-center gap-6">
           <Link
             href="/our-story"
-            className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
+            className="text-sm text-brand-muted hover:text-[#000000] transition-colors hidden md:block"
           >
             Our story
           </Link>
           <Link
             href="/membership"
-            className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
+            className="text-sm text-brand-muted hover:text-[#000000] transition-colors hidden md:block"
           >
             Membership
           </Link>
           <Link
             href="/signup"
-            className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
+            className="text-sm text-brand-muted hover:text-[#000000] transition-colors hidden md:block"
           >
             Write
           </Link>
           <Link
             href="/login"
-            className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors"
+            className="text-sm text-brand-muted hover:text-[#000000] transition-colors"
           >
             Sign in
           </Link>
           <Link
             href="/signup"
-            className="px-4 py-2 bg-[#111827] text-white text-sm rounded-full hover:bg-[#1f2937] transition-colors"
+            className="px-4 py-2 bg-brand-black text-white text-sm rounded-full hover:bg-brand-black-hover transition-colors"
           >
             Get started
           </Link>
@@ -117,7 +117,7 @@ export default function SignupPage() {
           {/* Left Content */}
           <div className="flex-1 py-12 md:py-0 flex flex-col justify-center pr-12">
             <h2
-              className="text-6xl md:text-7xl lg:text-8xl font-serif leading-tight tracking-tight text-[#111827]"
+              className="text-6xl md:text-7xl lg:text-8xl font-serif leading-tight tracking-tight text-brand-black"
               style={{ fontFamily: "Georgia, serif" }}
             >
               Human
@@ -125,12 +125,12 @@ export default function SignupPage() {
               stories &<br />
               ideas
             </h2>
-            <p className="mt-8 text-lg md:text-xl text-[#374151] max-w-md">
+            <p className="mt-8 text-lg md:text-xl text-brand-muted max-w-md">
               A place to read, write, and deepen your understanding
             </p>
             <a
               href="/login"
-              className="inline-block mt-8 mb-16 px-6 py-3 bg-[#111827] text-white text-base rounded-full hover:bg-[#1f2937] w-fit"
+              className="inline-block mt-8 mb-16 px-6 py-3 bg-brand-black text-white text-base rounded-full hover:bg-brand-black-hover w-fit"
             >
               Start reading
             </a>
@@ -169,19 +169,19 @@ export default function SignupPage() {
               >
                 <polygon points="60,0 320,120 260,288 0,168" fill="#DBEAFE" />
               </svg>
-              <div className="absolute top-8 right-0 w-52 h-52 rounded-full bg-[#1ABC9C] z-20"></div>
-              <div className="absolute top-48 -right-12 w-64 h-44 bg-[#3B82F6] z-30"></div>
-              <div className="absolute bottom-0 -right-12 w-72 h-64 bg-[#1ABC9C] z-30"></div>
+              <div className="absolute top-8 right-0 w-52 h-52 rounded-full bg-brand-primary z-20"></div>
+              <div className="absolute top-48 -right-12 w-64 h-44 bg-brand-blue z-30"></div>
+              <div className="absolute bottom-0 -right-12 w-72 h-64 bg-brand-primary z-30"></div>
               <svg
                 className="absolute top-52 -right-12 w-64 h-40 z-40"
                 viewBox="0 0 256 160"
               >
                 <path
                   d="M0 80 Q64 20 128 80 T256 80 L256 160 L0 160 Z"
-                  fill="#1ABC9C"
+                  fill="var(--color-brand-primary)"
                 />
               </svg>
-              <div className="absolute bottom-16 right-8 w-28 h-24 bg-[#60A5FA] z-50"></div>
+              <div className="absolute bottom-16 right-8 w-28 h-24 bg-brand-blue z-50"></div>
             </div>
           </div>
         </div>
@@ -192,64 +192,64 @@ export default function SignupPage() {
 
       {/* Footer */}
       <footer className="w-full py-6">
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-[#6B7280]">
+        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-brand-muted">
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Help
           </a>
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Status
           </a>
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             About
           </a>
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Careers
           </a>
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Press
           </a>
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Blog
           </a>
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Privacy
           </a>
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Terms
           </a>
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Text to speech
           </a>
           <a
             href="#"
-            className="hover:text-[#111827] hover:underline transition-colors"
+            className="hover:text-brand-black hover:underline transition-colors"
           >
             Teams
           </a>
@@ -266,7 +266,7 @@ export default function SignupPage() {
           {/* Close Button */}
           <button
             onClick={handleClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute top-4 right-4 text-gray-400 hover:text-brand-muted transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -286,7 +286,7 @@ export default function SignupPage() {
           {/* Title with underline */}
           <div className="text-center mb-8">
             <h1
-              className="text-[28px] font-normal text-[#111827] pb-4 border-b border-gray-200"
+              className="text-[28px] font-normal text-brand-black pb-4 border-b border-gray-200"
               style={{ fontFamily: "Georgia, serif" }}
             >
               Join Easy Blogger.
@@ -298,10 +298,10 @@ export default function SignupPage() {
             {/* Google */}
             <button
               onClick={handleGoogleSignup}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-[#1ABC9C] hover:bg-[#F9FAFB]"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-primary hover:bg-[#F9FAFB]"
             >
               <GoogleIcon className="w-5 h-5" />
-              <span className="text-[#111827] text-sm">
+              <span className="text-brand-black text-sm">
                 Sign up with Google
               </span>
             </button>
@@ -309,10 +309,10 @@ export default function SignupPage() {
             {/* Facebook */}
             <button
               onClick={handleFacebookSignup}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-[#1ABC9C] hover:bg-[#F9FAFB]"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-primary hover:bg-[#F9FAFB]"
             >
               <FacebookIcon className="w-5 h-5" />
-              <span className="text-[#111827] text-sm">
+              <span className="text-brand-black text-sm">
                 Sign up with Facebook
               </span>
             </button>
@@ -320,33 +320,33 @@ export default function SignupPage() {
             {/* Email */}
             <button
               onClick={() => router.push("/signup/email")}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-[#1ABC9C] hover:bg-[#F9FAFB]"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-primary hover:bg-[#F9FAFB]"
             >
-              <EmailIcon className="w-5 h-5 text-gray-600" />
-              <span className="text-[#111827] text-sm">Sign up with email</span>
+              <EmailIcon className="w-5 h-5 text-brand-muted" />
+              <span className="text-brand-black text-sm">Sign up with email</span>
             </button>
           </div>
 
           {/* Sign In Link */}
-          <p className="text-center mt-10 text-[#111827] text-sm">
+          <p className="text-center mt-10 text-brand-black text-sm">
             Already have an account?{" "}
             <Link
               href="/login"
-              className="text-[#1ABC9C] font-semibold hover:underline"
+              className="text-brand-primary font-semibold hover:underline"
             >
               Sign in
             </Link>
           </p>
 
           {/* Terms */}
-          <p className="text-center mt-8 text-xs text-[#6B7280] leading-relaxed">
+          <p className="text-center mt-8 text-xs text-brand-muted leading-relaxed">
             By clicking "Sign up", you accept Easy Blogger's{" "}
-            <Link href="/terms" className="underline hover:text-[#111827]">
+            <Link href="/terms" className="underline hover:text-brand-black">
               Terms of Service
             </Link>{" "}
             and
             <br />
-            <Link href="/privacy" className="underline hover:text-[#111827]">
+            <Link href="/privacy" className="underline hover:text-brand-black">
               Privacy Policy
             </Link>
             .

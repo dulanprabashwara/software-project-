@@ -20,19 +20,19 @@ export default function RightFeed() {
           <Loader2 className="w-4 h-4 animate-spin text-gray-300" />
         ) : (
           trending.map((item, i) => (
-            <div 
-              key={i} 
+            <div
+              key={i}
               className="flex gap-3 mb-4 group cursor-pointer"
               onClick={() => router.push(`/home/read?id=${item.id}`)}
             >
-              <span className="text-xl font-bold text-gray-200 group-hover:text-teal-500 transition-colors">
+              <span className="text-xl font-bold text-gray-200 group-hover:text-brand-primary transition-colors">
                 {i + 1}
               </span>
               <div className="min-w-0">
-                <h4 className="text-sm font-semibold line-clamp-2 group-hover:text-teal-500 transition-colors">
+                <h4 className="text-sm font-semibold line-clamp-2 group-hover:text-brand-primary transition-colors">
                   {item.title}
                 </h4>
-                <p className="text-xs text-gray-500">{item.author?.displayName || "Unknown"}</p>
+                <p className="text-xs text-brand-muted">{item.author?.displayName || "Unknown"}</p>
               </div>
             </div>
           ))
@@ -50,7 +50,7 @@ export default function RightFeed() {
               <button
                 key={tag.name}
                 onClick={() => router.push(`/home?q=${tag.name}`)}
-                className="px-3 py-1 bg-gray-50 border rounded-full text-xs hover:bg-teal-500 hover:text-white transition capitalize"
+                className="px-3 py-1 bg-gray-50 border rounded-full text-xs hover:bg-brand-primary hover:text-white transition capitalize"
               >
                 {tag.name}
               </button>
@@ -59,7 +59,7 @@ export default function RightFeed() {
         </div>
       </div>
 
-      
+
     </aside>
   );
 }

@@ -40,7 +40,7 @@ export const FacebookIcon = ({ width = "18", height = "18", className, ...props 
   </svg>
 );
 
-export const EmailIcon = ({ width = "18", height = "18", className, stroke = "#6B7280", ...props }) => (
+export const EmailIcon = ({ width = "18", height = "18", className, stroke = "var(--color-brand-muted)", ...props }) => (
   <svg
     width={width}
     height={height}

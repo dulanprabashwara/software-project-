@@ -20,8 +20,8 @@ function ChooseOptionCard({
       onClick={onClick}
       className={`group flex w-full items-center justify-between rounded-2xl border px-6 py-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(15,23,42,0.10)] ${
         isPrimary
-          ? "border-transparent bg-linear-to-r from-[#1ABC9C] to-[#159A80]"
-          : "border-[#DCE7E4] bg-white hover:border-[#1ABC9C]"
+          ? "border-transparent bg-linear-to-r from-brand-primary to-brand-primary-hover"
+          : "border-[#DCE7E4] bg-white hover:border-brand-primary"
       }`}
     >
       <div className="flex items-center gap-4">
@@ -31,14 +31,14 @@ function ChooseOptionCard({
           }`}
         >
           <Icon
-            className={`h-6 w-6 ${isPrimary ? "text-white" : "text-[#1ABC9C]"}`}
+            className={`h-6 w-6 ${isPrimary ? "text-white" : "text-brand-primary"}`}
           />
         </div>
 
         <div>
           <h3
             className={`text-lg font-semibold ${
-              isPrimary ? "text-white" : "text-[#0F172A]"
+              isPrimary ? "text-white" : "text-brand-black"
             }`}
           >
             {title}
@@ -48,7 +48,7 @@ function ChooseOptionCard({
 
       <ArrowRight
         className={`h-5 w-5 shrink-0 transition-transform duration-300 group-hover:translate-x-1 ${
-          isPrimary ? "text-white" : "text-[#1ABC9C]"
+          isPrimary ? "text-white" : "text-brand-primary"
         }`}
       />
     </button>
@@ -82,9 +82,9 @@ function UserProfileCard({ user, loading }) {
       <img
         src={avatarUrl}
         alt={displayName}
-        className="h-24 w-24 rounded-full border-4 border-[#1ABC9C] object-cover shadow-md"
+        className="h-24 w-24 rounded-full border-4 border-brand-primary object-cover shadow-md"
       />
-      <h2 className="mt-4 text-center text-3xl font-serif font-bold text-[#111827]">
+      <h2 className="mt-4 text-center text-3xl font-serif font-bold text-brand-black">
         {displayName}
       </h2>
     </div>
@@ -93,7 +93,7 @@ function UserProfileCard({ user, loading }) {
 
 function BrandBadge() {
   return (
-    <div className="mb-6 inline-flex w-fit items-center gap-3 rounded-full bg-[#E8FFF8] px-4 py-2 text-sm font-medium text-[#0F766E]">
+    <div className="mb-6 inline-flex w-fit items-center gap-3 rounded-full bg-[#E8FFF8] px-4 py-2 text-sm font-medium text-brand-primary-hover">
       <img
         src="/icons/logo.jpeg"
         alt="Easy Blogger"
@@ -112,7 +112,7 @@ function HeroBrand() {
         alt="Easy Blogger"
         className="h-10 w-10 object-contain"
       />
-      <span className="text-2xl font-serif font-semibold text-[#1ABC9C]">
+      <span className="text-2xl font-serif font-semibold text-brand-primary">
         Easy Blogger
       </span>
     </div>
@@ -153,7 +153,7 @@ export default function ChooseMethodPage() {
 
             <UserProfileCard user={user} loading={isLoading} />
 
-            <p className="mb-8 max-w-xl text-base leading-7 text-[#64748B] sm:text-lg">
+            <p className="mb-8 max-w-xl text-base leading-7 text-brand-muted sm:text-lg">
               Start a brand new article or continue from one of your unpublished
               drafts.
             </p>
@@ -174,36 +174,36 @@ export default function ChooseMethodPage() {
 
           <div className="relative hidden items-center justify-center overflow-hidden bg-[#F0FDF9] lg:flex">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(26,188,156,0.18),transparent_65%)]" />
-            <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#1ABC9C]/10 blur-3xl" />
-            <div className="absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-[#0EA5E9]/10 blur-3xl" />
+            <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-primary/10 blur-3xl" />
+            <div className="absolute -bottom-20 -left-10 h-64 w-64 rounded-full bg-brand-blue/10 blur-3xl" />
 
-            <div className="relative z-10 max-w-md px-10 text-[#0F172A]">
+            <div className="relative z-10 max-w-md px-10 text-brand-black">
               <HeroBrand />
 
               <h3 className="mb-4 text-3xl font-bold leading-tight">
                 Turn your ideas into impactful articles
               </h3>
 
-              <p className="mb-8 leading-7 text-[#475569]">
+              <p className="mb-8 leading-7 text-brand-muted">
                 Write confidently, continue drafts easily, and manage your
                 content in a cleaner and more professional workflow.
               </p>
 
               <div className="space-y-4">
                 <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-                  <p className="text-sm font-medium text-[#64748B]">
+                  <p className="text-sm font-medium text-brand-muted">
                     New Article
                   </p>
-                  <p className="mt-1 text-lg font-semibold text-[#0F172A]">
+                  <p className="mt-1 text-lg font-semibold text-brand-black">
                     Start writing from scratch
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-                  <p className="text-sm font-medium text-[#64748B]">
+                  <p className="text-sm font-medium text-brand-muted">
                     Unpublished Drafts
                   </p>
-                  <p className="mt-1 text-lg font-semibold text-[#0F172A]">
+                  <p className="mt-1 text-lg font-semibold text-brand-black">
                     Resume your saved progress anytime
                   </p>
                 </div>

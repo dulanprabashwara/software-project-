@@ -19,25 +19,25 @@ export default function DraftArticleCard({ article }) {
           alt={article.authorName}
           className="w-8 h-8 rounded-full object-cover"
         />
-        <span className="text-sm font-medium text-[#111827]">
+        <span className="text-sm font-medium text-brand-black">
           {article.authorName}
         </span>
 
         {article.verified && (
-          <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" />
+          <BadgeCheck className="w-4 h-4 text-brand-primary" />
         )}
 
-        <span className="text-sm text-[#6B7280]">· {article.date}</span>
+        <span className="text-sm text-brand-muted">· {article.date}</span>
       </div>
 
       {/* Article content */}
       <div className="flex gap-6 justify-between">
         <div className="flex-1">
-          <h2 className="text-xl font-bold text-[#111827] mb-2 leading-tight font-serif hover:text-[#1ABC9C] transition-colors duration-150 cursor-pointer">
+          <h2 className="text-xl font-bold text-brand-black mb-2 leading-tight font-serif hover:text-brand-primary transition-colors duration-150 cursor-pointer">
             {article.title}
           </h2>
 
-          <div className="text-[#6B7280] text-base leading-relaxed line-clamp-3">
+          <div className="text-brand-muted text-base leading-relaxed line-clamp-3">
             <div
               dangerouslySetInnerHTML={{
                 __html: article.content, // already sanitized HTML
@@ -58,7 +58,7 @@ export default function DraftArticleCard({ article }) {
         )}
       </div>
 
-      
+
     </article>
   );
 }

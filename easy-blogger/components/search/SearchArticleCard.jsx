@@ -181,16 +181,16 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
         {/* Author & date header */}
         <div className="flex items-center gap-2 mb-3">
           <img src={authorAvatar} alt={authorName} className="w-8 h-8 rounded-full object-cover" />
-          <span className="text-xl font-medium text-[#111827]">
+          <span className="text-xl font-medium text-brand-black">
             {authorName}
-            <span className="text-xs text-gray-500"> @{authorUsername}</span>
+            <span className="text-xs text-brand-muted"> @{authorUsername}</span>
           </span>
 
           {author.isPremium && (
-            <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" title="Premium Author" />
+            <BadgeCheck className="w-4 h-4 text-brand-primary" title="Premium Author" />
           )}
 
-          <span className="text-sm text-[#6B7280]">
+          <span className="text-sm text-brand-muted">
             {status === "PUBLISHED" ? (
               <span>{displayDate}</span>
             ) : status === "SCHEDULED" ? (
@@ -203,7 +203,7 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
           </span>
 
           {isAiGenerated && (
-            <span className="flex items-center gap-1 ml-2 text-[10px] font-semibold border border-[#1ABC9C] text-[#1ABC9C] bg-purple-50 px-2 py-0.5 rounded-full">
+            <span className="flex items-center gap-1 ml-2 text-[10px] font-semibold border border-brand-primary text-brand-primary bg-[#E8F8F5] px-2 py-0.5 rounded-full">
               <Sparkles className="w-3 h-3" /> AI Generated
             </span>
           )}
@@ -214,19 +214,19 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
           <div className="flex-1">
             <div className="h-14">
               <h2
-                className="text-xl font-bold text-[#111827] mb-2 leading-tight font-serif hover:text-[#1ABC9C] cursor-pointer transition-colors duration-150 line-clamp-2"
+                className="text-xl font-bold text-brand-black mb-2 leading-tight font-serif hover:text-brand-primary cursor-pointer transition-colors duration-150 line-clamp-2"
                 onClick={handleArticleClick}
               >
                 {title || "Untitled Article"}
               </h2>
             </div>
             {summaryText ? (
-              <p className="line-clamp-3 h-18 text-gray-500 text-[16px] leading-6">
+              <p className="line-clamp-3 h-18 text-brand-muted text-[16px] leading-6">
                 {summaryText}
               </p>
             ) : (
               <div
-                className="line-clamp-3 h-18 text-gray-500 text-[16px] leading-6"
+                className="line-clamp-3 h-18 text-brand-muted text-[16px] leading-6"
                 dangerouslySetInnerHTML={{ __html: content || "<p>No content available.</p>" }}
               />
             )}
@@ -241,9 +241,9 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
 
         {/* Interaction footer */}
         <div className="flex items-center justify-between mt-4 relative">
-          <div className="flex items-center gap-4 text-sm text-[#6B7280]">
+          <div className="flex items-center gap-4 text-sm text-brand-muted">
 
-            <button className="flex items-center gap-1.5 hover:text-[#1ABC9C] transition-colors duration-150">
+            <button className="flex items-center gap-1.5 hover:text-brand-primary transition-colors duration-150">
               <MessageCircle className="w-5 h-5" strokeWidth={1.5} />
               <span>{totalComments || "-"}</span>
             </button>
@@ -253,7 +253,7 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
               <span className="font-medium">
                 {averageRating > 0 ? averageRating.toFixed(1) : "-"}
               </span>
-              <span className="text-[#6B7280]">[{ratingCount || 0}]</span>
+              <span className="text-brand-muted">[{ratingCount || 0}]</span>
             </div>
 
             {readingTime > 0 && (
@@ -275,7 +275,7 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
             >
               <Bookmark
                 className={`w-5 h-5 transition-colors duration-150 ${
-                  saved ? "text-[#1abc9c] fill-[#1abc9c]" : "text-[#1abc9c] group-hover:text-[#1ABC9C]"
+                  saved ? "text-brand-primary fill-brand-primary" : "text-brand-primary group-hover:text-brand-primary"
                 }`}
                 strokeWidth={1.5}
               />
@@ -285,7 +285,7 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
               className="group p-2 hover:bg-[#E8F8F5] rounded-full transition-colors duration-150"
               onClick={() => setMoreOptions(!moreOptions)}
             >
-              <MoreHorizontal className="w-5 h-5 text-[#6B7280] group-hover:text-[#1ABC9C] transition-colors duration-150" />
+              <MoreHorizontal className="w-5 h-5 text-brand-muted group-hover:text-brand-primary transition-colors duration-150" />
             </button>
 
             {moreOptions && (
@@ -307,7 +307,7 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
       {isReportOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-bold mb-4 text-gray-900">Report Article</h3>
+            <h3 className="text-xl font-bold mb-4 text-brand-black">Report Article</h3>
 
             <input
               type="text"
@@ -327,7 +327,7 @@ export default function SearchArticleCard({ article, savedArticles = [] }) {
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setIsReportOpen(false)}
-                className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+                className="px-4 py-2 text-brand-muted hover:bg-gray-100 rounded-lg"
               >
                 Cancel
               </button>

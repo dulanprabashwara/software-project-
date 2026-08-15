@@ -13,7 +13,7 @@ export default function CoverImageField({
 }) {
   return (
     <div className="bg-[#F8FAFC] rounded-lg p-4">
-      <label className="block text-sm font-semibold text-[#111827] mb-3">
+      <label className="block text-sm font-semibold text-brand-black mb-3">
         Add Cover Image
       </label>
 
@@ -34,18 +34,18 @@ export default function CoverImageField({
           onClick={() => fileInputRef.current?.click()}
           onDragOver={(event) => event.preventDefault()}
           onDrop={onDropImage}
-          className="border-2 border-dashed border-[#E5E7EB] rounded-lg p-8 text-center cursor-pointer hover:border-[#1ABC9C] transition-colors bg-white"
+          className="border-2 border-dashed border-[#E5E7EB] rounded-lg p-8 text-center cursor-pointer hover:border-brand-primary transition-colors bg-white"
         >
           <div className="flex flex-col items-center gap-3">
             <div className="w-16 h-16 rounded-full bg-[#F8FAFC] flex items-center justify-center">
-              <ImageIcon className="w-8 h-8 text-[#6B7280]" />
+              <ImageIcon className="w-8 h-8 text-brand-muted" />
             </div>
 
             <div>
-              <p className="text-sm font-medium text-[#111827] mb-1">
+              <p className="text-sm font-medium text-brand-black mb-1">
                 Click to upload or drag and drop
               </p>
-              <p className="text-xs text-[#6B7280]">
+              <p className="text-xs text-brand-muted">
                 PNG, JPG, GIF or WEBP (Max 5 MB)
               </p>
             </div>

@@ -170,8 +170,8 @@ export default function SearchResults({ query, initialTab = "articles" }) {
     <div className="flex h-full overflow-hidden">
 
       <div ref={scrollContainerRef} className="p-8 mx-auto h-full overflow-y-auto flex-1">
-        <p className="text-sm text-[#6B7280] mb-5">
-          Results for <span className="font-semibold text-[#111827]">"{query}"</span>
+        <p className="text-sm text-brand-muted mb-5">
+          Results for <span className="font-semibold text-brand-black">"{query}"</span>
         </p>
 
         <div className="flex gap-6 border-b border-[#E5E7EB] mb-1">
@@ -207,8 +207,8 @@ export default function SearchResults({ query, initialTab = "articles" }) {
                 article={article}
                 savedArticles={savedArticles}
               />
-            ))}     
-             {/* small spinner at end of page when scrolled further*/}      
+            ))}
+             {/* small spinner at end of page when scrolled further*/}
             {articlesLoading && articles.length > 0 && <InlineSpinner />}
             {!hasMoreArticles && articlesLoaded && articles.length > 0 && <EndOfResults />}
           </>
@@ -251,14 +251,14 @@ function TabButton({ label, count, active, onClick }) {
       onClick={onClick}
       className={`pb-3 text-[15px] font-medium transition-colors duration-150 border-b-2 -mb-px ${
         active
-          ? "border-[#1ABC9C] text-[#1ABC9C]"
-          : "border-transparent text-[#6B7280] hover:text-[#111827]"
+          ? "border-brand-primary text-brand-primary"
+          : "border-transparent text-brand-muted hover:text-brand-black"
       }`}
     >
       {label}
       {count !== null && (
         <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
-          active ? "bg-[#E8F8F5] text-[#1ABC9C]" : "bg-gray-100 text-[#6B7280]"
+          active ? "bg-[#E8F8F5] text-brand-primary" : "bg-gray-100 text-brand-muted"
         }`}>
           {count}
         </span>
@@ -271,7 +271,7 @@ function TabButton({ label, count, active, onClick }) {
 function Spinner() {
   return (
     <div className="flex justify-center py-16">
-      <Loader2 className="w-6 h-6 animate-spin text-[#1ABC9C]" />
+      <Loader2 className="w-6 h-6 animate-spin text-brand-primary" />
     </div>
   );
 }
@@ -280,7 +280,7 @@ function Spinner() {
 function InlineSpinner() {
   return (
     <div className="flex justify-center py-6">
-      <Loader2 className="w-5 h-5 animate-spin text-[#1ABC9C]" />
+      <Loader2 className="w-5 h-5 animate-spin text-brand-primary" />
     </div>
   );
 }
@@ -288,9 +288,9 @@ function InlineSpinner() {
 // Displays a no-results message with an optional hint.
 function EmptyState({ message, hint }) {
   return (
-    <div className="flex flex-col items-center py-16 text-center text-[#6B7280]">
+    <div className="flex flex-col items-center py-16 text-center text-brand-muted">
       <SearchX className="w-10 h-10 mb-3" strokeWidth={1.5} />
-      <p className="text-sm font-medium text-[#111827]">{message}</p>
+      <p className="text-sm font-medium text-brand-black">{message}</p>
       {hint && <p className="text-xs mt-1">{hint}</p>}
     </div>
   );
@@ -299,7 +299,7 @@ function EmptyState({ message, hint }) {
 // Displayed at the bottom of the list when all pages have been loaded.
 function EndOfResults() {
   return (
-    <p className="text-center text-xs text-[#6B7280] py-8">
+    <p className="text-center text-xs text-brand-muted py-8">
       You've reached the end of the results.
     </p>
   );
