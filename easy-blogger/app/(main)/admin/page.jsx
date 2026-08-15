@@ -344,7 +344,6 @@ export default function AdminDashboard() {
         </div>
 
         {/* Platform Pulse Card */}
-        {/* Platform Pulse Card */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -360,7 +359,7 @@ export default function AdminDashboard() {
           ) : feeds.recentActivity.length === 0 ? (
             <p className="text-sm text-gray-500 py-4">No activity events found yet.</p>
           ) : (
-            <div className="flex flex-col">
+            <div className="flex flex-col max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
               {feeds.recentActivity.map((event, index) => (
                 <div key={event.id} className="flex gap-4">
                   {/* The Timeline Line & Dot */}
