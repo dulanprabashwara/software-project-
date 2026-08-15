@@ -17,7 +17,7 @@ export default function History() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+        <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
       </div>
     );
   }
@@ -26,7 +26,7 @@ export default function History() {
   if (!readHistory || readHistory.length === 0) {
     return (
       <div className="px-8 mt-10 text-center">
-        <p className="text-brand-muted font-serif text-lg">Your reading history is empty.</p>
+        <p className="text-gray-500 font-serif text-lg">Your reading history is empty.</p>
       </div>
     );
   }
@@ -42,10 +42,10 @@ export default function History() {
       >
         <div className="w-full">
           {readHistory.map((item) => (
-            <ArticleCard
-              key={item.id}
-              article={item.article}
-              readHistory={readHistory}
+            <ArticleCard 
+              key={item.id} 
+              article={item.article} 
+              readHistory={readHistory} 
               savedArticles={savedList}
             />
           ))}

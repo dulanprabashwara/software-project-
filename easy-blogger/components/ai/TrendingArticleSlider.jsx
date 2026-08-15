@@ -168,7 +168,7 @@ export default function TrendingArticleSlider({ articles = [], savedArticles = [
                     <span className="text-xs text-gray-400 ml-1">@{article.author.username}</span>
                   )}
                   {article.author?.isPremium && (
-                    <BadgeCheck className="inline w-4 h-4 text-brand-primary ml-1 align-middle" title="Premium Author" />
+                    <BadgeCheck className="inline w-4 h-4 text-[#1ABC9C] ml-1 align-middle" title="Premium Author" />
                   )}
                 </span>
                 <span className="publish-date">
@@ -176,7 +176,7 @@ export default function TrendingArticleSlider({ articles = [], savedArticles = [
                 </span>
               </div>
               {article.isAiGenerated && (
-                <span className="flex items-center gap-1 text-[10px] font-semibold border border-brand-primary text-brand-primary bg-[#E8F8F5] px-2 py-0.5 rounded-full ml-2">
+                <span className="flex items-center gap-1 text-[10px] font-semibold border border-[#1ABC9C] text-[#1ABC9C] bg-purple-50 px-2 py-0.5 rounded-full ml-2">
                   <Sparkles className="w-3 h-3" /> AI Generated
                 </span>
               )}
@@ -203,7 +203,7 @@ export default function TrendingArticleSlider({ articles = [], savedArticles = [
               <img src={article.coverImage} alt="Article cover" className="cover-image" />
             ) : (
               <div className="cover-image cover-image-placeholder">
-                <svg width="40" height="40" fill="none" stroke="var(--color-brand-primary)" viewBox="0 0 24 24">
+                <svg width="40" height="40" fill="none" stroke="#1ABC9C" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -291,7 +291,7 @@ export default function TrendingArticleSlider({ articles = [], savedArticles = [
       {isReportOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-bold mb-4 text-brand-black">Report Article</h3>
+            <h3 className="text-xl font-bold mb-4 text-gray-900">Report Article</h3>
             <input
               type="text"
               className="w-full border border-gray-200 rounded-lg p-2 mb-3 focus:ring-2 focus:ring-red-500 outline-none"
@@ -306,7 +306,7 @@ export default function TrendingArticleSlider({ articles = [], savedArticles = [
               onChange={(e) => setReportDescription(e.target.value)}
             />
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setIsReportOpen(false)} className="px-4 py-2 text-brand-muted hover:bg-gray-100 rounded-lg">
+              <button onClick={() => setIsReportOpen(false)} className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">
                 Cancel
               </button>
               <button

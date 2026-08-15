@@ -13,7 +13,7 @@ export default function FeedLayout({ title, tabs = [], children }) {
       <div className="h-full flex flex-col flex-1 min-w-0">
         {/* Header + Tabs */}
         <div className="p-3 border-b border-[#e5e7eb] px-8">
-          <h1 className="text-4xl font-bold font-serif">{title}</h1>
+          <h1 className="text-4xl font-bold font-[Georgia]">{title}</h1>
 
           {/* Section links map */}
           <div className="flex gap-10">
@@ -24,7 +24,7 @@ export default function FeedLayout({ title, tabs = [], children }) {
                 className={`py-3 font-semibold ${
                   pathname === tab.href
                     ? "text-black underline underline-offset-8"
-                    : "text-brand-muted hover:text-black transition-colors"
+                    : "text-gray-500 hover:text-black transition-colors"
                 }`}
               >
                 {tab.name}

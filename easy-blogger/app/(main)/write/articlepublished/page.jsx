@@ -18,7 +18,7 @@ import PublishStatusLayout from "../../../../components/article/PublishStatusLay
 
 /*
  Extractors for WordPress job data.
- WHY: The API returns the live URL or error messages within a nested job object or a top-level property
+ WHY: The API returns the live URL or error messages within a nested job object or a top-level property 
  depending on whether the publish is immediate or completed via a background worker.
  */
 function getWordPressUrl(data) {
@@ -192,17 +192,17 @@ function ArticlePublishedContent() {
     if (article?.status === "PUBLISHED" || article?.status === "SCHEDULED") {
       list.push("Easy Blogger");
     }
-
+    
     const validStatuses = ["PENDING", "IN_PROGRESS", "PUBLISHED", "SCHEDULED", "FAILED"];
-
+    
     if (article?.wpPublishJobs?.some(job => validStatuses.includes(job.status))) {
       list.push("WordPress");
     }
-
+    
     if (article?.liPublishJobs?.some(job => validStatuses.includes(job.status)) || liPostUrl || liError) {
       list.push("LinkedIn");
     }
-
+    
     return list;
   }, [article, liPostUrl, liError]);
 
@@ -213,7 +213,7 @@ function ArticlePublishedContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6">
-        <p className="text-sm text-brand-muted">Loading published article...</p>
+        <p className="text-sm text-gray-500">Loading published article...</p>
       </div>
     );
   }
@@ -235,7 +235,7 @@ function ArticlePublishedContent() {
       onButtonClick={() => router.push("/home")}
     >
       <InfoCard icon={BookOpen} title="Article title">
-        <p className="mt-0.5 text-base font-bold text-brand-black leading-snug line-clamp-2">{article.title}</p>
+        <p className="mt-0.5 text-base font-bold text-gray-800 leading-snug line-clamp-2">{article.title}</p>
       </InfoCard>
 
       <InfoCard icon={Tag} title="Tags">
@@ -243,7 +243,7 @@ function ArticlePublishedContent() {
           {(article.tags || []).map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-gray-100 bg-white px-3 py-1 text-xs font-semibold text-brand-muted shadow-2xs"
+              className="rounded-full border border-gray-100 bg-white px-3 py-1 text-xs font-semibold text-gray-600 shadow-2xs"
             >
               {tag}
             </span>
@@ -275,7 +275,7 @@ function ArticlePublishedContent() {
 
 export default function ArticlePublishedPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gradient-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6"><p className="text-sm text-brand-muted">Loading...</p></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-r from-[#eef8f5] to-[#edf2fb] flex items-center justify-center p-6"><p className="text-sm text-gray-500">Loading...</p></div>}>
       <ArticlePublishedContent />
     </Suspense>
   );

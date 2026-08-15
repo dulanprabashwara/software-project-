@@ -11,39 +11,39 @@ export default function LandingPage() {
           className="text-2xl font-bold"
           style={{ fontFamily: "Georgia, serif" }}
         >
-          <span className="text-brand-black">Easy </span>
-          <span className="text-brand-black">Blogger</span>
+          <span className="text-[#111827]">Easy </span>
+          <span className="text-[#111827]">Blogger</span>
         </h1>
 
         {/* Navigation */}
         <nav className="flex items-center gap-6">
           <Link
             href="/our-story"
-            className="text-sm text-brand-muted hover:text-[#000000] transition-colors hidden md:block"
+            className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
           >
             Our story
           </Link>
           <Link
             href="/membership"
-            className="text-sm text-brand-muted hover:text-[#000000] transition-colors hidden md:block"
+            className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
           >
             Membership
           </Link>
           <Link
             href="/signup"
-            className="text-sm text-brand-muted hover:text-[#000000] transition-colors hidden md:block"
+            className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
           >
             Write
           </Link>
           <Link
             href="/login"
-            className="text-sm text-brand-muted hover:text-[#000000] transition-colors"
+            className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors"
           >
             Sign in
           </Link>
           <Link
             href="/signup"
-            className="px-4 py-2 bg-brand-black text-white text-sm rounded-full hover:bg-brand-black-hover transition-colors"
+            className="px-4 py-2 bg-[#111827] text-white text-sm rounded-full hover:bg-[#1f2937] transition-colors"
           >
             Get started
           </Link>
@@ -56,7 +56,7 @@ export default function LandingPage() {
           {/* Left Content */}
           <div className="flex-1 py-12 md:py-0 flex flex-col justify-center pr-12">
             <h2
-              className="text-6xl md:text-7xl lg:text-8xl font-serif leading-tight tracking-tight text-brand-black animate-fade-in-up"
+              className="text-6xl md:text-7xl lg:text-8xl font-serif leading-tight tracking-tight text-[#111827] animate-fade-in-up"
               style={{ fontFamily: "Georgia, serif" }}
             >
               Human
@@ -64,12 +64,12 @@ export default function LandingPage() {
               stories &<br />
               ideas
             </h2>
-            <p className="mt-8 text-lg md:text-xl text-brand-muted max-w-md animate-fade-in-up animation-delay-200">
+            <p className="mt-8 text-lg md:text-xl text-[#374151] max-w-md animate-fade-in-up animation-delay-200">
               A place to read, write, and deepen your understanding
             </p>
             <Link
               href="/signup"
-              className="inline-block mt-8 mb-16 px-6 py-3 bg-brand-black text-white text-base rounded-full hover:bg-brand-black-hover hover:scale-105 transition-all duration-300 w-fit animate-fade-in-up animation-delay-400"
+              className="inline-block mt-8 mb-16 px-6 py-3 bg-[#111827] text-white text-base rounded-full hover:bg-[#1f2937] hover:scale-105 transition-all duration-300 w-fit animate-fade-in-up animation-delay-400"
             >
               Start reading
             </Link>
@@ -113,13 +113,13 @@ export default function LandingPage() {
               </svg>
 
               {/* Large teal circle - top right with bounce animation */}
-              <div className="absolute top-8 right-0 w-52 h-52 rounded-full bg-brand-primary z-20 animate-bounce"></div>
+              <div className="absolute top-8 right-0 w-52 h-52 rounded-full bg-[#1ABC9C] z-20 animate-bounce"></div>
 
               {/* Blue rectangle - right side */}
-              <div className="absolute top-48 -right-12 w-64 h-44 bg-brand-blue z-30 hover:scale-105 transition-transform duration-300"></div>
+              <div className="absolute top-48 -right-12 w-64 h-44 bg-[#3B82F6] z-30 hover:scale-105 transition-transform duration-300"></div>
 
               {/* Teal rectangle at bottom right - extends to edge */}
-              <div className="absolute bottom-0 -right-12 w-72 h-64 bg-brand-primary z-30 animate-pulse-slow"></div>
+              <div className="absolute bottom-0 -right-12 w-72 h-64 bg-[#1ABC9C] z-30 animate-pulse-slow"></div>
 
               {/* Wave/curve shape inside blue rectangle */}
               <svg
@@ -128,12 +128,12 @@ export default function LandingPage() {
               >
                 <path
                   d="M0 80 Q64 20 128 80 T256 80 L256 160 L0 160 Z"
-                  fill="var(--color-brand-primary)"
+                  fill="#1ABC9C"
                 />
               </svg>
 
               {/* Small light blue rectangle inside teal at bottom */}
-              <div className="absolute bottom-16 right-8 w-28 h-24 bg-brand-blue z-50 animate-float-delayed"></div>
+              <div className="absolute bottom-16 right-8 w-28 h-24 bg-[#60A5FA] z-50 animate-float-delayed"></div>
             </div>
           </div>
         </div>

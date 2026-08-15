@@ -163,7 +163,7 @@ function PreviewPageContent() {
 
           {isLoading ? (
             <div className="flex flex-1 items-center justify-center px-8 py-20">
-              <p className="text-brand-muted">Loading preview...</p>
+              <p className="text-gray-500">Loading preview...</p>
             </div>
           ) : !article ? null : (
             <>
@@ -171,7 +171,7 @@ function PreviewPageContent() {
                 <div className="mx-auto max-w-4xl pb-6">
                   <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md">
                     <div className="bg-emerald-50/60 px-8 py-8">
-                      <h2 className="font-serif text-3xl leading-tight text-brand-black">
+                      <h2 className="font-serif text-3xl leading-tight text-gray-900">
                         {article.title}
                       </h2>
 
@@ -252,7 +252,7 @@ function PreviewPageContent() {
 
 export default function PreviewPage(props) {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-brand-muted">Loading...</p></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center p-6"><p className="text-gray-500">Loading...</p></div>}>
       <PreviewPageContent {...props} />
     </Suspense>
   );

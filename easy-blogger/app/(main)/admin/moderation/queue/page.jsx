@@ -37,7 +37,7 @@ export default function QueuePage() {
         content: report.article?.content || "No content available."
       }));
 
-      //  THE 24-HOUR QUEUE CLEANUP LOGIC
+      //  THE 24-HOUR QUEUE CLEANUP LOGIC 
       const now = new Date();
       const cleanedQueue = mappedReports.filter(report => {
         if (report.status === 'PENDING') return true;
@@ -120,8 +120,8 @@ export default function QueuePage() {
 
   const getDropdownColor = () => {
     if (filterStatus === 'pending') return 'bg-[#EAB308] text-white';
-    if (filterStatus === 'reviewed') return 'bg-brand-primary text-white';
-    return 'bg-white border border-[#E5E7EB] text-brand-muted';
+    if (filterStatus === 'reviewed') return 'bg-[#1ABC9C] text-white';
+    return 'bg-white border border-[#E5E7EB] text-[#6B7280]';
   };
 
   const filteredPosts = posts.filter(post => {
@@ -136,7 +136,7 @@ export default function QueuePage() {
     <div className="flex h-[calc(100vh-100px)] gap-6 p-6 bg-[#F9FAFB]">
       {/* LEFT COLUMN */}
       <div className="w-1/3 flex flex-col gap-4">
-        <h1 className="text-2xl font-bold text-brand-black" style={{ fontFamily: "Georgia, serif" }}>Moderation</h1>
+        <h1 className="text-2xl font-bold text-[#111827]" style={{ fontFamily: "Georgia, serif" }}>Moderation</h1>
         <div className="flex gap-2 relative z-20">
           <div className="relative w-36" ref={dropdownRef}>
             <button suppressHydrationWarning onClick={() => setIsDropdownOpen(!isDropdownOpen)} className={`w-full h-10 px-4 rounded-lg font-medium flex items-center justify-between transition-all ${getDropdownColor()}`}>
@@ -146,7 +146,7 @@ export default function QueuePage() {
             {isDropdownOpen && (
               <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-100 rounded-lg shadow-xl z-50 overflow-hidden">
                 <button onClick={() => { setFilterStatus('PENDING'); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-sm font-semibold text-[#EAB308] hover:bg-[#FEF9C3]">PENDING</button>
-                <button onClick={() => { setFilterStatus('DISMISSED'); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-sm font-semibold text-brand-primary hover:bg-[#CCFBF1]">DISMISSED</button>
+                <button onClick={() => { setFilterStatus('DISMISSED'); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-sm font-semibold text-[#1ABC9C] hover:bg-[#CCFBF1]">DISMISSED</button>
                 <button onClick={() => { setFilterStatus(null); setIsDropdownOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-400 hover:bg-gray-50 border-t">Show All</button>
               </div>
             )}
@@ -154,17 +154,17 @@ export default function QueuePage() {
           <div className="relative flex-1 text-[#9CA3AF]"><Search className="absolute left-3 top-3 w-4 h-4" /><input suppressHydrationWarning type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-10 h-10 bg-white border border-[#E5E7EB] rounded-lg text-sm" /></div>
         </div>
         <div className="bg-[#E5E7EB] p-1 rounded-full flex text-sm font-medium z-10">
-          <Link href="/admin/moderation/queue" className="flex-1 py-1.5 text-center bg-white text-brand-black shadow-sm rounded-full">Queue</Link>
-          <Link href="/admin/moderation/offers" className="flex-1 py-1.5 text-center text-brand-muted">Offers</Link>
+          <Link href="/admin/moderation/queue" className="flex-1 py-1.5 text-center bg-white text-[#111827] shadow-sm rounded-full">Queue</Link>
+          <Link href="/admin/moderation/offers" className="flex-1 py-1.5 text-center text-[#6B7280]">Offers</Link>
         </div>
         <div className="flex-1 overflow-y-auto space-y-3 mt-2 pr-1 custom-scrollbar">
           {loading ? <div className="text-center p-10 italic text-gray-400">Loading...</div> : filteredPosts.map((post) => (
-            <div key={post.id} onClick={() => setSelectedId(post.id)} className={`p-4 rounded-xl border transition-all cursor-pointer ${selectedId === post.id ? "border-brand-primary bg-white shadow-md ring-1 ring-brand-primary" : "bg-white border-[#E5E7EB] hover:border-brand-primary"}`}>
+            <div key={post.id} onClick={() => setSelectedId(post.id)} className={`p-4 rounded-xl border transition-all cursor-pointer ${selectedId === post.id ? "border-[#1ABC9C] bg-white shadow-md ring-1 ring-[#1ABC9C]" : "bg-white border-[#E5E7EB] hover:border-[#1ABC9C]"}`}>
               <div className="flex justify-between items-start mb-1">
-                <span className="font-semibold text-brand-black text-sm">{post.reason}</span>
-                <div className={`w-2 h-2 rounded-full ${post.status === 'pending' ? 'bg-[#EAB308]' : 'bg-brand-primary'}`}></div>
+                <span className="font-semibold text-[#111827] text-sm">{post.reason}</span>
+                <div className={`w-2 h-2 rounded-full ${post.status === 'pending' ? 'bg-[#EAB308]' : 'bg-[#1ABC9C]'}`}></div>
               </div>
-              <h3 className="font-bold text-brand-black text-sm leading-tight line-clamp-2">{post.title}</h3>
+              <h3 className="font-bold text-[#111827] text-sm leading-tight line-clamp-2">{post.title}</h3>
             </div>
           ))}
         </div>
@@ -177,32 +177,32 @@ export default function QueuePage() {
             {/* reporter Details header*/}
             <div className="p-6 px-8 border-b border-gray-100 text-sm">
               <div className="space-y-0.5">
-                <p className="text-brand-black"><span className="font-semibold">Reported by:</span> {activePost.reporter}</p>
-                <p className="text-brand-black"><span className="font-semibold">Reason:</span> {activePost.reason}</p>
-                <p className="text-brand-black"><span className="font-semibold">Time of report:</span> {activePost.timeReported}</p>
+                <p className="text-[#111827]"><span className="font-semibold">Reported by:</span> {activePost.reporter}</p>
+                <p className="text-[#111827]"><span className="font-semibold">Reason:</span> {activePost.reason}</p>
+                <p className="text-[#111827]"><span className="font-semibold">Time of report:</span> {activePost.timeReported}</p>
               </div>
             </div>
 
             <div className="p-8 flex-1 overflow-y-auto pt-4">
-              <h1 className="text-2xl font-bold text-brand-black mb-6 font-serif">{activePost.title}</h1>
+              <h1 className="text-2xl font-bold text-[#111827] mb-6 font-serif">{activePost.title}</h1>
               {activePost.image && <div className="mb-6"><img src={activePost.image} alt="Post content" className="rounded-lg shadow-sm w-full max-h-80 object-cover" /></div>}
-              <p className="text-brand-muted leading-relaxed text-base whitespace-pre-line">{activePost.content}</p>
+              <p className="text-[#374151] leading-relaxed text-base whitespace-pre-line">{activePost.content}</p>
             </div>
 
             {/* Conditional Action area*/}
             <div className="p-6 border-t border-[#E5E7EB] bg-[#F9FAFB] flex justify-end gap-4">
               {activePost.status === 'DISMISSED' ? (
-                <div className="flex items-center gap-3 bg-[#CCFBF1] text-brand-primary-hover px-6 py-2 rounded-full border border-brand-primary shadow-sm">
+                <div className="flex items-center gap-3 bg-[#CCFBF1] text-[#0F766E] px-6 py-2 rounded-full border border-[#1ABC9C] shadow-sm">
                   <CheckCircle size={18} /><span className="font-bold text-sm">Verified Content</span>
                 </div>
               ) : (
-                <button onClick={() => handleAction("Keep")} className="group flex items-center gap-3 bg-brand-primary hover:bg-brand-primary-hover text-white pl-6 pr-2 py-2 rounded-full active:scale-95 transition-all shadow-md cursor-pointer">
+                <button onClick={() => handleAction("Keep")} className="group flex items-center gap-3 bg-[#114A3F] text-white pl-6 pr-2 py-2 rounded-full active:scale-95 transition-all shadow-md cursor-pointer">
                   <span className="font-bold text-sm">Keep</span>
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white"><CheckCircle size={18} /></div>
+                  <div className="w-8 h-8 bg-[#4FD1C5] rounded-full flex items-center justify-center text-[#114A3F]"><CheckCircle size={18} /></div>
                 </button>
               )}
-              <button onClick={() => handleAction("Delete")} className="group flex items-center gap-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white pl-6 pr-2 py-2 rounded-full active:scale-95 transition-all shadow-md cursor-pointer"><span className="font-bold text-sm">Delete</span><div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white"><Trash2 size={18} /></div></button>
-              <button onClick={() => handleAction("Ban User")} className="group flex items-center gap-3 bg-brand-black text-white pl-6 pr-2 py-2 rounded-full active:scale-95 transition-all shadow-md cursor-pointer"><span className="font-bold text-sm">Ban</span><div className="w-8 h-8 bg-[#F87171] rounded-full flex items-center justify-center text-brand-black"><Ban size={18} /></div></button>
+              <button onClick={() => handleAction("Delete")} className="group flex items-center gap-3 bg-[#134E4A] text-white pl-6 pr-2 py-2 rounded-full active:scale-95 transition-all shadow-md cursor-pointer"><span className="font-bold text-sm">Delete</span><div className="w-8 h-8 bg-[#99F6E4] rounded-full flex items-center justify-center text-[#134E4A]"><Trash2 size={18} /></div></button>
+              <button onClick={() => handleAction("Ban User")} className="group flex items-center gap-3 bg-[#1F2937] text-white pl-6 pr-2 py-2 rounded-full active:scale-95 transition-all shadow-md cursor-pointer"><span className="font-bold text-sm">Ban</span><div className="w-8 h-8 bg-[#F87171] rounded-full flex items-center justify-center text-[#1F2937]"><Ban size={18} /></div></button>
             </div>
           </>
         ) : (

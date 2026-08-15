@@ -15,8 +15,8 @@ export default function MessageBubble({
   //turn the color of the bubble according to the sender
   const bubbleClasses = useMemo(() => {
     return isOwnMessage
-      ? "bg-brand-primary text-white rounded-br-none"
-      : "bg-gray-100 text-brand-black rounded-bl-none";
+      ? "bg-[#1ABC9C] text-white rounded-br-none"
+      : "bg-gray-100 text-gray-800 rounded-bl-none";
   }, [isOwnMessage]);
 
   //turn the direction of the message bubble according to the sender
@@ -40,7 +40,7 @@ export default function MessageBubble({
         {/*change the text color accoding to isOwnMessage*/}
         <div
           className={`text-[10px] mt-1 ${
-            isOwnMessage ? "text-white/80" : "text-brand-muted"
+            isOwnMessage ? "text-white/80" : "text-gray-500"
           } text-right`}
         >
           {timestamp}

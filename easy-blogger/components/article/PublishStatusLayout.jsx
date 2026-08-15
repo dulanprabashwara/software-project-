@@ -69,15 +69,15 @@ export default function PublishStatusLayout({
             <HeaderIcon size={28} strokeWidth={1.5} />
           </motion.div>
 
-          <motion.h1
-            variants={fadeUp}
+          <motion.h1 
+            variants={fadeUp} 
             className="font-serif text-2xl md:text-3xl font-bold tracking-tight text-white leading-snug"
           >
             {title}
           </motion.h1>
 
-          <motion.p
-            variants={fadeUp}
+          <motion.p 
+            variants={fadeUp} 
             className="mt-1 text-sm md:text-base text-emerald-50 font-medium opacity-90"
           >
             {subtitle}
@@ -106,12 +106,12 @@ export default function PublishStatusLayout({
           >
             {buttonText}
           </motion.button>
-
-          <motion.p
+          
+          <motion.p 
             variants={fadeUp}
             className="text-center text-xs text-gray-400 font-medium"
           >
-            Press <span className="text-brand-muted">Esc</span> to return home
+            Press <span className="text-gray-600">Esc</span> to return home
           </motion.p>
         </div>
       </motion.div>

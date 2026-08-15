@@ -25,7 +25,7 @@ export default function AIArticleGeneratorPage() {
   if (ai.isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1ABC9C]"></div>
       </div>
     );
   }

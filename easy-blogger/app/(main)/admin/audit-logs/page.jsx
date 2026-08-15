@@ -67,7 +67,7 @@ export default function AuditLogPage() {
     const unsubscribe = auth.onAuthStateChanged(async(user) => {
       if (user) {
         const token = await user.getIdToken();
-
+        
         // Fetch the dropdown options ONCE on load
         api.getAuditLogFilters(token).then(res => {
           if (res.success) {
@@ -107,10 +107,10 @@ export default function AuditLogPage() {
     }
     //Updates & Modifications
     if (act.includes("update") || act.includes("toggle") || act.includes("resolve")) {
-      return "bg-[#DBEAFE] text-brand-blue border border-[#93C5FD]";
+      return "bg-[#DBEAFE] text-[#3B82F6] border border-[#93C5FD]";
     }
     //Default (Exports, Downloads, Logins)
-    return "bg-[#F3F4F6] text-brand-muted border border-[#D1D5DB]";
+    return "bg-[#F3F4F6] text-[#6B7280] border border-[#D1D5DB]";
   };
 
   const uniqueAdmins = ["All Admins", ...new Set(logs.map(log => log.admin))];
@@ -134,13 +134,13 @@ export default function AuditLogPage() {
       {/* Header and filters*/}
       <div className="flex justify-between items-start mb-2">
         <div>
-          <h1 className="text-3xl font-bold text-brand-black font-serif">Audit Logs</h1>
-          <p className="text-sm text-brand-muted italic mt-1">Read-only history of all administrative actions</p>
+          <h1 className="text-3xl font-bold text-gray-900 font-serif">Audit Logs</h1>
+          <p className="text-sm text-gray-500 italic mt-1">Read-only history of all administrative actions</p>
         </div>
 
         {/* Filter controls */}
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2 text-sm font-bold text-brand-muted mr-2">
+          <div className="flex items-center gap-2 text-sm font-bold text-gray-600 mr-2">
             <Filter size={18} /> Filter by
           </div>
 
@@ -149,7 +149,7 @@ export default function AuditLogPage() {
             <select
               value={selectedAction}
               onChange={(e) => setSelectedAction(e.target.value)}
-              className="appearance-none bg-white border border-gray-200 rounded-xl px-5 py-2.5 pr-10 text-xs font-bold text-brand-muted outline-none shadow-sm cursor-pointer uppercase tracking-widest"
+              className="appearance-none bg-white border border-gray-200 rounded-xl px-5 py-2.5 pr-10 text-xs font-bold text-gray-600 outline-none shadow-sm cursor-pointer uppercase tracking-widest"
             >
               {availableActions.map(action => (
                 <option key={action} value={action}>{action}</option>
@@ -166,7 +166,7 @@ export default function AuditLogPage() {
               max={endDate}
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="text-xs text-brand-muted outline-none bg-transparent font-bold cursor-pointer"
+              className="text-xs text-gray-600 outline-none bg-transparent font-bold cursor-pointer"
             />
             <span className="text-gray-300">-</span>
             <input
@@ -175,7 +175,7 @@ export default function AuditLogPage() {
               max={new Date().toISOString().split('T')[0]}
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="text-xs text-brand-muted outline-none bg-transparent font-bold cursor-pointer"
+              className="text-xs text-gray-600 outline-none bg-transparent font-bold cursor-pointer"
             />
             {(startDate || endDate) && (
               <button onClick={() => { setStartDate(""); setEndDate(""); }} className="text-red-400 hover:text-red-600 ml-1 transition-colors" title="Clear Dates">
@@ -203,7 +203,7 @@ export default function AuditLogPage() {
       <div className="mt-12 overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="text-brand-black text-xl border-b-2 border-black">
+            <tr className="text-gray-900 text-xl border-b-2 border-black">
               <th className="pb-5 font-bold text-center w-44">Admin</th>
               <th className="pb-5 font-bold text-center w-44">Action</th>
               <th className="pb-5 font-bold text-center">Target/Details</th>
@@ -220,7 +220,7 @@ export default function AuditLogPage() {
               filteredLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-gray-50/40 transition-colors">
                   <td className="py-6 text-center">
-                    <div className="text-lg font-black text-brand-black leading-tight">
+                    <div className="text-lg font-black text-gray-800 leading-tight">
                       {log.admin.split(' ').map((word, i) => (<span key={i} className="block">{word}</span>))}
                     </div>
                   </td>
@@ -230,14 +230,14 @@ export default function AuditLogPage() {
                     </span>
                   </td>
                   <td className="py-6 text-center">
-                    <div className="font-black text-brand-black text-base">{log.target}</div>
+                    <div className="font-black text-gray-800 text-base">{log.target}</div>
                     <div className="text-xs text-gray-400 font-bold mt-1 px-4 line-clamp-2">{log.details}</div>
                   </td>
                   <td className="py-6 text-center font-mono text-sm font-bold">
-                    <div className="text-brand-black">{log.endpoint.split(' ')[0]}</div>
+                    <div className="text-gray-800">{log.endpoint.split(' ')[0]}</div>
                     <div className="text-gray-400 text-xs">{log.endpoint.split(' ')[1] || ''}</div>
                   </td>
-                  <td className="py-6 text-center text-brand-muted font-bold text-sm whitespace-pre-line leading-relaxed">
+                  <td className="py-6 text-center text-gray-500 font-bold text-sm whitespace-pre-line leading-relaxed">
                     {log.timestamp}
                   </td>
                 </tr>
@@ -249,7 +249,7 @@ export default function AuditLogPage() {
       {/* Pagination Controls */}
       {meta && !loading && logs.length > 0 && (
         <div className="mt-8">
-          <Pagination
+          <Pagination 
             currentPage={page}
             totalPages={meta.totalPages}
             totalItems={meta.totalItems}

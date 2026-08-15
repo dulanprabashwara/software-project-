@@ -83,7 +83,7 @@ export default function KeywordsView({
                 className={`dropdown-arrow ${isDropdownOpen ? "open" : ""}`}
                 width="12" height="8" viewBox="0 0 12 8" fill="none"
               >
-                <path d="M1 1L6 6L11 1" stroke="var(--color-brand-black)" strokeWidth="2" strokeLinecap="round" />
+                <path d="M1 1L6 6L11 1" stroke="#000000" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
             {isDropdownOpen && (
@@ -147,7 +147,7 @@ export default function KeywordsView({
             <div className="loading-spinner">
               <svg className="spinner-svg" width="50" height="50" viewBox="0 0 50 50">
                 <circle className="spinner-circle"        cx="25" cy="25" r="20" fill="none" strokeWidth="5" stroke="#B4EFDD" strokeDasharray="125.6" strokeDashoffset="31.4" />
-                <circle className="spinner-circle-active" cx="25" cy="25" r="20" fill="none" strokeWidth="5" stroke="var(--color-brand-primary)" strokeDasharray="125.6" strokeDashoffset="31.4" />
+                <circle className="spinner-circle-active" cx="25" cy="25" r="20" fill="none" strokeWidth="5" stroke="#1ABC9C" strokeDasharray="125.6" strokeDashoffset="31.4" />
               </svg>
             </div>
             <p className="loading-text">Generating the article..</p>
@@ -165,7 +165,7 @@ export default function KeywordsView({
             <p className="heres-article-text">Here&apos;s your article..</p>
             <div className="article-title-label" onClick={() => setShowPreview(true)}>
               <span className="article-title-text">{generatedArticle.title}</span>
-              <svg className="open-book-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-brand-black)" strokeWidth="2">
+              <svg className="open-book-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E1E1E" strokeWidth="2">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
               </svg>
@@ -175,7 +175,7 @@ export default function KeywordsView({
                 className="back-button"
                 onClick={() => { setGeneratedArticle(null); setUserResponse(null); setCurrentView("input"); }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-brand-primary)" strokeWidth="2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1ABC9C" strokeWidth="2">
                   <path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path>
                 </svg>
                 <span className="back-text">back</span>
@@ -193,8 +193,8 @@ export default function KeywordsView({
               >
                 <svg
                   width="16" height="16" viewBox="0 0 24 24" strokeWidth="2"
-                  fill={userResponse === "satisfied" ? "var(--color-brand-primary)" : "none"}
-                  stroke={userResponse === "satisfied" ? "var(--color-brand-primary)" : "currentColor"}
+                  fill={userResponse === "satisfied" ? "#1ABC9C" : "none"}
+                  stroke={userResponse === "satisfied" ? "#1ABC9C" : "currentColor"}
                 >
                   <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
                 </svg>
@@ -206,8 +206,8 @@ export default function KeywordsView({
               >
                 <svg
                   width="16" height="16" viewBox="0 0 24 24" strokeWidth="2"
-                  fill={userResponse === "dissatisfied" ? "var(--color-brand-primary)" : "none"}
-                  stroke={userResponse === "dissatisfied" ? "var(--color-brand-primary)" : "currentColor"}
+                  fill={userResponse === "dissatisfied" ? "#1ABC9C" : "none"}
+                  stroke={userResponse === "dissatisfied" ? "#1ABC9C" : "currentColor"}
                 >
                   <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-3"></path>
                 </svg>

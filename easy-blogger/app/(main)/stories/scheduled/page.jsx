@@ -95,9 +95,9 @@ export default function Scheduled() {
     <section className="px-8 min-w-0">
       <div className="w-full">
         {isLoading ? (
-          <p className="text-sm text-brand-muted py-6">Loading scheduled articles...</p>
+          <p className="text-sm text-gray-500 py-6">Loading scheduled articles...</p>
         ) : articles.length === 0 ? (
-          <div className="py-12 text-center text-brand-muted">
+          <div className="py-12 text-center text-gray-500">
             <p className="text-base font-medium">You have not scheduled any articles yet.</p>
             <p className="text-xs text-gray-400 mt-1">
               When you schedule an article to publish later, it will appear here.
@@ -121,23 +121,23 @@ export default function Scheduled() {
             <button 
               onClick={handleCloseModal}
               disabled={isSubmitting}
-              className="absolute right-4 top-4 text-brand-muted hover:text-brand-black p-1 rounded-full hover:bg-gray-100 transition-colors"
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="w-12 h-12 bg-brand-primary/10 rounded-full flex items-center justify-center mb-4">
-              <CalendarClock className="w-6 h-6 text-brand-primary" />
+            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+              <CalendarClock className="w-6 h-6 text-emerald-600" />
             </div>
 
-            <h3 className="text-xl font-bold text-brand-black mb-1">Reschedule Article</h3>
-            <p className="text-sm text-brand-muted mb-6 line-clamp-1">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">Reschedule Article</h3>
+            <p className="text-sm text-gray-500 mb-6 line-clamp-1">
               {rescheduleTarget.title || "Untitled Article"}
             </p>
 
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-xs font-semibold text-brand-muted uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
                   Select Date
                 </label>
                 <input 
@@ -145,19 +145,19 @@ export default function Scheduled() {
                   min={todayStr}
                   value={rescheduleDate}
                   onChange={(e) => setRescheduleDate(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-primary border-gray-300"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 border-gray-300"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-brand-muted uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
                   Select Time
                 </label>
                 <input 
                   type="time"
                   value={rescheduleTime}
                   onChange={(e) => setRescheduleTime(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-brand-black focus:outline-none focus:ring-2 focus:ring-brand-primary border-gray-300"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 border-gray-300"
                 />
               </div>
 
@@ -178,14 +178,14 @@ export default function Scheduled() {
               <button 
                 onClick={handleCloseModal} 
                 disabled={isSubmitting}
-                className="px-4 py-2.5 text-sm font-semibold text-brand-muted bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
+                className="px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleConfirmReschedule} 
                 disabled={isSubmitting || !isValidSelection}
-                className="px-5 py-2.5 text-sm font-semibold text-white bg-brand-primary hover:bg-brand-primary-hover rounded-xl transition-all disabled:opacity-50"
+                className="px-5 py-2.5 text-sm font-semibold text-white bg-[#1ABC9C] hover:bg-[#16a085] rounded-xl transition-all disabled:opacity-50"
               >
                 {isSubmitting ? "Rescheduling..." : "Confirm Reschedule"}
               </button>

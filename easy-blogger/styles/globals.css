@@ -5,19 +5,12 @@
 @theme {
   --font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-serif: Georgia, "Times New Roman", serif;
-  --color-brand-black: #000000;
-  --color-brand-black-hover: #1f2937;
-  --color-brand-primary: #1abc9c;
-  --color-brand-primary-hover: #159a80;
-  --color-brand-blue: #1f7ae0;
-  --color-brand-blue-hover: #1968bf;
-  --color-brand-muted: #6a7282;
 }
 
 /* Base styles */
 body {
   font-family: var(--font-sans);
-  color: var(--color-brand-black);
+  color: #111827;
   background-color: #ffffff;
 }
 
@@ -139,7 +132,7 @@ body {
   padding: 1rem 3.5rem;
   border-radius: 9999px;
   background-color: #d1d5db;
-  color: var(--color-brand-black);
+  color: #111827;
   font-size: 1.125rem;
   font-weight: 500;
   border: none;

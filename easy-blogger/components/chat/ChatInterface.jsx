@@ -621,16 +621,16 @@ export default function ChatInterface() {
                     className="w-10 h-10 rounded-full"
                   />
                   {activeConversation.user.isOnline && (
-                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-brand-primary border-2 border-white rounded-full" />
+                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#1ABC9C] border-2 border-white rounded-full" />
                   )}
                 </div>
                 <div>
                   <Link href={`/profile/${activeConversation.user.username}`}>
-                    <h3 className="font-bold text-brand-black leading-tight hover:text-brand-primary transition-colors cursor-pointer">
+                    <h3 className="font-bold text-gray-900 leading-tight hover:text-[#1ABC9C] transition-colors cursor-pointer">
                       {activeConversation.user.name}
                     </h3>
                   </Link>
-                  <span className="text-xs text-brand-muted">
+                  <span className="text-xs text-gray-500">
                     {typingUserId === activeConversationId
                       ? "Typing..."
                       : activeConversationOnline

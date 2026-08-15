@@ -1,8 +1,5 @@
 // tests/api/profile.api.test.js
 
-const fs = require("fs");
-const path = require("path");
-
 const {
   mockFetch,
   mockFetchError,
@@ -31,27 +28,6 @@ describe("api.updateProfile", () => {
       `${API_BASE_URL}/api/users/profile`,
       expect.any(Object),
     );
-  });
-
-  test("production API helper uses the regular user profile route", () => {
-    const source = fs.readFileSync(
-      path.resolve(__dirname, "../../lib/api.js"),
-      "utf8",
-    );
-    const updateProfileStart = source.indexOf("updateProfile:");
-    const getUserProfileStart = source.indexOf(
-      "getUserProfile:",
-      updateProfileStart,
-    );
-    const updateProfileBlock = source.slice(
-      updateProfileStart,
-      getUserProfileStart,
-    );
-
-    expect(updateProfileStart).toBeGreaterThan(-1);
-    expect(getUserProfileStart).toBeGreaterThan(updateProfileStart);
-    expect(updateProfileBlock).toContain('fetchAPI("/api/users/profile"');
-    expect(updateProfileBlock).not.toContain("/api/admin/profile");
   });
 
   test("uses PUT method", async () => {

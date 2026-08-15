@@ -60,7 +60,7 @@ export default function AdminAIConfig() {
       if (user) {
         setIsAuth(true);
         const token = await user.getIdToken();
-
+        
         // Fetch keywords silently in the background just once
         api.getDefaultKeywords(token)
           .then(res => setDefaultKeywordsMap(res.data?.data || res.data || {}))
@@ -71,7 +71,7 @@ export default function AdminAIConfig() {
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, []); 
 
   //Listen for Pagination or Filter clicks
   useEffect(() => {
@@ -295,17 +295,17 @@ export default function AdminAIConfig() {
 
   return (
     <div className="max-w-6xl mx-auto p-8 relative">
-      <h1 className="text-3xl font-bold text-brand-black mb-8" style={{ fontFamily: "Georgia, serif" }}>AI Configuration</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8" style={{ fontFamily: "Georgia, serif" }}>AI Configuration</h1>
 
       {/* TOP SECTION: ADD SOURCE CARD */}
       <div className="bg-white border border-gray-800 rounded-2xl p-8 mb-10 shadow-sm flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-brand-black mb-1" style={{ fontFamily: "Georgia, serif" }}>AI Content Sources</h2>
-          <p className="text-brand-muted text-sm">Manage external websites, scraping schedules, and safety rules.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: "Georgia, serif" }}>AI Content Sources</h2>
+          <p className="text-gray-500 text-sm">Manage external websites, scraping schedules, and safety rules.</p>
         </div>
         <button
           onClick={handleOpenNew}
-          className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-hover text-white px-6 py-2.5 rounded-lg font-bold transition-all shadow-sm"
+          className="flex items-center gap-2 bg-[#1ABC9C] hover:bg-[#17a589] text-white px-6 py-2.5 rounded-lg font-bold transition-all shadow-sm"
         >
           <Plus size={18} /> Add New Source
         </button>
@@ -315,41 +315,41 @@ export default function AdminAIConfig() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center backdrop-blur-sm">
           <div className="bg-[#F8FDFB] w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl p-6 md:p-10 relative">
-            <h2 className="text-2xl font-serif text-brand-black mb-8">
+            <h2 className="text-2xl font-serif text-gray-800 mb-8">
               {modalData.id ? "Edit Scraping Source" : "Configure New Scraping Source"}
             </h2>
 
             <div className="space-y-6">
               <div className="flex items-center">
-                <label className="w-1/3 text-brand-muted text-lg">Website Name:</label>
+                <label className="w-1/3 text-gray-600 text-lg">Website Name:</label>
                 <input
                   type="text" placeholder="e.g. TechCrunch"
-                  className="w-2/3 border-b border-gray-300 pb-2 bg-transparent outline-none text-brand-black"
+                  className="w-2/3 border-b border-gray-300 pb-2 bg-transparent outline-none text-gray-800"
                   value={modalData.name} onChange={e => setModalData({ ...modalData, name: e.target.value })}
                 />
               </div>
 
               <div className="flex items-center">
-                <label className="w-1/3 text-brand-muted text-lg">Website URL:</label>
+                <label className="w-1/3 text-gray-600 text-lg">Website URL:</label>
                 <div className="w-2/3 flex items-center gap-4">
                   <input
                     type="url" placeholder="https://example.com/feed"
-                    className="flex-1 border-b border-gray-300 pb-2 bg-transparent outline-none text-brand-black"
+                    className="flex-1 border-b border-gray-300 pb-2 bg-transparent outline-none text-gray-800"
                     value={modalData.url} onChange={handleUrlChange}
                   />
                   <div className="w-6 h-6 flex items-center justify-center shrink-0">
                     {urlStatus === "idle" && <div className="w-4 h-4 border-2 border-gray-300 rounded-sm"></div>}
-                    {urlStatus === "validating" && <Loader2 size={18} className="animate-spin text-brand-primary" />}
-                    {urlStatus === "valid" && <div className="bg-[#E6F8F3] text-brand-primary p-1 rounded-md"><Check size={14} strokeWidth={4} /></div>}
+                    {urlStatus === "validating" && <Loader2 size={18} className="animate-spin text-[#1ABC9C]" />}
+                    {urlStatus === "valid" && <div className="bg-[#E6F8F3] text-[#1ABC9C] p-1 rounded-md"><Check size={14} strokeWidth={4} /></div>}
                     {urlStatus === "invalid" && <div className="bg-red-100 text-red-500 p-1 rounded-md"><X size={14} strokeWidth={4} /></div>}
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center">
-                <label className="w-1/3 text-brand-muted text-lg">Content Category:</label>
+                <label className="w-1/3 text-gray-600 text-lg">Content Category:</label>
                 <select
-                  className="w-1/3 bg-transparent border-none font-bold text-brand-black outline-none cursor-pointer"
+                  className="w-1/3 bg-transparent border-none font-bold text-gray-800 outline-none cursor-pointer"
                   value={modalData.category}
                   onChange={(e) => {
                     const newCat = e.target.value;
@@ -377,9 +377,9 @@ export default function AdminAIConfig() {
               </div>
 
               <div className="flex items-center">
-                <label className="w-2/3 text-brand-muted text-lg">Article Age Limit (Only scrape articles published within):</label>
+                <label className="w-2/3 text-gray-600 text-lg">Article Age Limit (Only scrape articles published within):</label>
                 <select
-                  className="w-1/3 bg-transparent border-none font-bold text-brand-black outline-none cursor-pointer text-right"
+                  className="w-1/3 bg-transparent border-none font-bold text-gray-800 outline-none cursor-pointer text-right"
                   value={modalData.scrapeWindow} onChange={e => setModalData({ ...modalData, scrapeWindow: e.target.value })}
                 >
                   <option value="Last 24 Hours">Last 24 Hours</option>
@@ -392,34 +392,34 @@ export default function AdminAIConfig() {
               </div>
 
               <div className="flex items-center">
-                <label className="w-1/3 text-brand-muted text-lg">Minimum Word Count:</label>
+                <label className="w-1/3 text-gray-600 text-lg">Minimum Word Count:</label>
                 <input
                   type="number" placeholder="e.g. 300"
-                  className="w-2/3 border-b border-gray-300 pb-2 bg-transparent outline-none text-brand-black"
+                  className="w-2/3 border-b border-gray-300 pb-2 bg-transparent outline-none text-gray-800"
                   value={modalData.minWordCount} onChange={e => setModalData({ ...modalData, minWordCount: e.target.value })}
                 />
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-4 pr-12 w-2/3">
-                  <label className="text-brand-muted text-lg">Excluded Keywords:</label>
+                  <label className="text-gray-600 text-lg">Excluded Keywords:</label>
                   <button
                     onClick={handleLoadDefaultKeywords}
-                    className="text-xs bg-gray-200 hover:bg-gray-300 text-brand-muted px-3 py-1.5 rounded-md font-bold transition-colors"
+                    className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md font-bold transition-colors"
                   >
                     Load Defaults
                   </button>
                 </div>
                 <input
                   type="text" placeholder="Type a word and press Enter..."
-                  className="w-2/3 border-b border-gray-300 pb-2 bg-transparent outline-none text-brand-black mb-4"
+                  className="w-2/3 border-b border-gray-300 pb-2 bg-transparent outline-none text-gray-800 mb-4"
                   value={modalData.currentKeywordInput} onChange={e => setModalData({ ...modalData, currentKeywordInput: e.target.value })}
                   onKeyDown={handleAddKeyword}
                 />
 
                 <div className="flex flex-wrap gap-2">
                   {modalData.excludedKeywords.map((keyword, idx) => (
-                    <span key={idx} className="flex items-center gap-2 bg-brand-black text-white px-3 py-1 rounded-md text-xs font-medium">
+                    <span key={idx} className="flex items-center gap-2 bg-[#2D3748] text-white px-3 py-1 rounded-md text-xs font-medium">
                       {keyword}
                       <button onClick={() => handleRemoveKeyword(keyword)} className="hover:text-red-400"><X size={12} strokeWidth={3} /></button>
                     </span>
@@ -429,7 +429,7 @@ export default function AdminAIConfig() {
             </div>
 
             <div className="flex justify-end gap-4 mt-12">
-              <button onClick={handleSaveSource} className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-hover text-white px-6 py-2.5 rounded-full font-bold shadow-md transition-all">
+              <button onClick={handleSaveSource} className="flex items-center gap-2 bg-[#1ABC9C] hover:bg-[#17a589] text-white px-6 py-2.5 rounded-full font-bold shadow-md transition-all">
                 Keep <CheckCircle2 size={18} />
               </button>
               <button onClick={() => setIsModalOpen(false)} className="flex items-center gap-2 bg-[#EF4444] hover:bg-[#DC2626] text-white px-6 py-2.5 rounded-full font-bold shadow-md transition-all">
@@ -445,7 +445,7 @@ export default function AdminAIConfig() {
         <button
           onClick={handleTestScrape}
           disabled={isScraping}
-          className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm text-sm font-bold text-brand-muted hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           {isScraping ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
           {isScraping ? "Scraping..." : "Test Scrape"}
@@ -453,15 +453,15 @@ export default function AdminAIConfig() {
         <button
           onClick={handleTestEnrichment}
           disabled={isEnriching}
-          className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm text-sm font-bold text-brand-muted hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           {isEnriching ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
           {isEnriching ? "Enriching..." : "Test Enrichment"}
         </button>
         <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm">
-          <label className="text-sm font-bold text-brand-muted">Filter:</label>
+          <label className="text-sm font-bold text-gray-500">Filter:</label>
           <select
-            className="bg-transparent text-sm text-brand-black font-bold outline-none cursor-pointer"
+            className="bg-transparent text-sm text-gray-900 font-bold outline-none cursor-pointer"
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
           >
@@ -490,33 +490,33 @@ export default function AdminAIConfig() {
           </thead>
           <tbody className="divide-y divide-gray-300">
             {loading ? (
-              <tr><td colSpan="6" className="p-8 text-center text-brand-muted">Loading sources...</td></tr>
+              <tr><td colSpan="6" className="p-8 text-center text-gray-500">Loading sources...</td></tr>
             ) : filteredSources.length === 0 ? (
-              <tr><td colSpan="6" className="p-8 text-center text-brand-muted font-bold">No sources added yet.</td></tr>
+              <tr><td colSpan="6" className="p-8 text-center text-gray-500 font-bold">No sources added yet.</td></tr>
             ) : (
               filteredSources.map((source) => (
                 <tr key={source.id} className="hover:bg-gray-50">
                   <td className="sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] p-4 ...">
-                    <p className="font-bold text-brand-black font-serif text-base">{source.name}</p>
-                    <a href={source.url} target="_blank" className="text-xs text-brand-muted underline hover:text-brand-primary">{source.url}</a>
+                    <p className="font-bold text-gray-900 font-serif text-base">{source.name}</p>
+                    <a href={source.url} target="_blank" className="text-xs text-gray-500 underline hover:text-[#1ABC9C]">{source.url}</a>
                   </td>
 
                   <td className="p-5 text-center">
-                    <span className="inline-block bg-[#E6F8F3] text-brand-primary px-4 py-1.5 rounded-full text-xs font-bold tracking-wide">
+                    <span className="inline-block bg-[#E6F8F3] text-[#1ABC9C] px-4 py-1.5 rounded-full text-xs font-bold tracking-wide">
                       <Check size={12} className="inline mr-1 -mt-0.5" strokeWidth={3} />
                       {source.category}
                     </span>
                   </td>
 
                   <td className="p-5 text-center">
-                    <span className="font-bold text-brand-black text-sm bg-gray-100 px-3 py-1 rounded-lg">
+                    <span className="font-bold text-gray-900 text-sm bg-gray-100 px-3 py-1 rounded-lg">
                       {source.scrapeWindow}
                     </span>
                   </td>
 
-                  <td className="p-5 text-center text-xs text-brand-muted">
-                    <p className="font-semibold text-brand-black">Min: <span className="text-brand-primary">{source.minWordCount}</span> words</p>
-                    <p className="font-semibold text-brand-black mt-1">Block: <span className="text-red-500">{source.excludedKeywords?.length || 0}</span> keywords</p>
+                  <td className="p-5 text-center text-xs text-gray-600">
+                    <p className="font-semibold text-gray-800">Min: <span className="text-[#1ABC9C]">{source.minWordCount}</span> words</p>
+                    <p className="font-semibold text-gray-800 mt-1">Block: <span className="text-red-500">{source.excludedKeywords?.length || 0}</span> keywords</p>
                   </td>
 
                   <td className="p-5 text-center">
@@ -527,13 +527,13 @@ export default function AdminAIConfig() {
                         checked={source.status === 'active'}
                         onChange={() => handleToggleStatus(source.id, source.status)}
                       />
-                      <div className="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-brand-primary after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5 peer-checked:after:border-white"></div>
+                      <div className="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-[#1ABC9C] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5 peer-checked:after:border-white"></div>
                     </label>
                   </td>
 
                   <td className="p-5 text-center">
                     <div className="flex items-center justify-center gap-4">
-                      <button onClick={() => handleEdit(source)} className="text-brand-muted hover:text-brand-black transition-colors" title="Edit Source">
+                      <button onClick={() => handleEdit(source)} className="text-gray-600 hover:text-gray-900 transition-colors" title="Edit Source">
                         <Edit2 size={16} strokeWidth={2.5} />
                       </button>
                       <button onClick={() => handleDelete(source.id)} className="text-[#EF4444] hover:text-red-700 transition-colors" title="Delete Source">
@@ -550,7 +550,7 @@ export default function AdminAIConfig() {
       {/* Pagination Controls */}
       {meta && !loading && sources.length > 0 && (
         <div className="mt-8">
-          <Pagination
+          <Pagination 
             currentPage={page}
             totalPages={meta.totalPages}
             totalItems={meta.totalItems}
