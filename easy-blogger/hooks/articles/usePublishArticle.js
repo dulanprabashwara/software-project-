@@ -222,9 +222,9 @@ export function usePublishArticle(articleId) {
   // Generates a descriptive message about selected platforms to improve user transparency
   useEffect(() => {
     const selectedPlatforms = [];
-    if (shareLinkedIn)
+    if (shareLinkedIn && liConnected)
       selectedPlatforms.push("LinkedIn");
-    if (shareWordPress)
+    if (shareWordPress && wpConnected)
       selectedPlatforms.push("WordPress");
 
     if (selectedPlatforms.length === 0) {
@@ -235,7 +235,7 @@ export function usePublishArticle(articleId) {
 
     setShareText(`This article will be shared on ${selectedPlatforms.join(" and ")} when it is published`);
     setShowShareText(true);
-  }, [shareLinkedIn, shareWordPress]);
+  }, [shareLinkedIn, shareWordPress, liConnected, wpConnected]);
 
   // Verifies WordPress connection status to prevent publishing failures on unconnected accounts
   useEffect(() => {
@@ -420,7 +420,7 @@ export function usePublishArticle(articleId) {
         tags,
         timing,
         scheduledAt: buildScheduledAt(),
-        linkedinSync: shareLinkedIn,
+        linkedinSync: shareLinkedIn && liConnected,
         linkedinCaption: linkedinCaption,
       };
 

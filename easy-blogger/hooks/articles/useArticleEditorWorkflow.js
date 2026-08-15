@@ -53,6 +53,8 @@ export function useArticleEditorWorkflow(mode) {
     coverImage,
     setCoverImage,
     setIsSaving,
+    isManualSaving,
+    setIsManualSaving,
     setLastSavedAt,
     setInlineError,
     setEditorTextLength,
@@ -222,6 +224,9 @@ export function useArticleEditorWorkflow(mode) {
       try {
         isSavingRef.current = true;
         setIsSaving(true);
+        if (options.isManual || options.isPreview || status === "draft") {
+          setIsManualSaving(true);
+        }
 
         let currentDraftId = draftId;
         const payload = mode === "create"
@@ -256,16 +261,17 @@ export function useArticleEditorWorkflow(mode) {
         return currentDraftId;
       } finally {
         setIsSaving(false);
+        setIsManualSaving(false);
         isSavingRef.current = false;
       }
     },
-    [draftId, title, coverImage, getEditorHtmlContent, getSnapshot, isSavingRef, mode, config, articleIdFromParams, setIsSaving, setLastSavedAt, setContent, setEditorTextLength]
+    [draftId, title, coverImage, getEditorHtmlContent, getSnapshot, isSavingRef, mode, config, articleIdFromParams, setIsSaving, setIsManualSaving, setLastSavedAt, setContent, setEditorTextLength]
   );
 
   // Autosave
   useAutosave({
     enabled: isClientReady && !isHydrating && hasAnyContent && !hasDiscardedCopyRef.current,
-    onSave: () => saveArticle("editing", { content: getEditorHtmlContent() }),
+    onSave: () => saveArticle("editing", { content: getEditorHtmlContent() }, { isAutosave: true }),
     watchValues: [title, content, coverImage],
   });
 
