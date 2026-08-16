@@ -16,6 +16,8 @@ import ArticleCard from "../../../components/article/ArticleCard";
 import { api } from "../../../lib/api";
 import { getMyPublishedArticles } from "../../../lib/articles/api";
 
+const PROFILE_MODAL_TABS = new Set(["followers", "following"]);
+
 function ProfilePageContent() {
   const [activeTab, setActiveTab] = useState("home");
   const { isPremium } = useSubscription();
@@ -29,8 +31,11 @@ function ProfilePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // When ?modal=followers/following/shares is present, show the stats modal. model is triggered by the url
-  const modalTab = searchParams.get("modal");
+  // Only follower and following lists are supported by the profile modal.
+  const requestedModalTab = searchParams.get("modal");
+  const modalTab = PROFILE_MODAL_TABS.has(requestedModalTab)
+    ? requestedModalTab
+    : null;
   const returnTo = searchParams.get("returnTo");
 
   const loading = authLoading;
@@ -79,6 +84,12 @@ function ProfilePageContent() {
   useEffect(() => {
     if (modalTab) setStatsActiveTab(modalTab);
   }, [modalTab]);
+
+  useEffect(() => {
+    if (requestedModalTab && !modalTab) {
+      router.replace("/profile", { scroll: false });
+    }
+  }, [requestedModalTab, modalTab, router]);
 
   // Sync about text when profile data arrives
   useEffect(() => {
@@ -525,12 +536,7 @@ function ProfilePageContent() {
             </p>
 
             <p className="text-sm text-[#6B7280] mb-4">
-              <Link
-                href="/profile?modal=shares"
-                className="hover:underline cursor-pointer"
-              >
-                {userProfile?.stats?.totalShares || 0} Shares
-              </Link>
+              <span>{userProfile?.stats?.totalShares || 0} Shares</span>
               {" · "}
               <Link href="/chat" className="hover:underline cursor-pointer">
                 {unreadMessageCount} Messages
@@ -586,11 +592,6 @@ function ProfilePageContent() {
                       label: "Following",
                       count:
                         userProfile?._count?.following || following.length || 0,
-                    },
-                    {
-                      key: "shares",
-                      label: "Shares",
-                      count: userProfile?.stats?.totalShares || 0,
                     },
                   ].map(({ key, label, count }) => (
                     <button
@@ -802,36 +803,6 @@ function ProfilePageContent() {
                       </div>
                     )}
 
-                    {/* Shares Tab */}
-                    {statsActiveTab === "shares" && (
-                      <div className="space-y-5">
-                        {shares.map((share) => (
-                          <div
-                            key={share.id}
-                            className="border-b border-[#E5E7EB] pb-4 last:border-0"
-                          >
-                            <h3 className="font-semibold text-[#111827] mb-2">
-                              {share.title}
-                            </h3>
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm text-[#6B7280]">
-                                Shared to {share.platform} · {share.date}
-                              </p>
-                              {share.likes && (
-                                <span className="px-2 py-1 bg-[#D1FAE5] text-[#059669] text-xs font-medium rounded">
-                                  {share.likes} likes
-                                </span>
-                              )}
-                              {share.comments && (
-                                <span className="px-2 py-1 bg-[#DBEAFE] text-[#2563EB] text-xs font-medium rounded">
-                                  {share.comments} comments
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </>
                 )}
               </div>
