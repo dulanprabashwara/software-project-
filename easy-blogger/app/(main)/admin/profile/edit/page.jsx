@@ -66,7 +66,7 @@ export default function EditAdminProfile() {
         receiveWeeklyExport: formData.settings.weeklyExport,
       };
 
-      await api.updateProfile(payload, token);
+      await api.updateAdminProfile(payload, token);
       router.refresh();
 
       router.push("/admin/profile");
