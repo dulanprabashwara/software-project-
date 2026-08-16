@@ -536,8 +536,6 @@ function ProfilePageContent() {
             </p>
 
             <p className="text-sm text-[#6B7280] mb-4">
-              <span>{userProfile?.stats?.totalShares || 0} Shares</span>
-              {" · "}
               <Link href="/chat" className="hover:underline cursor-pointer">
                 {unreadMessageCount} Messages
               </Link>
