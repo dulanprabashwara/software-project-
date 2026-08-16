@@ -39,7 +39,20 @@ function UserListPageContent() {
       if (!user) return;
       const token = await user.getIdToken();
 
-      const response = await api.getAdminUsers(`/paginated?page=${page}&limit=${limit}`, token);
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      });
+
+      if (searchQuery) queryParams.append("search", searchQuery);
+
+      if (activeFilters.premium && !activeFilters.regular) queryParams.append("premium", "true");
+      if (activeFilters.regular && !activeFilters.premium) queryParams.append("premium", "false");
+
+      if (activeFilters.banned && !activeFilters.active) queryParams.append("banned", "true");
+      if (activeFilters.active && !activeFilters.banned) queryParams.append("banned", "false");
+
+      const response = await api.getAdminUsers(`/paginated?${queryParams.toString()}`, token);
 
       const mappedUsers = response.data.map(u => ({
         id: u.id,
@@ -77,7 +90,7 @@ function UserListPageContent() {
       }
     });
     return () => unsubscribe();
-  }, [page, limit]);
+  }, [page, limit, searchQuery, activeFilters]);
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
@@ -107,7 +120,10 @@ function UserListPageContent() {
     document.body.removeChild(link);
   };
 
-  const handleFilterChange = (filter) => setActiveFilters(prev => ({ ...prev, [filter]: !prev[filter] }));
+  const handleFilterChange = (filter) => {
+    setActiveFilters(prev => ({ ...prev, [filter]: !prev[filter] }));
+    setPage(1);
+  };
 
   const handleToggleClick = (user) => {
     if (user.status === "Active") {
@@ -149,24 +165,6 @@ function UserListPageContent() {
     }
   };
 
-  const filteredUsers = users.filter(user => {
-    const cleanQuery = searchQuery.trim().toLowerCase();
-    const matchesSearch = (user.name?.toLowerCase() || "").includes(cleanQuery) || (user.email?.toLowerCase() || "").includes(cleanQuery);
-
-    const typeFiltersActive = activeFilters.regular || activeFilters.premium;
-    const statusFiltersActive = activeFilters.banned || activeFilters.active;
-
-    const matchesType = !typeFiltersActive ||
-      (activeFilters.regular && user.type === "Regular") ||
-      (activeFilters.premium && user.type === "Premium");
-
-    const matchesStatus = !statusFiltersActive ||
-      (activeFilters.banned && user.status === "Banned") ||
-      (activeFilters.active && user.status === "Active");
-
-    return matchesSearch && matchesType && matchesStatus;
-  });
-
   return (
     <div className="max-w-6xl mx-auto p-8 bg-white min-h-screen relative overflow-hidden">
       <h1 className="text-4xl font-bold mb-8 text-[#111827] ml-4" style={{ fontFamily: "serif" }}>User List</h1>
@@ -183,7 +181,7 @@ function UserListPageContent() {
           </div>
           <div className="relative w-64">
             <Search className="absolute left-3 top-2 text-gray-400" size={16} />
-            <input type="text" placeholder="Username or email" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 py-1.5 rounded-full bg-white/80 border-none outline-none text-[10px]" />
+            <input type="text" placeholder="Username or email" value={searchQuery} onChange={(e) => {setSearchQuery(e.target.value); setPage(1);}} className="w-full pl-9 py-1.5 rounded-full bg-white/80 border-none outline-none text-[10px]" />
           </div>
         </div>
 
@@ -204,7 +202,7 @@ function UserListPageContent() {
                 </td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => (
+                users.map((user) => (
                   <tr key={user.id} className="hover:bg-white/20 transition-colors">
                     <td className="p-2 pl-16 cursor-pointer" onClick={() => setSelectedUser(user)}>
                       <div className="flex items-center gap-3">
@@ -244,9 +242,9 @@ function UserListPageContent() {
         )}
 
         <div className="flex justify-end gap-3 px-10 mt-6 mb-4">
-          <button onClick={() => exportToCSV("revenue_report.csv", filteredUsers.filter(u => u.type === "Premium"))} className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"><Download size={14} /> Download Revenue Report</button>
-          <button onClick={() => exportToCSV("banned_users.csv", filteredUsers.filter(u => u.status === "Banned"))} className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"><Download size={14} /> Export Banned Users</button>
-          <button onClick={() => exportToCSV("active_users.csv", filteredUsers.filter(u => u.status === "Active"))} className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"><Download size={14} /> Export Active Users</button>
+          <button onClick={() => exportToCSV("revenue_report.csv", users.filter(u => u.type === "Premium"))} className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"><Download size={14} /> Download Revenue Report</button>
+          <button onClick={() => exportToCSV("banned_users.csv", users.filter(u => u.status === "Banned"))} className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"><Download size={14} /> Export Banned Users</button>
+          <button onClick={() => exportToCSV("active_users.csv", users.filter(u => u.status === "Active"))} className="flex items-center gap-2 bg-white text-gray-500 font-bold text-[10px] px-4 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-all uppercase"><Download size={14} /> Export Active Users</button>
         </div>
       </div>
 
