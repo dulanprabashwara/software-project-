@@ -19,7 +19,7 @@ function PageContent() {
   const router = useRouter();
   const id = searchParams.get("id");
   
-  // us and article details
+  // user and article details
   const { user, userProfile, loading: authLoading } = useAuth();
   const { article, isLoading: articleLoading, error } = useArticle(id);
   const { savedArticles } = useSavedArticles();
@@ -352,13 +352,13 @@ function PageContent() {
                 >
                   <Bookmark className={`w-4 h-4 md:w-5 md:h-5 ${saved ? "fill-teal-500 text-teal-500" : ""}`} />
                 </button>
-                <button 
+               { article.author.id != userProfile.id && <button 
                   onClick={() => setIsReportOpen(true)} 
                   className="hover:text-red-500 transition-colors" 
                   title="Report Article"
                 >
                   <Flag className="w-4 h-4 md:w-5 md:h-5" />
-                </button>
+                </button>}
               </div>
             </div>
           </div>
@@ -446,12 +446,12 @@ function PageContent() {
               >
                 <Bookmark className={`w-5 h-5 ${saved ? "fill-teal-500 text-teal-500" : ""}`} />
               </button>
-              <button 
+              {article.author.id!=userProfile.id && <button 
                 onClick={() => setIsReportOpen(true)} 
                 className="hover:text-red-500 transition-colors"
               >
                 <Flag className="w-5 h-5" />
-              </button>
+              </button>}
             </div>
           </div>
 
@@ -462,7 +462,7 @@ function PageContent() {
           <div id="comments-section" className="border-t pt-12">
             <h3 className="text-2xl font-black font-serif mb-8">Responses ({article._count?.comments || 0})</h3>
             <Comments 
-              articleId={id} 
+              articleId={article.id} 
               currentUser={userProfile} 
               token={token}
               articleAuthorId={article?.author?.id}
