@@ -52,7 +52,6 @@ export default function EditProfilePage() {
 
 
   const [isSaving, setIsSaving] = useState(false);
-  const [profileUpdateResult, setProfileUpdateResult] = useState(null);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -234,7 +233,6 @@ export default function EditProfilePage() {
   const handleSaveChanges = async () => {
     if (!firebaseUser) return;
     setIsSaving(true);
-    setProfileUpdateResult(null);
     try {
       const token = await firebaseUser.getIdToken();
 
@@ -267,17 +265,10 @@ export default function EditProfilePage() {
         ...(newAvatarUrl && { avatarUrl: newAvatarUrl }),
       });
 
-      setProfileUpdateResult({
-        type: "success",
-        message: "Your profile details were updated successfully.",
-      });
+      router.push("/profile");
     } catch (err) {
       console.error("Failed to update profile", err);
-      setProfileUpdateResult({
-        type: "error",
-        message:
-          err?.message || "Failed to update profile. Please try again.",
-      });
+      alert("Failed to update profile.");
     } finally {
       setIsSaving(false);
     }
@@ -641,7 +632,7 @@ export default function EditProfilePage() {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-full text-[#111827] focus:outline-none focus:border-[#1ABC9C] transition-colors"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     placeholder="Enter your name"
                   />
                 </div>
@@ -655,7 +646,7 @@ export default function EditProfilePage() {
                     type="text"
                     value={username}
                     readOnly
-                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-full text-[#6B7280] bg-[#F9FAFB] cursor-not-allowed focus:outline-none"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB] cursor-not-allowed focus:outline-none"
                   />
                 </div>
 
@@ -669,7 +660,7 @@ export default function EditProfilePage() {
                     onChange={(e) => setAbout(e.target.value)}
                     rows={4}
                     maxLength={200}
-                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-2xl text-[#111827] focus:outline-none focus:border-[#1ABC9C] transition-colors resize-none"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent resize-none"
                     placeholder="Tell us about yourself..."
                   />
                   <p className="text-xs text-[#6B7280] mt-1 text-right">
@@ -772,7 +763,7 @@ export default function EditProfilePage() {
             </div>
             <button
               onClick={handleChangePassword}
-              className="px-5 py-2 border border-[#E5E7EB] hover:bg-[#F9FAFB] text-[#374151] rounded-full text-sm font-medium transition-colors"
+              className="px-5 py-2 border border-[#E5E7EB] hover:bg-[#F9FAFB] text-[#374151] rounded-lg text-sm font-medium transition-colors"
             >
               {showPasswordChange ? "Hide" : "Change Password"}
             </button>
@@ -836,7 +827,7 @@ export default function EditProfilePage() {
                         setPasswordError("");
                       }}
                       placeholder="Current password"
-                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-full text-[#111827] bg-white focus:outline-none focus:border-[#1ABC9C] transition-colors"
+                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     />
                     <button
                       type="button"
@@ -861,7 +852,7 @@ export default function EditProfilePage() {
                         setPasswordError("");
                       }}
                       placeholder="New password (min. 8 characters)"
-                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-full text-[#111827] bg-white focus:outline-none focus:border-[#1ABC9C] transition-colors"
+                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     />
                     <button
                       type="button"
@@ -886,7 +877,7 @@ export default function EditProfilePage() {
                         setPasswordError("");
                       }}
                       placeholder="Confirm new password"
-                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-full text-[#111827] bg-white focus:outline-none focus:border-[#1ABC9C] transition-colors"
+                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     />
                     <button
                       type="button"
@@ -906,7 +897,7 @@ export default function EditProfilePage() {
                     <button
                       onClick={handleUpdatePassword}
                       disabled={isUpdatingPassword}
-                      className="px-6 py-2.5 bg-[#111827] hover:bg-[#1F2937] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-6 py-2.5 bg-[#111827] hover:bg-[#1F2937] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                       {isUpdatingPassword ? (
                         <>
@@ -1096,73 +1087,6 @@ export default function EditProfilePage() {
           </div>
         </div>
       </div>
-      {/* Profile Update Result Modal */}
-      {profileUpdateResult && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm px-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="profile-update-result-title"
-        >
-          <div className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setProfileUpdateResult(null)}
-              className="absolute right-4 top-3 text-2xl text-gray-400 hover:text-[#475569]"
-              aria-label="Close profile update message"
-            >
-              x
-            </button>
-            <div className="mb-6 flex justify-center">
-              <div
-                className={`flex h-16 w-16 items-center justify-center rounded-full ${
-                  profileUpdateResult.type === "success"
-                    ? "bg-[#D1FAE5]"
-                    : "bg-[#FEE2E2]"
-                }`}
-              >
-                {profileUpdateResult.type === "success" ? (
-                  <CheckCircle className="h-8 w-8 text-[#1ABC9C]" />
-                ) : (
-                  <AlertTriangle className="h-8 w-8 text-[#DC2626]" />
-                )}
-              </div>
-            </div>
-            <h2
-              id="profile-update-result-title"
-              className="mb-2 text-center text-2xl font-bold text-[#111827]"
-              style={{ fontFamily: "Georgia, serif" }}
-            >
-              {profileUpdateResult.type === "success"
-                ? "Profile Updated"
-                : "Update Failed"}
-            </h2>
-            <p className="mb-8 text-center text-[#475569]">
-              {profileUpdateResult.message}
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                if (profileUpdateResult.type === "success") {
-                  router.push("/profile");
-                  return;
-                }
-                setProfileUpdateResult(null);
-              }}
-              className={`w-full rounded-full py-3 font-semibold text-white shadow-md transition-colors ${
-                profileUpdateResult.type === "success"
-                  ? "bg-[#1ABC9C] hover:bg-[#17a589]"
-                  : "bg-[#DC2626] hover:bg-[#B91C1C]"
-              }`}
-            >
-              {profileUpdateResult.type === "success"
-                ? "View Profile"
-                : "Try Again"}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Delete Account Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm px-4">
