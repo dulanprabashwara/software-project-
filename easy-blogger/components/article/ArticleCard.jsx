@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { 
   BadgeCheck, MessageCircle, Star, Bookmark, 
   MoreHorizontal, BookOpen, Sparkles, Clock, CalendarClock, Flag, Trash2, SquarePen,
-  Linkedin, Globe, ExternalLink
+  Linkedin, Globe, ExternalLink,PenSquareIcon
 } from "lucide-react";
 import { useAuth } from "../../app/context/AuthContext";  
  
@@ -42,7 +42,8 @@ const { user, profileLoading, userProfile } = useAuth();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-   
+   //republish check
+   const[isRepublished, setIsRepublished]= useState(false);
 
   // Check if article is already bookmarked 
   useEffect(() => {
@@ -74,7 +75,7 @@ const { user, profileLoading, userProfile } = useAuth();
   
   // Date Formatting
   const isPublished = article.status;
-  const rawPublishDate = isPublished === "PUBLISHED" ? article.publishedAt : "Unknown date";
+  const rawPublishDate = isPublished === "PUBLISHED" || "REPUBLISHED" ? article.publishedAt : "Unknown date";
   const rawScheduledDate = isPublished === "SCHEDULED" ? article.scheduledAt : "Unknown";
 
   //for published articles
@@ -231,7 +232,7 @@ const { user, profileLoading, userProfile } = useAuth();
 
           {/*Display published or scheduled date */}
           <span className="text-sm text-[#6B7280]"> 
-            {isPublished === "PUBLISHED" ? (
+            {isPublished === "PUBLISHED" || "REPUBLISHED" ? (
               <span>{displayDate}</span>
             ) : isPublished === "SCHEDULED" ? (
               <span className="flex items-center gap-1">
@@ -244,6 +245,13 @@ const { user, profileLoading, userProfile } = useAuth();
           {article.isAiGenerated && (
             <span className="flex items-center gap-1 ml-2 text-[10px] font-semibold border border-[#1ABC9C] text-[#1ABC9C] bg-purple-50 px-2 py-0.5 rounded-full">
               <Sparkles className="w-3 h-3" /> AI Generated
+            </span>
+          )}
+
+            {/* republished check */}
+          {article.status =="REPUBLISHED" && (
+            <span className="flex items-center gap-1 ml-2 text-[10px] font-semibold border border-[#d2a10c] text-[#d2a10c] bg-purple-50 px-2 py-0.5 rounded-full">
+              <PenSquareIcon className="w-3 h-3" /> Edited
             </span>
           )}
 

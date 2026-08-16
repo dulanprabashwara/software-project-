@@ -171,14 +171,27 @@ export const Comments = ({ articleId, currentUser, token, articleAuthorId }) => 
             <Loader2 className="animate-spin text-teal-500" />
           </div>
         ) : (
-          //get only top level comments
-          comments.filter(c => !c.parentId).map((comment) => (
+          // Filter top-level comments, sort so the article author is first, then map
+          comments
+            .filter(c => !c.parentId)
+            .sort((a, b) => {
+              const aIsAuthor = (a.author?.id === articleAuthorId) || (a.authorId === articleAuthorId);
+              const bIsAuthor = (b.author?.id === articleAuthorId) || (b.authorId === articleAuthorId);
+              
+              if (aIsAuthor && !bIsAuthor) return -1; // A comes first
+              if (!aIsAuthor && bIsAuthor) return 1;  // B comes first
+              return 0; // Keep original order otherwise
+            })
+            .map((comment) => (
             <div key={comment.id} className="border-l-2 border-gray-100 pl-4">
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-bold text-sm">
                   {comment.author?.displayName || "Anonymous"}
-                  
-                  </span>
+                  {/* Optional: Add a badge if it's the author */}
+                  {((comment.author?.id === articleAuthorId) || (comment.authorId === articleAuthorId)) && (
+                    <span className="ml-2 text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-normal">Author</span>
+                  )}
+                </span>
                 <span className="text-xs text-gray-400">
                   {new Date(comment.createdAt).toLocaleDateString()}
                 </span>
@@ -194,9 +207,23 @@ export const Comments = ({ articleId, currentUser, token, articleAuthorId }) => 
 
               {/* REPLIES SECTION */}
               <div className=" ml-6 mt-4 space-y-4">
-                {comments.filter(r => r.parentId === comment.id).map(reply => (
+                {comments
+                  .filter(r => r.parentId === comment.id)
+                  .sort((a, b) => {
+                    const aIsAuthor = (a.author?.id === articleAuthorId) || (a.authorId === articleAuthorId);
+                    const bIsAuthor = (b.author?.id === articleAuthorId) || (b.authorId === articleAuthorId);
+                    if (aIsAuthor && !bIsAuthor) return -1;
+                    if (!aIsAuthor && bIsAuthor) return 1;
+                    return 0;
+                  })
+                  .map(reply => (
                   <div key={reply.id} className="bg-gray-50 p-2 rounded">
-                    <span className="font-bold text-xs">{reply.author?.displayName || "Anonymous"}</span>
+                    <span className="font-bold text-xs">
+                      {reply.author?.displayName || "Anonymous"}
+                      {((reply.author?.id === articleAuthorId) || (reply.authorId === articleAuthorId)) && (
+                        <span className="ml-2 text-[10px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full font-normal">Author</span>
+                      )}
+                    </span>
                     <p className="text-sm text-gray-600">{reply.content}</p>
                   </div>
                 ))}

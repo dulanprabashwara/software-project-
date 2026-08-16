@@ -75,7 +75,10 @@ export default function NotificationPanel({
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+      if (
+        panelRef.current &&
+        !panelRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -89,7 +92,7 @@ export default function NotificationPanel({
   }, [isOpen]);
 
   return (
-    <div className="relative" ref={panelRef}>
+    <div className="relative z-30" ref={panelRef}>
       <button
         data-skip-save-prompt="true"
         onClick={() => setIsOpen(!isOpen)}
