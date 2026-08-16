@@ -10,8 +10,8 @@ export default function Layout({ children }) {
   const isPrivate = pathname.includes("/stats/private");
 
   return (
-    <div className="mx-auto overflow-hidden bg-white min-h-0   scale-90">
-      <div className="flex justify-between text-[1.75rem] px-50 py-4 h-full font-[Georgia] overflow-hidden">
+    <div className="mx-auto overflow-hidden bg-white min-h-0 scale-100">
+      <div className="flex justify-between text-[1.75rem] px-50 py-4 h-full font-[Georgia] overflow-hidden scale-90  ">
         <button
           onClick={() => router.push("/stats/public")}
           className={isPublic ? "text-[#1abc9c] bg-[#f0fdf9] px-7 rounded-4xl"  : "text-[#6b6b6b] px-7 rounded-4xl"}

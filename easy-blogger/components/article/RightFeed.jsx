@@ -46,13 +46,13 @@ export default function RightFeed() {
           {isTagsLoading ? (
              <Loader2 className="w-4 h-4 animate-spin text-gray-300" />
           ) : (
-            tags.map((tag) => (
+            tags.map((topic) => (
               <button
-                key={tag.name}
-                onClick={() => router.push(`/home?q=${tag.name}`)}
+                key={topic.name}
+                onClick={() => router.push(`/home?q=${topic.name}`)}
                 className="px-3 py-1 bg-gray-50 border rounded-full text-xs hover:bg-teal-500 hover:text-white transition capitalize"
               >
-                {tag.name}
+                {topic.name}
               </button>
             ))
           )}

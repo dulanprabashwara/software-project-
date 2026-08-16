@@ -34,9 +34,8 @@ return (
         <button
            className="mt-5 w-full rounded bg-yellow-500 py-2 text-sm font-medium text-white transition-colors hover:bg-yellow-600 cursor-pointer"
            onClick={()=>{
-            router.push('/home')
-            window.location.reload()
-
+            router.push('/home?feed=1');
+             
            }}
         >
           OK

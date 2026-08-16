@@ -16,9 +16,21 @@ function HomeContent() {
 
   const tabParam = searchParams.get("tab");
   const initialTab = tabParam === "profiles" ? "profiles" : "articles";
-  const [getFeed, setFeed] = useState(1);
+
+  const feedParam = searchParams.get("feed");
+  const initialFeed = feedParam === "2" ? 2 : 1; // Defaults to 1 if not specified
+  const [getFeed, setFeed] = useState(initialFeed);
   const getFeedRef = useRef(1);
   getFeedRef.current = getFeed;
+
+  useEffect(() => {
+    const feedParam = searchParams.get("feed");
+    if (feedParam === "1") {
+      setFeed(1);
+    } else if (feedParam === "2") {
+      setFeed(2);
+    }
+  }, [searchParams]);
 
   //Use a ref to hold our timeout ID
   const scrollTimeout = useRef(null);

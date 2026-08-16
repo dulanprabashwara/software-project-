@@ -22,7 +22,7 @@ export default function PrivateStats() {
       : "0.0";
 
     return (
-        <div className="overflow-hidden flex flex-col p-4">
+        <div className="overflow-hidden flex flex-col p-4 scale-90">
             <div className="bg-[#f0fdf9] w-full rounded-4xl mb-10 gap-20 p-5 flex flex-col md:flex-row">
                 <div className="flex gap-7 flex-col font-[Georgia] shrink-0">
                     <div className="flex gap-3">

@@ -59,7 +59,7 @@ function PageContent() {
     }
   }, [user]);
 
-  // 2. Record Read History (Runs once when article/token are ready)
+  // Record Read History (Runs once when article/token are ready)
   useEffect(() => {
     const recordVisit = async () => {
       if (!id || !token) return;
@@ -287,7 +287,7 @@ function PageContent() {
       <article ref={scrollRef} className="h-full overflow-y-auto scroll-smooth">
         
         {/* Sticky Header (Hidden until user scrolls down) */}
-        <div className={`sticky top-0 z-50 border-b bg-white/90 backdrop-blur-md transition-all ${
+        <div className={`sticky top-0 z-10 border-b bg-white/90 backdrop-blur-md transition-all ${
           showCompact ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
         }`}>
           {/*author avatar*/}

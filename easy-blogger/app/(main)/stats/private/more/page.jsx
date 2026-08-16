@@ -15,9 +15,11 @@ export default function MoreStatsPage() {
     const activeArticleId = selectedArticleId || (stats?.length > 0 ? stats[0].id : null);
     const activeArticle = stats?.find(a => a.id === activeArticleId);
 
-    // CHANGED: We now pull the 'comments' array directly out of your hook!
-    // We rename it to 'liveComments' so it doesn't conflict with anything else.
     const { deleteComment, comments: liveComments } = useComments(activeArticleId);
+    
+    // --- NEW STATES FOR DELETE CONFIRMATION ---
+    const [commentToDelete, setCommentToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     if (isLoading) {
         return (
@@ -40,20 +42,59 @@ export default function MoreStatsPage() {
         });
     }
 
-    // CHANGED: This function is now incredibly simple. 
-    // The hook manages the rest automatically!
-    const handleDeleteClick = async (commentId) => {
-        if (!confirm("Are you sure you want to delete this comment?")) return;
+    // Triggered when trash icon is clicked
+    const handleDeleteClick = (commentId) => {
+        setCommentToDelete(commentId);
+    };
 
-        const success = await deleteComment(commentId);
-        
-        if (!success) {
+    // Triggered when user clicks "Delete" inside the confirmation modal
+    const confirmDelete = async () => {
+        if (!commentToDelete) return;
+
+        setIsDeleting(true);
+        try {
+            const success = await deleteComment(commentToDelete);
+            // If deleteComment returns false/throws or handles it internally, adjust accordingly
+            setCommentToDelete(null); // Close modal on success
+        } catch (err) {
             alert("Failed to delete the comment. You may not have permission or need to log in.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#f8fafc] p-6 font-[Georgia]">
+        <div className="flex flex-col h-full bg-[#f8fafc] p-6 font-[Georgia] relative">
+            
+            {/* Confirmation Modal Pop-up */}
+           {commentToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs">
+                    <div className="w-80 rounded bg-white p-6 text-center shadow-xl">
+                        <h3 className="text-lg font-bold text-red-600">Delete Comment</h3>
+                        <p className="mt-2 text-sm text-gray-500">
+                            Are you sure you want to delete this comment?
+                        </p>
+                        
+                        <div className="flex gap-3 mt-5">
+                            <button
+                                disabled={isDeleting}
+                                onClick={() => setCommentToDelete(null)}
+                                className="flex-1 rounded bg-gray-200 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-300 cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                disabled={isDeleting}
+                                onClick={confirmDelete}
+                                className="flex-1 rounded bg-red-600 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 cursor-pointer flex items-center justify-center"
+                            >
+                                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <button 
                 onClick={() => router.back()}
                 className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 w-fit cursor-pointer"
@@ -120,7 +161,6 @@ export default function MoreStatsPage() {
                             <div>
                                 <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Comments</h3>
                                 
-                                {/* CHANGED: Map over the new 'liveComments' variable instead of activeArticle.comments */}
                                 {liveComments && liveComments.length > 0 ? (
                                     <table className="w-full text-left border-collapse">
                                         <thead>
