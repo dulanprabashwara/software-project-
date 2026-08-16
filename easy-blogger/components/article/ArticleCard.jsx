@@ -40,8 +40,9 @@ const { user, profileLoading, userProfile } = useAuth();
   // Delete Option State
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false); // <-- NEW STATE FOR DELETE SUCCESS POPUP
 
-   //republish check
+    //republish check
    const [isRepublished, setIsRepublished]= useState(false);
 
   // Check if article is already bookmarked 
@@ -71,7 +72,7 @@ const { user, profileLoading, userProfile } = useAuth();
   
   // Date Formatting
   const isPublished = article.status;
-  const rawPublishDate = isPublished === "PUBLISHED" || "REPUBLISHED" ? article.publishedAt : "Unknown date";
+  const rawPublishDate = isPublished === "PUBLISHED" || isPublished=== "REPUBLISHED" ? article.publishedAt : "Unknown date";
   const rawScheduledDate = isPublished === "SCHEDULED" ? article.scheduledAt : "Unknown";
 
   //for published articles
@@ -191,7 +192,7 @@ const { user, profileLoading, userProfile } = useAuth();
       }
 
       setIsDeleteOpen(false);
-      alert("Article Successfully Deleted");
+      setShowDeleteSuccess(true); // Trigger Delete Success Popup
       
     } catch (err) {
       console.error(err);
@@ -217,11 +218,12 @@ const { user, profileLoading, userProfile } = useAuth();
               {authorName}
               <span className="text-xs text-[#6B7280] ml-1">@{authorUsername}</span>
             </span>
+
           </div>
           {article.author?.isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" title="Premium Author" />}
 
           <span className="text-sm text-[#6B7280]"> 
-            {isPublished === "PUBLISHED" || "REPUBLISHED" ? (
+            {isPublished === "PUBLISHED" || isPublished==="REPUBLISHED" ? (
               <span>{displayDate}</span>
             ) : isPublished === "SCHEDULED" ? (
               <span className="flex items-center gap-1">
@@ -507,6 +509,32 @@ const { user, profileLoading, userProfile } = useAuth();
                 {isDeleting ? "Deleting..." : "Delete"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Success Popup */}
+      {showDeleteSuccess && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-6 h-6 text-teal-600" />
+            </div>
+            
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Article Deleted</h3>
+            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
+              Your article has been successfully deleted.
+            </p>
+            
+            <button 
+              onClick={() => {
+                setShowDeleteSuccess(false);
+                window.location.reload();
+              }} 
+              className="w-full px-4 py-2.5 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl transition-all cursor-pointer"
+            >
+              OK
+            </button>
           </div>
         </div>
       )}
