@@ -162,6 +162,7 @@ describe("profile result modals", () => {
     expect(source).not.toContain('href="/profile?modal=shares"');
     expect(source).not.toContain('key: "shares"');
     expect(source).not.toContain('statsActiveTab === "shares"');
+    expect(source).not.toContain("totalShares");
   });
 });
 
