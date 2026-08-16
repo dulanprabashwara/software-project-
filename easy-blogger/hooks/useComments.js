@@ -50,7 +50,7 @@ export const useComments = (articleId) => {
     try {
       await api.deleteComment(commentId, token);
       
-      // Instantly update UI without an extra network request
+      // Instantly update UI without an extra network request (filter all other comments)
       setComments(prevComments => prevComments.filter(c => c.id !== commentId));
       return true;
     } catch (err) {
