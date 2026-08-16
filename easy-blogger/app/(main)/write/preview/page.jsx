@@ -10,7 +10,7 @@ import {
 } from "../../../../components/article/EditorSharedLayout";
 import { useConfirmDialog } from "../../../../hooks/articles/useConfirmDialog";
 import { useClearBackupOnLayoutNavigation } from "../../../../hooks/articles/useClearBackupOnLayoutNavigation";
-import { getDraftById, updateDraft, republishArticle } from "../../../../lib/articles/api";
+import { getDraftById, updateDraft } from "../../../../lib/articles/api";
 import { getArticleFromResponse } from "../../../../lib/articles/utils";
 
 function PreviewPageContent() {
@@ -23,7 +23,6 @@ function PreviewPageContent() {
 
   const [article, setArticle] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRepublishing, setIsRepublishing] = useState(false);
 
   const { modalState } = useConfirmDialog();
 
@@ -78,25 +77,6 @@ function PreviewPageContent() {
       router.push(`/write/publish?id=${article.id}&mode=${mode}`);
     } catch (error) {
       console.error("Failed to move to publish page:", error);
-    }
-  };
-
-  const handleRepublish = async () => {
-    if (!article?.id) return;
-
-    try {
-      setIsRepublishing(true);
-      await republishArticle(article.id, {
-        title: article.title,
-        content: article.content,
-        coverImage: article.coverImage,
-      });
-
-      router.push("/stories/published");
-    } catch (error) {
-      console.error("Failed to republish article:", error);
-    } finally {
-      setIsRepublishing(false);
     }
   };
 
@@ -207,19 +187,10 @@ function PreviewPageContent() {
                         {
                           label: "Exit Editor",
                           onClick: handleExitEditor,
-                          disabled: isRepublishing,
-                        },
-                        {
-                          label: "Republish",
-                          onClick: handleRepublish,
-                          variant: "primary",
-                          disabled: isRepublishing,
-                          keepEditBackup: true,
                         },
                         {
                           label: "Edit",
                           onClick: handleEditAgain,
-                          disabled: isRepublishing,
                           keepEditBackup: true,
                         },
                       ]
