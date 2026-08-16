@@ -1,5 +1,7 @@
 // tests/api/profile.api.test.js
 
+const fs = require("fs");
+const path = require("path");
 const {
   mockFetch,
   mockFetchError,
@@ -30,6 +32,37 @@ describe("api.updateProfile", () => {
     );
   });
 
+  test("production API keeps user and admin profile routes separate", () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../lib/api.js"),
+      "utf8",
+    );
+    const updateProfileStart = source.indexOf("updateProfile:");
+    const updateAdminProfileStart = source.indexOf(
+      "updateAdminProfile:",
+      updateProfileStart,
+    );
+    const getUserProfileStart = source.indexOf(
+      "getUserProfile:",
+      updateAdminProfileStart,
+    );
+
+    const userProfileBlock = source.slice(
+      updateProfileStart,
+      updateAdminProfileStart,
+    );
+    const adminProfileBlock = source.slice(
+      updateAdminProfileStart,
+      getUserProfileStart,
+    );
+
+    expect(updateProfileStart).toBeGreaterThan(-1);
+    expect(updateAdminProfileStart).toBeGreaterThan(updateProfileStart);
+    expect(getUserProfileStart).toBeGreaterThan(updateAdminProfileStart);
+    expect(userProfileBlock).toContain('fetchAPI("/api/users/profile"');
+    expect(userProfileBlock).not.toContain("/api/admin/profile");
+    expect(adminProfileBlock).toContain('fetchAPI("/api/admin/profile"');
+  });
   test("uses PUT method", async () => {
     mockFetch({ success: true, data: {} });
 
@@ -86,6 +119,50 @@ describe("api.updateProfile", () => {
     await expect(
       api.updateProfile(PROFILE_UPDATE_DATA, "user-token-abc"),
     ).rejects.toThrow("Network error");
+  });
+});
+
+describe("profile result modals", () => {
+  test("profile updates display success and failure results", () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../app/(main)/profile/edit/page.jsx"),
+      "utf8",
+    );
+
+    expect(source).toContain("profileUpdateResult");
+    expect(source).toContain("Profile Updated");
+    expect(source).toContain("Update Failed");
+    expect(source).toContain("Your profile details were updated successfully.");
+  });
+
+  test("bio deletion runs immediately and displays its result", () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../app/(main)/profile/page.jsx"),
+      "utf8",
+    );
+
+    expect(source).toContain("bioDeleteResult");
+    expect(source).toContain("Bio Deleted");
+    expect(source).toContain("Delete Failed");
+    expect(source).toContain('isDeletingBio ? "Deleting..." : "Delete"');
+    expect(source).not.toContain(
+      'confirm("Are you sure you want to delete your bio?")',
+    );
+  });
+
+  test("profile stats modal excludes shares", () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../app/(main)/profile/page.jsx"),
+      "utf8",
+    );
+
+    expect(source).toContain(
+      'const PROFILE_MODAL_TABS = new Set(["followers", "following"]);',
+    );
+    expect(source).not.toContain('href="/profile?modal=shares"');
+    expect(source).not.toContain('key: "shares"');
+    expect(source).not.toContain('statsActiveTab === "shares"');
+    expect(source).not.toContain("totalShares");
   });
 });
 

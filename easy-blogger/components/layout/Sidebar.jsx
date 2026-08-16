@@ -44,7 +44,7 @@ export default function Sidebar({ isOpen }) {
       }
     } catch (err) {
       console.error("Portal error:", err);
-      alert("Failed to open billing portal.");
+      // We log to console instead of using native alert to avoid intrusive popups
     } finally {
       setPortalLoading(false);
     }
@@ -58,9 +58,9 @@ export default function Sidebar({ isOpen }) {
     { label: "Stories", href: "/stories/published", icon: FileText },
     { label: "Stats", href: "/stats", icon: BarChart },
     { label: "Shares", href: "/shares/all", icon: Share2 },
-    { label: "AI Generate",href: isPremium ? "/ai-generate" : "/subscription/upgrade",icon: Sparkles, },
+    { label: "AI Generate",href: isPremium ? "/ai-generate" : "/subscription/upgrade",icon: Sparkles, activeHref: "/ai-generate" },
     { label: "Following", href: "/profile?modal=following", icon: Users },
-    { label: "Membership", href: "/subscription/upgrade",icon: CreditCard,onClick: handleMembershipClick,},
+    { label: "Membership", href: "/subscription/upgrade",icon: CreditCard,onClick: handleMembershipClick, activeHref: "/subscription" },
   ];
 
   return (
@@ -74,7 +74,10 @@ export default function Sidebar({ isOpen }) {
               href={link.href}
               onClick={link.onClick} 
               className={`flex items-center gap-3 p-3 rounded-lg text-sm ${
-                pathname === link.href || (link.href !== "/home" && pathname?.startsWith(link.href))
+                (() => {
+                  const checkHref = link.activeHref || link.href;
+                  return pathname === checkHref || (checkHref !== "/home" && pathname?.startsWith(checkHref));
+                })()
                   ? "bg-teal-50 text-teal-600 font-medium"
                   : "text-gray-500 hover:bg-gray-50 transition-colors"
               }`}

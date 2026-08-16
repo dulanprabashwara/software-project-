@@ -158,7 +158,7 @@ Firebase Facebook OAuth popup flow.
       {/* background gradient and fade */}
       <div className="absolute inset-0 bg-[#F8FAFC]">
         <div className="absolute left-0 top-0 w-1/3 h-full bg-linear-to-r from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
-        <div className="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
+        <div className="absolute right-0 top-0 w-1/3 h-full bg-linear-to-l from-[#D1FAE5] via-[#E0F2FE] to-transparent opacity-60"></div>
       </div>
       {/* Banned User Modal  */}
       {bannedReason && (
@@ -276,7 +276,7 @@ Firebase Facebook OAuth popup flow.
             <div className="text-right">
               <Link
                 href="/forgot-password"
-                className="text-sm text-[#3B82F6] hover:text-[#2563EB] transition-colors"
+                className="text-sm text-[#1ABC9C] hover:text-[#17a589] transition-colors"
               >
                 Forgot password?
               </Link>
@@ -297,7 +297,7 @@ Firebase Facebook OAuth popup flow.
             Don&apos;t have an account?{" "}
             <Link
               href="/signup"
-              className="text-[#3B82F6] font-medium hover:text-[#2563EB] transition-colors"
+              className="text-[#1ABC9C] font-medium hover:text-[#17a589] transition-colors"
             >
               Sign up
             </Link>

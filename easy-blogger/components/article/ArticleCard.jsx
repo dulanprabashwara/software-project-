@@ -222,9 +222,9 @@ const { user, profileLoading, userProfile } = useAuth();
             onClick={() => router.push(`/profile/${authorUsername}`)}
           >
             <img src={authorAvatar} alt={authorName} className="w-8 h-8 rounded-full object-cover" />
-            <span className="text-xl font-medium text-[#111827]">
+            <span className="text-base font-medium text-[#111827]">
               {authorName}
-              <span className="text-xs text-gray-500"> @{authorUsername}</span>
+              <span className="text-xs text-[#6B7280] ml-1">@{authorUsername}</span>
             </span>
           </div>
           {article.author?.isPremium && <BadgeCheck className="w-4 h-4 text-[#1ABC9C]" title="Premium Author" />} {/* premium check */}

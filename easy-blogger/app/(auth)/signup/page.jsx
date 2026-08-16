@@ -78,36 +78,36 @@ export default function SignupPage() {
           <span className="text-[#111827]">Blogger</span>
         </h1>
         <nav className="flex items-center gap-6">
-          <a
-            href="#"
+          <Link
+            href="/our-story"
             className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
           >
             Our story
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            href="/membership"
             className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
           >
             Membership
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            href="/signup"
             className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors hidden md:block"
           >
             Write
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            href="/login"
             className="text-sm text-[#6B7280] hover:text-[#000000] transition-colors"
           >
             Sign in
-          </a>
-          <a
+          </Link>
+          <Link
             href="/signup"
             className="px-4 py-2 bg-[#111827] text-white text-sm rounded-full hover:bg-[#1f2937] transition-colors"
           >
             Get started
-          </a>
+          </Link>
         </nav>
       </header>
 
@@ -262,7 +262,7 @@ export default function SignupPage() {
         <div className="absolute inset-0 bg-white/80" onClick={handleClose} />
 
         {/* Modal */}
-        <div className="relative bg-white rounded-sm shadow-xl w-full max-w-md mx-4 px-12 py-10 animate-modal-pop">
+        <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 px-12 py-10 animate-modal-pop">
           {/* Close Button */}
           <button
             onClick={handleClose}
@@ -298,7 +298,7 @@ export default function SignupPage() {
             {/* Google */}
             <button
               onClick={handleGoogleSignup}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-[#1ABC9C] hover:bg-[#F9FAFB]"
             >
               <GoogleIcon className="w-5 h-5" />
               <span className="text-[#111827] text-sm">
@@ -309,7 +309,7 @@ export default function SignupPage() {
             {/* Facebook */}
             <button
               onClick={handleFacebookSignup}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-[#1ABC9C] hover:bg-[#F9FAFB]"
             >
               <FacebookIcon className="w-5 h-5" />
               <span className="text-[#111827] text-sm">
@@ -320,7 +320,7 @@ export default function SignupPage() {
             {/* Email */}
             <button
               onClick={() => router.push("/signup/email")}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-full transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:border-[#1ABC9C] hover:bg-[#F9FAFB]"
             >
               <EmailIcon className="w-5 h-5 text-gray-600" />
               <span className="text-[#111827] text-sm">Sign up with email</span>

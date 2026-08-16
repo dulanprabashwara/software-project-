@@ -213,9 +213,9 @@ export default function AuditLogPage() {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {loading ? (
-              <tr><td colSpan="5" className="py-24 text-center text-gray-400 font-bold italic">Syncing with server...</td></tr>
+              <tr><td colSpan="5" className="p-8 text-gray-500 text-center">Syncing with server...</td></tr>
             ) : filteredLogs.length === 0 ? (
-              <tr><td colSpan="5" className="py-24 text-center text-gray-400 font-bold italic uppercase tracking-widest">No matching logs found</td></tr>
+              <tr><td colSpan="5" className="p-8 text-gray-500 text-center">No matching logs found</td></tr>
             ) : (
               filteredLogs.map((log) => (
                 <tr key={log.id} className="hover:bg-gray-50/40 transition-colors">
