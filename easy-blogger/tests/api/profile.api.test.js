@@ -149,6 +149,21 @@ describe("profile result modals", () => {
       'confirm("Are you sure you want to delete your bio?")',
     );
   });
+
+  test("profile stats modal excludes shares", () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../../app/(main)/profile/page.jsx"),
+      "utf8",
+    );
+
+    expect(source).toContain(
+      'const PROFILE_MODAL_TABS = new Set(["followers", "following"]);',
+    );
+    expect(source).not.toContain('href="/profile?modal=shares"');
+    expect(source).not.toContain('key: "shares"');
+    expect(source).not.toContain('statsActiveTab === "shares"');
+    expect(source).not.toContain("totalShares");
+  });
 });
 
 // api.getUserProfile
