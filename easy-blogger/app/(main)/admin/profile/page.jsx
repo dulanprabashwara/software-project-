@@ -129,8 +129,8 @@ export default function AdminProfilePage() {
     }
   };
 
-  if (loading) return <div className="p-8 text-gray-500 font-bold">Loading Data...</div>;
-  if (!adminData) return <div className="p-8 text-red-500 font-bold">Failed to load profile. Are you logged in?</div>;
+  if (loading) return <div className="p-8 text-gray-500">Loading Data...</div>;
+  if (!adminData) return <div className="p-8 text-red-500">Failed to load profile. Are you logged in?</div>;
 
   return (
     <div className="flex gap-12 p-8 bg-white max-w-7xl mx-auto">
