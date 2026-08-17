@@ -11,6 +11,7 @@ export default function MessageBubble({
   isOwnMessage,
   onDelete,
   isRead = false,
+  isPending = false,
 }) {
   //turn the color of the bubble according to the sender
   const bubbleClasses = useMemo(() => {
@@ -49,7 +50,7 @@ export default function MessageBubble({
           )}
         </div>
         {/*show the delete button only when isOwnMessage true*/}
-        {isOwnMessage && (
+        {isOwnMessage && !isPending && (
           <button
             onClick={(e) => {
               e.stopPropagation();

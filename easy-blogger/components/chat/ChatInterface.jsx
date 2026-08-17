@@ -413,6 +413,7 @@ export default function ChatInterface() {
       sender: currentUser,
       sentAt: optimisticDate.toISOString(),
       isRead: false,
+      isPending: true,
     };
 
     //update the messages list with the optimistic message
@@ -463,6 +464,7 @@ export default function ChatInterface() {
                   sender: currentUser,
                   sentAt: msg.sentAt,
                   isRead: Boolean(msg.isRead),
+                  isPending: false,
                 }
               : m,
           ),
@@ -490,6 +492,7 @@ export default function ChatInterface() {
   //deleting a message
   const handleDeleteMessage = (messageId) => {
     if (!socket || !activeConversationId) return;
+    if (messageId.startsWith("temp-")) return;
 
     const messageToDelete = messages.find((m) => m.id === messageId);
 
