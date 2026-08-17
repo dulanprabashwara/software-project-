@@ -641,7 +641,7 @@ export default function EditProfilePage() {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-full text-[#111827] focus:outline-none focus:border-[#1ABC9C] transition-colors"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     placeholder="Enter your name"
                   />
                 </div>
@@ -655,7 +655,7 @@ export default function EditProfilePage() {
                     type="text"
                     value={username}
                     readOnly
-                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-full text-[#6B7280] bg-[#F9FAFB] cursor-not-allowed focus:outline-none"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#6B7280] bg-[#F9FAFB] cursor-not-allowed focus:outline-none"
                   />
                 </div>
 
@@ -669,7 +669,7 @@ export default function EditProfilePage() {
                     onChange={(e) => setAbout(e.target.value)}
                     rows={4}
                     maxLength={200}
-                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-2xl text-[#111827] focus:outline-none focus:border-[#1ABC9C] transition-colors resize-none"
+                    className="w-full px-4 py-3 border border-[#E5E7EB] rounded-lg text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent resize-none"
                     placeholder="Tell us about yourself..."
                   />
                   <p className="text-xs text-[#6B7280] mt-1 text-right">
@@ -772,7 +772,7 @@ export default function EditProfilePage() {
             </div>
             <button
               onClick={handleChangePassword}
-              className="px-5 py-2 border border-[#E5E7EB] hover:bg-[#F9FAFB] text-[#374151] rounded-full text-sm font-medium transition-colors"
+              className="px-5 py-2 border border-[#E5E7EB] hover:bg-[#F9FAFB] text-[#374151] rounded-lg text-sm font-medium transition-colors"
             >
               {showPasswordChange ? "Hide" : "Change Password"}
             </button>
@@ -836,7 +836,7 @@ export default function EditProfilePage() {
                         setPasswordError("");
                       }}
                       placeholder="Current password"
-                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-full text-[#111827] bg-white focus:outline-none focus:border-[#1ABC9C] transition-colors"
+                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     />
                     <button
                       type="button"
@@ -861,7 +861,7 @@ export default function EditProfilePage() {
                         setPasswordError("");
                       }}
                       placeholder="New password (min. 8 characters)"
-                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-full text-[#111827] bg-white focus:outline-none focus:border-[#1ABC9C] transition-colors"
+                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     />
                     <button
                       type="button"
@@ -886,7 +886,7 @@ export default function EditProfilePage() {
                         setPasswordError("");
                       }}
                       placeholder="Confirm new password"
-                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-full text-[#111827] bg-white focus:outline-none focus:border-[#1ABC9C] transition-colors"
+                      className="w-full px-4 py-3 pr-11 border border-[#E5E7EB] rounded-lg text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#1ABC9C] focus:border-transparent"
                     />
                     <button
                       type="button"
@@ -906,7 +906,7 @@ export default function EditProfilePage() {
                     <button
                       onClick={handleUpdatePassword}
                       disabled={isUpdatingPassword}
-                      className="px-6 py-2.5 bg-[#111827] hover:bg-[#1F2937] text-white rounded-full text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-6 py-2.5 bg-[#111827] hover:bg-[#1F2937] text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                       {isUpdatingPassword ? (
                         <>

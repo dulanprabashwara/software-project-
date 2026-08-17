@@ -11,14 +11,14 @@ import {
   Legend,
 } from "chart.js";
 
-// 1. Register Chart.js components (required to prevent crashes)
+// Register Chart.js components (required to prevent crashes)
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export default function TopTopicsChart() {
-  // 2. Call the hook properly to get the data and loading state
-  const { tags, isLoading } = usePopularTags();
+  //  Call the hook properly to get the data and loading state
+  const { tags, isLoading } = usePopularTags(12);
 
-  // 3. Show a loading screen while data fetches
+  //  Show a loading screen while data fetches
   if (isLoading) {
     return (
       <div className="w-full h-[400px] bg-white p-6 rounded-xl shadow flex items-center justify-center">
@@ -27,7 +27,7 @@ export default function TopTopicsChart() {
     );
   }
 
-  // 4. Show a fallback if there is no data
+  //  Show a fallback if there is no data
   if (!tags || tags.length === 0) {
     return (
       <div className="w-full h-[400px] bg-white p-6 rounded-xl shadow flex items-center justify-center">
@@ -37,7 +37,7 @@ export default function TopTopicsChart() {
   }
 
   const data = {
-    // 5. Map over the array to pull out the labels and counts
+    //  Map over the array to pull out the labels and counts
     labels: tags.map((item) => item.name),
     datasets: [
       {
@@ -63,7 +63,7 @@ export default function TopTopicsChart() {
       },
       title: {
         display: true,
-        text: "Top 10 Most Popular Topics",
+        text: "Top 12 Most Popular Topics",
         font: {
           size: 18,
         },
@@ -89,7 +89,7 @@ export default function TopTopicsChart() {
   };
 
   return (
-    // 6. Replaced invalid "h-100" with "h-[400px]"
+     
     <div className="w-full h-[400px] bg-white p-6 rounded-xl shadow">
       <Bar data={data} options={options} />
     </div>

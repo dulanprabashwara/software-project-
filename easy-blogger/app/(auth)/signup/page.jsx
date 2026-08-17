@@ -341,14 +341,15 @@ export default function SignupPage() {
           {/* Terms */}
           <p className="text-center mt-8 text-xs text-[#6B7280] leading-relaxed">
             By clicking "Sign up", you accept Easy Blogger's{" "}
-            <Link href="/terms" className="underline hover:text-[#111827]">
-              Terms of Service
-            </Link>{" "}
-            and
+            <Link
+              href="/terms"
+              className="underline hover:text-[#111827]"
+            ></Link>{" "}
             <br />
-            <Link href="/privacy" className="underline hover:text-[#111827]">
-              Privacy Policy
-            </Link>
+            <Link
+              href="/privacy"
+              className="underline hover:text-[#111827]"
+            ></Link>
             .
           </p>
         </div>

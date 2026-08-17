@@ -74,9 +74,8 @@ export const api = {
   getMe: (token) => 
     fetchAPI("/api/users/me", { token }),
 
-  // User Endpoints
   updateProfile: (data, token) =>
-    fetchAPI("/api/users/profile", { method: "PUT", body: data, token }),
+    fetchAPI("/api/users/me", { method: "PUT", body: data, token }),
 
   updateAdminProfile: (data, token) =>
     fetchAPI("/api/admin/profile", { method: "PUT", body: data, token }),

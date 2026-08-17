@@ -300,6 +300,7 @@ export default function AdminAIConfig() {
 
   return (
     <div className="max-w-6xl mx-auto p-8 relative">
+      <h1 className="text-3xl font-bold text-gray-900 mb-8" style={{ fontFamily: "Georgia, serif" }}>AI Configuration</h1>
 
       {/* TOP SECTION: ADD SOURCE CARD */}
       <div className="bg-white border border-gray-800 rounded-2xl p-8 mb-10 shadow-sm flex items-center justify-between">
@@ -496,7 +497,7 @@ export default function AdminAIConfig() {
             {loading ? (
               <tr><td colSpan="6" className="p-8 text-center text-gray-500">Loading sources...</td></tr>
             ) : filteredSources.length === 0 ? (
-              <tr><td colSpan="6" className="p-8 text-center text-gray-500">No sources added yet.</td></tr>
+              <tr><td colSpan="6" className="p-8 text-center text-gray-500 font-bold">No sources added yet.</td></tr>
             ) : (
               filteredSources.map((source) => (
                 <tr key={source.id} className="hover:bg-gray-50">

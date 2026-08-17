@@ -57,11 +57,7 @@ function ProfilePageContent() {
 
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
-
   const [showCopyModal, setShowCopyModal] = useState(false);
-  const handleShowCopyModal = () => {
-    setShowCopyModal(true);
-  };
 
   // About Section State
   const [aboutText, setAboutText] = useState("");
@@ -200,7 +196,7 @@ function ProfilePageContent() {
       navigator.clipboard
         .writeText(url)
         .then(() => {
-          handleShowCopyModal();
+          setShowCopyModal(true);
           setShowMenu(false);
         })
         .catch((err) => {
@@ -873,28 +869,33 @@ function ProfilePageContent() {
         </div>
       )}
 
-      {/* Copy Success Modal */}
       {showCopyModal && (
         <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/10 backdrop-blur-sm px-4">
           <div className="relative w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl animate-fade-in-up">
             <button
+              type="button"
               onClick={() => setShowCopyModal(false)}
               className="absolute right-4 top-3 text-2xl text-gray-400 hover:text-gray-700 transition-colors"
+              aria-label="Close copied link message"
             >
-              ×
+              x
             </button>
             <div className="mb-6 flex justify-center">
               <div className="w-16 h-16 bg-[#D1FAE5] rounded-full flex items-center justify-center">
                 <CheckCircle className="w-8 h-8 text-[#1ABC9C]" />
               </div>
             </div>
-            <h2 className="mb-2 text-center text-xl font-bold text-[#111827]" style={{ fontFamily: "Georgia, serif" }}>
+            <h2
+              className="mb-2 text-center text-xl font-bold text-[#111827]"
+              style={{ fontFamily: "Georgia, serif" }}
+            >
               Link Copied!
             </h2>
             <p className="text-center text-[#475569] mb-8 text-sm">
               Your profile link has been successfully copied to your clipboard.
             </p>
             <button
+              type="button"
               onClick={() => setShowCopyModal(false)}
               className="w-full rounded-full bg-[#1ABC9C] py-3 font-semibold text-white shadow-md hover:bg-[#17a589] transition-colors"
             >
@@ -903,9 +904,11 @@ function ProfilePageContent() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
+
 
 export default function ProfilePage(props) {
   return (

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef , Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { 
   Loader2, BadgeCheck, Star, MessageCircle, 
-  CalendarDays, Flag, Bookmark, AlertCircle
+  CalendarDays, Flag, Bookmark, AlertCircle, CheckCircle2
 } from "lucide-react";
 
 // Context & Custom Hooks
@@ -18,8 +18,8 @@ function PageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = searchParams.get("id");
-  
-  // us and article details
+
+  // user and article details
   const { user, userProfile, loading: authLoading } = useAuth();
   const { article, isLoading: articleLoading, error } = useArticle(id);
   const { savedArticles } = useSavedArticles();
@@ -36,6 +36,7 @@ function PageContent() {
   const [reportDescription, setReportDescription] = useState("");
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
+  const [showReportSuccess, setShowReportSuccess] = useState(false); // <-- ADDED: Success state for report
 
   // references 
   const scrollRef = useRef(null);
@@ -48,7 +49,7 @@ function PageContent() {
   //for error popups
   const [errorOcuurred, setErrorOccurred] = useState (false);
 
-  
+
 
   // Manage Firebase Token
   useEffect(() => {
@@ -59,7 +60,7 @@ function PageContent() {
     }
   }, [user]);
 
-  // 2. Record Read History (Runs once when article/token are ready)
+  // Record Read History (Runs once when article/token are ready)
   useEffect(() => {
     const recordVisit = async () => {
       if (!id || !token) return;
@@ -90,13 +91,13 @@ function PageContent() {
   useEffect(() => {
     const el = scrollRef.current;
     if (!el || articleLoading) return;
-    
+
     const onScroll = () => {
       if (!coverRef.current) return;
       const rect = coverRef.current.getBoundingClientRect(); //get reference location
       setShowCompact(rect.bottom <= 80); // Show sticky header when cover image scrolls up
     };
-    
+
     el.addEventListener("scroll", onScroll);
     return () => el.removeEventListener("scroll", onScroll);
   }, [articleLoading]);
@@ -147,7 +148,7 @@ function PageContent() {
 
     try {
       const currentToken = token || await user.getIdToken();
-      
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/articleReports`, {
         method: "POST",
         headers: {
@@ -166,9 +167,11 @@ function PageContent() {
         throw new Error(errorData.message || "Failed to submit report");
       }
 
-      alert("Thank you. The report has been sent to our team.");
+      // Success Reset & Trigger Success Popup
+      setIsReportOpen(false);
       setReportReason("");
       setReportDescription("");
+      setShowReportSuccess(true); // <-- ADDED: Show success popup
 
     } catch (err) {
       console.error(err);
@@ -176,8 +179,6 @@ function PageContent() {
       setErrorOccurred((prev)=>!prev);
     } finally {
       setIsReporting(false);
-      setIsReportOpen(false);
-
     }
   };
 
@@ -240,9 +241,9 @@ function PageContent() {
 
        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center w-150">
-          
+
           <AlertCircle className="text-red-500 w-20 h-20 mb-4" />
-          
+
           <h2 className="text-gray-900 font-semibold">Article not found</h2>
           <p className="text-gray-400 text-sm mb-6">Content unavailable</p>
 
@@ -258,7 +259,7 @@ function PageContent() {
     }
   // Format the display date
   const rawDate = article.publishedAt || null
- 
+
   const displayDate = rawDate 
     ? new Date(rawDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : "Date not Found";
@@ -270,7 +271,7 @@ function PageContent() {
     <div className="w-[300px] rounded-lg border border-red-300 bg-white p-6 shadow-2xl">
        <h2 className="text-xl font-bold text-red-600">Error Occurred</h2>
         <p className="mt-3 text-sm text-gray-700">Please try again.</p>
-      
+
       {/*go back Button */}
       <div className="mt-6 flex justify-end">
         <button
@@ -285,9 +286,9 @@ function PageContent() {
 
     <div className="h-full bg-white">
       <article ref={scrollRef} className="h-full overflow-y-auto scroll-smooth">
-        
+
         {/* Sticky Header (Hidden until user scrolls down) */}
-        <div className={`sticky top-0 z-50 border-b bg-white/90 backdrop-blur-md transition-all ${
+        <div className={`sticky top-0 z-10 border-b bg-white/90 backdrop-blur-md transition-all ${
           showCompact ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
         }`}>
           {/*author avatar*/}
@@ -352,13 +353,13 @@ function PageContent() {
                 >
                   <Bookmark className={`w-4 h-4 md:w-5 md:h-5 ${saved ? "fill-teal-500 text-teal-500" : ""}`} />
                 </button>
-                <button 
+               { article.author.id != userProfile.id && <button 
                   onClick={() => setIsReportOpen(true)} 
                   className="hover:text-red-500 transition-colors" 
                   title="Report Article"
                 >
                   <Flag className="w-4 h-4 md:w-5 md:h-5" />
-                </button>
+                </button>}
               </div>
             </div>
           </div>
@@ -366,7 +367,7 @@ function PageContent() {
 
         {/* Main Article Content */}
         <div className="max-w-4xl mx-auto px-8 md:px-12 py-10">
-          
+
           {/* Author Details */}
           <div className="flex items-center gap-3 mb-6">
             <div 
@@ -397,7 +398,7 @@ function PageContent() {
               >
                 {isTogglingFollow ? "Wait..." : isFollowing ? "Following" : "Follow"}
               </button>
-            }       
+            }      
           </div>
 
           <h1 className="text-4xl md:text-5xl font-black font-serif mb-6 leading-tight text-black">
@@ -446,12 +447,12 @@ function PageContent() {
               >
                 <Bookmark className={`w-5 h-5 ${saved ? "fill-teal-500 text-teal-500" : ""}`} />
               </button>
-              <button 
+              {article.author.id!=userProfile.id && <button 
                 onClick={() => setIsReportOpen(true)} 
                 className="hover:text-red-500 transition-colors"
               >
                 <Flag className="w-5 h-5" />
-              </button>
+              </button>}
             </div>
           </div>
 
@@ -462,7 +463,7 @@ function PageContent() {
           <div id="comments-section" className="border-t pt-12">
             <h3 className="text-2xl font-black font-serif mb-8">Responses ({article._count?.comments || 0})</h3>
             <Comments 
-              articleId={id} 
+              articleId={article.id} 
               currentUser={userProfile} 
               token={token}
               articleAuthorId={article?.author?.id}
@@ -495,18 +496,41 @@ function PageContent() {
             <div className="flex gap-2 justify-end">
               <button 
                 onClick={() => setIsReportOpen(false)}
-                className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleReportSubmit}
                 disabled={isReporting || !reportReason}
-                className="px-4 py-2 bg-red-500 text-white font-bold rounded-lg disabled:opacity-50 hover:bg-red-600 transition-colors"
+                className="px-4 py-2 bg-red-500 text-white font-bold rounded-lg disabled:opacity-50 hover:bg-red-600 transition-colors cursor-pointer"
               >
                 {isReporting ? "Sending..." : "Submit"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report Success Popup */}
+      {showReportSuccess && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-6 h-6 text-teal-600" />
+            </div>
+            
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Report Submitted</h3>
+            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
+              Thank you. The report has been sent to our team for review.
+            </p>
+            
+            <button 
+              onClick={() => setShowReportSuccess(false)} 
+              className="w-full px-4 py-2.5 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl transition-all cursor-pointer"
+            >
+              OK
+            </button>
           </div>
         </div>
       )}

@@ -167,6 +167,7 @@ function UserListPageContent() {
 
   return (
     <div className="max-w-6xl mx-auto p-8 bg-white min-h-screen relative overflow-hidden">
+      <h1 className="text-4xl font-bold mb-8 text-[#111827] ml-4" style={{ fontFamily: "serif" }}>User List</h1>
 
       <div className={`max-w-262.5 bg-[#D1D5DB]/50 rounded-[45px] overflow-hidden shadow-sm transition-all duration-500 pb-4 ${selectedUser ? "blur-md opacity-40 pointer-events-none" : ""}`}>
         <div className="bg-[#D1D5DB] p-5 px-10 border-b-[3px] border-[#1ABC9C] flex items-center justify-between">
@@ -197,7 +198,7 @@ function UserListPageContent() {
               {loading ? (
                 <tr><td colSpan="3" className="text-center p-20"><div className="flex flex-col items-center justify-center gap-3">
                   <Loader2 className="w-10 h-10 animate-spin text-[#1ABC9C]" />
-                  <span className="p-8 text-gray-500 tracking-widest animate-pulse">Syncing Users...</span></div>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest animate-pulse">Syncing Users...</span></div>
                 </td>
                 </tr>
               ) : (
