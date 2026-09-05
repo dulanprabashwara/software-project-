@@ -5,7 +5,10 @@ import { Loader2 } from "lucide-react";
 
 import NewFeed from "../../components/article/NewFeed";
 import FollowingFeed from "../../components/article/FollowingFeed";
+import PersonalFeed from "../../components/article/PersonalFeed";
 import RightFeed from "../../components/article/RightFeed";
+
+
 import SearchResults from "../../components/search/SearchResults";
 
 function HomeContent() {
@@ -18,8 +21,7 @@ function HomeContent() {
   const initialTab = tabParam === "profiles" ? "profiles" : "articles";
 
   const feedParam = searchParams.get("feed");
-  const initialFeed = feedParam === "2" ? 2 : 1; // Defaults to 1 if not specified
-  const [getFeed, setFeed] = useState(initialFeed);
+const initialFeed = feedParam === "2" ? 2 : feedParam === "3" ? 3 : 1;  const [getFeed, setFeed] = useState(initialFeed);
   const getFeedRef = useRef(1);
   getFeedRef.current = getFeed;
 
@@ -29,6 +31,9 @@ function HomeContent() {
       setFeed(1);
     } else if (feedParam === "2") {
       setFeed(2);
+    }
+     else if (feedParam === "3") {
+      setFeed(3);
     }
   }, [searchParams]);
 
@@ -117,7 +122,7 @@ function HomeContent() {
               ? "border-b-4 border-[#1abc9c] text-[#1abc9c]" 
               : "text-gray-500 border-b-4 border-transparent"}`}
         >
-          New
+          Recommended
         </button>
         
         <button
@@ -129,6 +134,16 @@ function HomeContent() {
         >
           Following
         </button>
+
+         <button
+          onClick={() => handleTabChange(3)}
+          className={`flex-1 py-4 text-sm md:text-base font-semibold transition-all duration-200 hover:bg-gray-50 
+            ${getFeed === 3 
+              ? "border-b-4 border-[#1abc9c] text-[#1abc9c]"  
+              : "text-gray-500 border-b-4 border-transparent"}`}
+        >
+          New
+        </button>
       </div>
 
       {/* SCROLLABLE FEED */}
@@ -137,13 +152,17 @@ function HomeContent() {
         onScroll={saveScroll}
         className="p-4 md:p-8 mx-auto w-full h-full overflow-y-auto"
       >
-        {getFeed === 1 ? (
-          <NewFeed/>
-        ) : getFeed === 2 ? (
-          <FollowingFeed />
-        ) : (
-          <h1 className="text-center mt-10 text-gray-500">INVALID Please refresh</h1>
-        )}
+  {
+  getFeed === 1 ? (
+ <PersonalFeed />
+  
+) :getFeed === 2 ? (
+  <FollowingFeed />
+) : getFeed === 3 ? (
+  <NewFeed />
+) : (
+  <h1 className="text-center mt-10 text-gray-500">INVALID Please refresh</h1>
+)}
       </div>
 
     </div>
