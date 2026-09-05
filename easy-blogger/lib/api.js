@@ -252,6 +252,9 @@ deleteComment: (commentId, token) =>
   getNewFeed: (page = 1, token = null) => 
     fetchAPI(`/api/homefeed/main?page=${page}`, { token }),
 
+  getPersonalFeed: (page = 1, token = null) =>
+    fetchAPI(`/api/homefeed/personal?page=${page}`, { token }),
+
   getTopUserArticles: (token = null) => 
     fetchAPI(`/api/TopUserArticles`, { token }),
 
